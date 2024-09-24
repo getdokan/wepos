@@ -3,11 +3,11 @@
 **Donate Link:** http://tareq.co/donate/
 **Tags:** WooCommerce POS, point of sale, free pos, pos plugin, woocommerce point of sale
 **Requires at least:** 5.4
-**Tested up to:** 6.4.2
+**Tested up to:** 6.5.3
 **WC requires at least:** 5.0.0
-**WC tested up to:** 8.4.0
-**Requires PHP:** 7.2
-**Stable tag:** 1.2.7
+**WC tested up to:** 8.9.2
+**Requires PHP:** 7.4
+**Stable tag:** 1.2.8
 **License:** GPLv2 or later
 **License URI:** http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -59,6 +59,11 @@ No FAQ
 9. Admin Dashboard Settings
 
 ## Changelog ##
+
+### v1.2.8 -> 05 June, 2024 ###
+- **Feature:** WooCommerce Coupon API integration for cart discount
+- **Enhancement:** Added support for WooCommerce customised order numbers by third-party plugins
+- **Fix:** Blurry numbers on print receipt
 
 ### v1.2.7 -> 27 December, 2023 ###
 - **Enhancement:** Tax calculation implementation based on discounts and fees instead of base price of products

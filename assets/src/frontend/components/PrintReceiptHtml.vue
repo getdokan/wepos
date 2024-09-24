@@ -12,9 +12,12 @@
                     <tr v-for="item in printdata.line_items">
                         <td class="name">
                             {{ item.name }}
+                            <span v-if="settings.woo_tax.wc_tax_display_cart === 'incl'" class="tax-info">{{ __( 'Tax includes', 'wepos' ) }}: {{ formatPrice( item.total_tax ) }}</span>
                             <div class="attribute" v-if="item.attribute.length > 0">
                                 <ul>
-                                    <li v-for="attribute_item in item.attribute"><span class="attr_name">{{ attribute_item.name }}</span>: <span class="attr_value">{{ attribute_item.option }}</span></li>
+                                    <li v-for="attribute_item in item.attribute">
+                                        <span class="attr_name">{{ attribute_item.name }}</span>: <span class="attr_value">{{ attribute_item.option }}</span>
+                                    </li>
                                 </ul>
                             </div>
                         </td>
@@ -33,23 +36,21 @@
                         <td colspan="2" class="name">
                             {{ __( 'Subtotal', 'wepos' ) }}
                             <span class="metadata" v-if="settings.woo_tax.wc_tax_display_cart == 'incl'">
-                                {{ __( 'Includes Tax', 'wepos' ) }} {{ formatPrice( $store.getters['Cart/getTotalLineTax'] ) }}
+                                {{ __( 'Including Tax', 'wepos' ) }}
                             </span>
                         </td>
                         <td class="price">{{ formatPrice( printdata.subtotal ) }}</td>
                     </tr>
+                    <tr v-for="(fee,key) in printdata.coupon_lines" class="cart-meta-data">
+                        <td colspan="2" class="name">{{ __( 'Discount', 'wepos' ) }} <span class="metadata">{{ fee.discount_type == 'percent' ? fee.value + '%' : formatPrice( fee.value ) }}</span></td>
+                        <td class="price">-{{ formatPrice( Math.abs( fee.total ) ) }}</td>
+                    </tr>
                     <tr v-for="(fee,key) in printdata.fee_lines" class="cart-meta-data">
-                        <template v-if="fee.type=='discount'">
-                            <td colspan="2" class="name">{{ __( 'Discount', 'wepos' ) }} <span class="metadata">{{ fee.discount_type == 'percent' ? fee.value + '%' : formatPrice( fee.value ) }}</span></td>
-                            <td class="price">-{{ formatPrice( Math.abs( fee.total ) ) }}</td>
-                        </template>
-                        <template v-else>
-                            <td colspan="2" class="name">{{ __( 'Fee', 'wepos' ) }} <span class="metadata">{{ fee.name }} {{ fee.fee_type == 'percent' ? fee.value + '%' : formatPrice( fee.value ) }}</span></td>
-                            <td class="price">-{{ formatPrice( Math.abs( fee.total ) ) }}</td>
-                        </template>
+                        <td colspan="2" class="name">{{ __( 'Fee', 'wepos' ) }} <span class="metadata">{{ fee.fee_type == 'percent' ? fee.value + '%' : formatPrice( fee.value ) }}</span></td>
+                        <td class="price">{{ formatPrice( Math.abs( fee.total ) ) }}</td>
                     </tr>
                     <tr v-if="printdata.taxtotal">
-                        <td colspan="2" class="name">{{ __( 'Tax', 'wepos' ) }}</td>
+                        <td colspan="2" class="name">{{ settings.woo_tax.wc_tax_display_cart === 'incl' && settings.wepos_general.enable_fee_tax === 'yes' ? __( 'Fee Tax', 'wepos' ) : __( 'Tax', 'wepos' ) }}</td>
                         <td class="price">{{ formatPrice(printdata.taxtotal) }}</td>
                     </tr>
                     <tr>
@@ -126,8 +127,8 @@ export default {
     }
 
     .wepos-checkout-print-wrapper {
-        color: #000;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        color: #000000;
+        font-family: Helvetica, Verdana, Calibri, Arial, "Franklin Gothic", sans-serif !important;
         display: inline-block !important;
     }
 
@@ -166,6 +167,11 @@ export default {
                             &.name {
                                 width: 60%;
                                 font-weight: bold;
+                                .tax-info {
+                                    display: block;
+                                    font-size: 13px;
+                                    font-weight: 400;
+                                }
                                 .attribute {
                                     margin-top: 2px;
                                     ul {

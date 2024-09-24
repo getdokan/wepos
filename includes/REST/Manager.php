@@ -1,5 +1,8 @@
 <?php
+
 namespace WeDevs\WePOS\REST;
+
+defined( 'ABSPATH' ) || exit;
 
 /**
  * REST Manager Handler
@@ -21,14 +24,15 @@ class Manager {
      * @return void
      */
     public function __construct() {
-        $this->class_map = apply_filters( 'wepos_rest_api_class_map', [
+        $this->class_map = apply_filters( 'wepos_rest_api_class_map', array(
             WEPOS_INCLUDES . '/REST/PaymentController.php'     => '\WeDevs\WePOS\REST\PaymentController',
             WEPOS_INCLUDES . '/REST/SettingController.php'     => '\WeDevs\WePOS\REST\SettingController',
             WEPOS_INCLUDES . '/REST/TaxController.php'         => '\WeDevs\WePOS\REST\TaxController',
             WEPOS_INCLUDES . '/REST/CustomerController.php'    => '\WeDevs\WePOS\REST\CustomerController',
             WEPOS_INCLUDES . '/REST/ProductController.php'     => '\WeDevs\WePOS\REST\ProductController',
+            WEPOS_INCLUDES . '/REST/CouponController.php'      => '\WeDevs\WePOS\REST\CouponController',
             WEPOS_INCLUDES . '/REST/ProductsLogController.php' => '\WeDevs\WePOS\REST\ProductsLogController',
-        ] );
+        ) );
 
         // Init REST API routes.
         add_action( 'rest_api_init', array( $this, 'register_rest_routes' ), 10 );

@@ -3,13 +3,13 @@
 Plugin Name: wePOS - Point Of Sale (POS) for WooCommerce
 Plugin URI: https://wedevs.com/wepos
 Description: A beautiful and fast Point of Sale (POS) system for WooCommerce
-Version: 1.2.7
+Version: 1.2.8
 Author: weDevs
 Author URI: https://wedevs.com/
 Text Domain: wepos
 Domain Path: /languages
 WC requires at least: 5.0.0
-WC tested up to: 8.4.0
+WC tested up to: 8.9.2
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 */
@@ -57,7 +57,7 @@ final class WePOS {
      *
      * @var string
      */
-    public $version = '1.2.7';
+    public $version = '1.2.8';
 
     /**
      * Holds various class instances
@@ -76,6 +76,7 @@ final class WePOS {
         require_once __DIR__ . '/vendor/autoload.php';
 
         $this->define_constants();
+        $this->includes();
 
         register_activation_hook( __FILE__, [ $this, 'activate' ] );
         register_deactivation_hook( __FILE__, [ $this, 'deactivate' ] );
@@ -130,8 +131,6 @@ final class WePOS {
         if ( did_action( 'woocommerce_loaded' ) || ! is_admin() ) {
             return;
         }
-
-        require_once WEPOS_INCLUDES . '/functions.php';
     }
 
     /**
@@ -258,7 +257,6 @@ final class WePOS {
      * @return void
      */
     public function init_plugin() {
-        $this->includes();
         $this->init_hooks();
 
         do_action( 'wepos_loaded' );
@@ -322,6 +320,7 @@ final class WePOS {
             new WeDevs\WePOS\Admin\Products();
             new WeDevs\WePOS\Admin\Updates();
             new WeDevs\WePOS\Admin\LimitedTimePromotion();
+            new WeDevs\WePOS\Admin\Discounts();
         } else {
             $this->container['frontend'] = new WeDevs\WePOS\Frontend();
         }

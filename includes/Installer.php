@@ -1,25 +1,31 @@
 <?php
+
 namespace WeDevs\WePOS;
 
-if ( ! defined( 'ABSPATH' ) ) {
-    exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
- * Installer class.
+ * Installer Class.
+ *
+ * @since WEPOS_SINCE
+ *
+ * @package wepos
  */
 class Installer {
 
     /**
-     * Run installer.
+     * Run The Installer.
      *
-     * @since WEPOS_LITE_SINCE
+     * @since WEPOS_SINCE
      *
      * @return void
      */
     public function run() {
         $this->add_installation_data();
+        $this->add_user_roles();
+        $this->flush_rewrites();
         $this->create_tables();
+        $this->schedule_cron_jobs();
     }
 
     /**
@@ -36,9 +42,20 @@ class Installer {
             update_option( 'we_pos_installed', time() );
         }
 
+        update_option( 'we_pos_version', WEPOS_VERSION );
+    }
+
+    /**
+     * Add User Roles.
+     *
+     * @since WEPOS_SINCE
+     *
+     * @return void
+     */
+    private function add_user_roles() {
         if ( function_exists( 'dokan' ) ) {
             $users_query = new \WP_User_Query( [
-                'role__in' => [ 'seller', 'vendor_staff' ]
+                'role__in' => [ 'seller', 'vendor_staff' ],
             ] );
             $users       = $users_query->get_results();
 
@@ -49,8 +66,16 @@ class Installer {
                 }
             }
         }
+    }
 
-        update_option( 'we_pos_version', WEPOS_VERSION );
+    /**
+     * Flush Rewrites.
+     *
+     * @since WEPOS_SINCE
+     *
+     * @return void
+     */
+    private function flush_rewrites() {
         set_transient( 'wepos-flush-rewrites', 1 );
     }
 
@@ -93,5 +118,31 @@ class Installer {
         foreach ( $tables as $key => $table ) {
             dbDelta( $table );
         }
+    }
+
+    /**
+     * Schedule Cron Jobs.
+     *
+     * @since WEPOS_SINCE
+     *
+     * @return void
+     */
+    private function schedule_cron_jobs() {
+        if ( ! function_exists( 'WC' ) || ! WC()->queue() ) {
+            return;
+        }
+
+        // Schedule daily cron job.
+        $hook = 'wepos_daily_midnight_cron';
+
+        // Check if we've defined the cron hook.
+        $cron_schedule = as_next_scheduled_action( $hook ); // This method will return false if the hook is not scheduled
+        if ( ! $cron_schedule ) {
+            as_unschedule_all_actions( $hook );
+        }
+
+        // Schedule recurring cron action.
+        $now = wepos_current_datetime()->modify( 'midnight' )->getTimestamp();
+        WC()->queue()->schedule_cron( $now, '0 0 * * *', $hook, [], 'dokan' );
     }
 }
