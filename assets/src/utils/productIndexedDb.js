@@ -156,7 +156,7 @@ export default {
                     let products = event.target.result;
 
                     let result = products.filter( ( product ) => {
-                        return condition.test( product.title ) || condition.test( product.id ) || condition.test( product.sku );
+                        return condition.test( product.name ) || condition.test( product.id ) || condition.test( product.sku );
                     } );
 
                     resolve( result );
