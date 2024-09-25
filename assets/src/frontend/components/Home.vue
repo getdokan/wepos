@@ -1034,7 +1034,7 @@ export default {
             }
 
             if ( ( this.totalPages >= this.page ) ) {
-                wepos.api.get( wepos.rest.root + wepos.rest.posversion + '/products?status=publish&per_page=30&page=' + this.page )
+                wepos.api.get( wepos.rest.root + wepos.rest.posversion + '/products?status=publish&per_page=50&page=' + this.page )
                 .done( ( response, status, xhr ) => {
                     this.appendProducts( response );
                     this.page += 1;

@@ -149,17 +149,25 @@ export default {
 
                 const transaction = db.transaction( ["ProductsDB"], "readwrite" );
                 const objectStore = transaction.objectStore( "ProductsDB" );
+                const query = objectStore.openCursor();
 
-                let condition = new RegExp( searchKeyword, 'i' );
+                const condition = new RegExp( searchKeyword, 'i' );
+                const results = [];
 
-                objectStore.getAll().onsuccess = ( event ) => {
-                    let products = event.target.result;
+                query.onsuccess = ( event ) => {
+                    const cursor = event.target.result;
 
-                    let result = products.filter( ( product ) => {
-                        return condition.test( product.name ) || condition.test( product.id ) || condition.test( product.sku );
-                    } );
+                    if ( cursor ) {
+                        const product = cursor.value;
 
-                    resolve( result );
+                        if ( condition.test( product.name ) || condition.test( product.id ) || condition.test( product.sku ) ) {
+                            results.push( product );
+                        }
+
+                        cursor.continue();
+                    } else {
+                        resolve( results );
+                    }
                 }
             }
         } );
