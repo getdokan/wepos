@@ -34,6 +34,7 @@ class Discounts {
     public function __construct() {
         add_action( 'load-edit.php', [ $this, 'hide_discount_coupons' ] );
         add_action( 'wepos_daily_midnight_cron', [ $this, 'remove_discount_coupons' ] );
+        add_filter( 'woocommerce_admin_order_item_coupon_url', [ $this, 'remove_discount_coupon_url' ], 10, 3 );
     }
 
     /**
@@ -131,5 +132,26 @@ class Discounts {
             $coupon = new \WC_Coupon( $coupon_id );
             $coupon->delete( true );
         }
+    }
+
+    /**
+     * Remove Discount Coupon URL from Order Item.
+     *
+     * @since WEPOS_SINCE
+     *
+     * @param string                $url   Coupon URL
+     * @param \WC_Order_Item_Coupon $item  Order Coupon Item
+     * @param \WC_Order             $order Order
+     *
+     * @return string $url Coupon Url
+     */
+    public function remove_discount_coupon_url( $url, $item, $order ) {
+        if ( ! $order->get_meta( '_wepos_is_pos_order' ) ) {
+            return $url;
+        }
+
+        $url = '#';
+
+        return $url;
     }
 }
