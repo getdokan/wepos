@@ -12,11 +12,11 @@
   "minimum-stability": "dev",
   "require": {
     "php": ">=7.4",
-    "appsero/client": "dev-develop",
+    "appsero/client": "^v2.0.4",
     "ext-json": "*"
   },
   "require-dev": {
-    "wp-coding-standards/wpcs": "dev-master",
+    "wp-coding-standards/wpcs": "*",
     "dealerdirect/phpcodesniffer-composer-installer": "^0.7.1"
   },
   "autoload" : {
