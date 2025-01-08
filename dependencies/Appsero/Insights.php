@@ -9,8 +9,7 @@ namespace WeDevs\WePOS\Dependencies\Appsero;
  * No personal information is being tracked by this class, only general settings, active plugins, environment details
  * and admin email.
  */
-class Insights
-{
+class Insights {
 
     /**
      * The notice text
@@ -20,7 +19,7 @@ class Insights
     public $notice;
 
     /**
-     * Wheather to the notice or not
+     * Whether to show the notice or not
      *
      * @var bool
      */
@@ -31,7 +30,7 @@ class Insights
      *
      * @var array
      */
-    protected $extra_data = [];
+    protected $extra_data = array();
 
     /**
      * AppSero\Client
@@ -41,6 +40,8 @@ class Insights
     protected $client;
 
     /**
+     * Whether to include plugin data
+     *
      * @var bool
      */
     private $plugin_data = false;
@@ -48,16 +49,16 @@ class Insights
     /**
      * Initialize the class
      *
-     * @param null $name
-     * @param null $file
+     * @param mixed  $client Client object or string.
+     * @param string $name   Name of the plugin/theme.
+     * @param string $file   Main plugin file path.
      */
-    public function __construct($client, $name = null, $file = null)
-    {
-        if (is_string($client) && !empty($name) && !empty($file)) {
-            $client = new Client($client, $name, $file);
+    public function __construct( $client, $name = null, $file = null ) {
+        if ( is_string( $client ) && ! empty( $name ) && ! empty( $file ) ) {
+            $client = new Client( $client, $name, $file );
         }
 
-        if (is_object($client) && is_a($client, 'WeDevs\WePOS\Dependencies\Appsero\Client')) {
+        if ( is_object( $client ) && is_a( $client, 'WeDevs\WePOS\Dependencies\Appsero\Client' ) ) {
             $this->client = $client;
         }
     }
@@ -65,10 +66,9 @@ class Insights
     /**
      * Don't show the notice
      *
-     * @return \self
+     * @return self
      */
-    public function hide_notice()
-    {
+    public function hide_notice() {
         $this->show_notice = false;
 
         return $this;
@@ -77,10 +77,9 @@ class Insights
     /**
      * Add plugin data if needed
      *
-     * @return \self
+     * @return self
      */
-    public function add_plugin_data()
-    {
+    public function add_plugin_data() {
         $this->plugin_data = true;
 
         return $this;
@@ -89,12 +88,11 @@ class Insights
     /**
      * Add extra data if needed
      *
-     * @param array $data
+     * @param array $data Extra data.
      *
-     * @return \self
+     * @return self
      */
-    public function add_extra($data = [])
-    {
+    public function add_extra( $data = array() ) {
         $this->extra_data = $data;
 
         return $this;
@@ -103,12 +101,11 @@ class Insights
     /**
      * Set custom notice text
      *
-     * @param string $text
+     * @param string $text Custom notice text.
      *
-     * @return \self
+     * @return self
      */
-    public function notice($text = '')
-    {
+    public function notice( $text = '' ) {
         $this->notice = $text;
 
         return $this;
@@ -119,11 +116,10 @@ class Insights
      *
      * @return void
      */
-    public function init()
-    {
-        if ($this->client->type === 'plugin') {
+    public function init() {
+        if ( 'plugin' === $this->client->type ) {
             $this->init_plugin();
-        } elseif ($this->client->type === 'theme') {
+        } elseif ( 'theme' === $this->client->type ) {
             $this->init_theme();
         }
     }
@@ -133,12 +129,11 @@ class Insights
      *
      * @return void
      */
-    public function init_theme()
-    {
+    public function init_theme() {
         $this->init_common();
 
-        add_action('switch_theme', [$this, 'deactivation_cleanup']);
-        add_action('switch_theme', [$this, 'theme_deactivated'], 12, 3);
+        add_action( 'switch_theme', array( $this, 'deactivation_cleanup' ) );
+        add_action( 'switch_theme', array( $this, 'theme_deactivated' ), 12, 3 );
     }
 
     /**
@@ -146,21 +141,14 @@ class Insights
      *
      * @return void
      */
-    public function init_plugin()
-    {
-        // plugin deactivate popup
-        //        if ( ! $this->is_local_server() ) {
-        //            add_filter( 'plugin_action_links_' . $this->client->basename, [ $this, 'plugin_action_links' ] );
-        //            add_action( 'admin_footer', [ $this, 'deactivate_scripts' ] );
-        //        }
-
-        add_filter('plugin_action_links_' . $this->client->basename, [$this, 'plugin_action_links']);
-        add_action('admin_footer', [$this, 'deactivate_scripts']);
+    public function init_plugin() {
+        add_filter( 'plugin_action_links_' . $this->client->basename, array( $this, 'plugin_action_links' ) );
+        add_action( 'admin_footer', array( $this, 'deactivate_scripts' ) );
 
         $this->init_common();
 
-        register_activation_hook($this->client->file, [$this, 'activate_plugin']);
-        register_deactivation_hook($this->client->file, [$this, 'deactivation_cleanup']);
+        register_activation_hook( $this->client->file, array( $this, 'activate_plugin' ) );
+        register_deactivation_hook( $this->client->file, array( $this, 'deactivation_cleanup' ) );
     }
 
     /**
@@ -168,49 +156,43 @@ class Insights
      *
      * @return void
      */
-    protected function init_common()
-    {
-        if ($this->show_notice) {
-            // tracking notice
-            add_action('admin_notices', [$this, 'admin_notice']);
+    protected function init_common() {
+        if ( $this->show_notice ) {
+            add_action( 'admin_notices', array( $this, 'admin_notice' ) );
         }
 
-        add_action('admin_init', [$this, 'handle_optin_optout']);
+        add_action( 'admin_init', array( $this, 'handle_optin_optout' ) );
 
-        // uninstall reason
-        add_action('wp_ajax_' . $this->client->slug . '_submit-uninstall-reason', [$this, 'uninstall_reason_submission']);
+        add_action( 'wp_ajax_' . $this->client->slug . '_submit-uninstall-reason', array( $this, 'uninstall_reason_submission' ) );
 
-        // cron events
-        add_filter('cron_schedules', [$this, 'add_weekly_schedule']);
-        add_action($this->client->slug . '_tracker_send_event', [$this, 'send_tracking_data']);
-        // add_action( 'admin_init', array( $this, 'send_tracking_data' ) ); // test
+        add_filter( 'cron_schedules', array( $this, 'add_weekly_schedule' ) );
+        add_action( $this->client->slug . '_tracker_send_event', array( $this, 'send_tracking_data' ) );
     }
 
     /**
      * Send tracking data to AppSero server
      *
-     * @param bool $override
+     * @param bool $override Whether to override the tracking allowed check.
      *
      * @return void
      */
-    public function send_tracking_data($override = false)
-    {
-        if (!$this->tracking_allowed() && !$override) {
+    public function send_tracking_data( $override = false ) {
+        if ( ! $this->tracking_allowed() && ! $override ) {
             return;
         }
 
-        // Send a maximum of once per week
+        // Send a maximum of once per week.
         $last_send = $this->get_last_send();
 
-        if ($last_send && $last_send > strtotime('-1 week')) {
+        if ( $last_send && $last_send > strtotime( '-1 week' ) ) {
             return;
         }
 
         $tracking_data = $this->get_tracking_data();
 
-        $response = $this->client->send_request($tracking_data, 'track');
+        $response = $this->client->send_request( $tracking_data, 'track' );
 
-        update_option($this->client->slug . '_tracking_last_send', time());
+        update_option( $this->client->slug . '_tracking_last_send', time() );
     }
 
     /**
@@ -218,88 +200,87 @@ class Insights
      *
      * @return array
      */
-    protected function get_tracking_data()
-    {
+    protected function get_tracking_data() {
         $all_plugins = $this->get_all_plugins();
 
         $users = get_users(
-            [
+            array(
                 'role'    => 'administrator',
                 'orderby' => 'ID',
                 'order'   => 'ASC',
                 'number'  => 1,
                 'paged'   => 1,
-            ]
+            )
         );
 
-        $admin_user = (is_array($users) && !empty($users)) ? $users[0] : false;
+        $admin_user = ( is_array( $users ) && ! empty( $users ) ) ? $users[0] : false;
         $first_name = '';
         $last_name  = '';
 
-        if ($admin_user) {
+        if ( $admin_user ) {
             $first_name = $admin_user->first_name ? $admin_user->first_name : $admin_user->display_name;
             $last_name  = $admin_user->last_name;
         }
 
-        $data = [
-            'url'              => esc_url(home_url()),
+        $data = array(
+            'url'              => esc_url( home_url() ),
             'site'             => $this->get_site_name(),
-            'admin_email'      => get_option('admin_email'),
+            'admin_email'      => get_option( 'admin_email' ),
             'first_name'       => $first_name,
             'last_name'        => $last_name,
             'hash'             => $this->client->hash,
             'server'           => $this->get_server_info(),
             'wp'               => $this->get_wp_info(),
             'users'            => $this->get_user_counts(),
-            'active_plugins'   => count($all_plugins['active_plugins']),
-            'inactive_plugins' => count($all_plugins['inactive_plugins']),
+            'active_plugins'   => count( $all_plugins['active_plugins'] ),
+            'inactive_plugins' => count( $all_plugins['inactive_plugins'] ),
             'ip_address'       => $this->get_user_ip_address(),
             'project_version'  => $this->client->project_version,
             'tracking_skipped' => false,
             'is_local'         => $this->is_local_server(),
-        ];
+        );
 
-        // Add Plugins
-        if ($this->plugin_data) {
-            $plugins_data = [];
+        // Add Plugins.
+        if ( $this->plugin_data ) {
+            $plugins_data = array();
 
-            foreach ($all_plugins['active_plugins'] as $slug => $plugin) {
-                $slug = strstr($slug, '/', true);
+            foreach ( $all_plugins['active_plugins'] as $slug => $plugin ) {
+                $slug = strstr( $slug, '/', true );
 
-                if (!$slug) {
+                if ( ! $slug ) {
                     continue;
                 }
 
-                $plugins_data[$slug] = [
-                    'name'      => isset($plugin['name']) ? $plugin['name'] : '',
-                    'version'   => isset($plugin['version']) ? $plugin['version'] : '',
-                ];
+                $plugins_data[ $slug ] = array(
+                    'name'    => isset( $plugin['name'] ) ? $plugin['name'] : '',
+                    'version' => isset( $plugin['version'] ) ? $plugin['version'] : '',
+                );
             }
 
-            if (array_key_exists($this->client->slug, $plugins_data)) {
-                unset($plugins_data[$this->client->slug]);
+            if ( array_key_exists( $this->client->slug, $plugins_data ) ) {
+                unset( $plugins_data[ $this->client->slug ] );
             }
 
             $data['plugins'] = $plugins_data;
         }
 
-        // Add Metadata
+        // Add Metadata.
         $extra = $this->get_extra_data();
 
-        if ($extra) {
+        if ( $extra ) {
             $data['extra'] = $extra;
         }
 
-        // Check this has previously skipped tracking
-        $skipped = get_option($this->client->slug . '_tracking_skipped');
+        // Check if tracking was previously skipped.
+        $skipped = get_option( $this->client->slug . '_tracking_skipped' );
 
-        if ($skipped === 'yes') {
-            delete_option($this->client->slug . '_tracking_skipped');
+        if ( 'yes' === $skipped ) {
+            delete_option( $this->client->slug . '_tracking_skipped' );
 
             $data['tracking_skipped'] = true;
         }
 
-        return apply_filters($this->client->slug . '_tracker_data', $data);
+        return apply_filters( $this->client->slug . '_tracker_data', $data );
     }
 
     /**
@@ -307,17 +288,16 @@ class Insights
      *
      * @return mixed
      */
-    protected function get_extra_data()
-    {
-        if (is_callable($this->extra_data)) {
-            return call_user_func($this->extra_data);
+    protected function get_extra_data() {
+        if ( is_callable( $this->extra_data ) ) {
+            return call_user_func( $this->extra_data );
         }
 
-        if (is_array($this->extra_data)) {
+        if ( is_array( $this->extra_data ) ) {
             return $this->extra_data;
         }
 
-        return [];
+        return array();
     }
 
     /**
@@ -325,19 +305,18 @@ class Insights
      *
      * @return array
      */
-    protected function data_we_collect()
-    {
-        $data = [
+    protected function data_we_collect() {
+        $data = array(
             'Server environment details (php, mysql, server, WordPress versions)',
             'Number of users in your site',
             'Site language',
             'Number of active and inactive plugins',
             'Site name and URL',
             'Your name and email address',
-        ];
+        );
 
-        if ($this->plugin_data) {
-            array_splice($data, 4, 0, ["active plugins' name"]);
+        if ( $this->plugin_data ) {
+            array_splice( $data, 4, 0, array( "active plugins' name" ) );
         }
 
         return $data;
@@ -348,11 +327,10 @@ class Insights
      *
      * @return bool
      */
-    public function tracking_allowed()
-    {
-        $allow_tracking = get_option($this->client->slug . '_allow_tracking', 'no');
+    public function tracking_allowed() {
+        $allow_tracking = get_option( $this->client->slug . '_allow_tracking', 'no' );
 
-        return $allow_tracking === 'yes';
+        return 'yes' === $allow_tracking;
     }
 
     /**
@@ -360,9 +338,8 @@ class Insights
      *
      * @return false|string
      */
-    private function get_last_send()
-    {
-        return get_option($this->client->slug . '_tracking_last_send', false);
+    private function get_last_send() {
+        return get_option( $this->client->slug . '_tracking_last_send', false );
     }
 
     /**
@@ -370,11 +347,10 @@ class Insights
      *
      * @return bool
      */
-    public function notice_dismissed()
-    {
-        $hide_notice = get_option($this->client->slug . '_tracking_notice', null);
+    public function notice_dismissed() {
+        $hide_notice = get_option( $this->client->slug . '_tracking_notice', null );
 
-        if ('hide' === $hide_notice) {
+        if ( 'hide' === $hide_notice ) {
             return true;
         }
 
@@ -386,21 +362,20 @@ class Insights
      *
      * @return bool
      */
-    private function is_local_server()
-    {
-        $host       = isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : 'localhost';
-        $ip         = isset($_SERVER['SERVER_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['SERVER_ADDR'])) : '127.0.0.1';
-        $is_local   = false;
+    private function is_local_server() {
+        $host     = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : 'localhost';
+        $ip       = isset( $_SERVER['SERVER_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['SERVER_ADDR'] ) ) : '127.0.0.1';
+        $is_local = false;
 
         if (
-            in_array($ip, ['127.0.0.1', '::1'], true)
-            || !strpos($host, '.')
-            || in_array(strrchr($host, '.'), ['.test', '.testing', '.local', '.localhost', '.localdomain'], true)
+            in_array( $ip, array( '127.0.0.1', '::1' ), true ) ||
+            ! strpos( $host, '.' ) ||
+            in_array( strrchr( $host, '.' ), array( '.test', '.testing', '.local', '.localhost', '.localdomain' ), true )
         ) {
             $is_local = true;
         }
 
-        return apply_filters('appsero_is_local', $is_local);
+        return apply_filters( 'appsero_is_local', $is_local );
     }
 
     /**
@@ -408,12 +383,11 @@ class Insights
      *
      * @return void
      */
-    private function schedule_event()
-    {
-        $hook_name = wp_unslash($this->client->slug . '_tracker_send_event');
+    private function schedule_event() {
+        $hook_name = wp_unslash( $this->client->slug . '_tracker_send_event' );
 
-        if (!wp_next_scheduled($hook_name)) {
-            wp_schedule_event(time(), 'weekly', $hook_name);
+        if ( ! wp_next_scheduled( $hook_name ) ) {
+            wp_schedule_event( time(), 'weekly', $hook_name );
         }
     }
 
@@ -422,9 +396,8 @@ class Insights
      *
      * @return void
      */
-    private function clear_schedule_event()
-    {
-        wp_clear_scheduled_hook($this->client->slug . '_tracker_send_event');
+    private function clear_schedule_event() {
+        wp_clear_scheduled_hook( $this->client->slug . '_tracker_send_event' );
     }
 
     /**
@@ -432,53 +405,49 @@ class Insights
      *
      * @return void
      */
-    public function admin_notice()
-    {
-        if ($this->notice_dismissed()) {
+    public function admin_notice() {
+        if ( $this->notice_dismissed() ) {
             return;
         }
 
-        if ($this->tracking_allowed()) {
+        if ( $this->tracking_allowed() ) {
             return;
         }
 
-        if (!current_user_can('manage_options')) {
+        if ( ! current_user_can( 'manage_options' ) ) {
             return;
         }
 
-        // don't show tracking if a local server
-        //        if ( $this->is_local_server() ) {
-        //            return;
-        //        }
+        $optin_url  = wp_nonce_url( add_query_arg( $this->client->slug . '_tracker_optin', 'true' ), '_wpnonce' );
+        $optout_url = wp_nonce_url( add_query_arg( $this->client->slug . '_tracker_optout', 'true' ), '_wpnonce' );
 
-        $optin_url  = wp_nonce_url(add_query_arg($this->client->slug . '_tracker_optin', 'true'), '_wpnonce');
-        $optout_url = wp_nonce_url(add_query_arg($this->client->slug . '_tracker_optout', 'true'), '_wpnonce');
-
-        if (empty($this->notice)) {
-            $notice = sprintf($this->client->__trans('Want to help make <strong>%1$s</strong> even more awesome? Allow %1$s to collect diagnostic data and usage information.'), $this->client->name);
+        if ( empty( $this->notice ) ) {
+            $notice = sprintf(
+                $this->client->__trans( 'Want to help make <strong>%1$s</strong> even more awesome? Allow %1$s to collect diagnostic data and usage information.' ),
+                $this->client->name
+            );
         } else {
             $notice = $this->notice;
         }
 
         $policy_url = 'https://appsero.com/privacy-policy/';
 
-        $notice .= ' (<a class="' . $this->client->slug . '-insights-data-we-collect" href="#">' . $this->client->__trans('what we collect') . '</a>)';
-        $notice .= '<p class="description" style="display:none;">' . implode(', ', $this->data_we_collect()) . '. ';
+        $notice .= ' (<a class="' . $this->client->slug . '-insights-data-we-collect" href="#">' . $this->client->__trans( 'what we collect' ) . '</a>)';
+        $notice .= '<p class="description" style="display:none;">' . implode( ', ', $this->data_we_collect() ) . '. ';
         $notice .= 'We are using WeDevs\WePOS\Dependencies\Appsero to collect your data. <a href="' . $policy_url . '" target="_blank">Learn more</a> about how WeDevs\WePOS\Dependencies\Appsero collects and handle your data.</p>';
 
         echo '<div class="updated"><p>';
-        echo $notice;
+        echo wp_kses_post( $notice );
         echo '</p><p class="submit">';
-        echo '&nbsp;<a href="' . esc_url($optin_url) . '" class="button-primary button-large">' . $this->client->__trans('Allow') . '</a>';
-        echo '&nbsp;<a href="' . esc_url($optout_url) . '" class="button-secondary button-large">' . $this->client->__trans('No thanks') . '</a>';
+        echo '&nbsp;<a href="' . esc_url( $optin_url ) . '" class="button-primary button-large">' . esc_html( $this->client->__trans( 'Allow' ) ) . '</a>';
+        echo '&nbsp;<a href="' . esc_url( $optout_url ) . '" class="button-secondary button-large">' . esc_html( $this->client->__trans( 'No thanks' ) ) . '</a>';
         echo '</p></div>';
 
-        echo "<script type='text/javascript'>jQuery('." . $this->client->slug . "-insights-data-we-collect').on('click', function(e) {
+        echo "<script type='text/javascript'>jQuery('." . esc_js( $this->client->slug ) . "-insights-data-we-collect').on('click', function(e) {
                 e.preventDefault();
                 jQuery(this).parents('.updated').find('p.description').slideToggle('fast');
             });
-            </script>
-        ";
+            </script>";
     }
 
     /**
@@ -486,33 +455,95 @@ class Insights
      *
      * @return void
      */
-    public function handle_optin_optout()
-    {
-        if (!isset($_GET['_wpnonce'])) {
+    public function handle_optin_optout() {
+        if ( ! $this->is_valid_request() || ! $this->has_manage_options_capability() ) {
             return;
         }
 
-        if (!wp_verify_nonce(sanitize_key($_GET['_wpnonce']), '_wpnonce')) {
-            return;
-        }
-
-        if (!current_user_can('manage_options')) {
-            return;
-        }
-
-        if (isset($_GET[$this->client->slug . '_tracker_optin']) && $_GET[$this->client->slug . '_tracker_optin'] === 'true') {
+        if ( $this->is_optin_request() ) {
             $this->optin();
-
-            wp_safe_redirect(remove_query_arg($this->client->slug . '_tracker_optin'));
-            exit;
+            $this->handle_redirection( $this->client->slug . '_tracker_optin' );
         }
 
-        if (isset($_GET[$this->client->slug . '_tracker_optout']) && isset($_GET[$this->client->slug . '_tracker_optout']) && $_GET[$this->client->slug . '_tracker_optout'] === 'true') {
+        if ( $this->is_optout_request() ) {
             $this->optout();
-
-            wp_safe_redirect(remove_query_arg($this->client->slug . '_tracker_optout'));
-            exit;
+            $this->handle_redirection( $this->client->slug . '_tracker_optout' );
         }
+    }
+
+    /**
+     * Validate the request nonce.
+     *
+     * @return bool
+     */
+    private function is_valid_request() {
+        return isset( $_GET['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_GET['_wpnonce'] ), '_wpnonce' );
+    }
+
+    /**
+     * Check if the current user has manage options capability.
+     *
+     * @return bool
+     */
+    private function has_manage_options_capability() {
+        return current_user_can( 'manage_options' );
+    }
+
+    /**
+     * Check if the current request is for opt-in.
+     *
+     * @return bool
+     */
+    private function is_optin_request() {
+        return isset( $_GET[ $this->client->slug . '_tracker_optin' ] ) && 'true' === $_GET[ $this->client->slug . '_tracker_optin' ];
+    }
+
+    /**
+     * Check if the current request is for opt-out.
+     *
+     * @return bool
+     */
+    private function is_optout_request() {
+        return isset( $_GET[ $this->client->slug . '_tracker_optout' ] ) && 'true' === $_GET[ $this->client->slug . '_tracker_optout' ];
+    }
+
+    /**
+     * Handle redirection after opt-in/opt-out actions.
+     *
+     * @param string $param The query parameter to remove.
+     */
+    private function handle_redirection( $param ) {
+        if ( $this->is_inaccessible_page() ) {
+            wp_safe_redirect( admin_url() );
+        } else {
+            wp_safe_redirect( remove_query_arg( $param ) );
+        }
+        exit;
+    }
+
+    /**
+     * Check if the current page is updater.php or similar inaccessible pages.
+     *
+     * @return bool
+     */
+    private function is_inaccessible_page() {
+        $inaccessible_pages = array(
+            '/wp-admin/update.php', // Add similar inaccessible PHP files here
+        );
+
+        // Sanitize and unslash the REQUEST_URI before using it
+        $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+
+        // Ensure REQUEST_URI is properly sanitized before use
+        $request_uri = esc_url_raw( $request_uri );
+
+        foreach ( $inaccessible_pages as $page ) {
+            if ( false !== strpos( $request_uri, $page ) ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -520,19 +551,15 @@ class Insights
      *
      * @return void
      */
-    public function optin()
-    {
-        update_option($this->client->slug . '_allow_tracking', 'yes');
-        update_option($this->client->slug . '_tracking_notice', 'hide');
+    public function optin() {
+        update_option( $this->client->slug . '_allow_tracking', 'yes' );
+        update_option( $this->client->slug . '_tracking_notice', 'hide' );
 
         $this->clear_schedule_event();
         $this->schedule_event();
         $this->send_tracking_data();
 
-        /*
-         * Fires when the user has opted in tracking.
-         */
-        do_action($this->client->slug . '_tracker_optin', $this->get_tracking_data());
+        do_action( $this->client->slug . '_tracker_optin', $this->get_tracking_data() );
     }
 
     /**
@@ -540,36 +567,31 @@ class Insights
      *
      * @return void
      */
-    public function optout()
-    {
-        update_option($this->client->slug . '_allow_tracking', 'no');
-        update_option($this->client->slug . '_tracking_notice', 'hide');
+    public function optout() {
+        update_option( $this->client->slug . '_allow_tracking', 'no' );
+        update_option( $this->client->slug . '_tracking_notice', 'hide' );
 
         $this->send_tracking_skipped_request();
 
         $this->clear_schedule_event();
 
-        /*
-         * Fires when the user has opted out tracking.
-         */
-        do_action($this->client->slug . '_tracker_optout');
+        do_action( $this->client->slug . '_tracker_optout' );
     }
 
     /**
      * Get the number of post counts
      *
-     * @param string $post_type
-     *
+     * @param string $post_type The post type to count.
      * @return int
      */
-    public function get_post_count($post_type)
-    {
+    public function get_post_count( $post_type ) {
         global $wpdb;
 
         return (int) $wpdb->get_var(
             $wpdb->prepare(
                 "SELECT count(ID) FROM $wpdb->posts WHERE post_type = %s and post_status = %s",
-                [$post_type, 'publish']
+                $post_type,
+                'publish'
             )
         );
     }
@@ -579,28 +601,26 @@ class Insights
      *
      * @return array
      */
-    private static function get_server_info()
-    {
+    private static function get_server_info() {
         global $wpdb;
 
-        $server_data = [];
+        $server_data = array();
 
-        if (isset($_SERVER['SERVER_SOFTWARE']) && !empty($_SERVER['SERVER_SOFTWARE'])) {
-            // phpcs:ignore
-            $server_data['software'] = $_SERVER['SERVER_SOFTWARE'];
+        if ( isset( $_SERVER['SERVER_SOFTWARE'] ) && ! empty( $_SERVER['SERVER_SOFTWARE'] ) ) {
+            $server_data['software'] = sanitize_text_field( wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) );
         }
 
-        if (function_exists('phpversion')) {
+        if ( function_exists( 'phpversion' ) ) {
             $server_data['php_version'] = phpversion();
         }
 
         $server_data['mysql_version'] = $wpdb->db_version();
 
-        $server_data['php_max_upload_size']  = size_format(wp_max_upload_size());
+        $server_data['php_max_upload_size']  = size_format( wp_max_upload_size() );
         $server_data['php_default_timezone'] = date_default_timezone_get();
-        $server_data['php_soap']             = class_exists('SoapClient') ? 'Yes' : 'No';
-        $server_data['php_fsockopen']        = function_exists('fsockopen') ? 'Yes' : 'No';
-        $server_data['php_curl']             = function_exists('curl_init') ? 'Yes' : 'No';
+        $server_data['php_soap']             = class_exists( 'SoapClient' ) ? 'Yes' : 'No';
+        $server_data['php_fsockopen']        = function_exists( 'fsockopen' ) ? 'Yes' : 'No';
+        $server_data['php_curl']             = function_exists( 'curl_init' ) ? 'Yes' : 'No';
 
         return $server_data;
     }
@@ -610,23 +630,22 @@ class Insights
      *
      * @return array
      */
-    private function get_wp_info()
-    {
-        $wp_data = [];
+    private function get_wp_info() {
+        $wp_data = array(
+            'memory_limit' => WP_MEMORY_LIMIT,
+            'debug_mode'   => ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ? 'Yes' : 'No',
+            'locale'       => get_locale(),
+            'version'      => get_bloginfo( 'version' ),
+            'multisite'    => is_multisite() ? 'Yes' : 'No',
+            'theme_slug'   => get_stylesheet(),
+        );
 
-        $wp_data['memory_limit'] = WP_MEMORY_LIMIT;
-        $wp_data['debug_mode']   = (defined('WP_DEBUG') && WP_DEBUG) ? 'Yes' : 'No';
-        $wp_data['locale']       = get_locale();
-        $wp_data['version']      = get_bloginfo('version');
-        $wp_data['multisite']    = is_multisite() ? 'Yes' : 'No';
-        $wp_data['theme_slug']   = get_stylesheet();
+        $theme = wp_get_theme( $wp_data['theme_slug'] );
 
-        $theme = wp_get_theme($wp_data['theme_slug']);
-
-        $wp_data['theme_name']    = $theme->get('Name');
-        $wp_data['theme_version'] = $theme->get('Version');
-        $wp_data['theme_uri']     = $theme->get('ThemeURI');
-        $wp_data['theme_author']  = $theme->get('Author');
+        $wp_data['theme_name']    = $theme->get( 'Name' );
+        $wp_data['theme_version'] = $theme->get( 'Version' );
+        $wp_data['theme_uri']     = $theme->get( 'ThemeURI' );
+        $wp_data['theme_author']  = $theme->get( 'Author' );
 
         return $wp_data;
     }
@@ -636,51 +655,42 @@ class Insights
      *
      * @return array
      */
-    private function get_all_plugins()
-    {
-        // Ensure get_plugins function is loaded
-        if (!function_exists('get_plugins')) {
+    private function get_all_plugins() {
+        if ( ! function_exists( 'get_plugins' ) ) {
             include ABSPATH . '/wp-admin/includes/plugin.php';
         }
 
         $plugins             = get_plugins();
-        $active_plugins_keys = get_option('active_plugins', []);
-        $active_plugins      = [];
+        $active_plugins_keys = get_option( 'active_plugins', array() );
+        $active_plugins      = array();
 
-        foreach ($plugins as $k => $v) {
-            // Take care of formatting the data how we want it.
-            $formatted         = [];
-            $formatted['name'] = wp_strip_all_tags($v['Name']);
+        foreach ( $plugins as $k => $v ) {
+            $formatted = array(
+                'name'    => wp_strip_all_tags( $v['Name'] ),
+                'version' => wp_strip_all_tags( $v['Version'] ),
+                'author'  => wp_strip_all_tags( $v['Author'] ),
+            );
 
-            if (isset($v['Version'])) {
-                $formatted['version'] = wp_strip_all_tags($v['Version']);
+            if ( isset( $v['Network'] ) ) {
+                $formatted['network'] = wp_strip_all_tags( $v['Network'] );
             }
 
-            if (isset($v['Author'])) {
-                $formatted['author'] = wp_strip_all_tags($v['Author']);
+            if ( isset( $v['PluginURI'] ) ) {
+                $formatted['plugin_uri'] = wp_strip_all_tags( $v['PluginURI'] );
             }
 
-            if (isset($v['Network'])) {
-                $formatted['network'] = wp_strip_all_tags($v['Network']);
-            }
-
-            if (isset($v['PluginURI'])) {
-                $formatted['plugin_uri'] = wp_strip_all_tags($v['PluginURI']);
-            }
-
-            if (in_array($k, $active_plugins_keys, true)) {
-                // Remove active plugins from list so we can show active and inactive separately
-                unset($plugins[$k]);
-                $active_plugins[$k] = $formatted;
+            if ( in_array( $k, $active_plugins_keys, true ) ) {
+                unset( $plugins[ $k ] );
+                $active_plugins[ $k ] = $formatted;
             } else {
-                $plugins[$k] = $formatted;
+                $plugins[ $k ] = $formatted;
             }
         }
 
-        return [
-            'active_plugins'    => $active_plugins,
-            'inactive_plugins'  => $plugins,
-        ];
+        return array(
+            'active_plugins'   => $active_plugins,
+            'inactive_plugins' => $plugins,
+        );
     }
 
     /**
@@ -688,19 +698,16 @@ class Insights
      *
      * @return array
      */
-    public function get_user_counts()
-    {
-        $user_count          = [];
+    public function get_user_counts() {
+        $user_count          = array();
         $user_count_data     = count_users();
         $user_count['total'] = $user_count_data['total_users'];
 
-        // Get user count based on user role
-        foreach ($user_count_data['avail_roles'] as $role => $count) {
-            if (!$count) {
+        foreach ( $user_count_data['avail_roles'] as $role => $count ) {
+            if ( ! $count ) {
                 continue;
             }
-
-            $user_count[$role] = $count;
+            $user_count[ $role ] = $count;
         }
 
         return $user_count;
@@ -709,16 +716,14 @@ class Insights
     /**
      * Add weekly cron schedule
      *
-     * @param array $schedules
-     *
+     * @param array $schedules Existing cron schedules.
      * @return array
      */
-    public function add_weekly_schedule($schedules)
-    {
-        $schedules['weekly'] = [
+    public function add_weekly_schedule( $schedules ) {
+        $schedules['weekly'] = array(
             'interval' => DAY_IN_SECONDS * 7,
-            'display'  => 'Once Weekly',
-        ];
+            'display'  => __( 'Once Weekly', 'appsero' ),
+        );
 
         return $schedules;
     }
@@ -728,25 +733,22 @@ class Insights
      *
      * @return void
      */
-    public function activate_plugin()
-    {
-        $allowed = get_option($this->client->slug . '_allow_tracking', 'no');
+    public function activate_plugin() {
+        $allowed = get_option( $this->client->slug . '_allow_tracking', 'no' );
 
-        // if it wasn't allowed before, do nothing
-        if ('yes' !== $allowed) {
+        if ( 'yes' !== $allowed ) {
             return;
         }
 
-        // re-schedule and delete the last sent time so we could force send again
         $hook_name = $this->client->slug . '_tracker_send_event';
 
-        if (!wp_next_scheduled($hook_name)) {
-            wp_schedule_event(time(), 'weekly', $hook_name);
+        if ( ! wp_next_scheduled( $hook_name ) ) {
+            wp_schedule_event( time(), 'weekly', $hook_name );
         }
 
-        delete_option($this->client->slug . '_tracking_last_send');
+        delete_option( $this->client->slug . '_tracking_last_send' );
 
-        $this->send_tracking_data(true);
+        $this->send_tracking_data( true );
     }
 
     /**
@@ -754,16 +756,15 @@ class Insights
      *
      * @return void
      */
-    public function deactivation_cleanup()
-    {
+    public function deactivation_cleanup() {
         $this->clear_schedule_event();
 
-        if ('theme' === $this->client->type) {
-            delete_option($this->client->slug . '_tracking_last_send');
-            delete_option($this->client->slug . '_allow_tracking');
+        if ( 'theme' === $this->client->type ) {
+            delete_option( $this->client->slug . '_tracking_last_send' );
+            delete_option( $this->client->slug . '_allow_tracking' );
         }
 
-        delete_option($this->client->slug . '_tracking_notice');
+        delete_option( $this->client->slug . '_tracking_notice' );
     }
 
     /**
@@ -773,10 +774,9 @@ class Insights
      *
      * @return array
      */
-    public function plugin_action_links($links)
-    {
-        if (array_key_exists('deactivate', $links)) {
-            $links['deactivate'] = str_replace('<a', '<a class="' . $this->client->slug . '-deactivate-link"', $links['deactivate']);
+    public function plugin_action_links( $links ) {
+        if ( array_key_exists( 'deactivate', $links ) ) {
+            $links['deactivate'] = str_replace( '<a', '<a class="' . $this->client->slug . '-deactivate-link"', $links['deactivate'] );
         }
 
         return $links;
@@ -787,49 +787,48 @@ class Insights
      *
      * @return array
      */
-    private function get_uninstall_reasons()
-    {
+    private function get_uninstall_reasons() {
         $reasons = [
             [
                 'id'          => 'could-not-understand',
-                'text'        => $this->client->__trans("Couldn't understand"),
-                'placeholder' => $this->client->__trans('Would you like us to assist you?'),
+                'text'        => $this->client->__trans( "Couldn't understand" ),
+                'placeholder' => $this->client->__trans( 'Would you like us to assist you?' ),
                 'icon'        => '<svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 23 23"><g fill="none"><g fill="#3B86FF"><path d="M11.5 0C17.9 0 23 5.1 23 11.5 23 17.9 17.9 23 11.5 23 10.6 23 9.6 22.9 8.8 22.7L8.8 22.6C9.3 22.5 9.7 22.3 10 21.9 10.3 21.6 10.4 21.3 10.4 20.9 10.8 21 11.1 21 11.5 21 16.7 21 21 16.7 21 11.5 21 6.3 16.7 2 11.5 2 6.3 2 2 6.3 2 11.5 2 13 2.3 14.3 2.9 15.6 2.7 16 2.4 16.3 2.2 16.8L2.1 17.1 2.1 17.3C2 17.5 2 17.7 2 18 0.7 16.1 0 13.9 0 11.5 0 5.1 5.1 0 11.5 0ZM6 13.6C6 13.7 6.1 13.8 6.1 13.9 6.3 14.5 6.2 15.7 6.1 16.4 6.1 16.6 6 16.9 6 17.1 6 17.1 6.1 17.1 6.1 17.1 7.1 16.9 8.2 16 9.3 15.5 9.8 15.2 10.4 15 10.9 15 11.2 15 11.4 15 11.6 15.2 11.9 15.4 12.1 16 11.6 16.4 11.5 16.5 11.3 16.6 11.1 16.7 10.5 17 9.9 17.4 9.3 17.7 9 17.9 9 18.1 9.1 18.5 9.2 18.9 9.3 19.4 9.3 19.8 9.4 20.3 9.3 20.8 9 21.2 8.8 21.5 8.5 21.6 8.1 21.7 7.9 21.8 7.6 21.9 7.3 21.9L6.5 22C6.3 22 6 21.9 5.8 21.9 5 21.8 4.4 21.5 3.9 20.9 3.3 20.4 3.1 19.6 3 18.8L3 18.5C3 18.2 3 17.9 3.1 17.7L3.1 17.6C3.2 17.1 3.5 16.7 3.7 16.3 4 15.9 4.2 15.4 4.3 15 4.4 14.6 4.4 14.5 4.6 14.2 4.6 13.9 4.7 13.7 4.9 13.6 5.2 13.2 5.7 13.2 6 13.6ZM11.7 11.2C13.1 11.2 14.3 11.7 15.2 12.9 15.3 13 15.4 13.1 15.4 13.2 15.4 13.4 15.3 13.8 15.2 13.8 15 13.9 14.9 13.8 14.8 13.7 14.6 13.5 14.4 13.2 14.1 13.1 13.5 12.6 12.8 12.3 12 12.2 10.7 12.1 9.5 12.3 8.4 12.8 8.3 12.8 8.2 12.8 8.1 12.8 7.9 12.8 7.8 12.4 7.8 12.2 7.7 12.1 7.8 11.9 8 11.8 8.4 11.7 8.8 11.5 9.2 11.4 10 11.2 10.9 11.1 11.7 11.2ZM16.3 5.9C17.3 5.9 18 6.6 18 7.6 18 8.5 17.3 9.3 16.3 9.3 15.4 9.3 14.7 8.5 14.7 7.6 14.7 6.6 15.4 5.9 16.3 5.9ZM8.3 5C9.2 5 9.9 5.8 9.9 6.7 9.9 7.7 9.2 8.4 8.2 8.4 7.3 8.4 6.6 7.7 6.6 6.7 6.6 5.8 7.3 5 8.3 5Z"/></g></g></svg>',
             ],
             [
                 'id'          => 'found-better-plugin',
-                'text'        => $this->client->__trans('Found a better plugin'),
-                'placeholder' => $this->client->__trans('Which plugin?'),
+                'text'        => $this->client->__trans( 'Found a better plugin' ),
+                'placeholder' => $this->client->__trans( 'Which plugin?' ),
                 'icon'        => '<svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 23 23"><g fill="none"><g fill="#3B86FF"><path d="M17.1 14L22.4 19.3C23.2 20.2 23.2 21.5 22.4 22.4 21.5 23.2 20.2 23.2 19.3 22.4L19.3 22.4 14 17.1C15.3 16.3 16.3 15.3 17.1 14L17.1 14ZM8.6 0C13.4 0 17.3 3.9 17.3 8.6 17.3 13.4 13.4 17.2 8.6 17.2 3.9 17.2 0 13.4 0 8.6 0 3.9 3.9 0 8.6 0ZM8.6 2.2C5.1 2.2 2.2 5.1 2.2 8.6 2.2 12.2 5.1 15.1 8.6 15.1 12.2 15.1 15.1 12.2 15.1 8.6 15.1 5.1 12.2 2.2 8.6 2.2ZM8.6 3.6L8.6 5C6.6 5 5 6.6 5 8.6L5 8.6 3.6 8.6C3.6 5.9 5.9 3.6 8.6 3.6L8.6 3.6Z"/></g></g></svg>',
             ],
             [
                 'id'          => 'not-have-that-feature',
-                'text'        => $this->client->__trans('Missing a specific feature'),
-                'placeholder' => $this->client->__trans('Could you tell us more about that feature?'),
+                'text'        => $this->client->__trans( 'Missing a specific feature' ),
+                'placeholder' => $this->client->__trans( 'Could you tell us more about that feature?' ),
                 'icon'        => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="17" viewBox="0 0 24 17"><g fill="none"><g fill="#3B86FF"><path d="M19.4 0C19.7 0.6 19.8 1.3 19.8 2 19.8 3.2 19.4 4.4 18.5 5.3 17.6 6.2 16.5 6.7 15.2 6.7 15.2 6.7 15.2 6.7 15.2 6.7 14 6.7 12.9 6.2 12 5.3 11.2 4.4 10.7 3.3 10.7 2 10.7 1.3 10.8 0.6 11.1 0L7.6 0 7 0 6.5 0 6.5 5.7C6.3 5.6 5.9 5.3 5.6 5.1 5 4.6 4.3 4.3 3.5 4.3 3.5 4.3 3.5 4.3 3.4 4.3 1.6 4.4 0 5.9 0 7.9 0 8.6 0.2 9.2 0.5 9.7 1.1 10.8 2.2 11.5 3.5 11.5 4.3 11.5 5 11.2 5.6 10.8 6 10.5 6.3 10.3 6.5 10.2L6.5 10.2 6.5 17 6.5 17 7 17 7.6 17 22.5 17C23.3 17 24 16.3 24 15.5L24 0 19.4 0Z"/></g></g></svg>',
             ],
             [
                 'id'          => 'is-not-working',
-                'text'        => $this->client->__trans('Not working'),
-                'placeholder' => $this->client->__trans('Could you tell us a bit more whats not working?'),
+                'text'        => $this->client->__trans( 'Not working' ),
+                'placeholder' => $this->client->__trans( 'Could you tell us a bit more whats not working?' ),
                 'icon'        => '<svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 23 23"><g fill="none"><g fill="#3B86FF"><path d="M11.5 0C17.9 0 23 5.1 23 11.5 23 17.9 17.9 23 11.5 23 5.1 23 0 17.9 0 11.5 0 5.1 5.1 0 11.5 0ZM11.8 14.4C11.2 14.4 10.7 14.8 10.7 15.4 10.7 16 11.2 16.4 11.8 16.4 12.4 16.4 12.8 16 12.8 15.4 12.8 14.8 12.4 14.4 11.8 14.4ZM12 7C10.1 7 9.1 8.1 9 9.6L10.5 9.6C10.5 8.8 11.1 8.3 11.9 8.3 12.7 8.3 13.2 8.8 13.2 9.5 13.2 10.1 13 10.4 12.2 10.9 11.3 11.4 10.9 12 11 12.9L11 13.4 12.5 13.4 12.5 13C12.5 12.4 12.7 12.1 13.5 11.6 14.4 11.1 14.9 10.4 14.9 9.4 14.9 8 13.7 7 12 7Z"/></g></g></svg>',
             ],
             [
                 'id'          => 'looking-for-other',
-                'text'        => $this->client->__trans('Not what I was looking'),
-                'placeholder' => $this->client->__trans('Could you tell us a bit more?'),
+                'text'        => $this->client->__trans( 'Not what I was looking' ),
+                'placeholder' => $this->client->__trans( 'Could you tell us a bit more?' ),
                 'icon'        => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="17" viewBox="0 0 24 17"><g fill="none"><g fill="#3B86FF"><path d="M23.5 9C23.5 9 23.5 8.9 23.5 8.9 23.5 8.9 23.5 8.9 23.5 8.9 23.4 8.6 23.2 8.3 23 8 22.2 6.5 20.6 3.7 19.8 2.6 18.8 1.3 17.7 0 16.1 0 15.7 0 15.3 0.1 14.9 0.2 13.8 0.6 12.6 1.2 12.3 2.7L11.7 2.7C11.4 1.2 10.2 0.6 9.1 0.2 8.7 0.1 8.3 0 7.9 0 6.3 0 5.2 1.3 4.2 2.6 3.4 3.7 1.8 6.5 1 8 0.8 8.3 0.6 8.6 0.5 8.9 0.5 8.9 0.5 8.9 0.5 8.9 0.5 8.9 0.5 9 0.5 9 0.2 9.7 0 10.5 0 11.3 0 14.4 2.5 17 5.5 17 7.3 17 8.8 16.1 9.8 14.8L14.2 14.8C15.2 16.1 16.7 17 18.5 17 21.5 17 24 14.4 24 11.3 24 10.5 23.8 9.7 23.5 9ZM5.5 15C3.6 15 2 13.2 2 11 2 8.8 3.6 7 5.5 7 7.4 7 9 8.8 9 11 9 13.2 7.4 15 5.5 15ZM18.5 15C16.6 15 15 13.2 15 11 15 8.8 16.6 7 18.5 7 20.4 7 22 8.8 22 11 22 13.2 20.4 15 18.5 15Z"/></g></g></svg>',
             ],
             [
                 'id'          => 'did-not-work-as-expected',
-                'text'        => $this->client->__trans("Didn't work as expected"),
-                'placeholder' => $this->client->__trans('What did you expect?'),
+                'text'        => $this->client->__trans( "Didn't work as expected" ),
+                'placeholder' => $this->client->__trans( 'What did you expect?' ),
                 'icon'        => '<svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 23 23"><g fill="none"><g fill="#3B86FF"><path d="M11.5 0C17.9 0 23 5.1 23 11.5 23 17.9 17.9 23 11.5 23 5.1 23 0 17.9 0 11.5 0 5.1 5.1 0 11.5 0ZM11.5 2C6.3 2 2 6.3 2 11.5 2 16.7 6.3 21 11.5 21 16.7 21 21 16.7 21 11.5 21 6.3 16.7 2 11.5 2ZM12.5 12.9L12.7 5 10.2 5 10.5 12.9 12.5 12.9ZM11.5 17.4C12.4 17.4 13 16.8 13 15.9 13 15 12.4 14.4 11.5 14.4 10.6 14.4 10 15 10 15.9 10 16.8 10.6 17.4 11.5 17.4Z"/></g></g></svg>',
             ],
             [
                 'id'          => 'other',
-                'text'        => $this->client->__trans('Others'),
-                'placeholder' => $this->client->__trans('Could you tell us a bit more?'),
+                'text'        => $this->client->__trans( 'Others' ),
+                'placeholder' => $this->client->__trans( 'Could you tell us a bit more?' ),
                 'icon'        => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="23" viewBox="0 0 24 6"><g fill="none"><g fill="#3B86FF"><path d="M3 0C4.7 0 6 1.3 6 3 6 4.7 4.7 6 3 6 1.3 6 0 4.7 0 3 0 1.3 1.3 0 3 0ZM12 0C13.7 0 15 1.3 15 3 15 4.7 13.7 6 12 6 10.3 6 9 4.7 9 3 9 1.3 10.3 0 12 0ZM21 0C22.7 0 24 1.3 24 3 24 4.7 22.7 6 21 6 19.3 6 18 4.7 18 3 18 1.3 19.3 0 21 0Z"/></g></g></svg>',
             ],
         ];
@@ -842,34 +841,33 @@ class Insights
      *
      * @return void
      */
-    public function uninstall_reason_submission()
-    {
-        if (!isset($_POST['nonce'])) {
+    public function uninstall_reason_submission() {
+        if ( ! isset( $_POST['nonce'] ) ) {
             return;
         }
 
-        if (!isset($_POST['reason_id'])) {
+        if ( ! isset( $_POST['reason_id'] ) ) {
             wp_send_json_error();
         }
 
-        if (!wp_verify_nonce(sanitize_key(wp_unslash($_POST['nonce'])), 'appsero-security-nonce')) {
-            wp_send_json_error('Nonce verification failed');
+        if ( ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['nonce'] ) ), 'appsero-security-nonce' ) ) {
+            wp_send_json_error( 'Nonce verification failed' );
         }
 
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error('You are not allowed for this task');
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'You are not allowed for this task' );
         }
 
         $data                = $this->get_tracking_data();
-        $data['reason_id']   = sanitize_text_field(wp_unslash($_POST['reason_id']));
-        $data['reason_info'] = isset($_REQUEST['reason_info']) ? trim(sanitize_text_field(wp_unslash($_REQUEST['reason_info']))) : '';
+        $data['reason_id']   = sanitize_text_field( wp_unslash( $_POST['reason_id'] ) );
+        $data['reason_info'] = isset( $_REQUEST['reason_info'] ) ? trim( sanitize_text_field( wp_unslash( $_REQUEST['reason_info'] ) ) ) : '';
 
-        $this->client->send_request($data, 'deactivate');
+        $this->client->send_request( $data, 'deactivate' );
 
         /*
          * Fire after the plugin _uninstall_reason_submitted
          */
-        do_action($this->client->slug . '_uninstall_reason_submitted', $data);
+        do_action( $this->client->slug . '_uninstall_reason_submitted', $data );
 
         wp_send_json_success();
     }
@@ -879,29 +877,28 @@ class Insights
      *
      * @return void
      */
-    public function deactivate_scripts()
-    {
+    public function deactivate_scripts() {
         global $pagenow;
 
-        if ('plugins.php' !== $pagenow) {
+        if ( 'plugins.php' !== $pagenow ) {
             return;
         }
 
         $this->deactivation_modal_styles();
         $reasons        = $this->get_uninstall_reasons();
-        $custom_reasons = apply_filters('appsero_custom_deactivation_reasons', [], $this->client);
-?>
+        $custom_reasons = apply_filters( 'appsero_custom_deactivation_reasons', [], $this->client );
+        ?>
 
         <div class="wd-dr-modal" id="<?php echo $this->client->slug; ?>-wd-dr-modal">
             <div class="wd-dr-modal-wrap">
                 <div class="wd-dr-modal-header">
-                    <h3><?php $this->client->_etrans('Goodbyes are always hard. If you have a moment, please let us know how we can improve.'); ?></h3>
+                    <h3> <?php $this->client->_etrans( 'Goodbyes are always hard. If you have a moment, please let us know how we can improve.' ); ?> </h3>
                 </div>
 
                 <div class="wd-dr-modal-body">
                     <ul class="wd-de-reasons">
-                        <?php foreach ($reasons as $reason) { ?>
-                            <li data-placeholder="<?php echo esc_attr($reason['placeholder']); ?>">
+                        <?php foreach ( $reasons as $reason ) { ?>
+                            <li data-placeholder="<?php echo esc_attr( $reason['placeholder'] ); ?>">
                                 <label>
                                     <input type="radio" name="selected-reason" value="<?php echo $reason['id']; ?>">
                                     <div class="wd-de-reason-icon"><?php echo $reason['icon']; ?></div>
@@ -910,10 +907,10 @@ class Insights
                             </li>
                         <?php } ?>
                     </ul>
-                    <?php if ($custom_reasons && is_array($custom_reasons)) { ?>
+                    <?php if ( $custom_reasons && is_array( $custom_reasons ) ) { ?>
                         <ul class="wd-de-reasons wd-de-others-reasons">
-                            <?php foreach ($custom_reasons as $reason) { ?>
-                                <li data-placeholder="<?php echo esc_attr($reason['placeholder']); ?>" data-customreason="true">
+                            <?php foreach ( $custom_reasons as $reason ) { ?>
+                                <li data-placeholder="<?php echo esc_attr( $reason['placeholder'] ); ?>" data-customreason="true">
                                     <label>
                                         <input type="radio" name="selected-reason" value="<?php echo $reason['id']; ?>">
                                         <div class="wd-de-reason-icon"><?php echo $reason['icon']; ?></div>
@@ -927,18 +924,18 @@ class Insights
                     <p class="wd-dr-modal-reasons-bottom">
                         <?php
                         echo sprintf(
-                            $this->client->__trans('We share your data with <a href="%1$s" target="_blank">Appsero</a> to troubleshoot problems &amp; make product improvements. <a href="%2$s" target="_blank">Learn more</a> about how WeDevs\WePOS\Dependencies\Appsero handles your data.'),
-                            esc_url('https://appsero.com/'),
-                            esc_url('https://appsero.com/privacy-policy')
+                            $this->client->__trans( 'We share your data with <a href="%1$s" target="_blank">Appsero</a> to troubleshoot problems &amp; make product improvements. <a href="%2$s" target="_blank">Learn more</a> about how WeDevs\WePOS\Dependencies\Appsero handles your data.' ),
+                            esc_url( 'https://appsero.com/' ),
+                            esc_url( 'https://appsero.com/privacy-policy' )
                         );
                         ?>
                     </p>
                 </div>
 
                 <div class="wd-dr-modal-footer">
-                    <a href="#" class="dont-bother-me wd-dr-button-secondary"><?php $this->client->_etrans('Skip & Deactivate'); ?></a>
-                    <button class="wd-dr-button-secondary wd-dr-cancel-modal"><?php $this->client->_etrans('Cancel'); ?></button>
-                    <button class="wd-dr-submit-modal"><?php $this->client->_etrans('Submit & Deactivate'); ?></button>
+                    <a href="#" class="dont-bother-me wd-dr-button-secondary"><?php $this->client->_etrans( 'Skip & Deactivate' ); ?></a>
+                    <button class="wd-dr-button-secondary wd-dr-cancel-modal"><?php $this->client->_etrans( 'Cancel' ); ?></button>
+                    <button class="wd-dr-submit-modal"><?php $this->client->_etrans( 'Submit & Deactivate' ); ?></button>
                 </div>
             </div>
         </div>
@@ -975,13 +972,13 @@ class Insights
                         } else {
                             $('ul.wd-de-reasons li').removeClass('wd-de-reason-selected');
 
-                            if ("other" != inputValue) {
+                            if ( "other" !== inputValue ) {
                                 $('ul.wd-de-reasons.wd-de-others-reasons').css('display', 'none');
                             }
                         }
 
                         // Show if has custom reasons
-                        if ("other" == inputValue) {
+                        if ( "other" === inputValue ) {
                             $('ul.wd-de-reasons.wd-de-others-reasons').css('display', 'flex');
                         }
 
@@ -1008,7 +1005,7 @@ class Insights
                             url: ajaxurl,
                             type: 'POST',
                             data: {
-                                nonce: '<?php echo wp_create_nonce('appsero-security-nonce'); ?>',
+                                nonce: '<?php echo wp_create_nonce( 'appsero-security-nonce' ); ?>',
                                 action: '<?php echo $this->client->slug; ?>_submit-uninstall-reason',
                                 reason_id: (0 === $radio.length) ? 'none' : $radio.val(),
                                 reason_info: (0 !== $input.length) ? $input.val().trim() : ''
@@ -1026,7 +1023,7 @@ class Insights
             }(jQuery));
         </script>
 
-    <?php
+		<?php
     }
 
     /**
@@ -1038,28 +1035,26 @@ class Insights
      *
      * @return void
      */
-    public function theme_deactivated($new_name, $new_theme, $old_theme)
-    {
+    public function theme_deactivated( $new_name, $new_theme, $old_theme ) {
         // Make sure this is appsero theme
-        if ($old_theme->get_template() === $this->client->slug) {
-            $this->client->send_request($this->get_tracking_data(), 'deactivate');
+        if ( $old_theme->get_template() === $this->client->slug ) {
+            $this->client->send_request( $this->get_tracking_data(), 'deactivate' );
         }
     }
 
     /**
      * Get user IP Address
      */
-    private function get_user_ip_address()
-    {
-        $response = wp_remote_get('https://icanhazip.com/');
+    private function get_user_ip_address() {
+        $response = wp_remote_get( 'https://icanhazip.com/' );
 
-        if (is_wp_error($response)) {
+        if ( is_wp_error( $response ) ) {
             return '';
         }
 
-        $ip = trim(wp_remote_retrieve_body($response));
+        $ip = trim( wp_remote_retrieve_body( $response ) );
 
-        if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+        if ( ! filter_var( $ip, FILTER_VALIDATE_IP ) ) {
             return '';
         }
 
@@ -1069,17 +1064,16 @@ class Insights
     /**
      * Get site name
      */
-    private function get_site_name()
-    {
-        $site_name = get_bloginfo('name');
+    private function get_site_name() {
+        $site_name = get_bloginfo( 'name' );
 
-        if (empty($site_name)) {
-            $site_name = get_bloginfo('description');
-            $site_name = wp_trim_words($site_name, 3, '');
+        if ( empty( $site_name ) ) {
+            $site_name = get_bloginfo( 'description' );
+            $site_name = wp_trim_words( $site_name, 3, '' );
         }
 
-        if (empty($site_name)) {
-            $site_name = esc_url(home_url());
+        if ( empty( $site_name ) ) {
+            $site_name = esc_url( home_url() );
         }
 
         return $site_name;
@@ -1088,30 +1082,28 @@ class Insights
     /**
      * Send request to appsero if user skip to send tracking data
      */
-    private function send_tracking_skipped_request()
-    {
-        $skipped = get_option($this->client->slug . '_tracking_skipped');
+    private function send_tracking_skipped_request() {
+        $skipped = get_option( $this->client->slug . '_tracking_skipped' );
 
         $data = [
             'hash'               => $this->client->hash,
             'previously_skipped' => false,
         ];
 
-        if ($skipped === 'yes') {
+        if ( $skipped === 'yes' ) {
             $data['previously_skipped'] = true;
         } else {
-            update_option($this->client->slug . '_tracking_skipped', 'yes');
+            update_option( $this->client->slug . '_tracking_skipped', 'yes' );
         }
 
-        $this->client->send_request($data, 'tracking-skipped');
+        $this->client->send_request( $data, 'tracking-skipped' );
     }
 
     /**
      * Deactivation modal styles
      */
-    private function deactivation_modal_styles()
-    {
-    ?>
+    private function deactivation_modal_styles() {
+        ?>
         <style type="text/css">
             .wd-dr-modal {
                 position: fixed;
@@ -1294,6 +1286,6 @@ class Insights
                 margin-left: 4px;
             }
         </style>
-<?php
+        <?php
     }
 }

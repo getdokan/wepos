@@ -14,7 +14,7 @@ class Client {
      *
      * @var string
      */
-    public $version = '2.0.2';
+    public $version = '2.0.4';
 
     /**
      * Hash identifier of the plugin
@@ -191,7 +191,7 @@ class Client {
 
             require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
-            $plugin_data = get_plugin_data( $this->file );
+            $plugin_data = get_plugin_data( $this->file, false, false );
 
             $this->project_version = $plugin_data['Version'];
             $this->type            = 'plugin';
