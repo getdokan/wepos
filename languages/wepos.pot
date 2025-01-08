@@ -1,14 +1,14 @@
-# Copyright (C) 2023 weDevs
+# Copyright (C) 2024 weDevs
 # This file is distributed under the GPL2.
 msgid ""
 msgstr ""
-"Project-Id-Version: wePOS - Point Of Sale (POS) for WooCommerce 1.2.7\n"
+"Project-Id-Version: wePOS - Point Of Sale (POS) for WooCommerce 1.2.8\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wepos\n"
-"POT-Creation-Date: 2023-12-27 04:21:05+00:00\n"
+"POT-Creation-Date: 2024-06-05 10:56:15+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2023-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2024-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "X-Generator: wp-vue-i18n 1.1.4\n"
@@ -218,175 +218,189 @@ msgid "Quantity"
 msgstr ""
 
 #: assets/src/frontend/components/Home.vue:248
-#: assets/src/frontend/components/Home.vue:444
-#: assets/src/frontend/components/PrintReceiptHtml.vue:34
+#: assets/src/frontend/components/Home.vue:477
+#: assets/src/frontend/components/PrintReceiptHtml.vue:37
 msgid "Subtotal"
 msgstr ""
 
 #: assets/src/frontend/components/Home.vue:250
-#: assets/src/frontend/components/Home.vue:446
-#: assets/src/frontend/components/PrintReceiptHtml.vue:36
-msgid "Includes Tax"
+#: assets/src/frontend/components/Home.vue:479
+#: assets/src/frontend/components/PrintReceiptHtml.vue:39
+msgid "Including Tax"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:259
-#: assets/src/frontend/components/Home.vue:294
-#: assets/src/frontend/components/Home.vue:454
-#: assets/src/frontend/components/Home.vue:884
-#: assets/src/frontend/components/PrintReceiptHtml.vue:43
+#: assets/src/frontend/components/Home.vue:260
+#: assets/src/frontend/components/Home.vue:292
+#: assets/src/frontend/components/Home.vue:327
+#: assets/src/frontend/components/Home.vue:488
+#: assets/src/frontend/components/Home.vue:501
+#: assets/src/frontend/components/Home.vue:985
+#: assets/src/frontend/components/PrintReceiptHtml.vue:45
 msgid "Discount"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:266
+#: assets/src/frontend/components/Home.vue:267
+#: assets/src/frontend/components/Home.vue:299
 msgid "Fee Name"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:267
+#: assets/src/frontend/components/Home.vue:268
+#: assets/src/frontend/components/Home.vue:300
 msgid "Total"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:269
+#: assets/src/frontend/components/Home.vue:270
+#: assets/src/frontend/components/Home.vue:302
 msgid "Taxable"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:274
+#: assets/src/frontend/components/Home.vue:275
+#: assets/src/frontend/components/Home.vue:307
 msgid "Apply"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:275
+#: assets/src/frontend/components/Home.vue:276
+#: assets/src/frontend/components/Home.vue:308
 msgid "Cancel"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:280
-#: assets/src/frontend/components/Home.vue:295
-#: assets/src/frontend/components/Home.vue:458
-#: assets/src/frontend/components/Home.vue:902
-#: assets/src/frontend/components/PrintReceiptHtml.vue:47
+#: assets/src/frontend/components/Home.vue:281
+#: assets/src/frontend/components/Home.vue:313
+#: assets/src/frontend/components/Home.vue:328
+#: assets/src/frontend/components/Home.vue:492
+#: assets/src/frontend/components/Home.vue:505
+#: assets/src/frontend/components/Home.vue:1007
+#: assets/src/frontend/components/PrintReceiptHtml.vue:49
 msgid "Fee"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:288
-#: assets/src/frontend/components/Home.vue:464
-#: assets/src/frontend/components/PrintReceiptHtml.vue:52
+#: assets/src/frontend/components/Home.vue:321
+#: assets/src/frontend/components/PrintReceiptHtml.vue:53
+msgid "Fee Tax"
+msgstr ""
+
+#: assets/src/frontend/components/Home.vue:321
+#: assets/src/frontend/components/Home.vue:511
+#: assets/src/frontend/components/PrintReceiptHtml.vue:53
 msgid "Tax"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:306
+#: assets/src/frontend/components/Home.vue:339
 msgid "Pay Now"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:322
+#: assets/src/frontend/components/Home.vue:355
 msgid "Sale Completed"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:329
+#: assets/src/frontend/components/Home.vue:362
 msgid "New Sale"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:339
+#: assets/src/frontend/components/Home.vue:372
 msgid "Shortcut Keys"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:343
+#: assets/src/frontend/components/Home.vue:376
 msgid "Search Product"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:347
+#: assets/src/frontend/components/Home.vue:380
 msgid "Scan Product"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:351
+#: assets/src/frontend/components/Home.vue:384
 msgid "Toggle Product View"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:355
+#: assets/src/frontend/components/Home.vue:388
 msgid "Add Fee in cart"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:359
+#: assets/src/frontend/components/Home.vue:392
 msgid "Add Discount in cart"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:363
+#: assets/src/frontend/components/Home.vue:396
 msgid "Add Customer note"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:367
+#: assets/src/frontend/components/Home.vue:400
 msgid "Customer Search"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:371
+#: assets/src/frontend/components/Home.vue:404
 msgid "Add new Customer"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:375
+#: assets/src/frontend/components/Home.vue:408
 msgid "Create New Sale"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:379
+#: assets/src/frontend/components/Home.vue:412
 msgid "Empty your cart"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:383
+#: assets/src/frontend/components/Home.vue:416
 msgid "Go to payment receipt"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:387
-#: assets/src/frontend/components/Home.vue:532
+#: assets/src/frontend/components/Home.vue:420
+#: assets/src/frontend/components/Home.vue:579
 msgid "Process Payment"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:391
+#: assets/src/frontend/components/Home.vue:424
 #: assets/src/frontend/components/PrintReceipt.vue:5
 msgid "Print Receipt"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:395
+#: assets/src/frontend/components/Home.vue:428
 msgid "Show/Close(Toggle) Help"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:399
+#: assets/src/frontend/components/Home.vue:432
 msgid "Close anything"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:411
+#: assets/src/frontend/components/Home.vue:444
 msgid "Sale Summary"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:468
-#: assets/src/frontend/components/PrintReceiptHtml.vue:56
+#: assets/src/frontend/components/Home.vue:515
+#: assets/src/frontend/components/PrintReceiptHtml.vue:57
 msgid "Order Total"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:472
-#: assets/src/frontend/components/Home.vue:480
+#: assets/src/frontend/components/Home.vue:519
+#: assets/src/frontend/components/Home.vue:527
 msgid "Pay"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:500
+#: assets/src/frontend/components/Home.vue:547
 msgid "No gateway found"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:508 includes/Gateways/Cash.php:36
+#: assets/src/frontend/components/Home.vue:555 includes/Gateways/Cash.php:36
 #: includes/Gateways/Cash.php:58
 msgid "Cash"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:516
+#: assets/src/frontend/components/Home.vue:563
 msgid "Change money"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:703
-#: assets/src/frontend/components/Home.vue:1074
-#: assets/src/frontend/components/Home.vue:1102
+#: assets/src/frontend/components/Home.vue:751
+#: assets/src/frontend/components/Home.vue:1182
+#: assets/src/frontend/components/Home.vue:1210
 msgid "All categories"
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:997
+#: assets/src/frontend/components/Home.vue:1105
 msgid "This product is out of stock."
 msgstr ""
 
-#: assets/src/frontend/components/Home.vue:1013
+#: assets/src/frontend/components/Home.vue:1121
 msgid "Product is out of stock!"
 msgstr ""
 
@@ -398,15 +412,19 @@ msgstr ""
 msgid "Order Date"
 msgstr ""
 
-#: assets/src/frontend/components/PrintReceiptHtml.vue:63
+#: assets/src/frontend/components/PrintReceiptHtml.vue:15
+msgid "Tax includes"
+msgstr ""
+
+#: assets/src/frontend/components/PrintReceiptHtml.vue:64
 msgid "Payment method"
 msgstr ""
 
-#: assets/src/frontend/components/PrintReceiptHtml.vue:68
+#: assets/src/frontend/components/PrintReceiptHtml.vue:69
 msgid "Cash Given"
 msgstr ""
 
-#: assets/src/frontend/components/PrintReceiptHtml.vue:72
+#: assets/src/frontend/components/PrintReceiptHtml.vue:73
 msgid "Change Money"
 msgstr ""
 
@@ -475,19 +493,19 @@ msgstr ""
 msgid "Setting has been saved successfully."
 msgstr ""
 
-#: includes/Admin/Updates.php:73
+#: includes/Admin/Updates.php:74
 msgid "WePOS Data Update Required"
 msgstr ""
 
-#: includes/Admin/Updates.php:73
+#: includes/Admin/Updates.php:74
 msgid "We need to update your install to the latest version"
 msgstr ""
 
-#: includes/Admin/Updates.php:74
+#: includes/Admin/Updates.php:75
 msgid "Run the updater"
 msgstr ""
 
-#: includes/Admin/Updates.php:79
+#: includes/Admin/Updates.php:80
 msgid ""
 "It is strongly recommended that you backup your database before proceeding. "
 "Are you sure you wish to run the updater now?"
@@ -573,7 +591,7 @@ msgstr ""
 msgid "Sorry, you are not allowed view this resource."
 msgstr ""
 
-#: includes/REST/Manager.php:182
+#: includes/REST/Manager.php:183
 msgid "The item %s already out of stock. Please remove this from cart"
 msgstr ""
 
