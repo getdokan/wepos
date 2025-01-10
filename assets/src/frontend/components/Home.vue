@@ -34,7 +34,16 @@
                         </template>
                     </multiselect>
                 </div>
-
+                <div class="refresh-products">
+                    <v-popover popover-base-class="refresh-products-tooltip-wrapper tooltip popover" placement="auto" trigger="hover">
+                        <span class="refresh-icon list-view" :class="{ active: productLogsLoading }" @click.prevent="refreshProducts">
+                            <svg xmlns="http://www.w3.org/2000/svg" data-name="Isolation Mode" viewBox="0 0 24 24" width="14" height="14"><path d="M12 2.99a9.03 9.03 0 0 1 6.36 2.65l-2.37 2.37h5.83a1.15 1.15 0 0 0 1.14-1.14V1.04l-2.49 2.49A11.98 11.98 0 0 0 0 12h2.99A9.02 9.02 0 0 1 12 2.99ZM21.01 12a9 9 0 0 1-15.37 6.36l2.37-2.37H2a.96.96 0 0 0-.95.95v6.02l2.49-2.49A11.98 11.98 0 0 0 24 12Z"/></svg>
+                        </span>
+                        <template slot="popover">
+                            <span class="refresh-products-tooltip-text">{{ __( 'Refresh Products', 'wepos' ) }}</span>
+                        </template>
+                    </v-popover>
+                </div>
                 <div class="toggle-view">
                     <div class="product-toggle">
                         <span class="toggle-icon list-view flaticon-menu-button-of-three-horizontal-lines" @click="productView = 'list'" :class="{ active: productView == 'list'}"></span>
@@ -639,6 +648,7 @@ export default {
             filteredProducts: [],
             totalPages: 1,
             page: 1,
+            productLogsLoading: false,
             showOverlay: false,
             selectedVariationProduct: {},
             attributeDisabled: true,
@@ -729,6 +739,9 @@ export default {
                 }
             }
             return [];
+        },
+        productsStorageUpdatedOn() {
+            return localStorage.getItem( 'productsStorageUpdatedOn' );
         }
     },
 
@@ -1023,7 +1036,7 @@ export default {
             }
 
             if ( ( this.totalPages >= this.page ) ) {
-                wepos.api.get( wepos.rest.root + wepos.rest.posversion + '/products?status=publish&per_page=30&page=' + this.page )
+                wepos.api.get( wepos.rest.root + wepos.rest.posversion + '/products?status=publish&per_page=50&page=' + this.page )
                 .done( ( response, status, xhr ) => {
                     this.appendProducts( response );
                     this.page += 1;
@@ -1032,9 +1045,54 @@ export default {
                 }).then( ( response, status, xhr ) => {
                     this.fetchProducts();
                 });
-            } else {
-                this.productLoading = false;
+            } else if ( this.isProductsStorageUpdateRequired() ) {
+                // Remove existing products from the IndexedDB storage.
+                wepos.productIndexedDb.deleteAllProducts();
+
+                // Insert products to the IndexedDB storage.
+                wepos.productIndexedDb.insertProducts( this.products );
+
+                // Store products IndexedDB updating time to Local Storage.
+                localStorage.setItem( 'productsStorageUpdatedOn', dayjs().unix() );
             }
+
+            this.productLoading = false;
+        },
+        isProductsStorageUpdateRequired() {
+            if ( ! this.productsStorageUpdatedOn || this.productsStorageUpdatedOn < dayjs().subtract( 7, 'days' ).unix() ) {
+                return true;
+            }
+
+            return false;
+        },
+        refreshProducts() {
+            this.fetchProductLogs( wepos.current_cashier.counter_id );
+        },
+        fetchProductLogs( counterId ) {
+            let fetchingToast = {
+                title: this.__( 'Products already updated!', 'wepos' ),
+                type: 'info'
+            }
+
+            this.productLogsLoading = true;
+
+            wepos.api.get( wepos.rest.root + wepos.rest.posversion + '/product/logs/' + counterId )
+            .done( ( response, status, xhr ) => {
+                if ( response.length > 0 ) {
+                    wepos.productLogs.updateProductsToIndexedDb( response );
+                    wepos.productLogs.updateProductLogsData( counterId );
+
+                    fetchingToast.title = this.__( 'Products refreshed successfully!', 'wepos' );
+                    fetchingToast.type  = 'success';
+                }
+            } ).fail( ( response, status, xhr ) => {
+                fetchingToast.title = this.__( 'Failed to refresh products!', 'wepos' );
+                fetchingToast.type  = 'error';
+            } ).then( ( response, status, xhr ) => {
+                this.productLogsLoading = false;
+
+                this.toast( fetchingToast );
+            } );
         },
         appendProducts( products ) {
             products.forEach( product => {
@@ -1247,6 +1305,15 @@ export default {
         },
     },
 
+    async beforeCreate() {
+        const dbName             = 'ProductsDB';
+        const isExistsProductsDB = ( await window.indexedDB.databases() ).map( db => db.name ).includes( dbName );
+
+        if ( ! isExistsProductsDB ) {
+            wepos.productIndexedDb.createProductsDB();
+        }
+    },
+
     async created() {
         this.fetchSettings();
         this.fetchTaxes();
@@ -1280,6 +1347,15 @@ export default {
 </script>
 
 <style lang="less">
+
+@keyframes rotation {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
 
 #wepos-main {
     padding: 20px;
@@ -1474,7 +1550,7 @@ export default {
 
             .category {
                 width: 26%;
-                margin-right: 2%;
+                margin-right: 1%;
                 float:left;
                 position: relative;
 
@@ -1511,8 +1587,50 @@ export default {
                 }
 
             }
+            .refresh-products {
+                float: left;
+                margin-right: -5px;
+                width: 4.5%;
+
+                .refresh-icon {
+                    box-sizing: border-box;
+                    padding: 9px 10px 7px;
+                    background: #fff;
+                    display: inline-block;
+                    border: 1px solid #E9EDF0;
+                    box-shadow: 0 3px 15px 0 rgba(0,0,0,.02);
+                    cursor: pointer;
+
+                    &:hover {
+                        svg {
+                            fill: #3B80F4;
+                        }
+                    }
+
+                    &.active {
+                        svg {
+                            fill: #3B80F4;
+                            animation: rotation 1s infinite linear;
+                        }
+                    }
+
+                    &:before {
+                        margin-left: 0px;
+                        font-size: 13px;
+                    }
+
+                    &.list-view {
+                        margin-right: -4px;
+                        border-right: none;
+                    }
+
+                    svg {
+                        fill: #bdc0c9;
+                    }
+                }
+            }
             .toggle-view {
-                width: 14%;
+                width: 10%;
                 float: left;
                 text-align: right;
 

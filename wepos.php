@@ -283,17 +283,9 @@ final class WePOS {
      * @return void
      */
     public function deactivate() {
-        $users_query = new WP_User_Query( [
-            'role__in' => [ 'seller', 'vendor_staff' ]
-        ] );
-        $users = $users_query->get_results();
+        $uninstaller = new WeDevs\WePOS\Uninstaller();
 
-        if ( count( $users ) > 0 ) {
-            foreach ( $users as $user ) {
-                $user->remove_cap( 'publish_shop_orders' );
-                $user->remove_cap( 'list_users' );
-            }
-        }
+        $uninstaller->run();
     }
 
     /**
@@ -337,9 +329,11 @@ final class WePOS {
             $this->container['dokan'] = new WeDevs\WePOS\Dokan();
         }
 
-        $this->container['common'] = new WeDevs\WePOS\Common();
-        $this->container['rest']   = new WeDevs\WePOS\REST\Manager();
-        $this->container['assets'] = new WeDevs\WePOS\Assets();
+        $this->container['common']       = new WeDevs\WePOS\Common();
+        $this->container['rest']         = new WeDevs\WePOS\REST\Manager();
+        $this->container['assets']       = new WeDevs\WePOS\Assets();
+        $this->container['products_log'] = new WeDevs\WePOS\ProductsLog();
+        $this->container['ajax']         = new WeDevs\WePOS\Ajax();
 
         // Payment gateway manager
         $this->container['gateways'] = new \WeDevs\WePOS\Gateways\Manager();

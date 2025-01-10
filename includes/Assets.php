@@ -193,6 +193,7 @@ class Assets {
             wp_enqueue_script( 'wepos-accounting' );
             wp_enqueue_script( 'wepos-vendor' );
             wp_enqueue_script( 'wepos-bootstrap' );
+            wp_enqueue_script( 'heartbeat' );
             wp_enqueue_script( 'wepos-select2' );
 
             do_action( 'wepos_load_forntend_scripts' );
@@ -238,6 +239,7 @@ class Assets {
             'countries'                    => WC()->countries->get_countries(),
             'states'                       => WC()->countries->get_states(),
             'current_user_id'              => get_current_user_id(),
+            'current_cashier'              => wepos_get_cashier_data_by_user_id( get_current_user_id() ),
             'home_url'                     => home_url(),
             'wp_date_format'               => get_option( 'date_format' ),
             'wp_time_format'               => get_option( 'time_format' ),

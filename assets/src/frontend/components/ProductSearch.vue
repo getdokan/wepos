@@ -1,7 +1,7 @@
 <template>
     <div class="search-box" v-click-outside="outside">
         <form action="" autocomplete="off" @submit.prevent="handleProductScan">
-            <input type="text" ref="productSearch" name="search" id="product-search" v-model="serachInput" :placeholder="placeholder" @focus.prevent="triggerFocus" @keyup.prevent="searchProduct">
+            <input type="text" ref="productSearch" name="search" id="product-search" v-model="searchInput" :placeholder="placeholder" @focus.prevent="triggerFocus" @keyup.prevent="searchProducts">
             <span class="search-icon flaticon-musica-searcher" v-if="mode == 'product'"></span>
             <span class="search-icon flaticon-supermarket-scanner" v-if="mode == 'scan'"></span>
             <div class="search-type" v-hotkey="hotkeys">
@@ -107,7 +107,7 @@ export default {
             showResults: false,
             showVariationModal: false,
             mode: 'scan',
-            serachInput: '',
+            searchInput: '',
             searchableProduct: [],
             selectedVariationProduct: {},
             attributeDisabled: true,
@@ -191,7 +191,7 @@ export default {
                 selectedProduct = {},
                 filterProduct = this.products.filter( (product) => {
                     if ( product.type == 'simple' ) {
-                        if ( product[field].toString() == this.serachInput ) {
+                        if ( product[field].toString() == this.searchInput ) {
                             return true;
                         }
                     }
@@ -199,7 +199,7 @@ export default {
                         var ifFound = false;
                         if ( product.variations.length > 0 ) {
                             weLo_.forEach( product.variations, ( item, key ) => {
-                                if ( item[field].toString() == this.serachInput ) {
+                                if ( item[field].toString() == this.searchInput ) {
                                     ifFound = true;
                                 }
                             } );
@@ -218,7 +218,7 @@ export default {
                 if ( filterProduct.type == 'variable' ) {
                     var variations = filterProduct.variations;
                     var selectedVariationProduct = variations.filter( (item) => {
-                        if ( item[field].toString() == this.serachInput ) {
+                        if ( item[field].toString() == this.searchInput ) {
                             return true;
                         }
                         return false;
@@ -234,30 +234,25 @@ export default {
                 }
             }
 
-            this.serachInput = '';
+            this.searchInput = '';
         },
 
-        searchProduct(e) {
-            if ( this.serachInput ) {
-                if ( this.mode == 'product' ) {
-                    this.searchableProduct = this.products.filter( (product) => {
-                        if ( product.id.toString().indexOf( this.serachInput ) != -1 ) {
-                            return true;
-                        } else if ( product.name.toString().toLowerCase().indexOf( this.serachInput.toLowerCase() ) != -1 ) {
-                            return true
-                        } else if ( product.sku.indexOf( this.serachInput ) != -1 ) {
-                            return true
-                        } else {
-                            return false;
-                        }
-                    } );
-                }
+        searchProducts( e ) {
+            if ( 'product' !== this.mode || ! this.searchInput ) {
+                return;
             }
+
+            wepos.productIndexedDb.getProductsBySearchKeyword( this.searchInput ).then( response => {
+                const eligibleProducts   = this.filterEligibleProducts( response );
+                const eligibleProductIds = this.getProductIds( eligibleProducts );
+
+                this.searchableProduct = this.products.filter( product => eligibleProductIds.includes( product.id ) );
+            } );
         },
 
         selectVariation( product ) {
             this.selectedVariationProduct = product;
-            this.showVariationModal = true;
+            this.showVariationModal       = true;
         },
 
         addVariationProduct() {
@@ -274,8 +269,33 @@ export default {
 
         addToCartAction( product ) {
             this.$emit( 'onProductAdded', product );
-        }
+        },
 
+        filterEligibleProducts( products = [] ) {
+            const eligibleProducts = products.filter( product => {
+                if ( null !== product.stock && 0 === Number( product.stock ) ) {
+                    return false;
+                }
+
+                if ( 0 === Number( product.price ) ) {
+                    return false;
+                }
+
+                return true;
+            } );
+
+            return eligibleProducts;
+        },
+
+        getProductIds( products = [] ) {
+            const productIds = [];
+
+            products.forEach( product => {
+                productIds.push( product.id );
+            } );
+
+            return productIds;
+        },
     },
 
     mounted() {

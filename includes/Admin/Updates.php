@@ -1,5 +1,9 @@
 <?php
+
 namespace WeDevs\WePOS\Admin;
+
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Wepos Update class
  *
@@ -16,6 +20,7 @@ class Updates {
         '1.0.2' => 'upgrade-1.0.2.php',
         '1.0.4' => 'upgrade-1.0.4.php',
         '1.2.8' => 'upgrade-1.2.8.php',
+        '1.3.0' => 'upgrade-1.3.0.php',
     ];
 
     /**

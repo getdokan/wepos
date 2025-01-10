@@ -24,7 +24,7 @@
                     </g>
                 </g>
             </svg>
-            <input type="text" ref="customerSearch" name="customer_search" id="customer-search" :placeholder="__( 'Search customer', 'wepos' )" v-model="serachInput" @focus.prevent="triggerFocus" @keyup="searchCustomer">
+            <input type="text" ref="customerSearch" name="customer_search" id="customer-search" :placeholder="__( 'Search customer', 'wepos' )" v-model="searchInput" @focus.prevent="triggerFocus" @keyup="searchCustomer">
             <span class="add-new-customer flaticon-add" @click.prevent="addNewCustomer()"></span>
             <div class="search-result" v-show="showCustomerResults">
                 <div v-if="customers.length">
@@ -181,7 +181,7 @@ export default {
                 phone: '',
             },
             showCustomerResults: false,
-            serachInput: '',
+            searchInput: '',
             showNewCustomerModal: false,
             stateList: [],
             selectedState: null,
@@ -226,7 +226,7 @@ export default {
         },
 
         'orderdata.customer_id'(newVal) {
-            this.serachInput = newVal ? this.orderdata.billing.first_name + ' ' + this.orderdata.billing.last_name : '';
+            this.searchInput = newVal ? this.orderdata.billing.first_name + ' ' + this.orderdata.billing.last_name : '';
         }
 
     },
@@ -238,7 +238,7 @@ export default {
         },
         searchClose() {
             this.showCustomerResults = false;
-            this.serachInput = '';
+            this.searchInput = '';
             this.showNewCustomerModal= false;
             this.$refs.customerSearch.blur();
         },
@@ -278,8 +278,8 @@ export default {
             this.showNewCustomerModal = false;
         },
         searchCustomer() {
-            if ( this.serachInput ) {
-                wepos.api.get( wepos.rest.root + wepos.rest.posversion + '/customers?search=' + this.serachInput )
+            if ( this.searchInput ) {
+                wepos.api.get( wepos.rest.root + wepos.rest.posversion + '/customers?search=' + this.searchInput )
                 .done(response => {
                     this.customers = response;
                 });
@@ -289,7 +289,7 @@ export default {
         },
         selectCustomer( customer ) {
             this.$emit( 'onCustomerSelected', customer );
-            this.serachInput = customer.first_name + ' ' + customer.last_name;
+            this.searchInput = customer.first_name + ' ' + customer.last_name;
             this.showCustomerResults = false;
         },
         createCustomer() {
@@ -318,7 +318,7 @@ export default {
 
                 wepos.api.post( wepos.rest.root + wepos.rest.posversion + '/customers', customerData )
                 .done(response => {
-                    this.serachInput = response.first_name + ' ' + response.last_name;
+                    this.searchInput = response.first_name + ' ' + response.last_name;
                     this.$emit( 'onCustomerSelected', response );
                     $contentWrap.unblock();
                     this.closeNewCustomerModal();
@@ -369,13 +369,13 @@ export default {
     },
     created() {
         this.eventBus.$on( 'emptycart', ( orderdata ) => {
-            this.serachInput = '';
+            this.searchInput = '';
         } );
 
         var orderdata = JSON.parse( localStorage.getItem( 'orderdata' ) );
 
         if ( orderdata.customer_id != 'undefined' && orderdata.customer_id != 0 ) {
-            this.serachInput = orderdata.billing.first_name + ' ' + orderdata.billing.last_name;
+            this.searchInput = orderdata.billing.first_name + ' ' + orderdata.billing.last_name;
         }
     }
 };
