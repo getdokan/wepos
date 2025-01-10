@@ -288,7 +288,7 @@ function wepos_get_product_price( $product ) {
 /**
  * Function current_datetime() compatibility for wp version < 5.3
  *
- * @since WEPOS_SINCE
+ * @since 1.3.0
  *
  * @return DateTimeImmutable
  */
@@ -303,7 +303,7 @@ function wepos_current_datetime() {
 /**
  * Function wp_timezone() compatibility for wp version < 5.3
  *
- * @since WEPOS_SINCE
+ * @since 1.3.0
  *
  * @return DateTimeZone
  */
@@ -318,7 +318,7 @@ function wepos_wp_timezone() {
 /**
  * Function wp_timezone_string() compatibility for wp version < 5.3
  *
- * @since WEPOS_SINCE
+ * @since 1.3.0
  *
  * @return string
  */

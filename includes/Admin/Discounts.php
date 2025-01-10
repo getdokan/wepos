@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * For managing coupons on admin panel.
  *
- * @since WEPOS_SINCE
+ * @since 1.3.0
  *
  * @package wepos
  */
@@ -20,7 +20,7 @@ class Discounts {
     /**
      * Discount Type Key.
      *
-     * @since WEPOS_SINCE
+     * @since 1.3.0
      *
      * @var string
      */
@@ -29,17 +29,18 @@ class Discounts {
     /**
      * Class Constructor.
      *
-     * @since WEPOS_SINCE
+     * @since 1.3.0
      */
     public function __construct() {
         add_action( 'load-edit.php', [ $this, 'hide_discount_coupons' ] );
         add_action( 'wepos_daily_midnight_cron', [ $this, 'remove_discount_coupons' ] );
+        add_filter( 'woocommerce_admin_order_item_coupon_url', [ $this, 'remove_discount_coupon_url' ], 10, 3 );
     }
 
     /**
      * Hide Discount Coupons from Admin Coupon List Table.
      *
-     * @since WEPOS_SINCE
+     * @since 1.3.0
      *
      * @return void
      */
@@ -92,7 +93,7 @@ class Discounts {
     /**
      * Get Discount Coupons.
      *
-     * @since WEPOS_SINCE
+     * @since 1.3.0
      *
      * @return int[]
      */
@@ -120,7 +121,7 @@ class Discounts {
     /**
      * Remove Discount Coupons.
      *
-     * @since WEPOS_SINCE
+     * @since 1.3.0
      *
      * @return void
      */
@@ -131,5 +132,26 @@ class Discounts {
             $coupon = new \WC_Coupon( $coupon_id );
             $coupon->delete( true );
         }
+    }
+
+    /**
+     * Remove Discount Coupon URL from Order Item.
+     *
+     * @since 1.3.0
+     *
+     * @param string                $url   Coupon URL
+     * @param \WC_Order_Item_Coupon $item  Order Coupon Item
+     * @param \WC_Order             $order Order
+     *
+     * @return string $url Coupon Url
+     */
+    public function remove_discount_coupon_url( $url, $item, $order ) {
+        if ( ! $order->get_meta( '_wepos_is_pos_order' ) ) {
+            return $url;
+        }
+
+        $url = '#';
+
+        return $url;
     }
 }

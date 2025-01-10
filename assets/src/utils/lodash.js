@@ -1,5 +1,5 @@
 import lodash from 'lodash/core';
-import findIndex from 'lodash/findindex';
+import findIndex from 'lodash/findIndex';
 import truncate from 'lodash/truncate';
 import includes from 'lodash/fp/includes.js';
 import debounce from 'lodash/fp/debounce.js';

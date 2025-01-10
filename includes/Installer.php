@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Installer Class.
  *
- * @since WEPOS_SINCE
+ * @since 1.3.0
  *
  * @package wepos
  */
@@ -16,7 +16,7 @@ class Installer {
     /**
      * Run The Installer.
      *
-     * @since WEPOS_SINCE
+     * @since 1.3.0
      *
      * @return void
      */
@@ -30,7 +30,7 @@ class Installer {
     /**
      * Add Version Info.
      *
-     * @since WEPOS_SINCE
+     * @since 1.3.0
      *
      * @return void
      */
@@ -47,7 +47,7 @@ class Installer {
     /**
      * Add User Roles.
      *
-     * @since WEPOS_SINCE
+     * @since 1.3.0
      *
      * @return void
      */
@@ -70,7 +70,7 @@ class Installer {
     /**
      * Flush Rewrites.
      *
-     * @since WEPOS_SINCE
+     * @since 1.3.0
      *
      * @return void
      */
@@ -81,7 +81,7 @@ class Installer {
     /**
      * Schedule Cron Jobs.
      *
-     * @since WEPOS_SINCE
+     * @since 1.3.0
      *
      * @return void
      */

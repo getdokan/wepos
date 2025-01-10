@@ -44,7 +44,7 @@ npm run build
 
 # Copy all files
 status "Copying files... ✌️"
-FILES=(wepos.php readme.txt assets includes languages templates composer.json composer.lock)
+FILES=(wepos.php readme.txt assets dependencies includes languages templates composer.json composer.lock)
 
 for file in ${FILES[@]}; do
   cp -R $file $BUILD_DIR

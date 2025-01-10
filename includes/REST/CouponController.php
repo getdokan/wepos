@@ -5,7 +5,7 @@ namespace WeDevs\WePOS\REST;
 /**
  * Coupon API Controller.
  *
- * @since WEPOS_SINCE
+ * @since 1.3.0
  *
  * @package wepos
  */
@@ -28,7 +28,7 @@ class CouponController extends \WC_REST_Coupons_Controller {
     /**
      * Create Item Permission Checking.
      *
-     * @since WEPOS_SINCE
+     * @since 1.3.0
      *
      * @param \WP_REST_Request $request
      *

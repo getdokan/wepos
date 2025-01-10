@@ -889,6 +889,7 @@ export default {
                                 payment: 'success'
                             }
                         });
+
                         this.printdata = wepos.hooks.applyFilters( 'wepos_after_payment_print_data', {
                             line_items: this.cartdata.line_items,
                             fee_lines: this.cartdata.fee_lines,
@@ -905,7 +906,8 @@ export default {
                             cashamount: this.cashAmount.toString(),
                             changeamount: this.changeAmount.toString()
                         }, orderdata );
-                      $contentWrap.unblock();
+
+                        $contentWrap.unblock();
                     } else {
                         $contentWrap.unblock();
                     }

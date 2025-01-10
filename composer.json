@@ -12,16 +12,40 @@
   "minimum-stability": "dev",
   "require": {
     "php": ">=7.4",
-    "appsero/client": "dev-develop",
+    "appsero/client": "^v2.0.4",
     "ext-json": "*"
   },
   "require-dev": {
-    "wp-coding-standards/wpcs": "dev-master",
-    "dealerdirect/phpcodesniffer-composer-installer": "^0.7.1"
+    "wp-coding-standards/wpcs": "*",
+    "dealerdirect/phpcodesniffer-composer-installer": "^0.7.1",
+    "coenjacobs/mozart": "^0.7.1"
   },
   "autoload" : {
     "psr-4": {
-        "WeDevs\\WePOS\\": "includes/"
+        "WeDevs\\WePOS\\": "includes/",
+        "WeDevs\\WePOS\\Dependencies\\": "dependencies/"
+    }
+  },
+  "extra": {
+    "mozart": {
+      "dep_namespace": "WeDevs\\WePOS\\Dependencies\\",
+      "dep_directory": "/dependencies/",
+      "classmap_directory": "/dependencies/classes/",
+      "classmap_prefix": "WeDevs_WePOS_",
+      "packages": [
+        "appsero/client"
+      ],
+      "excluded_packages": [
+        "psr/container"
+      ],
+      "override_autoload": {
+        "google/apiclient": {
+          "classmap": [
+            "src/"
+          ]
+        }
+      },
+      "delete_vendor_directories": true
     }
   },
   "scripts": {
@@ -30,6 +54,14 @@
     ],
     "phpcbf": [
       "phpcbf -p"
+    ],
+    "post-install-cmd": [
+      "[ $COMPOSER_DEV_MODE -eq 0 ] || \"vendor/bin/mozart\" compose",
+      "composer dump-autoload"
+    ],
+    "post-update-cmd": [
+      "[ $COMPOSER_DEV_MODE -eq 0 ] || \"vendor/bin/mozart\" compose",
+      "composer dump-autoload"
     ]
   },
   "config": {

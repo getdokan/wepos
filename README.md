@@ -2,12 +2,12 @@
 **Contributors:** [tareq1988](https://profiles.wordpress.org/tareq1988), [wedevs](https://profiles.wordpress.org/wedevs), [nizamuddinbabu](https://profiles.wordpress.org/nizamuddinbabu)
 **Donate Link:** http://tareq.co/donate/
 **Tags:** WooCommerce POS, point of sale, free pos, pos plugin, woocommerce point of sale
-**Requires at least:** 5.4
-**Tested up to:** 6.5.3
-**WC requires at least:** 5.0.0
-**WC tested up to:** 8.9.2
+**Requires at least:** 6.5
+**Tested up to:** 6.7.1
+**WC requires at least:** 8.0.0
+**WC tested up to:** 9.5.2
 **Requires PHP:** 7.4
-**Stable tag:** 1.2.8
+**Stable tag:** 1.3.0
 **License:** GPLv2 or later
 **License URI:** http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -59,6 +59,11 @@ No FAQ
 9. Admin Dashboard Settings
 
 ## Changelog ##
+
+### v1.3.0 -> 10 January, 2025 ###
+- **Fix:** POS discount coupons were accessible from single order page on admin dashboard
+- **Compatibility:** Compatibility for WordPress 6.7
+- **Chore:** Update Appsero client for WP 6.7 compatibility
 
 ### v1.2.8 -> 05 June, 2024 ###
 - **Feature:** WooCommerce Coupon API integration for cart discount
@@ -228,4 +233,5 @@ No FAQ
 Initial version released
 
 ## Upgrade Notice ##
-No upgrade notice
+### v1.3.0 ###
+- If you have **wePos Pro** installed, please ensure it is updated to **version 1.2.1 or later** before upgrading to this version.

@@ -3,7 +3,7 @@
 /**
  * Run Updates to Schedule Cron Jobs.
  *
- * @since WEPOS_SINCE
+ * @since 1.3.0
  *
  * @return void
  */

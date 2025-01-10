@@ -1,0 +1,113 @@
+- page: 'plugins'
+  features:
+      admin:
+          admin can install Wepos plugin [lite]: false
+          admin can activate Wepos plugin [lite]: false
+          admin can deactivate Wepos plugin [lite]: false
+          admin can delete Wepos plugin [lite]: false
+          admin can install Wepos pro plugin: false
+          admin can activate Wepos pro plugin: false
+          admin can deactivate Wepos pro plugin: false
+          admin can delete Wepos pro plugin: false
+
+- page: 'outlets'
+  features:
+      admin:
+          admin can view outlets: true
+          admin can add outlet: true
+          admin can edit outlet: true
+          admin can delete outlet: true
+          admin can add counter: true
+          admin can edit counter: true
+          admin can delete counter: true
+          admin can assign new cashier: true
+          admin can assign existing cashier: true
+          admin can delete cashier: true
+
+- page: 'receipts'
+  features:
+      admin:
+          admin can view receipts: true
+          admin can set receipt logo: true
+          admin can set receipt style: true
+          admin can set receipt header details: true
+          admin can set receipt item details: true
+          admin can set receipt footer details: true
+
+- page: 'reports'
+  features:
+      admin:
+          admin can view report: true
+          admin can filter report by payment method: true
+          admin can filter report by customer: true
+          admin can filter report by outlet: true
+          admin can filter report by cashier: true
+          admin can filter report by date: false
+          admin can clear filter: true
+          admin can export report: true
+
+- page: 'settings'
+  features:
+      admin:
+          admin can view settings menu page [lite]: true
+          admin can set Wepos general settings [lite]: true
+          admin can set Wepos receipts settings [lite]: true
+          admin can disable tax for fee [lite]: false
+          admin can set custom field for barcode [lite]: false
+
+- page: 'pos'
+  features:
+      cashier:
+          cashier can view pos [lite]: true
+          cashier can search product by name [lite]: true
+          cashier can search product by id [lite]: false
+          cashier can search product by SKU [lite]: false
+          cashier can filter product [lite]: true
+          cashier can toggle product view layout [lite]: true
+          cashier can search customer [lite]: true
+          cashier can add new customer [lite]: true
+          cashier can empty cart [lite]: true
+          cashier can view keyboard shortcuts [lite]: true
+          cashier can logout [lite]: true
+          cashier can add product to cart [lite]: true
+          cashier can add variable product to cart [lite]: false
+          cashier can edit product quantity [lite]: true
+          cashier can remove product from cart [lite]: true
+          cashier can add discount [lite]: true
+          cashier can add fee [lite]: true
+          cashier can add note [lite]: true
+          cashier can complete sale by cash [lite]: true
+          cashier can complete sale by card: true
+          cashier can complete sale with print receipt [lite]: true
+          cashier can switch counter: true
+          cashier can view products: true
+          cashier can search products: true
+          cashier can edit product: true
+          cashier can delete product: true
+          cashier can perform bulk action on products: true
+          cashier can view orders: true
+          cashier can view order details: true
+          cashier can search orders: false
+          cashier can filter orders by date: false
+          cashier can filter orders by customer: true
+          cashier can filter orders by status: true
+          cashier can add order note: true
+          cashier can delete order note: true
+          cashier can perform bulk action on orders: false
+          cashier can refund order: false
+          cashier can view customers: true
+          cashier can search customers: true
+          cashier can add new customer on customer page: true
+          cashier can edit customer: true
+          cashier can delete customer: true
+          cashier can perform bulk action on customers: true
+          cashier can update cashier profile: true
+
+- page: 'license'
+  features:
+      admin:
+          admin can view license menu page: true
+          admin can't activate license with incorrect key: true
+          admin can activate license: true
+          admin can refresh license: true
+          admin can deactivate license: true
