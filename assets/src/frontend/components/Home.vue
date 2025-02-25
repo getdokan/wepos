@@ -62,7 +62,11 @@
                                     <img :src="getProductImage(product)" :alt="getProductImageName( product )">
                                 </div>
                                 <div class="title" v-if="productView === 'grid'">
-                                    {{ truncateTitle( product.name, 20 ) }}
+                                    <div class="product-name">{{ truncateTitle( product.name, 20 ) }}</div>
+                                    <div class="meta">
+                                        <span class="label">{{ __( 'Price :', 'wepos' ) }}</span>
+                                        <span class="value" v-html="product.price_html"></span>
+                                    </div>
                                 </div>
                                 <div class="title" v-else>
                                     <div class="product-name">{{ product.name }}</div>
@@ -89,7 +93,11 @@
                                         <img :src="getProductImage(product)" :alt="getProductImageName( product )">
                                     </div>
                                     <div class="title" v-if="productView === 'grid'">
-                                        {{ truncateTitle( product.name, 20 ) }}
+                                        <div class="product-name">{{ truncateTitle( product.name, 20 ) }}</div>
+                                        <div class="meta">
+                                            <span class="label">{{ __( 'Price :', 'wepos' ) }}</span>
+                                            <span class="value" v-html="product.price_html"></span>
+                                        </div>
                                     </div>
                                     <div class="title" v-else>
                                         <div class="product-name">{{ product.name }}</div>
@@ -1630,6 +1638,17 @@ export default {
                             color: #212121;
                             font-size: 13px;
                             border-top: 1px solid #E9EDF0;
+
+                            .product-name {
+                                margin-bottom: 5px;
+                                font-weight: 600;
+                            }
+
+                            .meta {
+                                .label {
+                                    color: #758598;
+                                }
+                            }
                         }
                         .add-product-icon {
                             position: absolute;
