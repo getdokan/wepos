@@ -1092,6 +1092,10 @@ export default {
         },
 
         selectCustomer( customer ) {
+            if ( customer.email && ! customer.billing.email ) {
+                customer.billing.email = customer.email;
+            }
+
             this.$store.dispatch( 'Order/setCustomerAction', customer );
         },
         selectVariationProduct( product ) {
