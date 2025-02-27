@@ -14,7 +14,7 @@ class Manager {
      */
     public function __construct() {
         add_action( 'plugins_loaded', [ $this, 'init_gateways' ], 11, 1 );
-        add_action( 'woocommerce_payment_gateways', [ $this, 'payment_gateways' ] );
+        add_filter( 'woocommerce_payment_gateways', [ $this, 'payment_gateways' ] );
     }
 
     /**

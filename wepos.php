@@ -313,6 +313,7 @@ final class WePOS {
     public function init_hooks() {
         add_action( 'init', [ $this, 'init_classes' ] );
         add_action( 'init', [ $this, 'localization_setup' ] );
+        add_action( 'wepos_loaded', [ $this, 'load_payment_gateways' ] );
     }
 
     /**
@@ -340,9 +341,6 @@ final class WePOS {
         $this->container['common'] = new WeDevs\WePOS\Common();
         $this->container['rest']   = new WeDevs\WePOS\REST\Manager();
         $this->container['assets'] = new WeDevs\WePOS\Assets();
-
-        // Payment gateway manager
-        $this->container['gateways'] = new \WeDevs\WePOS\Gateways\Manager();
     }
 
     /**
@@ -352,6 +350,18 @@ final class WePOS {
      */
     public function localization_setup() {
         load_plugin_textdomain( 'wepos', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+    }
+
+    /**
+     * Load the payment gateways.
+     *
+     * @since WEPOS_SINCE
+     *
+     * @return void
+     */
+    public function load_payment_gateways() {
+        // Payment gateway manager
+        $this->container['gateways'] = new \WeDevs\WePOS\Gateways\Manager();
     }
 
     /**
