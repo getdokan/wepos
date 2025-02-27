@@ -87,7 +87,7 @@ class Cash extends \WC_Payment_Gateway {
             return true;
         }
 
-        return parent::is_available();
+        return parent::is_available() && wepos_is_frontend();
     }
 
     /**
