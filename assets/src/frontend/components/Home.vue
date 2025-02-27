@@ -16,6 +16,8 @@
                         :placeholder="__( 'Select a category', 'wepos' )"
                         @select="handleCategorySelect"
                         @remove="handleCategoryRemove"
+                        label="name"
+                        track-by="name"
                     >
                         <template slot="singleLabel" slot-scope="props">
                             {{props.option.name}}
