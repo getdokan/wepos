@@ -8,6 +8,10 @@ use Automattic\WooCommerce\Enums\OrderInternalStatus;
 */
 class Cash extends \WC_Payment_Gateway {
 
+    protected $instructions;
+    protected $enable_for_methods;
+    protected $enable_for_virtual;
+
     /**
      * Constructor for the gateway.
      */
