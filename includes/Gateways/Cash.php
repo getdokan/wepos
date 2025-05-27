@@ -142,12 +142,12 @@ class Cash extends \WC_Payment_Gateway {
         $order = wc_get_order( $order_id );
 
         if ( ! $this->can_refund_order( $order ) ) {
-            return new \WP_Error( 'error', __( 'Refund failed.', 'woocommerce' ) );
+            return new \WP_Error( 'error', __( 'Refund failed.', 'wepos' ) );
         }
 
         $order->add_order_note(
         /* translators: 1: Refund amount, 2: Refund reason */
-            sprintf( __( 'Refunded %1$s - Reason: %2$s', 'woocommerce' ), $amount, $reason ) // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+            sprintf( __( 'Refunded %1$s - Reason: %2$s', 'wepos' ), $amount, $reason ) // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
         );
 
         $order->update_status(OrderInternalStatus::REFUNDED );
