@@ -469,3 +469,97 @@ export interface UseOrdersOptions {
   orderby?: string;
   order?: 'asc' | 'desc';
 }
+
+// POS-specific Cart and Order Types
+export interface POSCartItem {
+  id: number;
+  product_id: number;
+  name: string;
+  quantity: number;
+  type: string;
+  on_sale: boolean;
+  sale_price: number;
+  regular_price: number;
+  editQuantity?: boolean;
+  attribute: Array<{
+    name: string;
+    option: string;
+  }>;
+  total_tax?: number;
+}
+
+export interface POSCartData {
+  line_items: POSCartItem[];
+  fee_lines: any[];
+  coupon_lines: any[];
+}
+
+export interface POSOrderData {
+  customer_id: number;
+  customer_note: string;
+  payment_method: string;
+  payment_method_title: string;
+  billing: any;
+  shipping: any;
+}
+
+export interface POSGateway {
+  id: string;
+  title: string;
+}
+
+export interface POSSettings {
+  wepos_general: any;
+  woo_tax: {
+    wc_tax_display_cart: string;
+  };
+}
+
+export interface POSPrintData {
+  line_items?: POSCartItem[];
+  fee_lines?: any[];
+  coupon_lines?: any[];
+  subtotal?: number;
+  taxtotal?: number;
+  ordertotal?: number;
+  gateway: {
+    id: string;
+    title: string;
+  };
+  order_id?: string;
+  order_date?: string;
+  cashamount?: string;
+  changeamount?: string;
+}
+
+export interface POSCategory {
+  id: number;
+  name: string;
+  parent_id: number | null;
+  level: number;
+}
+
+// UI State Types
+export type ProductViewType = 'grid' | 'list';
+
+export interface POSProduct {
+  id: number;
+  name: string;
+  type: string;
+  images: Array<{ woocommerce_thumbnail: string; name: string }>;
+  categories: Array<{ id: number; name: string }>;
+  sku?: string;
+  price_html: string;
+  on_sale: boolean;
+  sale_price: number;
+  regular_price: number;
+  stock_quantity: number;
+  manage_stock: boolean;
+  stock_status: string;
+  attributes?: Array<{
+    name: string;
+    options: string[];
+    variation: boolean;
+  }>;
+  variations?: any[];
+}
