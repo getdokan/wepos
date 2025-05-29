@@ -1,14 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import apiFetch from '@wordpress/api-fetch';
 import {
-  POSProduct,
-  POSCartData,
-  POSOrderData,
-  POSGateway,
-  POSSettings,
   POSPrintData,
   POSCategory,
-  POSCartItem,
   ProductViewType
 } from '../types';
 import {
@@ -22,14 +16,14 @@ import { usePOSData } from '../hooks/usePOSData';
 import { useCart } from '../hooks/useCart';
 
 // Import components (we'll create these next)
-import ProductGrid from '../components/POS/ProductGrid';
-import Cart from '../components/POS/Cart';
-import PaymentModal from '../components/POS/PaymentModal';
-import ReceiptModal from '../components/POS/ReceiptModal';
-import HelpModal from '../components/POS/HelpModal';
-import SearchBar from '../components/POS/SearchBar';
-import CategoryFilter from '../components/POS/CategoryFilter';
-import ProductViewToggle from '../components/POS/ProductViewToggle';
+import ProductGrid from '../components/ProductGrid';
+import Cart from '../components/Cart';
+import PaymentModal from '../components/PaymentModal';
+import ReceiptModal from '../components/ReceiptModal';
+import HelpModal from '../components/HelpModal';
+import SearchBar from '../components/SearchBar';
+import CategoryFilter from '../components/CategoryFilter';
+import ProductViewToggle from '../components/ProductViewToggle';
 
 const HomePage: React.FC = () => {
   // Custom hooks for data and cart management
