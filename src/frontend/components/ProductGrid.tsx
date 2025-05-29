@@ -1,4 +1,5 @@
 import React from 'react';
+import { __ } from '@wordpress/i18n';
 import { POSProduct, ProductViewType } from '../types';
 
 interface ProductGridProps {
@@ -41,6 +42,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                   <div
                     className={`relative cursor-pointer transition-all duration-200 ${!hasStock(product) ? 'wepos-item-disabled' : ''}`}
                     onClick={() => onAddToCart(product)}
+                    title={hasStock(product) ? __('Add to cart', 'wepos') : __('Out of stock', 'wepos')}
                   >
                     <div className={productView === 'grid' ? 'mb-3' : 'flex gap-4'}>
                       <img
@@ -48,8 +50,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                         alt={product.name}
                         className={`wepos-item-image ${productView === 'list' ? 'shrink-0' : ''}`}
                       />
-                      {productView === 'grid' && (
-                        <div className="wepos-add-icon">
+                      {productView === 'grid' && hasStock(product) && (
+                        <div className="wepos-add-icon" title={__('Add to cart', 'wepos')}>
                           +
                         </div>
                       )}
@@ -66,12 +68,12 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                             <div className="text-xs text-gray-600 space-y-1">
                               {product.sku && (
                                 <div>
-                                  <span className="font-medium">SKU:</span>
+                                  <span className="font-medium">{__('SKU:', 'wepos')}</span>
                                   <span className="ml-1">{product.sku}</span>
                                 </div>
                               )}
                               <div>
-                                <span className="font-medium">Price:</span>
+                                <span className="font-medium">{__('Price:', 'wepos')}</span>
                                 <span
                                   className="ml-1"
                                   dangerouslySetInnerHTML={{ __html: product.price_html }}
@@ -79,9 +81,11 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                               </div>
                             </div>
                           </div>
-                          <div className="ml-4 w-8 h-8 bg-wepos-primary text-white rounded-full flex items-center justify-center text-lg font-bold">
-                            +
-                          </div>
+                          {hasStock(product) && (
+                            <div className="ml-4 w-8 h-8 bg-wepos-primary text-white rounded-full flex items-center justify-center text-lg font-bold" title={__('Add to cart', 'wepos')}>
+                              +
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -93,11 +97,11 @@ const ProductGrid: React.FC<ProductGridProps> = ({
             <div className="wepos-no-product-found">
               <img
                 src={`${(window as any).wepos?.assets_url}/images/no-product.png`}
-                alt=""
+                alt={__('No products found', 'wepos')}
                 width="120px"
                 className="mx-auto mb-4"
               />
-              <p>No Product Found</p>
+              <p>{__('No Product Found', 'wepos')}</p>
             </div>
           )}
         </>

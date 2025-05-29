@@ -1,4 +1,5 @@
 import React from 'react';
+import { __ } from '@wordpress/i18n';
 import { POSCartData, POSOrderData, POSSettings, POSCartItem } from '../types';
 
 interface CartProps {
@@ -59,7 +60,7 @@ const Cart: React.FC<CartProps> = ({
                 <input
                   type="text"
                   id="customer-search"
-                  placeholder="Walk-in Customer"
+                  placeholder={__('Walk-in Customer', 'wepos')}
                   className="wepos-input pr-10"
                 />
                 <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-wepos-primary cursor-pointer hover:text-wepos-primary-hover transition-colors">
@@ -75,6 +76,7 @@ const Cart: React.FC<CartProps> = ({
                     className="wepos-button bg-gray-100 hover:bg-gray-200 p-2 rounded-lg"
                     onClick={() => onShowQuickMenuToggle(!showQuickMenu)}
                     type="button"
+                    title={__('More options', 'wepos')}
                   >
                     <span className="text-gray-600">
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -85,12 +87,12 @@ const Cart: React.FC<CartProps> = ({
                   {showQuickMenu && (
                     <div className="wepos-dropdown-menu">
                       <ul>
-                        <li><a href="#" onClick={onEmptyCart}>Empty Cart</a></li>
-                        <li><a href="#" onClick={onShowHelp}>Help</a></li>
+                        <li><a href="#" onClick={onEmptyCart}>{__('Empty Cart', 'wepos')}</a></li>
+                        <li><a href="#" onClick={onShowHelp}>{__('Help', 'wepos')}</a></li>
                         <li className="border-t border-gray-200 my-1"></li>
                         <li>
                           <a href="#" onClick={() => window.location.href = (window as any).wepos?.logout_url}>
-                            Logout
+                            {__('Logout', 'wepos')}
                           </a>
                         </li>
                       </ul>
@@ -101,7 +103,7 @@ const Cart: React.FC<CartProps> = ({
             </div>
 
             <div className="text-sm text-gray-600 font-medium">
-              New Order
+              {__('New Order', 'wepos')}
             </div>
           </div>
 
@@ -110,9 +112,9 @@ const Cart: React.FC<CartProps> = ({
             <table className="wepos-cart-table">
               <thead>
                 <tr>
-                  <th className="wepos-cart-th" style={{ width: '50%' }}>Product</th>
-                  <th className="wepos-cart-th" style={{ width: '15%' }}>Qty</th>
-                  <th className="wepos-cart-th" style={{ width: '25%' }}>Price</th>
+                  <th className="wepos-cart-th" style={{ width: '50%' }}>{__('Product', 'wepos')}</th>
+                  <th className="wepos-cart-th" style={{ width: '15%' }}>{__('Qty', 'wepos')}</th>
+                  <th className="wepos-cart-th" style={{ width: '25%' }}>{__('Price', 'wepos')}</th>
                   <th className="wepos-cart-th" style={{ width: '5%' }}></th>
                   <th className="wepos-cart-th" style={{ width: '5%' }}></th>
                 </tr>
@@ -145,6 +147,7 @@ const Cart: React.FC<CartProps> = ({
                             className={`p-1 transition-transform duration-200 ${item.editQuantity ? 'rotate-90' : ''}`}
                             onClick={() => toggleEditQuantity(item, index)}
                             type="button"
+                            title={__('Edit quantity', 'wepos')}
                           >
                             <svg className="w-4 h-4 text-wepos-primary" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
@@ -156,6 +159,7 @@ const Cart: React.FC<CartProps> = ({
                             className="p-1 text-red-500 hover:text-red-700 transition-colors"
                             onClick={() => onRemoveItem(index)}
                             type="button"
+                            title={__('Remove item', 'wepos')}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -167,7 +171,7 @@ const Cart: React.FC<CartProps> = ({
                         <tr className="bg-gray-50">
                           <td colSpan={5} className="wepos-cart-td">
                             <div className="flex items-center gap-3 py-2">
-                              <span className="text-sm font-medium">Quantity:</span>
+                              <span className="text-sm font-medium">{__('Quantity:', 'wepos')}</span>
                               <div className="wepos-update-quantity-wrap">
                                 <input
                                   type="number"
@@ -196,7 +200,7 @@ const Cart: React.FC<CartProps> = ({
                         <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6" />
                         </svg>
-                        <p className="text-gray-500">Empty Cart</p>
+                        <p className="text-gray-500">{__('Empty Cart', 'wepos')}</p>
                       </div>
                     </td>
                   </tr>
@@ -213,9 +217,9 @@ const Cart: React.FC<CartProps> = ({
                   <tr>
                     <td className="wepos-calculation-td">
                       <div className="text-gray-700 font-medium">
-                        Subtotal
+                        {__('Subtotal', 'wepos')}
                         {settings.woo_tax?.wc_tax_display_cart === 'incl' && getTotalTax() > 0 && (
-                          <span className="text-xs text-gray-500 block font-normal">Including Tax</span>
+                          <span className="text-xs text-gray-500 block font-normal">{__('Including Tax', 'wepos')}</span>
                         )}
                       </div>
                     </td>
@@ -227,7 +231,7 @@ const Cart: React.FC<CartProps> = ({
                   {getTotalTax() > 0 && (
                     <tr>
                       <td className="wepos-calculation-td text-gray-700 font-medium">
-                        {settings.woo_tax?.wc_tax_display_cart === 'incl' ? 'Fee Tax' : 'Tax'}
+                        {settings.woo_tax?.wc_tax_display_cart === 'incl' ? __('Fee Tax', 'wepos') : __('Tax', 'wepos')}
                       </td>
                       <td className="wepos-calculation-td text-right font-bold text-gray-800">
                         {formatPrice(getTotalTax())}
@@ -237,7 +241,7 @@ const Cart: React.FC<CartProps> = ({
 
                   <tr>
                     <td className="wepos-calculation-td">
-                      <div className="text-lg font-bold text-gray-800">Total</div>
+                      <div className="text-lg font-bold text-gray-800">{__('Total', 'wepos')}</div>
                     </td>
                     <td className="wepos-calculation-td text-right text-xl font-bold text-wepos-primary">
                       {formatPrice(getTotal())}
@@ -251,7 +255,7 @@ const Cart: React.FC<CartProps> = ({
               className="wepos-pay-now"
               onClick={onInitPayment}
             >
-              Checkout • {formatPrice(getTotal())}
+              {__('Checkout', 'wepos')} • {formatPrice(getTotal())}
             </div>
           </div>
         </div>

@@ -1,10 +1,11 @@
 import React from 'react';
+import { __ } from '@wordpress/i18n';
 import { POSCategory } from '../types';
 
 interface CategoryFilterProps {
   categories: POSCategory[];
   selectedCategory: POSCategory | null;
-  onCategoryChange: (category: POSCategory) => void;
+  onCategoryChange: (category: POSCategory | null) => void;
 }
 
 const CategoryFilter: React.FC<CategoryFilterProps> = ({
@@ -15,18 +16,16 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   return (
     <div className="wepos-category">
       <select
-        id="product-category"
         className="wepos-select"
-        value={selectedCategory?.id || -1}
+        value={selectedCategory?.id || ''}
         onChange={(e) => {
-          const categoryId = parseInt(e.target.value);
-          const category = categories.find(cat => cat.id === categoryId);
-          if (category) {
-            onCategoryChange(category);
-          }
+          const categoryId = e.target.value;
+          const category = categories.find(cat => cat.id.toString() === categoryId) || null;
+          onCategoryChange(category);
         }}
       >
-        {categories.map(category => (
+        <option value="">{__('All Categories', 'wepos')}</option>
+        {categories.map((category) => (
           <option key={category.id} value={category.id}>
             {'  '.repeat(category.level)}{category.name}
           </option>

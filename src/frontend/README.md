@@ -408,3 +408,128 @@ Key CSS classes for the layout system:
 - **Desktop**: Sidebar can be collapsed (64px) or expanded (256px)
 - **Tablet**: Same as desktop but adjusted grid layouts
 - **Mobile**: Sidebar becomes horizontal navigation bar
+
+## Modal System
+
+### WordPress Modal Components
+
+All modals now use the official `@wordpress/components` Modal component for consistency with WordPress admin interface standards.
+
+#### Usage
+
+```tsx
+import { Modal, Button } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
+
+const MyModal: React.FC = ({ show, onClose }) => {
+  if (!show) return null;
+
+  return (
+    <Modal
+      title={__('Modal Title', 'wepos')}
+      onRequestClose={onClose}
+      className="my-modal-class"
+      shouldCloseOnClickOutside={true}
+      shouldCloseOnEsc={true}
+      size="medium" // small, medium, large
+    >
+      <div className="modal-content">
+        <p>{__('Modal content goes here', 'wepos')}</p>
+        
+        <div className="modal-footer">
+          <Button variant="secondary" onClick={onClose}>
+            {__('Cancel', 'wepos')}
+          </Button>
+          <Button variant="primary" onClick={handleAction}>
+            {__('Confirm', 'wepos')}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+```
+
+#### Modal Components
+
+1. **HelpModal**: Keyboard shortcuts and help information
+2. **PaymentModal**: Payment processing interface
+3. **ReceiptModal**: Order receipt display
+
+#### Features
+
+- **Native WordPress Styling**: Consistent with WordPress admin
+- **Accessibility**: Built-in ARIA labels and keyboard navigation
+- **Responsive**: Automatically adapts to screen sizes
+- **Customizable**: Support for different sizes and behaviors
+
+## Internationalization (i18n)
+
+### Translation Support
+
+The application now uses `@wordpress/i18n` for complete translation support following WordPress standards.
+
+#### Implementation
+
+```tsx
+import { __ } from '@wordpress/i18n';
+
+// Simple translation
+const title = __('Product Name', 'wepos');
+
+// Translation with context
+const buttonText = _x('Save', 'button label', 'wepos');
+
+// Pluralization
+const itemCount = _n(
+  '%d item',
+  '%d items', 
+  count,
+  'wepos'
+);
+
+// Translation with sprintf
+const message = sprintf(
+  __('Order #%s created successfully', 'wepos'),
+  orderNumber
+);
+```
+
+#### Text Domain
+
+All translations use the `wepos` text domain:
+- `__('Text to translate', 'wepos')`
+- `_e('Text to echo', 'wepos')`
+- `_x('Text', 'context', 'wepos')`
+
+#### Translatable Strings
+
+Key areas with translation support:
+- **Modal titles and content**
+- **Form labels and placeholders**
+- **Button text and actions**
+- **Error messages and notifications**
+- **Table headers and data labels**
+- **Accessibility labels (aria-label, title)**
+
+#### Creating Translation Files
+
+1. Extract translatable strings:
+```bash
+wp i18n make-pot . languages/wepos.pot --domain=wepos
+```
+
+2. Create language-specific files:
+```bash
+# For Spanish
+languages/wepos-es_ES.po
+languages/wepos-es_ES.mo
+```
+
+#### WordPress Integration
+
+The translations integrate with WordPress's translation system:
+- Language files stored in `/languages/` directory
+- Follows WordPress translation standards
+- Compatible with translation plugins (WPML, Polylang, etc.)
+- Supports RTL languages

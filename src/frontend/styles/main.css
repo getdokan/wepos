@@ -280,32 +280,27 @@
         @apply flex-1 relative;
     }
 
-    /* Modal Components */
-    .wepos-modal-overlay {
-        @apply fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[1000];
-        animation: var(--animate-modal-in);
+    /* Modal Components - WordPress Modal Overrides */
+    .wepos-help-modal .components-modal__frame,
+    .wepos-payment-modal .components-modal__frame,
+    .wepos-receipt-modal .components-modal__frame {
+        @apply shadow-wepos-lg;
     }
 
-    .wepos-modal-content {
-        @apply bg-white rounded-xl shadow-wepos-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto;
-        animation: var(--animate-modal-in);
+    .wepos-help-modal .components-modal__header {
+        @apply border-b border-gray-200 pb-4;
     }
 
-    /* Help Modal */
+    .wepos-payment-modal .components-modal__frame {
+        @apply max-w-4xl w-full;
+    }
+
+    .wepos-receipt-modal .components-modal__frame {
+        @apply max-w-2xl w-full;
+    }
+
     .wepos-help-wrapper {
         @apply p-6;
-    }
-
-    .wepos-help-wrapper h2 {
-        @apply text-xl font-bold mb-6 text-gray-800 border-b border-gray-200 pb-3;
-    }
-
-    .wepos-help-wrapper ul {
-        @apply space-y-3;
-    }
-
-    .wepos-help-wrapper li {
-        @apply text-gray-700 flex items-center gap-4 py-2;
     }
 
     .wepos-help-wrapper .code {
@@ -322,6 +317,10 @@
     }
 
     .wepos-checkout-left {
+        @apply space-y-4;
+    }
+
+    .wepos-checkout-right {
         @apply space-y-4;
     }
 
