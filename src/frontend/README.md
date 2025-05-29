@@ -295,3 +295,116 @@ After successful payment, the system displays a receipt modal with:
 - Subtotal, tax, and total amounts
 - Cash tendered and change (for cash payments)
 - Print functionality
+
+## Layout System
+
+### Layout Component
+
+The `Layout` component provides a consistent layout structure with a collapsible sidebar that can be reused across all pages in the application.
+
+#### Usage
+
+```tsx
+import Layout from '../components/Layout';
+
+const MyPage: React.FC = () => {
+  const [currentPage, setCurrentPage] = useState('my-page');
+
+  return (
+    <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
+      <div className="wepos-content-product">
+        {/* Your page content here */}
+      </div>
+    </Layout>
+  );
+};
+```
+
+#### Features
+
+- **Collapsible Sidebar**: Sidebar is collapsed by default, showing only icons
+- **Toggle Button**: Click the arrow button in the sidebar header to expand/collapse
+- **Tooltips**: When collapsed, hover over navigation items to see tooltips
+- **Responsive Design**: Automatically adapts to mobile devices
+- **Smooth Animations**: Transitions between collapsed and expanded states
+
+### Sidebar Component
+
+The sidebar provides navigation between different pages of the application.
+
+#### States
+
+1. **Collapsed (Default)**: Shows only icons, width of 64px (4rem)
+2. **Expanded**: Shows icons and labels, width of 256px (16rem)
+
+#### Navigation Items
+
+- Home (Products/POS)
+- Drinks
+- Orders
+- Customers
+- Reports
+- Settings
+
+#### Props
+
+```tsx
+interface SidebarProps {
+  currentPage: string;
+  onPageChange: (page: string) => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+}
+```
+
+### Page Structure
+
+When creating new pages, follow this structure:
+
+```tsx
+import React from 'react';
+import Layout from '../components/Layout';
+
+interface MyPageProps {
+  currentPage: string;
+  onPageChange: (page: string) => void;
+}
+
+const MyPage: React.FC<MyPageProps> = ({ currentPage, onPageChange }) => {
+  return (
+    <Layout currentPage={currentPage} onPageChange={onPageChange}>
+      <div className="wepos-content-product">
+        <div className="flex flex-col h-full">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">Page Title</h1>
+            <p className="text-gray-600">Page description</p>
+          </div>
+
+          <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            {/* Page content */}
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default MyPage;
+```
+
+### CSS Classes
+
+Key CSS classes for the layout system:
+
+- `.wepos-sidebar`: Main sidebar container
+- `.wepos-sidebar.collapsed`: Collapsed state styles
+- `.wepos-sidebar.expanded`: Expanded state styles
+- `.wepos-sidebar-toggle`: Toggle button styles
+- `.wepos-main-content`: Main content area wrapper
+- `.wepos-content-product`: Individual page content container
+
+### Responsive Behavior
+
+- **Desktop**: Sidebar can be collapsed (64px) or expanded (256px)
+- **Tablet**: Same as desktop but adjusted grid layouts
+- **Mobile**: Sidebar becomes horizontal navigation bar

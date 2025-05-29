@@ -1,5 +1,5 @@
 import React from 'react';
-import { POSCategory } from '../../types';
+import { POSCategory } from '../types';
 
 interface CategoryFilterProps {
   categories: POSCategory[];
@@ -13,9 +13,10 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   onCategoryChange,
 }) => {
   return (
-    <div className="category">
+    <div className="wepos-category">
       <select
         id="product-category"
+        className="wepos-select"
         value={selectedCategory?.id || -1}
         onChange={(e) => {
           const categoryId = parseInt(e.target.value);

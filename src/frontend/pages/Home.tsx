@@ -15,7 +15,8 @@ import {
 import { usePOSData } from '../hooks/usePOSData';
 import { useCart } from '../hooks/useCart';
 
-// Import components (we'll create these next)
+// Import components
+import Layout from '../components/Layout';
 import ProductGrid from '../components/ProductGrid';
 import Cart from '../components/Cart';
 import PaymentModal from '../components/PaymentModal';
@@ -51,6 +52,7 @@ const HomePage: React.FC = () => {
   } = useCart({ cartData, setCartData, settings });
 
   // UI State
+  const [currentPage, setCurrentPage] = useState('home');
   const [showHelp, setShowHelp] = useState(false);
   const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [productView, setProductView] = useState<ProductViewType>('grid');
@@ -71,17 +73,34 @@ const HomePage: React.FC = () => {
 
   // Helper functions
   const getFilteredProduct = useCallback(() => {
+    let filteredProducts = products;
+
+    // Filter by category based on current page
+    if (currentPage === 'drinks') {
+      filteredProducts = products.filter(product =>
+        product.categories.some(cat => cat.name.toLowerCase().includes('drink'))
+      );
+    } else if (currentPage === 'snacks') {
+      filteredProducts = products.filter(product =>
+        product.categories.some(cat => cat.name.toLowerCase().includes('snack'))
+      );
+    } else if (currentPage === 'special') {
+      filteredProducts = products.filter(product => product.on_sale);
+    }
+
+    // Additional URL parameter filtering
     const urlParams = new URLSearchParams(window.location.search);
     const categoryParam = urlParams.get('category');
 
     if (categoryParam !== null) {
-      return products.filter((product) => {
+      filteredProducts = filteredProducts.filter((product) => {
         const foundCat = product.categories.find(cat => cat.id === parseInt(categoryParam));
         return foundCat !== undefined;
       });
     }
-    return products;
-  }, [products]);
+
+    return filteredProducts;
+  }, [products, currentPage]);
 
   // UI Actions
   const toggleProductView = () => {
@@ -304,9 +323,12 @@ const HomePage: React.FC = () => {
   }, [showPaymentReceipt, createprintreceipt]);
 
   return (
-    <div id="wepos-main">
-      <div className="content-product">
-        <div className="top-panel wepos-clearfix">
+    <Layout
+      currentPage={currentPage}
+      onPageChange={setCurrentPage}
+    >
+      <div className="wepos-content-product">
+        <div className="wepos-top-panel">
           <SearchBar />
 
           <CategoryFilter
@@ -381,7 +403,7 @@ const HomePage: React.FC = () => {
         onNewSale={createNewSale}
         formatPrice={formatPrice}
       />
-    </div>
+    </Layout>
   );
 };
 

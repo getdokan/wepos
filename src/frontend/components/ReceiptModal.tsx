@@ -1,5 +1,5 @@
 import React from 'react';
-import { POSPrintData, POSCartItem } from '../../types';
+import { POSPrintData } from '../types';
 
 interface ReceiptModalProps {
   show: boolean;
@@ -20,55 +20,95 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
 }) => {
   if (!show) return null;
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleNewSale = () => {
+    onNewSale();
+    onClose();
+  };
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+    <div className="wepos-modal-overlay" onClick={onClose}>
+      <div className="wepos-modal-content max-w-lg" onClick={(e) => e.stopPropagation()}>
         <div className="wepos-receipt-wrapper">
-          <div className="header">
-            <h2>Payment Receipt</h2>
-            <span className="close-btn" onClick={onClose}>×</span>
+          <div className="wepos-receipt-header">
+            <h2>Order Receipt</h2>
+            <button
+              onClick={onClose}
+              className="wepos-receipt-close"
+              type="button"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-          <div className="content">
-            <div className="receipt-info">
-              <p><strong>Order ID:</strong> {printdata.order_id}</p>
-              <p><strong>Date:</strong> {printdata.order_date ? new Date(printdata.order_date).toLocaleDateString() : ''}</p>
-              <p><strong>Payment Method:</strong> {printdata.gateway?.title}</p>
+
+          <div className="wepos-receipt-content">
+            <div className="wepos-receipt-info">
+              {printdata.order_id && (
+                <p><strong>Order #:</strong> {printdata.order_id}</p>
+              )}
+              {printdata.order_date && (
+                <p><strong>Date:</strong> {new Date(printdata.order_date).toLocaleDateString()}</p>
+              )}
+              <p><strong>Payment Method:</strong> {printdata.gateway?.title || 'N/A'}</p>
             </div>
 
-            <div className="receipt-items">
+            <div className="wepos-receipt-items">
               <h3>Items</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Qty</th>
-                    <th>Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {printdata.line_items?.map((item: POSCartItem, index: number) => (
-                    <tr key={index}>
-                      <td>{item.name}</td>
-                      <td>{item.quantity}</td>
-                      <td>{formatPrice(item.quantity * (item.on_sale ? item.sale_price : item.regular_price))}</td>
+              {printdata.line_items && printdata.line_items.length > 0 ? (
+                <table className="wepos-receipt-table">
+                  <thead>
+                    <tr>
+                      <th className="wepos-receipt-th">Item</th>
+                      <th className="wepos-receipt-th">Qty</th>
+                      <th className="wepos-receipt-th">Price</th>
+                      <th className="wepos-receipt-th">Total</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {printdata.line_items.map((item, index) => (
+                      <tr key={index}>
+                        <td className="wepos-receipt-td">{item.name}</td>
+                        <td className="wepos-receipt-td">{item.quantity}</td>
+                        <td className="wepos-receipt-td">
+                          {item.on_sale ?
+                            formatPrice(item.sale_price) :
+                            formatPrice(item.regular_price)
+                          }
+                        </td>
+                        <td className="wepos-receipt-td">
+                          {item.on_sale ?
+                            formatPrice(item.quantity * item.sale_price) :
+                            formatPrice(item.quantity * item.regular_price)
+                          }
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p>No items found</p>
+              )}
             </div>
 
-            <div className="receipt-totals">
+            <div className="wepos-receipt-totals">
               <div className="total-line">
                 <span>Subtotal:</span>
                 <span>{formatPrice(printdata.subtotal || 0)}</span>
               </div>
-              {(printdata.taxtotal || 0) > 0 && (
+
+              {printdata.taxtotal && printdata.taxtotal > 0 && (
                 <div className="total-line">
                   <span>Tax:</span>
-                  <span>{formatPrice(printdata.taxtotal || 0)}</span>
+                  <span>{formatPrice(printdata.taxtotal)}</span>
                 </div>
               )}
-              <div className="total-line final-total">
+
+              <div className="final-total">
                 <span>Total:</span>
                 <span>{formatPrice(printdata.ordertotal || 0)}</span>
               </div>
@@ -76,33 +116,30 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
               {selectedGateway === 'wepos_cash' && (
                 <>
                   <div className="total-line">
-                    <span>Cash Tendered:</span>
-                    <span>{formatPrice(parseFloat(printdata.cashamount || '0'))}</span>
+                    <span>Cash Received:</span>
+                    <span>{formatPrice(printdata.cashamount || 0)}</span>
                   </div>
                   <div className="total-line">
                     <span>Change:</span>
-                    <span>{formatPrice(parseFloat(printdata.changeamount || '0'))}</span>
+                    <span>{formatPrice(printdata.changeamount || 0)}</span>
                   </div>
                 </>
               )}
             </div>
           </div>
 
-          <div className="footer">
+          <div className="wepos-receipt-footer">
             <button
-              className="print-btn"
-              onClick={() => {
-                window.print();
-              }}
+              className="wepos-button wepos-btn-print"
+              onClick={handlePrint}
+              type="button"
             >
               Print Receipt
             </button>
             <button
-              className="new-sale-btn"
-              onClick={() => {
-                onClose();
-                onNewSale();
-              }}
+              className="wepos-button wepos-btn-new-sale"
+              onClick={handleNewSale}
+              type="button"
             >
               New Sale
             </button>

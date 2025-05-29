@@ -1,550 +1,538 @@
-/* WePos React App - Essential Styles */
+/* WePos React App - Tailwind CSS v4 */
+@import "tailwindcss";
 
-#wepos-main {
-    padding: 20px;
-    display: flex;
+/* WePos Theme Configuration */
+@theme {
+    /* WePos Brand Colors */
+    --color-wepos-primary: #1ABC9C;
+    --color-wepos-primary-hover: #17a085;
+    --color-wepos-secondary: #3B80F4;
+    --color-wepos-border: #E9EDF0;
+    --color-wepos-muted: #BDC0C9;
+    --color-wepos-bg-secondary: #f5f5f5;
+    --color-wepos-text-muted: #999;
+    --color-wepos-dark: #192128;
+    --color-wepos-dark-lighter: #1f2a35;
+
+    /* Custom Shadows */
+    --shadow-wepos: 0 2px 10px oklch(0 0 0 / 0.1);
+    --shadow-wepos-lg: 0 4px 20px oklch(0 0 0 / 0.15);
+
+    /* Custom Animations */
+    --animate-slide-in: slideIn 0.3s ease-out;
+    --animate-modal-in: modalIn 0.2s ease-out;
+
+    /* Keyframes for custom animations */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
 }
 
-#wepos-main .content-product {
-    flex: 2;
-    margin-right: 20px;
+/* Base Layout Styles */
+@layer base {
+    #wepos-main {
+        @apply min-h-screen bg-gray-100 flex;
+    }
 }
 
-#wepos-main .content-product .top-panel {
-    margin-bottom: 20px;
+/* WePos Component Styles */
+@layer components {
+
+    /* Sidebar Styles */
+    .wepos-sidebar {
+        @apply bg-wepos-dark text-white flex flex-col shadow-wepos-lg transition-all duration-300 ease-in-out;
+    }
+
+    .wepos-sidebar.collapsed {
+        @apply w-16;
+    }
+
+    .wepos-sidebar.expanded {
+        @apply w-64;
+    }
+
+    .wepos-sidebar-header {
+        @apply p-4 border-b border-wepos-dark-lighter relative;
+    }
+
+    .wepos-logo {
+        @apply flex items-center gap-3 overflow-hidden;
+    }
+
+    .logo-circle {
+        @apply w-8 h-8 bg-wepos-primary rounded-lg flex items-center justify-center text-white shrink-0;
+    }
+
+    .logo-text {
+        @apply text-lg font-bold text-white transition-opacity duration-300;
+    }
+
+    .wepos-sidebar-toggle {
+        @apply absolute top-4 right-4 p-1 text-gray-300 hover:text-white hover:bg-wepos-dark-lighter rounded transition-colors duration-200;
+    }
+
+    .wepos-sidebar.collapsed .wepos-sidebar-toggle {
+        @apply right-2;
+    }
+
+    .wepos-sidebar-nav {
+        @apply flex-1 py-4;
+    }
+
+    .nav-list {
+        @apply space-y-1 px-2;
+    }
+
+    .nav-item {
+        @apply w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left text-gray-300 transition-all duration-200 hover:bg-wepos-dark-lighter hover:text-white relative;
+    }
+
+    .wepos-sidebar.collapsed .nav-item {
+        @apply justify-center px-3;
+    }
+
+    .nav-item.active {
+        @apply bg-wepos-primary text-white;
+    }
+
+    .nav-icon {
+        @apply flex-shrink-0;
+    }
+
+    .nav-label {
+        @apply text-sm font-medium transition-opacity duration-300 whitespace-nowrap;
+    }
+
+    .wepos-sidebar.collapsed .nav-label {
+        @apply opacity-0;
+    }
+
+    /* Tooltip for collapsed sidebar */
+    .wepos-sidebar.collapsed .nav-item:hover::after {
+        content: attr(title);
+        @apply absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap z-10;
+        animation: var(--animate-slide-in);
+    }
+
+    .wepos-sidebar-footer {
+        @apply p-2 border-t border-wepos-dark-lighter;
+    }
+
+    .logout-btn {
+        @apply text-red-300 hover:text-red-200 hover:bg-red-900/20;
+    }
+
+    /* Main Layout */
+    .wepos-main-content {
+        @apply flex-1 flex;
+    }
+
+    .wepos-content-product {
+        @apply flex-1 p-6 bg-white;
+    }
+
+    .wepos-content-cart {
+        @apply w-96 bg-white shadow-wepos flex flex-col;
+    }
+
+    /* Top Panel */
+    .wepos-top-panel {
+        @apply mb-6 flex gap-4 items-center;
+    }
+
+    .wepos-search-bar {
+        @apply flex-1 relative;
+    }
+
+    .wepos-category {
+        @apply w-64;
+    }
+
+    .wepos-toggle-view {
+        @apply shrink-0;
+    }
+
+    /* Form Controls */
+    .wepos-input {
+        @apply w-full h-10 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-wepos-primary/20 focus:border-wepos-primary transition-colors bg-white;
+    }
+
+    .wepos-select {
+        @apply w-full h-10 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-wepos-primary/20 focus:border-wepos-primary transition-colors bg-white cursor-pointer;
+    }
+
+    /* Toggle View Controls */
+    .wepos-toggle-icon {
+        @apply px-3 py-2 bg-white border border-gray-300 text-gray-500 cursor-pointer transition-all duration-200 hover:bg-gray-50 select-none;
+    }
+
+    .wepos-toggle-icon.active {
+        @apply text-wepos-primary bg-wepos-primary/5 border-wepos-primary;
+    }
+
+    /* Product Grid/List Views */
+    .wepos-items-grid {
+        @apply grid grid-cols-4 gap-6 overflow-auto h-[calc(100vh-200px)] p-1;
+    }
+
+    .wepos-item-grid {
+        @apply bg-white border border-gray-200 rounded-xl p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-wepos-primary/30 hover:-translate-y-1 flex flex-col items-center text-center relative;
+    }
+
+    .wepos-item-grid:hover .wepos-add-icon {
+        @apply opacity-100;
+    }
+
+    .wepos-add-icon {
+        @apply absolute top-2 right-2 w-6 h-6 bg-wepos-primary text-white rounded-full flex items-center justify-center text-sm font-bold opacity-0 transition-opacity duration-200;
+    }
+
+    .wepos-items-list {
+        @apply space-y-3 overflow-auto h-[calc(100vh-200px)] p-1;
+    }
+
+    .wepos-item-list {
+        @apply bg-white border border-gray-200 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-wepos-primary/30;
+    }
+
+    .wepos-item-disabled {
+        @apply opacity-50 cursor-not-allowed hover:shadow-none hover:border-gray-200 hover:translate-y-0;
+    }
+
+    .wepos-item-image {
+        @apply w-full h-auto max-w-24 max-h-24 object-cover rounded-lg mb-3;
+    }
+
+    /* Cart Panel - Three-section layout */
+    .wepos-cart-panel {
+        @apply h-full flex flex-col;
+    }
+
+    /* Cart Header */
+    .wepos-cart-header {
+        @apply p-4 border-b border-gray-200 bg-gray-50;
+    }
+
+    /* Cart Content - Scrollable area */
+    .wepos-cart-content {
+        @apply flex-1 overflow-auto;
+    }
+
+    .wepos-cart-table {
+        @apply w-full border-collapse;
+    }
+
+    .wepos-cart-th {
+        @apply border-b border-gray-200 p-3 text-left bg-gray-50 font-semibold text-gray-700 text-sm sticky top-0;
+    }
+
+    .wepos-cart-td {
+        @apply border-b border-gray-100 p-3 text-sm;
+    }
+
+    .wepos-no-item {
+        @apply text-center py-16 px-5 text-gray-400;
+    }
+
+    /* Cart Footer - Fixed bottom section */
+    .wepos-cart-footer {
+        @apply border-t border-gray-200 bg-white;
+    }
+
+    .wepos-cart-calculation {
+        @apply bg-gray-50/50;
+    }
+
+    .wepos-calculation-table {
+        @apply w-full border-collapse;
+    }
+
+    .wepos-calculation-td {
+        @apply p-4 border-b border-gray-100 last:border-b-0;
+    }
+
+    .wepos-pay-now {
+        @apply bg-wepos-primary text-white cursor-pointer font-bold hover:bg-wepos-primary-hover transition-colors duration-200 py-4 px-6 text-center text-lg;
+    }
+
+    /* Customer Search */
+    .wepos-customer-search {
+        @apply flex-1 relative;
+    }
+
+    /* Modal Components */
+    .wepos-modal-overlay {
+        @apply fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[1000];
+        animation: var(--animate-modal-in);
+    }
+
+    .wepos-modal-content {
+        @apply bg-white rounded-xl shadow-wepos-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-auto;
+        animation: var(--animate-modal-in);
+    }
+
+    /* Help Modal */
+    .wepos-help-wrapper {
+        @apply p-6;
+    }
+
+    .wepos-help-wrapper h2 {
+        @apply text-xl font-bold mb-6 text-gray-800 border-b border-gray-200 pb-3;
+    }
+
+    .wepos-help-wrapper ul {
+        @apply space-y-3;
+    }
+
+    .wepos-help-wrapper li {
+        @apply text-gray-700 flex items-center gap-4 py-2;
+    }
+
+    .wepos-help-wrapper .code {
+        @apply bg-gray-100 px-3 py-1 rounded-md text-sm font-mono text-gray-800 border border-gray-200 min-w-24 text-center;
+    }
+
+    /* Checkout Modal */
+    .wepos-checkout-wrapper {
+        @apply p-6;
+    }
+
+    .wepos-checkout-content {
+        @apply grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6;
+    }
+
+    .wepos-checkout-left {
+        @apply space-y-4;
+    }
+
+    .wepos-payment-gateway {
+        @apply flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer transition-all duration-200 hover:border-wepos-primary/50 hover:bg-wepos-primary/5 has-[:checked]:border-wepos-primary has-[:checked]:bg-wepos-primary/10;
+    }
+
+    .wepos-payment-gateway input {
+        @apply mr-3 accent-wepos-primary;
+    }
+
+    .wepos-checkout-footer {
+        @apply flex justify-between items-center pt-4 border-t border-gray-200 gap-4;
+    }
+
+    /* Buttons */
+    .wepos-button {
+        @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 border border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2;
+    }
+
+    .wepos-btn-back {
+        @apply bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500/20 border-gray-200;
+    }
+
+    .wepos-btn-process {
+        @apply bg-wepos-primary text-white hover:bg-wepos-primary-hover focus:ring-wepos-primary/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-wepos-primary;
+    }
+
+    /* Dropdown Menu */
+    .wepos-dropdown-menu {
+        @apply absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-20 min-w-40 overflow-hidden;
+    }
+
+    .wepos-dropdown-menu ul {
+        @apply list-none;
+    }
+
+    .wepos-dropdown-menu li a {
+        @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer;
+    }
+
+    /* Quantity Controls */
+    .wepos-update-quantity-wrap input[type="number"] {
+        @apply w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-wepos-primary/20 focus:border-wepos-primary;
+    }
+
+    .wepos-qty-action {
+        @apply flex gap-1;
+    }
+
+    .wepos-qty-action a {
+        @apply w-8 h-8 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded text-center leading-8 text-gray-600 transition-colors cursor-pointer select-none;
+    }
+
+    .wepos-qty-action a.add {
+        @apply bg-wepos-primary text-white hover:bg-wepos-primary-hover border-wepos-primary;
+    }
+
+    /* Loading States */
+    .wepos-product-loading {
+        @apply flex justify-center items-center h-64;
+    }
+
+    .wepos-no-product-found {
+        @apply text-center py-20 text-gray-500;
+    }
+
+    /* Receipt Styles */
+    .wepos-receipt-wrapper {
+        @apply bg-white;
+    }
+
+    .wepos-receipt-header {
+        @apply border-b border-gray-200 pb-4 mb-4;
+    }
+
+    .wepos-receipt-header h2 {
+        @apply text-lg font-bold text-gray-800 relative pl-6;
+    }
+
+    .wepos-receipt-header h2::before {
+        @apply absolute left-0 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-wepos-primary rounded-full content-[''];
+    }
+
+    .wepos-receipt-close {
+        @apply absolute top-4 right-4 text-gray-400 hover:text-gray-600 cursor-pointer;
+    }
+
+    .wepos-receipt-content {
+        @apply space-y-4;
+    }
+
+    .wepos-receipt-info p {
+        @apply text-sm text-gray-600 mb-2;
+    }
+
+    .wepos-receipt-items h3 {
+        @apply font-semibold text-gray-800 mb-3;
+    }
+
+    .wepos-receipt-table {
+        @apply w-full border-collapse text-sm;
+    }
+
+    .wepos-receipt-th,
+    .wepos-receipt-td {
+        @apply border-b border-gray-200 p-2 text-left;
+    }
+
+    .wepos-receipt-th {
+        @apply bg-gray-50 font-semibold;
+    }
+
+    .wepos-receipt-totals .total-line {
+        @apply flex justify-between py-1 text-sm;
+    }
+
+    .wepos-receipt-totals .final-total {
+        @apply flex justify-between py-2 text-lg font-bold border-t border-gray-300 mt-2;
+    }
+
+    .wepos-receipt-footer {
+        @apply flex gap-3 pt-4 border-t border-gray-200;
+    }
+
+    .wepos-btn-print {
+        @apply bg-wepos-secondary text-white hover:bg-wepos-secondary/90;
+    }
+
+    .wepos-btn-new-sale {
+        @apply bg-wepos-primary text-white hover:bg-wepos-primary-hover;
+    }
+
+    /* Utility Classes */
+    .wepos-clearfix:after {
+        @apply content-[''] table clear-both;
+    }
 }
 
-#wepos-main .content-product .top-panel .search-bar,
-#wepos-main .content-product .top-panel .category,
-#wepos-main .content-product .top-panel .toggle-view {
-    float: left;
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .wepos-sidebar.expanded {
+        @apply w-64;
+    }
+
+    .wepos-sidebar.collapsed {
+        @apply w-16;
+    }
+
+    .wepos-content-cart {
+        @apply w-80;
+    }
+
+    .wepos-items-grid {
+        @apply grid-cols-3;
+    }
 }
 
-#wepos-main .content-product .top-panel .search-bar {
-    width: 56%;
-    margin-right: 2%;
-}
-
-#wepos-main .content-product .top-panel .category {
-    width: 26%;
-    margin-right: 2%;
-}
-
-#wepos-main .content-product .top-panel .toggle-view {
-    width: 14%;
-    text-align: right;
-}
-
-.wepos-clearfix:after {
-    content: "";
-    display: table;
-    clear: both;
-}
-
-#wepos-main .content-product .top-panel input,
-#wepos-main .content-product .top-panel select {
-    width: 100%;
-    height: 35px;
-    border: 1px solid #E9EDF0;
-    border-radius: 3px;
-    padding: 8px;
-    box-sizing: border-box;
-}
-
-#wepos-main .content-product .toggle-view .toggle-icon {
-    padding: 8px 10px;
-    background: #fff;
-    display: inline-block;
-    border: 1px solid #E9EDF0;
-    color: #BDC0C9;
-    cursor: pointer;
-}
-
-#wepos-main .content-product .toggle-view .toggle-icon.active {
-    color: #3B80F4;
-}
-
-#wepos-main .content-product .items-wrapper.grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    overflow: auto;
-    height: 75vh;
-}
-
-#wepos-main .content-product .items-wrapper.grid .item {
-    flex: 0 0 calc(20% - 10px);
-    background: #fff;
-    border: 1px solid #eee;
-    cursor: pointer;
-    text-align: center;
-    padding: 10px;
-}
-
-#wepos-main .content-product .items-wrapper.list {
-    overflow: auto;
-    height: 75vh;
-}
-
-#wepos-main .content-product .items-wrapper.list .item {
-    background: #fff;
-    border: 1px solid #eee;
-    margin-bottom: 10px;
-    padding: 10px;
-    cursor: pointer;
-}
-
-#wepos-main .content-product .items-wrapper .item img {
-    max-width: 100%;
-    height: auto;
-}
-
-#wepos-main .content-product .items-wrapper .disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-#wepos-main .content-cart {
-    flex: 1;
-    height: 94vh;
-}
-
-#wepos-main .content-cart .top-panel {
-    display: flex;
-    margin-bottom: 20px;
-    gap: 10px;
-}
-
-#wepos-main .content-cart .top-panel .customer-search-box {
-    flex: 1;
-}
-
-#wepos-main .content-cart .top-panel input {
-    width: 100%;
-    height: 35px;
-    border: 1px solid #E9EDF0;
-    border-radius: 3px;
-    padding: 8px;
-    box-sizing: border-box;
-}
-
-#wepos-main .content-cart .cart-panel {
-    background: #fff;
-    height: 85%;
-    border: 1px solid #eee;
-    display: flex;
-    flex-direction: column;
-}
-
-#wepos-main .content-cart .cart-panel .cart-content {
-    flex: 1;
-    overflow: auto;
-}
-
-#wepos-main .content-cart .cart-panel .cart-content table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-#wepos-main .content-cart .cart-panel .cart-content table th,
-#wepos-main .content-cart .cart-panel .cart-content table td {
-    border-bottom: 1px solid #eee;
-    padding: 8px;
-    text-align: left;
-}
-
-#wepos-main .content-cart .cart-panel .cart-content table th {
-    background: #f5f5f5;
-    font-weight: bold;
-}
-
-#wepos-main .content-cart .cart-panel .cart-content .no-item {
-    text-align: center;
-    padding: 40px;
-    color: #999;
-}
-
-#wepos-main .content-cart .cart-panel .cart-calculation {
-    border-top: 1px solid #eee;
-}
-
-#wepos-main .content-cart .cart-panel .cart-calculation table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-#wepos-main .content-cart .cart-panel .cart-calculation table td {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-}
-
-#wepos-main .content-cart .cart-panel .cart-calculation .pay-now {
-    background: #1ABC9C;
-    color: white;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 5px;
-    max-width: 90vw;
-    max-height: 90vh;
-    overflow: auto;
-    padding: 20px;
-}
-
-.wepos-help-wrapper h2 {
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
-}
-
-.wepos-help-wrapper ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.wepos-help-wrapper li {
-    display: flex;
-    margin-bottom: 10px;
-}
-
-.wepos-help-wrapper .code {
-    width: 120px;
-    font-family: monospace;
-    background: #f5f5f5;
-    padding: 2px 8px;
-    border-radius: 3px;
-}
-
-.wepos-checkout-wrapper {
-    display: flex;
-    min-width: 800px;
-    min-height: 500px;
-}
-
-.wepos-checkout-wrapper .left-content,
-.wepos-checkout-wrapper .right-content {
-    flex: 1;
-    padding: 20px;
-}
-
-.wepos-checkout-wrapper .left-content {
-    border-right: 1px solid #eee;
-}
-
-.wepos-checkout-wrapper .payment-gateway {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin: 20px 0;
-}
-
-.wepos-checkout-wrapper .payment-gateway label {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    cursor: pointer;
-}
-
-.wepos-checkout-wrapper .payment-gateway input {
-    margin-right: 10px;
-}
-
-.wepos-checkout-wrapper .footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-}
-
-.back-btn,
-.process-checkout-btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    text-decoration: none;
-}
-
-.back-btn {
-    background: #f0f0f0;
-    color: #333;
-}
-
-.process-checkout-btn {
-    background: #3B80F4;
-    color: white;
-}
-
-.wepos-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-}
-
-.wepos-dropdown-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    z-index: 100;
-    min-width: 150px;
-}
-
-.wepos-dropdown-menu ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.wepos-dropdown-menu li a {
-    display: block;
-    padding: 10px 15px;
-    color: #333;
-    text-decoration: none;
-}
-
-.wepos-dropdown-menu li a:hover {
-    background: #f5f5f5;
-}
-
-.more-options {
-    position: relative;
-}
-
-.update-quantity-wrap input[type="number"] {
-    width: 60px;
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-}
-
-.qty-action a {
-    display: inline-block;
-    width: 25px;
-    height: 25px;
-    text-align: center;
-    line-height: 23px;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    text-decoration: none;
-    margin: 0 2px;
-    background: #f5f5f5;
-    color: #333;
-}
-
-.qty-action a.add {
-    background: #3B80F4;
-    color: white;
-}
-
-.product-loading {
-    text-align: center;
-    padding: 40px;
-    color: #999;
-}
-
-.no-product-found {
-    text-align: center;
-    padding: 40px;
-    color: #999;
-}
-
-/* Responsive */
 @media (max-width: 768px) {
     #wepos-main {
-        flex-direction: column;
+        @apply flex-col;
     }
 
-    #wepos-main .content-product {
-        margin-right: 0;
-        margin-bottom: 20px;
+    .wepos-sidebar {
+        @apply w-full h-auto flex-row;
     }
 
-    .wepos-checkout-wrapper {
-        flex-direction: column;
-        min-width: auto;
+    .wepos-sidebar.collapsed,
+    .wepos-sidebar.expanded {
+        @apply w-full;
     }
 
-    .wepos-checkout-wrapper .left-content {
-        border-right: none;
-        border-bottom: 1px solid #eee;
-    }
-}
-
-/* Payment Processing */
-.process-checkout-btn.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* Payment Receipt Modal */
-.wepos-receipt-wrapper {
-    background: white;
-    border-radius: 8px;
-    max-width: 500px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-50px);
+    .wepos-sidebar-header {
+        @apply flex-shrink-0;
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    .wepos-sidebar-nav {
+        @apply flex-1;
     }
-}
 
-.wepos-receipt-wrapper .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #eee;
-    background: #f8f9fa;
-}
+    .nav-list {
+        @apply flex overflow-x-auto space-y-0 space-x-2;
+    }
 
-.wepos-receipt-wrapper .header h2 {
-    margin: 0;
-    font-size: 24px;
-    color: #00a32a;
-    display: flex;
-    align-items: center;
-}
+    .wepos-sidebar.collapsed .nav-item,
+    .wepos-sidebar.expanded .nav-item {
+        @apply justify-center;
+    }
 
-.wepos-receipt-wrapper .header h2::before {
-    content: "✓";
-    display: inline-block;
-    margin-right: 10px;
-    background: #00a32a;
-    color: white;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    text-align: center;
-    line-height: 30px;
-    font-size: 18px;
-}
+    .wepos-content-product {
+        @apply flex-none;
+    }
 
-.wepos-receipt-wrapper .close-btn {
-    font-size: 24px;
-    cursor: pointer;
-    color: #666;
-}
+    .wepos-content-cart {
+        @apply w-full;
+    }
 
-.wepos-receipt-wrapper .close-btn:hover {
-    color: #333;
-}
+    .wepos-items-grid {
+        @apply grid-cols-2;
+    }
 
-.wepos-receipt-wrapper .content {
-    padding: 20px;
-}
+    .wepos-checkout-content {
+        @apply grid-cols-1;
+    }
 
-.receipt-info p {
-    margin: 8px 0;
-    font-size: 14px;
-}
+    .wepos-checkout-left {
+        @apply order-2;
+    }
 
-.receipt-items h3 {
-    margin: 20px 0 10px 0;
-    font-size: 18px;
-}
-
-.receipt-items table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-}
-
-.receipt-items th,
-.receipt-items td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
-
-.receipt-items th {
-    font-weight: bold;
-    background-color: #f9f9f9;
-}
-
-.receipt-totals .total-line {
-    display: flex;
-    justify-content: space-between;
-    margin: 8px 0;
-    padding: 5px 0;
-}
-
-.receipt-totals .final-total {
-    font-weight: bold;
-    font-size: 16px;
-    border-top: 2px solid #333;
-    margin-top: 10px;
-    padding-top: 10px;
-}
-
-.wepos-receipt-wrapper .footer {
-    display: flex;
-    gap: 10px;
-    padding: 20px;
-    border-top: 1px solid #eee;
-    justify-content: flex-end;
-}
-
-.print-btn,
-.new-sale-btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.print-btn {
-    background: #007cba;
-    color: white;
-}
-
-.print-btn:hover {
-    background: #005a87;
-}
-
-.new-sale-btn {
-    background: #00a32a;
-    color: white;
-}
-
-.new-sale-btn:hover {
-    background: #007d21;
+    /* Hide tooltips on mobile */
+    .wepos-sidebar.collapsed .nav-item:hover::after {
+        @apply hidden;
+    }
 }

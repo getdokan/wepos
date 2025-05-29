@@ -9,34 +9,46 @@ const HelpModal: React.FC<HelpModalProps> = ({ show, onClose }) => {
   if (!show) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+    <div className="wepos-modal-overlay" onClick={onClose}>
+      <div className="wepos-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="wepos-help-wrapper">
-          <h2>Shortcut Keys</h2>
-          <ul>
-            <li>
-              <span className="code"><code>f3</code></span>
-              <span className="title">Toggle Product View</span>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-gray-800">Keyboard Shortcuts</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+              type="button"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <ul className="space-y-3">
+            <li className="flex items-center gap-4 py-2">
+              <span className="code">F3</span>
+              <span className="flex-1">Toggle Product View (Grid/List)</span>
             </li>
-            <li>
-              <span className="code"><code>f8</code></span>
-              <span className="title">Create New Sale</span>
+            <li className="flex items-center gap-4 py-2">
+              <span className="code">F8</span>
+              <span className="flex-1">Create New Sale</span>
             </li>
-            <li>
-              <span className="code"><code>shift+f8</code></span>
-              <span className="title">Empty your cart</span>
+            <li className="flex items-center gap-4 py-2">
+              <span className="code">Shift+F8</span>
+              <span className="flex-1">Empty your cart</span>
             </li>
-            <li>
-              <span className="code"><code>f9</code></span>
-              <span className="title">Process Payment</span>
+            <li className="flex items-center gap-4 py-2">
+              <span className="code">F9</span>
+              <span className="flex-1">Process Payment</span>
             </li>
-            <li>
-              <span className="code"><code>ctrl/cmd+?</code></span>
-              <span className="title">Show/Close Help</span>
+            <li className="flex items-center gap-4 py-2">
+              <span className="code">Ctrl+?</span>
+              <span className="flex-1">Show/Close Help</span>
             </li>
-            <li>
-              <span className="code"><code>esc</code></span>
-              <span className="title">Close anything</span>
+            <li className="flex items-center gap-4 py-2">
+              <span className="code">Esc</span>
+              <span className="flex-1">Close anything</span>
             </li>
           </ul>
         </div>
