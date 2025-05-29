@@ -1,0 +1,551 @@
+/* WePos React App - Essential Styles */
+
+#wepos-main {
+    padding: 20px;
+    display: flex;
+}
+
+#wepos-main .content-product {
+    flex: 2;
+    margin-left: 20px;
+}
+
+#wepos-main .content-product .top-panel {
+    margin-bottom: 20px;
+}
+
+#wepos-main .content-product .top-panel .search-bar,
+#wepos-main .content-product .top-panel .category,
+#wepos-main .content-product .top-panel .toggle-view {
+    float: right;
+}
+
+#wepos-main .content-product .top-panel .search-bar {
+    width: 56%;
+    margin-left: 2%;
+}
+
+#wepos-main .content-product .top-panel .category {
+    width: 26%;
+    margin-left: 2%;
+}
+
+#wepos-main .content-product .top-panel .toggle-view {
+    width: 14%;
+    text-align: left;
+}
+
+.wepos-clearfix:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+#wepos-main .content-product .top-panel input,
+#wepos-main .content-product .top-panel select {
+    width: 100%;
+    height: 35px;
+    border: 1px solid #E9EDF0;
+    border-radius: 3px;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+#wepos-main .content-product .toggle-view .toggle-icon {
+    padding: 8px 10px;
+    background: #fff;
+    display: inline-block;
+    border: 1px solid #E9EDF0;
+    color: #BDC0C9;
+    cursor: pointer;
+}
+
+#wepos-main .content-product .toggle-view .toggle-icon.active {
+    color: #3B80F4;
+}
+
+#wepos-main .content-product .items-wrapper.grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    overflow: auto;
+    height: 75vh;
+}
+
+#wepos-main .content-product .items-wrapper.grid .item {
+    flex: 0 0 calc(20% - 10px);
+    background: #fff;
+    border: 1px solid #eee;
+    cursor: pointer;
+    text-align: center;
+    padding: 10px;
+}
+
+#wepos-main .content-product .items-wrapper.list {
+    overflow: auto;
+    height: 75vh;
+}
+
+#wepos-main .content-product .items-wrapper.list .item {
+    background: #fff;
+    border: 1px solid #eee;
+    margin-bottom: 10px;
+    padding: 10px;
+    cursor: pointer;
+}
+
+#wepos-main .content-product .items-wrapper .item img {
+    max-width: 100%;
+    height: auto;
+}
+
+#wepos-main .content-product .items-wrapper .disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#wepos-main .content-cart {
+    flex: 1;
+    height: 94vh;
+}
+
+#wepos-main .content-cart .top-panel {
+    display: flex;
+    margin-bottom: 20px;
+    gap: 10px;
+}
+
+#wepos-main .content-cart .top-panel .customer-search-box {
+    flex: 1;
+}
+
+#wepos-main .content-cart .top-panel input {
+    width: 100%;
+    height: 35px;
+    border: 1px solid #E9EDF0;
+    border-radius: 3px;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+#wepos-main .content-cart .cart-panel {
+    background: #fff;
+    height: 85%;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+}
+
+#wepos-main .content-cart .cart-panel .cart-content {
+    flex: 1;
+    overflow: auto;
+}
+
+#wepos-main .content-cart .cart-panel .cart-content table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#wepos-main .content-cart .cart-panel .cart-content table th,
+#wepos-main .content-cart .cart-panel .cart-content table td {
+    border-bottom: 1px solid #eee;
+    padding: 8px;
+    text-align: right;
+}
+
+#wepos-main .content-cart .cart-panel .cart-content table th {
+    background: #f5f5f5;
+    font-weight: bold;
+}
+
+#wepos-main .content-cart .cart-panel .cart-content .no-item {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+}
+
+#wepos-main .content-cart .cart-panel .cart-calculation {
+    border-top: 1px solid #eee;
+}
+
+#wepos-main .content-cart .cart-panel .cart-calculation table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#wepos-main .content-cart .cart-panel .cart-calculation table td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+#wepos-main .content-cart .cart-panel .cart-calculation .pay-now {
+    background: #1ABC9C;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 5px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: auto;
+    padding: 20px;
+}
+
+.wepos-help-wrapper h2 {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.wepos-help-wrapper ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.wepos-help-wrapper li {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.wepos-help-wrapper .code {
+    width: 120px;
+    font-family: monospace;
+    background: #f5f5f5;
+    padding: 2px 8px;
+    border-radius: 3px;
+}
+
+.wepos-checkout-wrapper {
+    display: flex;
+    min-width: 800px;
+    min-height: 500px;
+}
+
+.wepos-checkout-wrapper .left-content,
+.wepos-checkout-wrapper .right-content {
+    flex: 1;
+    padding: 20px;
+}
+
+.wepos-checkout-wrapper .left-content {
+    border-left: 1px solid #eee;
+}
+
+.wepos-checkout-wrapper .payment-gateway {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.wepos-checkout-wrapper .payment-gateway label {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.wepos-checkout-wrapper .payment-gateway input {
+    margin-left: 10px;
+}
+
+.wepos-checkout-wrapper .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.back-btn,
+.process-checkout-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.back-btn {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.process-checkout-btn {
+    background: #3B80F4;
+    color: white;
+}
+
+.wepos-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.wepos-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    min-width: 150px;
+}
+
+.wepos-dropdown-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.wepos-dropdown-menu li a {
+    display: block;
+    padding: 10px 15px;
+    color: #333;
+    text-decoration: none;
+}
+
+.wepos-dropdown-menu li a:hover {
+    background: #f5f5f5;
+}
+
+.more-options {
+    position: relative;
+}
+
+.update-quantity-wrap input[type="number"] {
+    width: 60px;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.qty-action a {
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    text-align: center;
+    line-height: 23px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    text-decoration: none;
+    margin: 0 2px;
+    background: #f5f5f5;
+    color: #333;
+}
+
+.qty-action a.add {
+    background: #3B80F4;
+    color: white;
+}
+
+.product-loading {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+}
+
+.no-product-found {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #wepos-main {
+        flex-direction: column;
+    }
+
+    #wepos-main .content-product {
+        margin-left: 0;
+        margin-bottom: 20px;
+    }
+
+    .wepos-checkout-wrapper {
+        flex-direction: column;
+        min-width: auto;
+    }
+
+    .wepos-checkout-wrapper .left-content {
+        border-left: none;
+        border-bottom: 1px solid #eee;
+    }
+}
+
+/* Payment Processing */
+.process-checkout-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Payment Receipt Modal */
+.wepos-receipt-wrapper {
+    background: white;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.wepos-receipt-wrapper .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    background: #f8f9fa;
+}
+
+.wepos-receipt-wrapper .header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #00a32a;
+    display: flex;
+    align-items: center;
+}
+
+.wepos-receipt-wrapper .header h2::before {
+    content: "✓";
+    display: inline-block;
+    margin-left: 10px;
+    background: #00a32a;
+    color: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    line-height: 30px;
+    font-size: 18px;
+}
+
+.wepos-receipt-wrapper .close-btn {
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+}
+
+.wepos-receipt-wrapper .close-btn:hover {
+    color: #333;
+}
+
+.wepos-receipt-wrapper .content {
+    padding: 20px;
+}
+
+.receipt-info p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.receipt-items h3 {
+    margin: 20px 0 10px 0;
+    font-size: 18px;
+}
+
+.receipt-items table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.receipt-items th,
+.receipt-items td {
+    padding: 8px;
+    text-align: right;
+    border-bottom: 1px solid #eee;
+}
+
+.receipt-items th {
+    font-weight: bold;
+    background-color: #f9f9f9;
+}
+
+.receipt-totals .total-line {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+    padding: 5px 0;
+}
+
+.receipt-totals .final-total {
+    font-weight: bold;
+    font-size: 16px;
+    border-top: 2px solid #333;
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+.wepos-receipt-wrapper .footer {
+    display: flex;
+    gap: 10px;
+    padding: 20px;
+    border-top: 1px solid #eee;
+    justify-content: flex-end;
+}
+
+.print-btn,
+.new-sale-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.print-btn {
+    background: #007cba;
+    color: white;
+}
+
+.print-btn:hover {
+    background: #005a87;
+}
+
+.new-sale-btn {
+    background: #00a32a;
+    color: white;
+}
+
+.new-sale-btn:hover {
+    background: #007d21;
+}
+

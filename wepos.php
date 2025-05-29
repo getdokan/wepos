@@ -1,4 +1,5 @@
 <?php
+
 /*
 Plugin Name: wePOS - Point Of Sale (POS) for WooCommerce
 Plugin URI: https://wedevs.com/wepos
@@ -41,7 +42,7 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
 
 // don't call the file directly
-if ( ! defined( 'ABSPATH' ) ) {
+if (! defined('ABSPATH')) {
     exit;
 }
 
@@ -50,8 +51,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @class WePOS The class that holds the entire WePOS plugin
  */
-final class WePOS {
-
+final class WePOS
+{
     /**
      * Plugin version
      *
@@ -72,25 +73,26 @@ final class WePOS {
      * Sets up all the appropriate hooks and actions
      * within our plugin.
      */
-    public function __construct() {
+    public function __construct()
+    {
         require_once __DIR__ . '/vendor/autoload.php';
 
         $this->define_constants();
         $this->includes();
 
-        register_activation_hook( __FILE__, [ $this, 'activate' ] );
-        register_deactivation_hook( __FILE__, [ $this, 'deactivate' ] );
+        register_activation_hook(__FILE__, [ $this, 'activate' ]);
+        register_deactivation_hook(__FILE__, [ $this, 'deactivate' ]);
 
-        add_action( 'init', [ $this, 'add_rewrite_rules' ] );
-        add_filter( 'query_vars', [ $this, 'register_query_var' ] );
+        add_action('init', [ $this, 'add_rewrite_rules' ]);
+        add_filter('query_vars', [ $this, 'register_query_var' ]);
 
-        add_action( 'plugins_loaded', [ $this, 'woocommerce_not_loaded' ], 11 );
+        add_action('plugins_loaded', [ $this, 'woocommerce_not_loaded' ], 11);
 
         // Admin notice for WooCommerce dependency
-        add_action( 'admin_notices', [ $this, 'render_woocommerce_dependency_notice' ] );
+        add_action('admin_notices', [ $this, 'render_woocommerce_dependency_notice' ]);
 
-        add_action( 'woocommerce_loaded', [ $this, 'init_plugin' ] );
-        add_action( 'woocommerce_init', [ $this, 'on_wc_init' ] );
+        add_action('woocommerce_loaded', [ $this, 'init_plugin' ]);
+        add_action('woocommerce_init', [ $this, 'on_wc_init' ]);
 
 
         // Handle Appsero tracker
@@ -104,18 +106,19 @@ final class WePOS {
      *
      * @return void
      */
-    public function render_woocommerce_dependency_notice() {
+    public function render_woocommerce_dependency_notice()
+    {
         // Check wooCommerce is available and active
         $has_woocommerce = $this->has_woocommerce();
 
-        if ( $has_woocommerce ) {
+        if ($has_woocommerce) {
             return;
         }
 
         // Check if woocommerce installed
         $woocommerce_installed = $this->is_woocommerce_installed();
 
-        if (  current_user_can( 'activate_plugins' ) ) {
+        if (current_user_can('activate_plugins')) {
             require_once WEPOS_PATH . '/templates/woocommerce-dependency-notice.php';
         }
     }
@@ -127,8 +130,9 @@ final class WePOS {
      *
      * @return void
      */
-    public function woocommerce_not_loaded() {
-        if ( did_action( 'woocommerce_loaded' ) || ! is_admin() ) {
+    public function woocommerce_not_loaded()
+    {
+        if (did_action('woocommerce_loaded') || ! is_admin()) {
             return;
         }
     }
@@ -140,8 +144,9 @@ final class WePOS {
      *
      * @return bool
      */
-    public function has_woocommerce() {
-        return class_exists( 'WooCommerce' );
+    public function has_woocommerce()
+    {
+        return class_exists('WooCommerce');
     }
 
     /**
@@ -151,8 +156,9 @@ final class WePOS {
      *
      * @return bool
      */
-    public function is_woocommerce_installed() {
-        return in_array( 'woocommerce/woocommerce.php', array_keys( get_plugins() ), true );
+    public function is_woocommerce_installed()
+    {
+        return in_array('woocommerce/woocommerce.php', array_keys(get_plugins()), true);
     }
 
     /**
@@ -162,8 +168,9 @@ final class WePOS {
      *
      * @return string
      */
-    public function template_path() {
-        return apply_filters( 'wepos_template_path', 'wepos/' );
+    public function template_path()
+    {
+        return apply_filters('wepos_template_path', 'wepos/');
     }
 
     /**
@@ -171,12 +178,13 @@ final class WePOS {
      *
      * @return void
      */
-    public function add_rewrite_rules()  {
-        add_rewrite_rule( '^wepos/?$', 'index.php?wepos=true', 'top' );
+    public function add_rewrite_rules()
+    {
+        add_rewrite_rule('^wepos/?$', 'index.php?wepos=true', 'top');
 
-        if ( get_transient( 'wepos-flush-rewrites' ) ) {
-            flush_rewrite_rules( true );
-            delete_transient( 'wepos-flush-rewrites' );
+        if (get_transient('wepos-flush-rewrites')) {
+            flush_rewrite_rules(true);
+            delete_transient('wepos-flush-rewrites');
         }
     }
 
@@ -187,7 +195,8 @@ final class WePOS {
      *
      * @return array
      */
-    public function register_query_var( $vars ) {
+    public function register_query_var($vars)
+    {
         $vars[] = 'wepos';
 
         return $vars;
@@ -201,10 +210,11 @@ final class WePOS {
      *
      * @return \WePOS
      */
-    public static function init() {
+    public static function init()
+    {
         static $instance = false;
 
-        if ( ! $instance ) {
+        if (! $instance) {
             $instance = new WePOS();
         }
 
@@ -218,8 +228,9 @@ final class WePOS {
      *
      * @return mixed
      */
-    public function __get( $prop ) {
-        if ( array_key_exists( $prop, $this->container ) ) {
+    public function __get($prop)
+    {
+        if (array_key_exists($prop, $this->container)) {
             return $this->container[ $prop ];
         }
 
@@ -233,8 +244,9 @@ final class WePOS {
      *
      * @return mixed
      */
-    public function __isset( $prop ) {
-        return isset( $this->{$prop} ) || isset( $this->container[ $prop ] );
+    public function __isset($prop)
+    {
+        return isset($this->{$prop}) || isset($this->container[ $prop ]);
     }
 
     /**
@@ -242,13 +254,14 @@ final class WePOS {
      *
      * @return void
      */
-    public function define_constants() {
-        define( 'WEPOS_VERSION', $this->version );
-        define( 'WEPOS_FILE', __FILE__ );
-        define( 'WEPOS_PATH', dirname( WEPOS_FILE ) );
-        define( 'WEPOS_INCLUDES', WEPOS_PATH . '/includes' );
-        define( 'WEPOS_URL', plugins_url( '', WEPOS_FILE ) );
-        define( 'WEPOS_ASSETS', WEPOS_URL . '/assets' );
+    public function define_constants()
+    {
+        define('WEPOS_VERSION', $this->version);
+        define('WEPOS_FILE', __FILE__);
+        define('WEPOS_PATH', dirname(WEPOS_FILE));
+        define('WEPOS_INCLUDES', WEPOS_PATH . '/includes');
+        define('WEPOS_URL', plugins_url('', WEPOS_FILE));
+        define('WEPOS_ASSETS', WEPOS_URL . '/assets');
     }
 
     /**
@@ -256,10 +269,11 @@ final class WePOS {
      *
      * @return void
      */
-    public function init_plugin() {
+    public function init_plugin()
+    {
         $this->init_hooks();
 
-        do_action( 'wepos_loaded' );
+        do_action('wepos_loaded');
     }
 
     /**
@@ -269,7 +283,8 @@ final class WePOS {
      *
      * @return void
      */
-    public function activate() {
+    public function activate()
+    {
         $installer = new WeDevs\WePOS\Installer();
 
         $installer->run();
@@ -282,16 +297,17 @@ final class WePOS {
      *
      * @return void
      */
-    public function deactivate() {
-        $users_query = new WP_User_Query( [
+    public function deactivate()
+    {
+        $users_query = new WP_User_Query([
             'role__in' => [ 'seller', 'vendor_staff' ]
-        ] );
+        ]);
         $users = $users_query->get_results();
 
-        if ( count( $users ) > 0 ) {
-            foreach ( $users as $user ) {
-                $user->remove_cap( 'publish_shop_orders' );
-                $user->remove_cap( 'list_users' );
+        if (count($users) > 0) {
+            foreach ($users as $user) {
+                $user->remove_cap('publish_shop_orders');
+                $user->remove_cap('list_users');
             }
         }
     }
@@ -301,7 +317,8 @@ final class WePOS {
      *
      * @return void
      */
-    public function includes() {
+    public function includes()
+    {
         require_once WEPOS_INCLUDES . '/functions.php';
     }
 
@@ -310,9 +327,10 @@ final class WePOS {
      *
      * @return void
      */
-    public function init_hooks() {
-        add_action( 'init', [ $this, 'init_classes' ] );
-        add_action( 'init', [ $this, 'localization_setup' ] );
+    public function init_hooks()
+    {
+        add_action('init', [ $this, 'init_classes' ]);
+        add_action('init', [ $this, 'localization_setup' ]);
     }
 
     /**
@@ -320,8 +338,9 @@ final class WePOS {
      *
      * @return void
      */
-    public function init_classes() {
-        if ( is_admin() ) {
+    public function init_classes()
+    {
+        if (is_admin()) {
             $this->container['admin']    = new WeDevs\WePOS\Admin\Admin();
             $this->container['settings'] = new WeDevs\WePOS\Admin\Settings();
 
@@ -333,13 +352,16 @@ final class WePOS {
             $this->container['frontend'] = new WeDevs\WePOS\Frontend();
         }
 
-        if ( class_exists( 'WeDevs_Dokan' ) ) {
+        if (class_exists('WeDevs_Dokan')) {
             $this->container['dokan'] = new WeDevs\WePOS\Dokan();
         }
 
         $this->container['common'] = new WeDevs\WePOS\Common();
         $this->container['rest']   = new WeDevs\WePOS\REST\Manager();
-        $this->container['assets'] = new WeDevs\WePOS\Assets();
+
+        // Use React assets instead of Vue.js assets
+        $this->container['assets'] = new WeDevs\WePOS\ReactAssets();
+        // $this->container['assets'] = new WeDevs\WePOS\Assets(); // Vue.js version
 
         // Payment gateway manager
         $this->container['gateways'] = new \WeDevs\WePOS\Gateways\Manager();
@@ -350,8 +372,9 @@ final class WePOS {
      *
      * @uses load_plugin_textdomain()
      */
-    public function localization_setup() {
-        load_plugin_textdomain( 'wepos', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+    public function localization_setup()
+    {
+        load_plugin_textdomain('wepos', false, dirname(plugin_basename(__FILE__)) . '/languages/');
     }
 
     /**
@@ -361,18 +384,19 @@ final class WePOS {
      *
      * @return void
      */
-    public function on_wc_init() {
-        if ( wc()->is_rest_api_request() ) {
+    public function on_wc_init()
+    {
+        if (wc()->is_rest_api_request()) {
             $namespace = '/wepos/v1/';
 
             $rest_bases = [
                 'products',
             ];
 
-            foreach ( $rest_bases as $rest_base ) {
+            foreach ($rest_bases as $rest_base) {
                 $endpoint = $namespace . $rest_base;
 
-                if ( strpos( $_SERVER['REQUEST_URI'], $endpoint ) ) {
+                if (strpos($_SERVER['REQUEST_URI'], $endpoint)) {
                     $this->include_wc_files();
                     break;
                 }
@@ -385,24 +409,25 @@ final class WePOS {
      *
      * @return void
      */
-    public function appsero_init_tracker_wepos() {
-        if ( ! class_exists( 'WeDevs\WePOS\Dependencies\Appsero\Client' ) ) {
+    public function appsero_init_tracker_wepos()
+    {
+        if (! class_exists('WeDevs\WePOS\Dependencies\Appsero\Client')) {
             return;
         }
 
-        $client = new WeDevs\WePOS\Dependencies\Appsero\Client( '48fa1273-3e91-4cd6-9c07-d18ad6bc2f54', 'wePos', __FILE__ );
+        $client = new WeDevs\WePOS\Dependencies\Appsero\Client('48fa1273-3e91-4cd6-9c07-d18ad6bc2f54', 'wePos', __FILE__);
 
         // Active insights
         $client->insights()
-            ->add_extra( function () {
-                $products = wc_get_products( [ 'fields' => 'ids', 'paginate' => true ] );
-                $orders   = wc_get_orders( [ 'fields' => 'ids', 'paginate' => true ] );
+            ->add_extra(function () {
+                $products = wc_get_products([ 'fields' => 'ids', 'paginate' => true ]);
+                $orders   = wc_get_orders([ 'fields' => 'ids', 'paginate' => true ]);
 
                 return [
                     'products' => $products->total,
                     'orders'   => $orders->total
                ];
-           } )
+            })
            ->init();
     }
 
@@ -413,8 +438,9 @@ final class WePOS {
      *
      * @return void
      */
-    public function include_wc_files() {
-        if ( ! wc()->cart ) {
+    public function include_wc_files()
+    {
+        if (! wc()->cart) {
             include_once WC_ABSPATH . 'includes/wc-cart-functions.php';
             include_once WC_ABSPATH . 'includes/wc-notice-functions.php';
             include_once WC_ABSPATH . 'includes/class-wc-cart.php';
@@ -424,21 +450,22 @@ final class WePOS {
             include_once WC_ABSPATH . 'includes/class-wc-session-handler.php';
 
             // Session class, handles session data for users - can be overwritten if custom handler is needed.
-            $session_class = apply_filters( 'woocommerce_session_handler', 'WC_Session_Handler' );
+            $session_class = apply_filters('woocommerce_session_handler', 'WC_Session_Handler');
             wc()->session  = new $session_class();
             wc()->session->init();
 
-            wc()->customer = new WC_Customer( get_current_user_id(), true );
+            wc()->customer = new WC_Customer(get_current_user_id(), true);
             // Cart needs the customer info.
             wc()->cart = new WC_Cart();
 
             // Customer should be saved during shutdown.
-            add_action( 'shutdown', [ wc()->customer, 'save' ], 10 );
+            add_action('shutdown', [ wc()->customer, 'save' ], 10);
         }
     }
 } // WePOS
 
-function wepos() {
+function wepos()
+{
     return WePOS::init();
 }
 
