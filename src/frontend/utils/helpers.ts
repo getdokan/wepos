@@ -13,10 +13,18 @@ export const formatPrice = (amount: number | string | undefined | null): string 
 
 /**
  * Check if a product has stock available
+ * Matches the Vue.js implementation logic
  */
-export const hasStock = (product: POSProduct): boolean => {
-  if (!product.manage_stock) return true;
-  return product.stock_status === 'instock' && product.stock_quantity > 0;
+export const hasStock = (product: POSProduct, productCartQty: number = 0): boolean => {
+  if (!product.manage_stock) {
+    return product.stock_status !== 'outofstock';
+  }
+
+  if (product.backorders_allowed) {
+    return true;
+  }
+
+  return product.stock_quantity > productCartQty;
 };
 
 /**

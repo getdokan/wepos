@@ -46,6 +46,7 @@ const HomePage: React.FC = () => {
     getTotalTax,
     getTotal,
     addToCart,
+    addToCartItem,
     updateCartItem,
     removeItem,
     emptyCart
@@ -377,6 +378,7 @@ const HomePage: React.FC = () => {
           productView={productView}
           productLoading={productLoading}
           onAddToCart={addToCart}
+          onAddToCartItem={addToCartItem}
           formatPrice={formatPrice}
           hasStock={hasStock}
           getProductImage={getProductImage}

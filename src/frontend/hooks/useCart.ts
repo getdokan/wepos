@@ -92,6 +92,32 @@ export const useCart = ({ cartData, setCartData, settings }: UseCartProps) => {
     }
   }, [cartData.line_items, setCartData]);
 
+  const addToCartItem = useCallback((cartItem: POSCartItem) => {
+    // Check if it's a variation product with existing item
+    const existingItemIndex = cartData.line_items.findIndex(
+      item => item.product_id === cartItem.product_id &&
+              item.variation_id === cartItem.variation_id
+    );
+
+    if (existingItemIndex !== -1) {
+      const updatedItems = [...cartData.line_items];
+      updatedItems[existingItemIndex].quantity += 1;
+      setCartData(prev => ({ ...prev, line_items: updatedItems }));
+    } else {
+      // Add the cart item directly
+      const newCartItem: POSCartItem = {
+        ...cartItem,
+        id: Date.now(),
+        quantity: cartItem.quantity || 1
+      };
+
+      setCartData(prev => ({
+        ...prev,
+        line_items: [...prev.line_items, newCartItem]
+      }));
+    }
+  }, [cartData.line_items, setCartData]);
+
   const updateCartItem = useCallback((index: number, updatedItem: Partial<POSCartItem>) => {
     const updatedItems = [...cartData.line_items];
     updatedItems[index] = { ...updatedItems[index], ...updatedItem };
@@ -119,6 +145,7 @@ export const useCart = ({ cartData, setCartData, settings }: UseCartProps) => {
 
     // Actions
     addToCart,
+    addToCartItem,
     updateCartItem,
     removeItem,
     emptyCart,

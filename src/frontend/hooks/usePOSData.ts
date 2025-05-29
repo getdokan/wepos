@@ -54,6 +54,32 @@ export const usePOSData = () => {
     })
   );
 
+  // Helper function to check if all variations are disabled (exact Vue.js implementation)
+  const isAllVariationsDisabled = (product: POSProduct): boolean => {
+    let isDisabled = true;
+
+    if (product.attributes) {
+      product.attributes.forEach(attribute => {
+        if (true === attribute.variation) {
+          isDisabled = false;
+        }
+      });
+    }
+
+    return isDisabled;
+  };
+
+  // Append products with filtering (exact Vue.js implementation)
+  const appendProducts = useCallback((products: POSProduct[]) => {
+      products.forEach(product => {
+      if ("variable" === product.type && isAllVariationsDisabled(product)) {
+        return;
+      }
+
+      setProducts(prev => [...prev, product]);
+    });
+  }, []);
+
   // API functions
   const fetchProducts = useCallback(async () => {
     if (page === 1) {
@@ -62,32 +88,40 @@ export const usePOSData = () => {
 
     if (totalPages >= page) {
       try {
+        // Use apiFetch with parse: false to access headers
         const response = await apiFetch({
-          path: `/${window.wepos.rest.posversion}/products?status=publish&per_page=30&page=${page}`
-        }) as POSProduct[];
+          path: `/${window.wepos.rest.posversion}/products?status=publish&per_page=30&page=${page}`,
+          parse: false,
+        }) as Response;
 
-        const validProducts = response.filter(product => {
-          if (product.type === 'variable' && !product.attributes?.some(attr => attr.variation === true)) {
-            return false;
-          }
-          return true;
-        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-        setProducts(prev => [...prev, ...validProducts]);
+        const products = await response.json() as POSProduct[];
+
+        // Get total pages from header (matching Vue.js implementation)
+        const totalPagesHeader = response.headers.get('X-WP-TotalPages');
+        if (totalPagesHeader) {
+          setTotalPages(parseInt(totalPagesHeader));
+        }
+
+        // Use appendProducts exactly like Vue.js
+        appendProducts(products);
         setPage(prev => prev + 1);
         setProductLoading(false);
 
-        if (response.length === 30) {
-          setTimeout(fetchProducts, 100);
+        // Only continue if we got a full page of products (like Vue.js logic)
+        if (products.length === 30) {
+          setTimeout(fetchProducts, 10);
         }
       } catch (error) {
-        console.error('Error fetching products:', error);
         setProductLoading(false);
       }
     } else {
       setProductLoading(false);
     }
-  }, [page, totalPages]);
+  }, [page, totalPages, appendProducts]);
 
   const fetchGateways = useCallback(async () => {
     try {

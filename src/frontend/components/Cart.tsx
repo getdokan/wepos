@@ -126,6 +126,17 @@ const Cart: React.FC<CartProps> = ({
                       <tr className="hover:bg-gray-50 transition-colors">
                         <td className="wepos-cart-td cursor-pointer" onClick={() => toggleEditQuantity(item, index)}>
                           <div className="font-medium text-gray-800">{item.name}</div>
+                          {item.attribute && item.attribute.length > 0 && item.type === 'variable' && (
+                            <div className="mt-1 text-xs text-gray-600">
+                              {item.attribute.map((attr, attrIndex) => (
+                                <span key={attrIndex} className="inline-block mr-2">
+                                  <span className="font-medium text-gray-500">{attr.name}:</span>
+                                  <span className="ml-1">{attr.option}</span>
+                                  {attrIndex < item.attribute.length - 1 && <span className="mx-1">•</span>}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </td>
                         <td className="wepos-cart-td cursor-pointer" onClick={() => toggleEditQuantity(item, index)}>
                           <span className="bg-gray-100 px-2 py-1 rounded text-center min-w-8 inline-block font-medium">

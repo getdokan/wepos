@@ -159,23 +159,32 @@ export interface MetaData {
 }
 
 // Cart Types
-export interface CartItem {
-  key: string;
+export interface POSCartItem {
+  id: number;
   product_id: number;
   variation_id?: number;
+  name: string;
   quantity: number;
-  data_hash: string;
-  line_tax_data: {
-    subtotal: Record<string, number>;
-    total: Record<string, number>;
-  };
-  line_subtotal: number;
-  line_subtotal_tax: number;
-  line_total: number;
-  line_tax: number;
-  data: Product;
-  variation?: ProductVariation;
+  type: string;
+  on_sale: boolean;
+  sale_price: number;
+  regular_price: number;
+  editQuantity?: boolean;
+  attribute: Array<{
+    id?: number;
+    name: string;
+    option: string;
+  }>;
+  tax_amount?: number;
+  manage_stock?: boolean;
+  stock_status?: string;
+  backorders_allowed?: boolean;
+  stock_quantity?: number;
+  total_tax?: number;
 }
+
+// Alias for cleaner imports
+export type CartItem = POSCartItem;
 
 export interface ProductVariation {
   id: number;
@@ -471,23 +480,6 @@ export interface UseOrdersOptions {
 }
 
 // POS-specific Cart and Order Types
-export interface POSCartItem {
-  id: number;
-  product_id: number;
-  name: string;
-  quantity: number;
-  type: string;
-  on_sale: boolean;
-  sale_price: number; // Always numeric in cart (parsed from product)
-  regular_price: number; // Always numeric in cart (parsed from product)
-  editQuantity?: boolean;
-  attribute: Array<{
-    name: string;
-    option: string;
-  }>;
-  total_tax?: number;
-}
-
 export interface POSCartData {
   line_items: POSCartItem[];
   fee_lines: any[];
@@ -556,6 +548,8 @@ export interface POSProduct {
   stock_quantity: number;
   manage_stock: boolean;
   stock_status: string;
+  purchasable?: boolean;
+  backorders_allowed?: boolean;
   attributes?: Array<{
     name: string;
     options: string[];
