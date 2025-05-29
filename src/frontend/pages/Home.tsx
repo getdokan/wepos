@@ -154,6 +154,12 @@ const HomePage: React.FC = () => {
         contentWrap.style.pointerEvents = 'none';
       }
 
+      // Debug cart data before processing
+      console.log('Cart data before processing:', cartData);
+      console.log('Cart line items:', cartData.line_items);
+      console.log('Subtotal calculation:', getSubtotal());
+      console.log('Total calculation:', getTotal());
+
       // Prepare order payload
       const orderPayload = {
         billing: orderData.billing,
@@ -175,12 +181,17 @@ const HomePage: React.FC = () => {
         ]
       };
 
+      console.log('Order payload being sent:', orderPayload);
+
       // Create order
       const orderResponse = await apiFetch({
         path: `/${window.wepos.rest.wcversion}/orders`,
         method: 'POST',
         data: orderPayload
       }) as any;
+
+      console.log('WooCommerce order response:', orderResponse);
+      console.log('Order response line items:', orderResponse.line_items);
 
       // Update cart items with tax data
       const totalTaxes: Record<number, number> = {};
@@ -201,14 +212,28 @@ const HomePage: React.FC = () => {
         data: orderResponse
       }) as any;
 
+      console.log('Payment response:', paymentResponse);
+
       if (paymentResponse.result === 'success') {
-        setPrintdata({
-          line_items: cartData.line_items,
+        // Debug print data before setting
+        const printDataToSet = {
+          line_items: orderResponse.line_items.map((orderItem: any) => {
+            // Find the matching cart item to get display data
+            const cartItem = cartData.line_items.find(item => item.product_id === orderItem.product_id);
+            return {
+              ...cartItem,
+              // Use the actual order values from WooCommerce
+              sale_price: parseFloat(orderItem.price),
+              regular_price: parseFloat(orderItem.price),
+              quantity: orderItem.quantity,
+              total_tax: parseFloat(orderItem.total_tax || 0)
+            };
+          }),
           fee_lines: cartData.fee_lines,
           coupon_lines: cartData.coupon_lines,
-          subtotal: getSubtotal(),
-          taxtotal: getTotalTax(),
-          ordertotal: getTotal(),
+          subtotal: parseFloat(orderResponse.total) - parseFloat(orderResponse.total_tax || 0),
+          taxtotal: parseFloat(orderResponse.total_tax || 0),
+          ordertotal: parseFloat(orderResponse.total),
           gateway: {
             id: orderResponse.payment_method,
             title: orderResponse.payment_method_title
@@ -217,7 +242,11 @@ const HomePage: React.FC = () => {
           order_date: orderResponse.date_created,
           cashamount: cashAmount.toString(),
           changeamount: changeAmount().toString()
-        });
+        };
+
+        console.log('Print data being set:', printDataToSet);
+
+        setPrintdata(printDataToSet);
 
         setShowModal(false);
         setShowPaymentReceipt(true);

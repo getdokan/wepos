@@ -478,8 +478,8 @@ export interface POSCartItem {
   quantity: number;
   type: string;
   on_sale: boolean;
-  sale_price: number;
-  regular_price: number;
+  sale_price: number; // Always numeric in cart (parsed from product)
+  regular_price: number; // Always numeric in cart (parsed from product)
   editQuantity?: boolean;
   attribute: Array<{
     name: string;
@@ -551,8 +551,8 @@ export interface POSProduct {
   sku?: string;
   price_html: string;
   on_sale: boolean;
-  sale_price: number;
-  regular_price: number;
+  sale_price: number | string;
+  regular_price: number | string;
   stock_quantity: number;
   manage_stock: boolean;
   stock_status: string;

@@ -111,6 +111,35 @@ After successful payment:
 - **Print Integration**: Browser print dialog with proper formatting
 - **New Sale Option**: Quick transition to next customer
 
+### Thermal Printer Optimization
+- ✅ **80mm Width**: Optimized for standard thermal receipt printers
+- ✅ **Print-Only Layout**: Clean thermal printer format without modal elements
+- ✅ **Hidden Actions**: Print Receipt and New Sale buttons hidden during print
+- ✅ **Automatic Formatting**: Proper spacing, fonts, and borders for thermal receipts
+- ✅ **Dual Print Method**: CSS-based print styles + popup window fallback
+- ✅ **Print Dialog Fix**: Resolved empty print dialog issue with enhanced targeting
+
+#### Print CSS Features
+```css
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .wepos-receipt-wrapper {
+    width: 100% !important;
+    max-width: 80mm !important;
+    font-size: 12px !important;
+  }
+  
+  .wepos-receipt-footer {
+    display: none !important; /* Hide buttons */
+  }
+}
+```
+
 ## Keyboard Shortcuts
 
 - **F3**: Toggle product view (grid/list)
@@ -220,12 +249,34 @@ Full TypeScript support with interfaces for:
 - ✅ **Fixed**: Enhanced `formatPrice()` function with type checking and NaN handling
 - ✅ **Fixed**: Added safety checks to all calculation functions
 
+**Cart Total Calculation Bug (e.g., $45.00 showing as $4500.00):**
+- This occurs when product prices from WooCommerce API come as strings but are treated as numbers
+- ✅ **Fixed**: Added proper price parsing in `useCart` hook calculation functions
+- ✅ **Fixed**: Updated `addToCart` function to parse prices to numbers when adding items
+- ✅ **Fixed**: Enhanced type definitions to document string/number price handling
+
+**Order Submission Price Multiplication Issue:**
+- Similar to cart calculation, order submission could show incorrect prices in receipts
+- This occurs when cart data with unparsed prices is used for receipt generation
+- ✅ **Fixed**: Receipt now uses WooCommerce order response data instead of cart data
+- ✅ **Fixed**: All receipt prices properly parsed from order response values
+- ✅ **Fixed**: Subtotal, tax, and total calculated from actual order totals
+
+**localStorage Price String Conversion Issue:**
+- When cart data is saved to localStorage and restored, numbers become strings
+- This causes price multiplication issues in PaymentModal ($45.00 becomes $4500.00)
+- ✅ **Fixed**: Cart data sanitized on load to ensure all prices are numeric
+- ✅ **Fixed**: PaymentModal now properly parses prices before calculations
+- ✅ **Fixed**: Type-safe price handling prevents future conversion issues
+
 **Build Issues:**
 - Use `npm run react:build` for React frontend (not `npm run build`)
 - Use `npm run react:start` for development mode
 
 ### Debug Information
 - Console logs show order payload structure before submission
+- Console logs display WooCommerce order response data
+- Console logs show payment processing results and print data
 - Check browser network tab for detailed API error responses
 - Verify WePos REST API endpoints are accessible
 

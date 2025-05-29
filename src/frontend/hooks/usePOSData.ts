@@ -21,13 +21,27 @@ export const usePOSData = () => {
   const [productLoading, setProductLoading] = useState(false);
 
   // Cart and Order data with localStorage persistence
-  const [cartData, setCartData] = useState<POSCartData>(() =>
-    getFromLocalStorage('cartdata', {
+  const [cartData, setCartData] = useState<POSCartData>(() => {
+    const defaultCartData: POSCartData = {
       line_items: [],
       fee_lines: [],
       coupon_lines: []
-    })
-  );
+    };
+
+    const storedCartData = getFromLocalStorage('cartdata', defaultCartData);
+
+    // Sanitize cart data to ensure prices are numbers
+    if (storedCartData.line_items && storedCartData.line_items.length > 0) {
+      storedCartData.line_items = storedCartData.line_items.map((item: any) => ({
+        ...item,
+        sale_price: typeof item.sale_price === 'string' ? parseFloat(item.sale_price) || 0 : (item.sale_price || 0),
+        regular_price: typeof item.regular_price === 'string' ? parseFloat(item.regular_price) || 0 : (item.regular_price || 0),
+        total_tax: typeof item.total_tax === 'string' ? parseFloat(item.total_tax) || 0 : (item.total_tax || 0)
+      }));
+    }
+
+    return storedCartData;
+  });
 
   const [orderData, setOrderData] = useState<POSOrderData>(() =>
     getFromLocalStorage('orderdata', {

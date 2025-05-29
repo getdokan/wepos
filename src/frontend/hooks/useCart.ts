@@ -12,9 +12,16 @@ export const useCart = ({ cartData, setCartData, settings }: UseCartProps) => {
   // Cart calculations
   const getSubtotal = useCallback((): number => {
     return cartData.line_items.reduce((total, item) => {
-      const price = item.on_sale ? (item.sale_price || 0) : (item.regular_price || 0);
+      // Parse price as number to handle string values from API
+      const salePrice = typeof item.sale_price === 'string' ? parseFloat(item.sale_price) : (item.sale_price || 0);
+      const regularPrice = typeof item.regular_price === 'string' ? parseFloat(item.regular_price) : (item.regular_price || 0);
+      const price = item.on_sale ? salePrice : regularPrice;
       const quantity = item.quantity || 0;
-      return total + (price * quantity);
+
+      // Ensure price is a valid number
+      const validPrice = isNaN(price) ? 0 : price;
+
+      return total + (validPrice * quantity);
     }, 0);
   }, [cartData.line_items]);
 
@@ -62,6 +69,10 @@ export const useCart = ({ cartData, setCartData, settings }: UseCartProps) => {
       updatedItems[existingItemIndex].quantity += 1;
       setCartData(prev => ({ ...prev, line_items: updatedItems }));
     } else {
+      // Parse prices to ensure they are numbers
+      const salePrice = typeof product.sale_price === 'string' ? parseFloat(product.sale_price) : (product.sale_price || 0);
+      const regularPrice = typeof product.regular_price === 'string' ? parseFloat(product.regular_price) : (product.regular_price || 0);
+
       const cartItem: POSCartItem = {
         id: Date.now(),
         product_id: product.id,
@@ -69,8 +80,8 @@ export const useCart = ({ cartData, setCartData, settings }: UseCartProps) => {
         quantity: 1,
         type: product.type,
         on_sale: product.on_sale,
-        sale_price: product.sale_price,
-        regular_price: product.regular_price,
+        sale_price: isNaN(salePrice) ? 0 : salePrice,
+        regular_price: isNaN(regularPrice) ? 0 : regularPrice,
         attribute: []
       };
 

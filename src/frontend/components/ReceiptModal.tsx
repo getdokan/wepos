@@ -23,7 +23,49 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
   if (!show) return null;
 
   const handlePrint = () => {
-    window.print();
+    const receiptElement = document.getElementById('wepos-print-receipt');
+    if (receiptElement) {
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank', 'width=800,height=600');
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>WePos Receipt</title>
+            <style>
+              @page { margin: 0; }
+              body {
+                margin: 0;
+                padding: 8px;
+                font-family: Arial, sans-serif;
+                font-size: 12px;
+                line-height: 1.3;
+                color: black;
+                background: white;
+              }
+              table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 8px; }
+              th, td { padding: 2px 1px; border-bottom: 1px solid #ddd; text-align: left; }
+              th { font-weight: bold; border-bottom: 1px solid #000; }
+              .total-line, .final-total { display: flex; justify-content: space-between; margin-bottom: 2px; }
+              .final-total { font-weight: bold; border-top: 1px solid #000; padding-top: 4px; margin-top: 4px; }
+              .print-only { display: block !important; }
+              .screen-only { display: none !important; }
+            </style>
+          </head>
+          <body>
+            ${receiptElement.innerHTML}
+          </body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+        printWindow.close();
+      }
+    } else {
+      // Fallback to standard print
+      window.print();
+    }
   };
 
   const handleNewSale = () => {
@@ -40,8 +82,16 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
       shouldCloseOnEsc={true}
       size="medium"
     >
-      <div className="wepos-receipt-wrapper">
+      <div className="wepos-receipt-wrapper" id="wepos-print-receipt">
         <div className="wepos-receipt-content">
+          {/* Store/Business Header for print */}
+          <div className="print-only" style={{ display: 'none' }}>
+            <div style={{ textAlign: 'center', marginBottom: '16px', borderBottom: '1px dashed #000', paddingBottom: '8px' }}>
+              <div style={{ fontWeight: 'bold', fontSize: '14px' }}>WePos Store</div>
+              <div style={{ fontSize: '10px' }}>Point of Sale Receipt</div>
+            </div>
+          </div>
+
           <div className="wepos-receipt-info mb-6">
             {printdata.order_id && (
               <p className="text-sm text-gray-600 mb-2">
@@ -126,6 +176,14 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
                 </div>
               </>
             )}
+          </div>
+
+          {/* Print-only footer */}
+          <div className="print-only" style={{ display: 'none' }}>
+            <div style={{ textAlign: 'center', marginTop: '16px', borderTop: '1px dashed #000', paddingTop: '8px', fontSize: '10px' }}>
+              <div>{__('Thank you for your business!', 'wepos')}</div>
+              <div>{__('Visit us again soon', 'wepos')}</div>
+            </div>
           </div>
         </div>
 

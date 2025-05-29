@@ -105,6 +105,48 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     />
                   </div>
 
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {__('Quick Amount', 'wepos')}
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(() => {
+                        const total = getTotal();
+                        const quickAmounts: number[] = [];
+
+                        // Add exact amount
+                        quickAmounts.push(total);
+
+                        // Add rounded up amounts
+                        const rounded5 = Math.ceil(total / 5) * 5;
+                        const rounded10 = Math.ceil(total / 10) * 10;
+
+                        if (rounded5 > total) quickAmounts.push(rounded5);
+                        if (rounded10 > total && rounded10 !== rounded5) quickAmounts.push(rounded10);
+
+                        // Add common bill denominations
+                        const bills = [20, 50, 100, 200, 500];
+                        bills.forEach(bill => {
+                          if (bill > total && !quickAmounts.includes(bill)) {
+                            quickAmounts.push(bill);
+                          }
+                        });
+
+                        // Take first 6 amounts and sort
+                        return quickAmounts.slice(0, 6).sort((a, b) => a - b);
+                      })().map((amount) => (
+                        <button
+                          key={amount}
+                          type="button"
+                          className="wepos-button wepos-btn-secondary text-sm py-2"
+                          onClick={() => onCashAmountChange(amount.toString())}
+                        >
+                          {formatPrice(amount)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {changeAmount > 0 && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                       <div className="flex justify-between items-center">
@@ -129,22 +171,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               </h3>
 
               <div className="space-y-3">
-                {cartData.line_items.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-800">{item.name}</div>
-                      <div className="text-sm text-gray-600">
-                        {__('Qty:', 'wepos')} {item.quantity}
-                      </div>
-                    </div>
-                    <div className="font-semibold text-gray-800">
-                      {item.on_sale ?
-                        formatPrice(item.quantity * item.sale_price) :
-                        formatPrice(item.quantity * item.regular_price)
-                      }
-                    </div>
-                  </div>
-                ))}
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-600">{__('Subtotal:', 'wepos')}</span>
+                  <span className="font-medium text-gray-800">{formatPrice(getTotal())}</span>
+                </div>
               </div>
 
               <div className="border-t border-gray-300 mt-4 pt-4">
