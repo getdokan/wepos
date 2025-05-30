@@ -53,7 +53,7 @@ class ReactAssets
 
         $dependencies = isset($asset_data['dependencies']) ? $asset_data['dependencies'] : [];
         $version = isset($asset_data['version']) ? $asset_data['version'] : WEPOS_VERSION;
-        $script_url = $is_dev ? 'http://localhost:8887/wepos-react.js' : WEPOS_ASSETS . '/build/wepos-react.js';
+        $script_url = $is_dev ? 'http://localhost:8887/wepos-react.js' : WEPOS_URL . '/build/wepos-react.js';
 
         // Enqueue React runtime for HMR in development mode
         if ($is_dev) {
@@ -86,7 +86,7 @@ class ReactAssets
         // Enqueue styles (check both development and production paths)
         $css_url = $is_dev
             ? 'http://localhost:8887/wepos-react.css'
-            : WEPOS_ASSETS . '/build/wepos-react.css';
+            : WEPOS_URL . '/build/wepos-react.css';
 
         wp_enqueue_style(
             'wepos-react',

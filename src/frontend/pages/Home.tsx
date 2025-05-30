@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from 'react';
 import { posAPI } from '../api';
-import { POSPrintData, POSCategory, ProductViewType } from '../types';
+import { POSPrintData, POSCategory, ProductViewType, Customer } from '../types';
 import {
   formatPrice,
   hasStock,
@@ -71,6 +71,11 @@ const HomePage: React.FC = () => {
   });
   const [createprintreceipt, setCreateprintreceipt] = useState(false);
 
+  // Customer State
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null,
+  );
+
   // Refs
   const itemsWrapperRef = useRef<HTMLDivElement>(null);
   const cashAmountRef = useRef<HTMLInputElement>(null);
@@ -109,6 +114,7 @@ const HomePage: React.FC = () => {
 
   const createNewSale = useCallback(() => {
     emptyCart();
+    setSelectedCustomer(null);
     setOrderData({
       customer_id: 0,
       customer_note: '',
@@ -122,6 +128,29 @@ const HomePage: React.FC = () => {
     setShowQuickMenu(false);
     window.history.pushState({}, '', window.location.pathname);
   }, [emptyCart, setOrderData]);
+
+  // Customer selection handler
+  const handleCustomerSelected = useCallback(
+    (customer: Customer | null) => {
+      setSelectedCustomer(customer);
+      if (customer) {
+        setOrderData((prev) => ({
+          ...prev,
+          customer_id: customer.id,
+          billing: customer.billing,
+          shipping: customer.shipping,
+        }));
+      } else {
+        setOrderData((prev) => ({
+          ...prev,
+          customer_id: 0,
+          billing: {},
+          shipping: {},
+        }));
+      }
+    },
+    [setOrderData],
+  );
 
   const initPayment = useCallback(() => {
     if (cartData.line_items.length <= 0) {
@@ -378,6 +407,8 @@ const HomePage: React.FC = () => {
         orderData={orderData}
         settings={settings}
         showQuickMenu={showQuickMenu}
+        selectedCustomer={selectedCustomer}
+        onCustomerSelected={handleCustomerSelected}
         onShowQuickMenuToggle={setShowQuickMenu}
         onUpdateCartItem={updateCartItem}
         onRemoveItem={removeItem}

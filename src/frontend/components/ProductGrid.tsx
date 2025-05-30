@@ -56,9 +56,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                         : __('Out of stock', 'wepos')
                     }
                   >
-                    <div
-                      className={productView === 'grid' ? 'mb-3' : 'flex gap-4'}
-                    >
+                    <div className={productView === 'grid' ? '' : 'flex gap-4'}>
                       <img
                         src={getProductImage(product)}
                         alt={product.name}
@@ -74,7 +72,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                       )}
                     </div>
                     <div
-                      className={`text-sm ${productView === 'list' ? 'flex-1' : ''}`}
+                      className={`text-sm ${productView === 'list' ? 'flex-1' : 'px-1 py-3'}`}
                     >
                       {productView === 'grid' ? (
                         <div className="text-center font-medium text-gray-800">

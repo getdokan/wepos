@@ -7,13 +7,22 @@ import {
   X,
   ShoppingCart,
 } from 'lucide-react';
-import { POSCartData, POSOrderData, POSSettings, POSCartItem } from '../types';
+import {
+  POSCartData,
+  POSOrderData,
+  POSSettings,
+  POSCartItem,
+  Customer,
+} from '../types';
+import CustomerSearch from './CustomerSearch';
 
 interface CartProps {
   cartData: POSCartData;
   orderData: POSOrderData;
   settings: POSSettings;
   showQuickMenu: boolean;
+  selectedCustomer?: Customer | null;
+  onCustomerSelected: (customer: Customer | null) => void;
   onShowQuickMenuToggle: (show: boolean) => void;
   onUpdateCartItem: (index: number, updatedItem: Partial<POSCartItem>) => void;
   onRemoveItem: (index: number) => void;
@@ -31,6 +40,8 @@ const Cart: React.FC<CartProps> = ({
   orderData,
   settings,
   showQuickMenu,
+  selectedCustomer,
+  onCustomerSelected,
   onShowQuickMenuToggle,
   onUpdateCartItem,
   onRemoveItem,
@@ -62,66 +73,53 @@ const Cart: React.FC<CartProps> = ({
         <div className="wepos-cart-panel">
           {/* Cart Header */}
           <div className="wepos-cart-header">
-            <div className="mb-4 flex items-center gap-3">
-              <div className="wepos-customer-search">
-                <input
-                  type="text"
-                  id="customer-search"
-                  placeholder={__('Walk-in Customer', 'wepos')}
-                  className="wepos-input pr-10"
-                />
-                <span className="text-wepos-primary hover:text-wepos-primary-hover absolute top-1/2 right-3 -translate-y-1/2 transform cursor-pointer transition-colors">
-                  <Plus className="h-4 w-4" />
-                </span>
-              </div>
+            <div className="flex items-start gap-3">
+              <CustomerSearch
+                selectedCustomer={selectedCustomer}
+                onCustomerSelected={onCustomerSelected}
+              />
 
-              <div className="relative">
-                <div className="more-options">
-                  <button
-                    className="wepos-button rounded-lg bg-gray-100 p-2 hover:bg-gray-200"
-                    onClick={() => onShowQuickMenuToggle(!showQuickMenu)}
-                    type="button"
-                    title={__('More options', 'wepos')}
-                  >
-                    <span className="text-gray-600">
-                      <MoreVertical className="h-4 w-4" />
-                    </span>
-                  </button>
-                  {showQuickMenu && (
-                    <div className="wepos-dropdown-menu">
-                      <ul>
-                        <li>
-                          <a href="#" onClick={onEmptyCart}>
-                            {__('Empty Cart', 'wepos')}
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#" onClick={onShowHelp}>
-                            {__('Help', 'wepos')}
-                          </a>
-                        </li>
-                        <li className="my-1 border-t border-gray-200"></li>
-                        <li>
-                          <a
-                            href="#"
-                            onClick={() =>
-                              (window.location.href = (
-                                window as any
-                              ).wepos?.logout_url)
-                            }
-                          >
-                            {__('Logout', 'wepos')}
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
-                  )}
-                </div>
+              <div className="relative flex-shrink-0">
+                <button
+                  className="wepos-button rounded-lg bg-gray-100 p-2 hover:bg-gray-200"
+                  onClick={() => onShowQuickMenuToggle(!showQuickMenu)}
+                  type="button"
+                  title={__('More options', 'wepos')}
+                >
+                  <span className="text-gray-600">
+                    <MoreVertical className="h-4 w-4" />
+                  </span>
+                </button>
+                {showQuickMenu && (
+                  <div className="wepos-dropdown-menu">
+                    <ul>
+                      <li>
+                        <a href="#" onClick={onEmptyCart}>
+                          {__('Empty Cart', 'wepos')}
+                        </a>
+                      </li>
+                      <li>
+                        <a href="#" onClick={onShowHelp}>
+                          {__('Help', 'wepos')}
+                        </a>
+                      </li>
+                      <li className="my-1 border-t border-gray-200"></li>
+                      <li>
+                        <a
+                          href="#"
+                          onClick={() =>
+                            (window.location.href = (
+                              window as any
+                            ).wepos?.logout_url)
+                          }
+                        >
+                          {__('Logout', 'wepos')}
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                )}
               </div>
-            </div>
-
-            <div className="text-sm font-medium text-gray-600">
-              {__('New Order', 'wepos')}
             </div>
           </div>
 
