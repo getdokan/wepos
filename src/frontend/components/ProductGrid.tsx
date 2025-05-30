@@ -1,5 +1,6 @@
 import React from 'react';
 import { __ } from '@wordpress/i18n';
+import { Plus } from 'lucide-react';
 import { POSProduct, ProductViewType, CartItem } from '../types';
 import ProductVariationSelector from './ProductVariationSelector';
 
@@ -30,7 +31,9 @@ const ProductGrid: React.FC<ProductGridProps> = ({
 }) => {
   return (
     <div
-      className={productView === 'grid' ? 'wepos-items-grid' : 'wepos-items-list'}
+      className={
+        productView === 'grid' ? 'wepos-items-grid' : 'wepos-items-list'
+      }
       ref={itemsWrapperRef}
     >
       {!productLoading ? (
@@ -39,54 +42,78 @@ const ProductGrid: React.FC<ProductGridProps> = ({
             products.map((product) => (
               <div
                 key={product.id}
-                className={productView === 'grid' ? 'wepos-item-grid' : 'wepos-item-list'}
+                className={
+                  productView === 'grid' ? 'wepos-item-grid' : 'wepos-item-list'
+                }
               >
                 {product.type === 'simple' && (
                   <div
                     className={`relative cursor-pointer transition-all duration-200 ${!hasStock(product) ? 'wepos-item-disabled' : ''}`}
                     onClick={() => onAddToCart(product)}
-                    title={hasStock(product) ? __('Add to cart', 'wepos') : __('Out of stock', 'wepos')}
+                    title={
+                      hasStock(product)
+                        ? __('Add to cart', 'wepos')
+                        : __('Out of stock', 'wepos')
+                    }
                   >
-                    <div className={productView === 'grid' ? 'mb-3' : 'flex gap-4'}>
+                    <div
+                      className={productView === 'grid' ? 'mb-3' : 'flex gap-4'}
+                    >
                       <img
                         src={getProductImage(product)}
                         alt={product.name}
                         className={`wepos-item-image ${productView === 'list' ? 'shrink-0' : ''}`}
                       />
                       {productView === 'grid' && hasStock(product) && (
-                        <div className="wepos-add-icon" title={__('Add to cart', 'wepos')}>
-                          +
+                        <div
+                          className="wepos-add-icon"
+                          title={__('Add to cart', 'wepos')}
+                        >
+                          <Plus className="h-4 w-4" />
                         </div>
                       )}
                     </div>
-                    <div className={`text-sm ${productView === 'list' ? 'flex-1' : ''}`}>
+                    <div
+                      className={`text-sm ${productView === 'list' ? 'flex-1' : ''}`}
+                    >
                       {productView === 'grid' ? (
-                        <div className="font-medium text-gray-800 text-center">
+                        <div className="text-center font-medium text-gray-800">
                           {truncateTitle(product.name, 20)}
                         </div>
                       ) : (
-                        <div className="flex justify-between items-start">
+                        <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <div className="font-medium text-gray-800 mb-1">{product.name}</div>
-                            <div className="text-xs text-gray-600 space-y-1">
+                            <div className="mb-1 font-medium text-gray-800">
+                              {product.name}
+                            </div>
+                            <div className="space-y-1 text-xs text-gray-600">
                               {product.sku && (
                                 <div>
-                                  <span className="font-medium">{__('SKU:', 'wepos')}</span>
+                                  <span className="font-medium">
+                                    {__('SKU:', 'wepos')}
+                                  </span>
                                   <span className="ml-1">{product.sku}</span>
                                 </div>
                               )}
                               <div>
-                                <span className="font-medium">{__('Price:', 'wepos')}</span>
+                                <span className="font-medium">
+                                  {__('Price:', 'wepos')}
+                                </span>
                                 <span
                                   className="ml-1"
-                                  dangerouslySetInnerHTML={{ __html: product.price_html }}
+                                  dangerouslySetInnerHTML={{
+                                    __html: product.price_html,
+                                  }}
                                 ></span>
                               </div>
                             </div>
                           </div>
                           {hasStock(product) && (
-                            <div className="ml-4 w-8 h-8 bg-wepos-primary text-white rounded-full flex items-center justify-center text-lg font-bold" title={__('Add to cart', 'wepos')}>
-                              +
+                            <div
+                              className="bg-wepos-primary ml-4 flex h-8 w-8 items-center justify-center rounded-full text-lg font-bold text-white"
+                              title={__('Add to cart', 'wepos')}
+                            >
+                              <Plus className="h-4 w-4" />
                             </div>
                           )}
                         </div>
@@ -102,48 +129,72 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                   >
                     <div
                       className={`relative cursor-pointer transition-all duration-200 ${!hasStock(product) ? 'wepos-item-disabled' : ''}`}
-                      title={hasStock(product) ? __('Select variations', 'wepos') : __('Out of stock', 'wepos')}
+                      title={
+                        hasStock(product)
+                          ? __('Select variations', 'wepos')
+                          : __('Out of stock', 'wepos')
+                      }
                     >
-                      <div className={productView === 'grid' ? 'mb-3' : 'flex gap-4'}>
+                      <div
+                        className={
+                          productView === 'grid' ? 'mb-3' : 'flex gap-4'
+                        }
+                      >
                         <img
                           src={getProductImage(product)}
                           alt={product.name}
                           className={`wepos-item-image ${productView === 'list' ? 'shrink-0' : ''}`}
                         />
                         {productView === 'grid' && hasStock(product) && (
-                          <div className="wepos-add-icon" title={__('Select variations', 'wepos')}>
-                            +
+                          <div
+                            className="wepos-add-icon"
+                            title={__('Select variations', 'wepos')}
+                          >
+                            <Plus className="h-4 w-4" />
                           </div>
                         )}
                       </div>
-                      <div className={`text-sm ${productView === 'list' ? 'flex-1' : ''}`}>
+                      <div
+                        className={`text-sm ${productView === 'list' ? 'flex-1' : ''}`}
+                      >
                         {productView === 'grid' ? (
-                          <div className="font-medium text-gray-800 text-center">
+                          <div className="text-center font-medium text-gray-800">
                             {truncateTitle(product.name, 20)}
                           </div>
                         ) : (
-                          <div className="flex justify-between items-start">
+                          <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <div className="font-medium text-gray-800 mb-1">{product.name}</div>
-                              <div className="text-xs text-gray-600 space-y-1">
+                              <div className="mb-1 font-medium text-gray-800">
+                                {product.name}
+                              </div>
+                              <div className="space-y-1 text-xs text-gray-600">
                                 {product.sku && (
                                   <div>
-                                    <span className="font-medium">{__('SKU:', 'wepos')}</span>
+                                    <span className="font-medium">
+                                      {__('SKU:', 'wepos')}
+                                    </span>
                                     <span className="ml-1">{product.sku}</span>
                                   </div>
                                 )}
                                 <div>
-                                  <span className="font-medium">{__('Price:', 'wepos')}</span>
+                                  <span className="font-medium">
+                                    {__('Price:', 'wepos')}
+                                  </span>
                                   <span
                                     className="ml-1"
-                                    dangerouslySetInnerHTML={{ __html: product.price_html }}
+                                    dangerouslySetInnerHTML={{
+                                      __html: product.price_html,
+                                    }}
                                   ></span>
                                 </div>
                               </div>
                             </div>
                             {hasStock(product) && (
-                              <div className="ml-4 w-8 h-8 bg-wepos-primary text-white rounded-full flex items-center justify-center text-lg font-bold" title={__('Select variations', 'wepos')}>
-                                +
+                              <div
+                                className="bg-wepos-primary ml-4 flex h-8 w-8 items-center justify-center rounded-full text-lg font-bold text-white"
+                                title={__('Select variations', 'wepos')}
+                              >
+                                <Plus className="h-4 w-4" />
                               </div>
                             )}
                           </div>
@@ -168,7 +219,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
         </>
       ) : (
         <div className="wepos-product-loading">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-wepos-primary"></div>
+          <div className="border-t-wepos-primary h-8 w-8 animate-spin rounded-full border-2 border-gray-300"></div>
         </div>
       )}
     </div>

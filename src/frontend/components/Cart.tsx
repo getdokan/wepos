@@ -1,5 +1,12 @@
 import React from 'react';
 import { __ } from '@wordpress/i18n';
+import {
+  Plus,
+  MoreVertical,
+  ChevronRight,
+  X,
+  ShoppingCart,
+} from 'lucide-react';
 import { POSCartData, POSOrderData, POSSettings, POSCartItem } from '../types';
 
 interface CartProps {
@@ -55,7 +62,7 @@ const Cart: React.FC<CartProps> = ({
         <div className="wepos-cart-panel">
           {/* Cart Header */}
           <div className="wepos-cart-header">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="mb-4 flex items-center gap-3">
               <div className="wepos-customer-search">
                 <input
                   type="text"
@@ -63,35 +70,46 @@ const Cart: React.FC<CartProps> = ({
                   placeholder={__('Walk-in Customer', 'wepos')}
                   className="wepos-input pr-10"
                 />
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-wepos-primary cursor-pointer hover:text-wepos-primary-hover transition-colors">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
+                <span className="text-wepos-primary hover:text-wepos-primary-hover absolute top-1/2 right-3 -translate-y-1/2 transform cursor-pointer transition-colors">
+                  <Plus className="h-4 w-4" />
                 </span>
               </div>
 
               <div className="relative">
                 <div className="more-options">
                   <button
-                    className="wepos-button bg-gray-100 hover:bg-gray-200 p-2 rounded-lg"
+                    className="wepos-button rounded-lg bg-gray-100 p-2 hover:bg-gray-200"
                     onClick={() => onShowQuickMenuToggle(!showQuickMenu)}
                     type="button"
                     title={__('More options', 'wepos')}
                   >
                     <span className="text-gray-600">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                      </svg>
+                      <MoreVertical className="h-4 w-4" />
                     </span>
                   </button>
                   {showQuickMenu && (
                     <div className="wepos-dropdown-menu">
                       <ul>
-                        <li><a href="#" onClick={onEmptyCart}>{__('Empty Cart', 'wepos')}</a></li>
-                        <li><a href="#" onClick={onShowHelp}>{__('Help', 'wepos')}</a></li>
-                        <li className="border-t border-gray-200 my-1"></li>
                         <li>
-                          <a href="#" onClick={() => window.location.href = (window as any).wepos?.logout_url}>
+                          <a href="#" onClick={onEmptyCart}>
+                            {__('Empty Cart', 'wepos')}
+                          </a>
+                        </li>
+                        <li>
+                          <a href="#" onClick={onShowHelp}>
+                            {__('Help', 'wepos')}
+                          </a>
+                        </li>
+                        <li className="my-1 border-t border-gray-200"></li>
+                        <li>
+                          <a
+                            href="#"
+                            onClick={() =>
+                              (window.location.href = (
+                                window as any
+                              ).wepos?.logout_url)
+                            }
+                          >
                             {__('Logout', 'wepos')}
                           </a>
                         </li>
@@ -102,7 +120,7 @@ const Cart: React.FC<CartProps> = ({
               </div>
             </div>
 
-            <div className="text-sm text-gray-600 font-medium">
+            <div className="text-sm font-medium text-gray-600">
               {__('New Order', 'wepos')}
             </div>
           </div>
@@ -112,9 +130,15 @@ const Cart: React.FC<CartProps> = ({
             <table className="wepos-cart-table">
               <thead>
                 <tr>
-                  <th className="wepos-cart-th" style={{ width: '50%' }}>{__('Product', 'wepos')}</th>
-                  <th className="wepos-cart-th" style={{ width: '15%' }}>{__('Qty', 'wepos')}</th>
-                  <th className="wepos-cart-th" style={{ width: '25%' }}>{__('Price', 'wepos')}</th>
+                  <th className="wepos-cart-th" style={{ width: '50%' }}>
+                    {__('Product', 'wepos')}
+                  </th>
+                  <th className="wepos-cart-th" style={{ width: '15%' }}>
+                    {__('Qty', 'wepos')}
+                  </th>
+                  <th className="wepos-cart-th" style={{ width: '25%' }}>
+                    {__('Price', 'wepos')}
+                  </th>
                   <th className="wepos-cart-th" style={{ width: '5%' }}></th>
                   <th className="wepos-cart-th" style={{ width: '5%' }}></th>
                 </tr>
@@ -123,34 +147,62 @@ const Cart: React.FC<CartProps> = ({
                 {cartData.line_items.length > 0 ? (
                   cartData.line_items.map((item, index) => (
                     <React.Fragment key={item.id}>
-                      <tr className="hover:bg-gray-50 transition-colors">
-                        <td className="wepos-cart-td cursor-pointer" onClick={() => toggleEditQuantity(item, index)}>
-                          <div className="font-medium text-gray-800">{item.name}</div>
-                          {item.attribute && item.attribute.length > 0 && item.type === 'variable' && (
-                            <div className="mt-1 text-xs text-gray-600">
-                              {item.attribute.map((attr, attrIndex) => (
-                                <span key={attrIndex} className="inline-block mr-2">
-                                  <span className="font-medium text-gray-500">{attr.name}:</span>
-                                  <span className="ml-1">{attr.option}</span>
-                                  {attrIndex < item.attribute.length - 1 && <span className="mx-1">•</span>}
-                                </span>
-                              ))}
-                            </div>
-                          )}
+                      <tr className="transition-colors hover:bg-gray-50">
+                        <td
+                          className="wepos-cart-td cursor-pointer"
+                          onClick={() => toggleEditQuantity(item, index)}
+                        >
+                          <div className="font-medium text-gray-800">
+                            {item.name}
+                          </div>
+                          {item.attribute &&
+                            item.attribute.length > 0 &&
+                            item.type === 'variable' && (
+                              <div className="mt-1 text-xs text-gray-600">
+                                {item.attribute.map((attr, attrIndex) => (
+                                  <span
+                                    key={attrIndex}
+                                    className="mr-2 inline-block"
+                                  >
+                                    <span className="font-medium text-gray-500">
+                                      {attr.name}:
+                                    </span>
+                                    <span className="ml-1">{attr.option}</span>
+                                    {attrIndex < item.attribute.length - 1 && (
+                                      <span className="mx-1">•</span>
+                                    )}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                         </td>
-                        <td className="wepos-cart-td cursor-pointer" onClick={() => toggleEditQuantity(item, index)}>
-                          <span className="bg-gray-100 px-2 py-1 rounded text-center min-w-8 inline-block font-medium">
+                        <td
+                          className="wepos-cart-td cursor-pointer"
+                          onClick={() => toggleEditQuantity(item, index)}
+                        >
+                          <span className="inline-block min-w-8 rounded bg-gray-100 px-2 py-1 text-center font-medium">
                             {item.quantity}
                           </span>
                         </td>
-                        <td className="wepos-cart-td cursor-pointer" onClick={() => toggleEditQuantity(item, index)}>
+                        <td
+                          className="wepos-cart-td cursor-pointer"
+                          onClick={() => toggleEditQuantity(item, index)}
+                        >
                           {item.on_sale ? (
                             <div className="space-y-1">
-                              <div className="text-red-600 font-semibold">{formatPrice(item.quantity * item.sale_price)}</div>
-                              <div className="text-gray-400 line-through text-xs">{formatPrice(item.quantity * item.regular_price)}</div>
+                              <div className="font-semibold text-red-600">
+                                {formatPrice(item.quantity * item.sale_price)}
+                              </div>
+                              <div className="text-xs text-gray-400 line-through">
+                                {formatPrice(
+                                  item.quantity * item.regular_price,
+                                )}
+                              </div>
                             </div>
                           ) : (
-                            <span className="font-semibold text-gray-800">{formatPrice(item.quantity * item.regular_price)}</span>
+                            <span className="font-semibold text-gray-800">
+                              {formatPrice(item.quantity * item.regular_price)}
+                            </span>
                           )}
                         </td>
                         <td className="wepos-cart-td">
@@ -160,21 +212,17 @@ const Cart: React.FC<CartProps> = ({
                             type="button"
                             title={__('Edit quantity', 'wepos')}
                           >
-                            <svg className="w-4 h-4 text-wepos-primary" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                            </svg>
+                            <ChevronRight className="text-wepos-primary h-4 w-4" />
                           </button>
                         </td>
                         <td className="wepos-cart-td">
                           <button
-                            className="p-1 text-red-500 hover:text-red-700 transition-colors"
+                            className="p-1 text-red-500 transition-colors hover:text-red-700"
                             onClick={() => onRemoveItem(index)}
                             type="button"
                             title={__('Remove item', 'wepos')}
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                            <X className="h-4 w-4" />
                           </button>
                         </td>
                       </tr>
@@ -182,7 +230,9 @@ const Cart: React.FC<CartProps> = ({
                         <tr className="bg-gray-50">
                           <td colSpan={5} className="wepos-cart-td">
                             <div className="flex items-center gap-3 py-2">
-                              <span className="text-sm font-medium">{__('Quantity:', 'wepos')}</span>
+                              <span className="text-sm font-medium">
+                                {__('Quantity:', 'wepos')}
+                              </span>
                               <div className="wepos-update-quantity-wrap">
                                 <input
                                   type="number"
@@ -190,13 +240,33 @@ const Cart: React.FC<CartProps> = ({
                                   step="1"
                                   value={item.quantity}
                                   onChange={(e) => {
-                                    onUpdateCartItem(index, { quantity: parseInt(e.target.value) || 1 });
+                                    onUpdateCartItem(index, {
+                                      quantity: parseInt(e.target.value) || 1,
+                                    });
                                   }}
                                 />
                               </div>
                               <div className="wepos-qty-action">
-                                <a href="#" className="add" onClick={(e) => { e.preventDefault(); addQuantity(item, index); }}>+</a>
-                                <a href="#" className="minus" onClick={(e) => { e.preventDefault(); removeQuantity(item, index); }}>-</a>
+                                <a
+                                  href="#"
+                                  className="add"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    addQuantity(item, index);
+                                  }}
+                                >
+                                  +
+                                </a>
+                                <a
+                                  href="#"
+                                  className="minus"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    removeQuantity(item, index);
+                                  }}
+                                >
+                                  -
+                                </a>
                               </div>
                             </div>
                           </td>
@@ -208,10 +278,10 @@ const Cart: React.FC<CartProps> = ({
                   <tr>
                     <td colSpan={5} className="wepos-no-item">
                       <div className="flex flex-col items-center">
-                        <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6" />
-                        </svg>
-                        <p className="text-gray-500">{__('Empty Cart', 'wepos')}</p>
+                        <ShoppingCart className="mb-4 h-16 w-16 text-gray-300" />
+                        <p className="text-gray-500">
+                          {__('Empty Cart', 'wepos')}
+                        </p>
                       </div>
                     </td>
                   </tr>
@@ -227,11 +297,14 @@ const Cart: React.FC<CartProps> = ({
                 <tbody>
                   <tr>
                     <td className="wepos-calculation-td">
-                      <div className="text-gray-700 font-medium">
+                      <div className="font-medium text-gray-700">
                         {__('Subtotal', 'wepos')}
-                        {settings.woo_tax?.wc_tax_display_cart === 'incl' && getTotalTax() > 0 && (
-                          <span className="text-xs text-gray-500 block font-normal">{__('Including Tax', 'wepos')}</span>
-                        )}
+                        {settings.woo_tax?.wc_tax_display_cart === 'incl' &&
+                          getTotalTax() > 0 && (
+                            <span className="block text-xs font-normal text-gray-500">
+                              {__('Including Tax', 'wepos')}
+                            </span>
+                          )}
                       </div>
                     </td>
                     <td className="wepos-calculation-td text-right font-bold text-gray-800">
@@ -241,8 +314,10 @@ const Cart: React.FC<CartProps> = ({
 
                   {getTotalTax() > 0 && (
                     <tr>
-                      <td className="wepos-calculation-td text-gray-700 font-medium">
-                        {settings.woo_tax?.wc_tax_display_cart === 'incl' ? __('Fee Tax', 'wepos') : __('Tax', 'wepos')}
+                      <td className="wepos-calculation-td font-medium text-gray-700">
+                        {settings.woo_tax?.wc_tax_display_cart === 'incl'
+                          ? __('Fee Tax', 'wepos')
+                          : __('Tax', 'wepos')}
                       </td>
                       <td className="wepos-calculation-td text-right font-bold text-gray-800">
                         {formatPrice(getTotalTax())}
@@ -252,9 +327,11 @@ const Cart: React.FC<CartProps> = ({
 
                   <tr>
                     <td className="wepos-calculation-td">
-                      <div className="text-lg font-bold text-gray-800">{__('Total', 'wepos')}</div>
+                      <div className="text-lg font-bold text-gray-800">
+                        {__('Total', 'wepos')}
+                      </div>
                     </td>
-                    <td className="wepos-calculation-td text-right text-xl font-bold text-wepos-primary">
+                    <td className="wepos-calculation-td text-wepos-primary text-right text-xl font-bold">
                       {formatPrice(getTotal())}
                     </td>
                   </tr>
@@ -262,10 +339,7 @@ const Cart: React.FC<CartProps> = ({
               </table>
             </div>
 
-            <div
-              className="wepos-pay-now"
-              onClick={onInitPayment}
-            >
+            <div className="wepos-pay-now" onClick={onInitPayment}>
               {__('Checkout', 'wepos')} • {formatPrice(getTotal())}
             </div>
           </div>
