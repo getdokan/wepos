@@ -6,27 +6,27 @@
 
 ## :bookmark: Table of contents
 
--   [Pre-requisites :pushpin:](#pre-requisites)
-    -   [Install Node](#install-node)
-    -   [Install NVM](#install-nvm)
-    -   [Install Docker](#install-docker)
+- [Pre-requisites :pushpin:](#pre-requisites)
+    - [Install Node](#install-node)
+    - [Install NVM](#install-nvm)
+    - [Install Docker](#install-docker)
 
  <br/>
 
--   [Prep for tests :construction:](#prep-for-tests)
-    -   [Build Wepos plugin](#build-wepos-plugin)
-    -   [Install Dependencies](#install-dependencies)
-    -   [Start Wordpress Environment](#start-wordpress-environment)
-    -   [Create Env file](#create-env-file)
+- [Prep for tests :construction:](#prep-for-tests)
+    - [Build Wepos plugin](#build-wepos-plugin)
+    - [Install Dependencies](#install-dependencies)
+    - [Start Wordpress Environment](#start-wordpress-environment)
+    - [Create Env file](#create-env-file)
 
 <br/>
 
--   [Running tests :test_tube: ](#running-tests)
-    -   [How to run test projects](#how-to-run-test-projects)
-    -   [How to run tests](#how-to-run-tests)
-    -   [How to skip tests](#how-to-skip-tests)
-    -   [How to debug tests](#how-to-debug-tests)
-    -   [How to serve reports](#how-to-serve-reports)
+- [Running tests :test_tube: ](#running-tests)
+    - [How to run test projects](#how-to-run-test-projects)
+    - [How to run tests](#how-to-run-tests)
+    - [How to skip tests](#how-to-skip-tests)
+    - [How to debug tests](#how-to-debug-tests)
+    - [How to serve reports](#how-to-serve-reports)
 
 <br/>
 
@@ -58,7 +58,7 @@ Preparation for running tests involves conducting necessary tasks and arrangemen
 
 :radio_button: Go to Wepos project root directory and run
 
-    composer i --no-dev && composer du -o && npm i && npm run build
+    composer i --no-dev && composer du -o && pnpm install && pnpm run build
 
 <br/>
 
@@ -75,7 +75,7 @@ Preparation for running tests involves conducting necessary tasks and arrangemen
 :radio_button: Install dependencies
 
 ```
-npm i
+pnpm install
 ```
 
 <br/>
@@ -100,7 +100,7 @@ npx playwright install chromium
 
 :radio_button: Start Environment
 
-    npm run wp-env start
+    pnpm run wp-env start
 
 <br/>
 

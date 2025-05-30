@@ -6,6 +6,11 @@
   "author": "weDevs <info@wedevs.com>",
   "license": "GPLv2",
   "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
+  },
   "scripts": {
     "start": "NODE_ENV=development wp-scripts start --hot",
     "build": "wp-scripts build",

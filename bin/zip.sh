@@ -36,11 +36,11 @@ mkdir -p "$BUILD_DIR"
 
 # Run the build.
 # status "Installing dependencies... 📦"
-# npm install
+# pnpm install
 
 status "Generating build... 👷‍♀️"
-npm run dev:build
-npm run build
+pnpm run dev:build
+pnpm run build
 
 # Copy all files
 status "Copying files... ✌️"
