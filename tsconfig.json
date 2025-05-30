@@ -34,9 +34,7 @@
       "@/styles/*": ["src/frontend/styles/*"]
     }
   },
-  "include": [
-    "src/frontend/**/*"
-  ],
+  "include": ["src"],
   "exclude": [
     "node_modules",
     "assets/src",

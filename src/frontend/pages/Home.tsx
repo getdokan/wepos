@@ -1,16 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import apiFetch from '@wordpress/api-fetch';
-import {
-  POSPrintData,
-  POSCategory,
-  ProductViewType
-} from '../types';
+import { POSPrintData, POSCategory, ProductViewType } from '../types';
 import {
   formatPrice,
   hasStock,
   getProductImage,
   truncateTitle,
-  parseCurrencyAmount
+  parseCurrencyAmount,
 } from '../utils/helpers';
 import { usePOSData } from '../hooks/usePOSData';
 import { useCart } from '../hooks/useCart';
@@ -38,7 +34,7 @@ const HomePage: React.FC = () => {
     productLoading,
     setCartData,
     setOrderData,
-    initializeData
+    initializeData,
   } = usePOSData();
 
   const {
@@ -49,7 +45,7 @@ const HomePage: React.FC = () => {
     addToCartItem,
     updateCartItem,
     removeItem,
-    emptyCart
+    emptyCart,
   } = useCart({ cartData, setCartData, settings });
 
   // UI State
@@ -60,11 +56,13 @@ const HomePage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [showPaymentReceipt, setShowPaymentReceipt] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<POSCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<POSCategory | null>(
+    null,
+  );
   const [selectedGateway, setSelectedGateway] = useState('');
   const [cashAmount, setCashAmount] = useState('');
   const [printdata, setPrintdata] = useState<POSPrintData>({
-    gateway: { id: '', title: '' }
+    gateway: { id: '', title: '' },
   });
   const [createprintreceipt, setCreateprintreceipt] = useState(false);
 
@@ -78,15 +76,19 @@ const HomePage: React.FC = () => {
 
     // Filter by category based on current page
     if (currentPage === 'drinks') {
-      filteredProducts = products.filter(product =>
-        product.categories.some(cat => cat.name.toLowerCase().includes('drink'))
+      filteredProducts = products.filter((product) =>
+        product.categories.some((cat) =>
+          cat.name.toLowerCase().includes('drink'),
+        ),
       );
     } else if (currentPage === 'snacks') {
-      filteredProducts = products.filter(product =>
-        product.categories.some(cat => cat.name.toLowerCase().includes('snack'))
+      filteredProducts = products.filter((product) =>
+        product.categories.some((cat) =>
+          cat.name.toLowerCase().includes('snack'),
+        ),
       );
     } else if (currentPage === 'special') {
-      filteredProducts = products.filter(product => product.on_sale);
+      filteredProducts = products.filter((product) => product.on_sale);
     }
 
     // Additional URL parameter filtering
@@ -95,7 +97,9 @@ const HomePage: React.FC = () => {
 
     if (categoryParam !== null) {
       filteredProducts = filteredProducts.filter((product) => {
-        const foundCat = product.categories.find(cat => cat.id === parseInt(categoryParam));
+        const foundCat = product.categories.find(
+          (cat) => cat.id === parseInt(categoryParam),
+        );
         return foundCat !== undefined;
       });
     }
@@ -105,7 +109,7 @@ const HomePage: React.FC = () => {
 
   // UI Actions
   const toggleProductView = () => {
-    setProductView(prev => prev === 'grid' ? 'list' : 'grid');
+    setProductView((prev) => (prev === 'grid' ? 'list' : 'grid'));
   };
 
   const createNewSale = () => {
@@ -116,7 +120,7 @@ const HomePage: React.FC = () => {
       payment_method: '',
       payment_method_title: '',
       billing: {},
-      shipping: {}
+      shipping: {},
     });
     setShowPaymentReceipt(false);
     setCashAmount('');
@@ -131,10 +135,10 @@ const HomePage: React.FC = () => {
     setShowModal(true);
     if (availableGateways.length > 0) {
       setSelectedGateway(availableGateways[0].id);
-      setOrderData(prev => ({
+      setOrderData((prev) => ({
         ...prev,
         payment_method: availableGateways[0].id,
-        payment_method_title: availableGateways[0].title
+        payment_method_title: availableGateways[0].title,
       }));
     }
   };
@@ -149,47 +153,45 @@ const HomePage: React.FC = () => {
 
     try {
       // Show loading state
-      const contentWrap = document.querySelector('.wepos-checkout-wrapper') as HTMLElement;
+      const contentWrap = document.querySelector(
+        '.wepos-checkout-wrapper',
+      ) as HTMLElement;
       if (contentWrap) {
         contentWrap.style.opacity = '0.6';
         contentWrap.style.pointerEvents = 'none';
       }
 
-      // Debug cart data before processing
-      console.log('Cart data before processing:', cartData);
-      console.log('Cart line items:', cartData.line_items);
-      console.log('Subtotal calculation:', getSubtotal());
-      console.log('Total calculation:', getTotal());
-
       // Prepare order payload
       const orderPayload = {
         billing: orderData.billing,
         shipping: orderData.shipping,
-        line_items: cartData.line_items.map(item => ({
+        line_items: cartData.line_items.map((item) => ({
           product_id: item.product_id,
-          quantity: item.quantity
+          quantity: item.quantity,
         })),
         fee_lines: cartData.fee_lines,
         coupon_lines: cartData.coupon_lines,
         customer_id: orderData.customer_id,
         customer_note: orderData.customer_note,
         payment_method: selectedGateway,
-        payment_method_title: availableGateways.find(g => g.id === selectedGateway)?.title || '',
+        payment_method_title:
+          availableGateways.find((g) => g.id === selectedGateway)?.title || '',
         meta_data: [
           { key: '_wepos_is_pos_order', value: true },
           { key: '_wepos_cash_tendered_amount', value: cashAmount.toString() },
-          { key: '_wepos_cash_change_amount', value: changeAmount().toString() }
-        ]
+          {
+            key: '_wepos_cash_change_amount',
+            value: changeAmount().toString(),
+          },
+        ],
       };
 
-      console.log('Order payload being sent:', orderPayload);
-
       // Create order
-      const orderResponse = await apiFetch({
+      const orderResponse = (await apiFetch({
         path: `/${window.wepos.rest.wcversion}/orders`,
         method: 'POST',
-        data: orderPayload
-      }) as any;
+        data: orderPayload,
+      })) as any;
 
       console.log('WooCommerce order response:', orderResponse);
       console.log('Order response line items:', orderResponse.line_items);
@@ -200,52 +202,52 @@ const HomePage: React.FC = () => {
         totalTaxes[item.product_id] = item.total_tax;
       });
 
-      const updatedCartItems = cartData.line_items.map(item => ({
+      const updatedCartItems = cartData.line_items.map((item) => ({
         ...item,
-        total_tax: totalTaxes[item.product_id] || 0
+        total_tax: totalTaxes[item.product_id] || 0,
       }));
-      setCartData(prev => ({ ...prev, line_items: updatedCartItems }));
+      setCartData((prev) => ({ ...prev, line_items: updatedCartItems }));
 
       // Process payment
-      const paymentResponse = await apiFetch({
+      const paymentResponse = (await apiFetch({
         path: `/${window.wepos.rest.posversion}/payment/process`,
         method: 'POST',
-        data: orderResponse
-      }) as any;
-
-      console.log('Payment response:', paymentResponse);
+        data: orderResponse,
+      })) as any;
 
       if (paymentResponse.result === 'success') {
         // Debug print data before setting
         const printDataToSet = {
           line_items: orderResponse.line_items.map((orderItem: any) => {
             // Find the matching cart item to get display data
-            const cartItem = cartData.line_items.find(item => item.product_id === orderItem.product_id);
+            const cartItem = cartData.line_items.find(
+              (item) => item.product_id === orderItem.product_id,
+            );
             return {
               ...cartItem,
               // Use the actual order values from WooCommerce
               sale_price: parseFloat(orderItem.price),
               regular_price: parseFloat(orderItem.price),
               quantity: orderItem.quantity,
-              total_tax: parseFloat(orderItem.total_tax || 0)
+              total_tax: parseFloat(orderItem.total_tax || 0),
             };
           }),
           fee_lines: cartData.fee_lines,
           coupon_lines: cartData.coupon_lines,
-          subtotal: parseFloat(orderResponse.total) - parseFloat(orderResponse.total_tax || 0),
+          subtotal:
+            parseFloat(orderResponse.total) -
+            parseFloat(orderResponse.total_tax || 0),
           taxtotal: parseFloat(orderResponse.total_tax || 0),
           ordertotal: parseFloat(orderResponse.total),
           gateway: {
             id: orderResponse.payment_method,
-            title: orderResponse.payment_method_title
+            title: orderResponse.payment_method_title,
           },
           order_id: orderResponse.number,
           order_date: orderResponse.date_created,
           cashamount: cashAmount.toString(),
-          changeamount: changeAmount().toString()
+          changeamount: changeAmount().toString(),
         };
-
-        console.log('Print data being set:', printDataToSet);
 
         setPrintdata(printDataToSet);
 
@@ -259,10 +261,11 @@ const HomePage: React.FC = () => {
         contentWrap.style.opacity = '1';
         contentWrap.style.pointerEvents = 'auto';
       }
-
     } catch (error: any) {
       // Handle error and remove loading state
-      const contentWrap = document.querySelector('.wepos-checkout-wrapper') as HTMLElement;
+      const contentWrap = document.querySelector(
+        '.wepos-checkout-wrapper',
+      ) as HTMLElement;
       if (contentWrap) {
         contentWrap.style.opacity = '1';
         contentWrap.style.pointerEvents = 'auto';
@@ -319,7 +322,7 @@ const HomePage: React.FC = () => {
         case '/':
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
-            setShowHelp(prev => !prev);
+            setShowHelp((prev) => !prev);
           }
           break;
       }
@@ -344,7 +347,11 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     if (showPaymentReceipt && createprintreceipt) {
       setTimeout(() => {
-        if (window.confirm('Order successful! Would you like to print the receipt?')) {
+        if (
+          window.confirm(
+            'Order successful! Would you like to print the receipt?',
+          )
+        ) {
           window.print();
         }
       }, 500);
@@ -353,10 +360,7 @@ const HomePage: React.FC = () => {
   }, [showPaymentReceipt, createprintreceipt]);
 
   return (
-    <Layout
-      currentPage={currentPage}
-      onPageChange={setCurrentPage}
-    >
+    <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
       <div className="wepos-content-product">
         <div className="wepos-top-panel">
           <SearchBar />
@@ -404,10 +408,7 @@ const HomePage: React.FC = () => {
         getTotal={getTotal}
       />
 
-      <HelpModal
-        show={showHelp}
-        onClose={() => setShowHelp(false)}
-      />
+      <HelpModal show={showHelp} onClose={() => setShowHelp(false)} />
 
       <PaymentModal
         show={showModal}

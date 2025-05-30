@@ -1,166 +1,84 @@
-const webpack = require('webpack');
+/**
+ * Webpack configuration for WePos React frontend
+ */
+const defaultConfig = require('@wordpress/scripts/config/webpack.config');
 const path = require('path');
-const package = require('./package.json');
-const TerserPlugin = require('terser-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-const { VueLoaderPlugin } = require('vue-loader');
+const fs = require('fs');
 
-// Check if we're building React or Vue
-const isReactBuild = process.env.BUILD_TARGET === 'react';
+const isDevMode = process.env.NODE_ENV !== 'production';
 
-if (isReactBuild) {
-    // Use wp-scripts configuration for React build
-    const defaultConfig = require('@wordpress/scripts/config/webpack.config');
+// Create a dev mode indicator file
+if (isDevMode) {
+    const devModeFile = path.resolve(process.cwd(), '.dev-server-running');
+    fs.writeFileSync(devModeFile, new Date().toISOString());
 
-    module.exports = {
-        ...defaultConfig,
-        entry: {
-            'react-frontend': './src/frontend/index.tsx',
-        },
-        output: {
-            path: path.resolve(__dirname, './assets/js'),
-            filename: '[name].js',
-        },
-        resolve: {
-            ...defaultConfig.resolve,
-            alias: {
-                ...defaultConfig.resolve.alias,
-                '@': path.resolve('./src/frontend/'),
-                '@/components': path.resolve('./src/frontend/components/'),
-                '@/pages': path.resolve('./src/frontend/pages/'),
-                '@/hooks': path.resolve('./src/frontend/hooks/'),
-                '@/utils': path.resolve('./src/frontend/utils/'),
-                '@/types': path.resolve('./src/frontend/types/'),
-                '@/api': path.resolve('./src/frontend/api/'),
-                '@/store': path.resolve('./src/frontend/store/'),
-                '@/styles': path.resolve('./src/frontend/styles/'),
+    // Register a cleanup function to remove the file when the process exits
+    process.on('exit', () => {
+        try {
+            if (fs.existsSync(devModeFile)) {
+                fs.unlinkSync(devModeFile);
             }
-        },
-        module: {
-            ...defaultConfig.module,
-            rules: [
-                ...defaultConfig.module.rules,
-                {
-                    test: /\.css$/,
-                    use: [
-                        MiniCssExtractPlugin.loader,
-                        'css-loader',
-                        'postcss-loader'
-                    ],
-                }
-            ]
-        },
-        plugins: [
-            ...defaultConfig.plugins,
-            new MiniCssExtractPlugin({
-                filename: '../css/react-frontend.css',
-            }),
-        ],
-    };
-} else {
-    // Original Vue.js configuration
-    const vendorPackages = Object.keys(package.dependencies);
-    vendorPackages.splice(vendorPackages.indexOf('lodash'), 1);
-
-    // Naming and path settings
-    var entryPoint = {
-        frontend: './assets/src/frontend/main.js',
-        admin: './assets/src/admin/main.js',
-        vendor: vendorPackages,
-        bootstrap: './assets/src/utils/Bootstrap.js',
-        wphook: './assets/vendors/wp-hook/index.js',
-        style: './assets/less/style.less',
-    };
-
-    var exportPath = path.resolve(__dirname, './assets/js');
-
-    module.exports = (env, argv) => {
-        let appName = argv.mode === 'development' ? '[name].js' : '[name].min.js';
-        let appNameCss = argv.mode === 'development' ? '../css/[name].css' : '../css/[name].min.css';
-
-        return {
-            entry: entryPoint,
-
-            output: {
-                path: exportPath,
-                filename: appName,
-            },
-
-            resolve: {
-                alias: {
-                    'vue$': 'vue/dist/vue.esm.js',
-                    '@': path.resolve('./assets/src/'),
-                    'frontend': path.resolve('./assets/src/frontend/'),
-                    'admin': path.resolve('./assets/src/admin/'),
-                }
-            },
-
-            externals: {
-                _: 'window.wepos._'
-            },
-
-            plugins: [
-                new MiniCssExtractPlugin(
-                    {
-                        filename: ({ chunk }) => {
-                            return appNameCss;
-                        },
-                    }
-                ),
-                new VueLoaderPlugin(),
-                new webpack.ProvidePlugin({
-                    _: '_'
-                })
-            ],
-
-            module: {
-                rules: [
-                    {
-                        test: /\.(js|jsx|ts)$/,
-                        exclude: /node_modules/,
-                        use: {
-                            loader: 'babel-loader',
-                        },
-                    },
-                    {
-                        test: /\.vue$/,
-                        loader: 'vue-loader',
-                        options: {
-                            extractCSS: true
-                        }
-                    },
-                    {
-                        test: /\.(le|c)ss$/,
-                        use: [
-                            MiniCssExtractPlugin.loader,
-                            "css-loader",
-                            "less-loader",
-                        ],
-                    },
-                    {
-                        test: /\.(png|woff|woff2|eot|ttf|svg)$/,
-                        use: [
-                            {
-                                loader: 'file-loader',
-                                options: {
-                                    outputPath: 'fonts',
-                                },
-                            },
-                        ],
-                    }
-                ]
-            },
-
-            optimization: {
-                minimize: true,
-                minimizer: [
-                    new TerserPlugin({
-                        extractComments: false
-                    }),
-                    new CssMinimizerPlugin()
-                ],
-            },
+        } catch (e) {
+            // Ignore errors during cleanup
         }
-    }
+    });
+
+    // Also handle interrupt signals
+    ['SIGINT', 'SIGTERM'].forEach(signal => {
+        process.on(signal, () => {
+            try {
+                if (fs.existsSync(devModeFile)) {
+                    fs.unlinkSync(devModeFile);
+                }
+            } catch (e) {
+                // Ignore errors during cleanup
+            }
+            process.exit();
+        });
+    });
 }
+
+const config = {
+    ...defaultConfig,
+    output: {
+        ...defaultConfig.output,
+        path: path.resolve(process.cwd(), 'assets/js'),
+    },
+    resolve: {
+        ...defaultConfig.resolve,
+        alias: {
+            ...defaultConfig.resolve?.alias,
+            '@': path.resolve(process.cwd(), 'src/frontend'),
+            '@components': path.resolve(process.cwd(), 'src/frontend/components'),
+            '@utils': path.resolve(process.cwd(), 'src/frontend/utils'),
+            '@hooks': path.resolve(process.cwd(), 'src/frontend/hooks'),
+            '@pages': path.resolve(process.cwd(), 'src/frontend/pages'),
+            '@styles': path.resolve(process.cwd(), 'src/frontend/styles'),
+        }
+    },
+    // Configure dev server for HMR
+    devServer: isDevMode ? {
+        devMiddleware: {
+            writeToDisk: true,
+        },
+        allowedHosts: 'all',
+        host: 'localhost',
+        port: 8887,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+        },
+    } : undefined,
+};
+
+const originalEntry = config.entry;
+
+config.entry = () => {
+    const wpEntries = typeof originalEntry === 'function' ? originalEntry() : originalEntry;
+
+    return {
+        ...wpEntries,
+        'wepos-react': path.resolve(process.cwd(), 'src/frontend/index.tsx'),
+    };
+};
+
+module.exports = config;
