@@ -1,5 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import apiFetch from '@wordpress/api-fetch';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react';
+import { posAPI } from '../api';
 import { POSPrintData, POSCategory, ProductViewType } from '../types';
 import {
   formatPrice,
@@ -23,7 +29,7 @@ import CategoryFilter from '../components/CategoryFilter';
 import ProductViewToggle from '../components/ProductViewToggle';
 
 const HomePage: React.FC = () => {
-  // Custom hooks for data and cart management
+  // Simplified hook usage - same interface, cleaner implementation
   const {
     products,
     availableGateways,
@@ -49,7 +55,6 @@ const HomePage: React.FC = () => {
   } = useCart({ cartData, setCartData, settings });
 
   // UI State
-  const [currentPage, setCurrentPage] = useState('home');
   const [showHelp, setShowHelp] = useState(false);
   const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [productView, setProductView] = useState<ProductViewType>('grid');
@@ -70,25 +75,15 @@ const HomePage: React.FC = () => {
   const itemsWrapperRef = useRef<HTMLDivElement>(null);
   const cashAmountRef = useRef<HTMLInputElement>(null);
 
-  // Helper functions
-  const getFilteredProduct = useCallback(() => {
+  // Memoized filtered products to prevent recalculation on every render
+  const getFilteredProduct = useMemo(() => {
     let filteredProducts = products;
 
-    // Filter by category based on current page
-    if (currentPage === 'drinks') {
+    // Filter by selected category (only if one is selected and it's not "All Categories")
+    if (selectedCategory && selectedCategory.id > 0) {
       filteredProducts = products.filter((product) =>
-        product.categories.some((cat) =>
-          cat.name.toLowerCase().includes('drink'),
-        ),
+        product.categories.some((cat) => cat.id === selectedCategory.id),
       );
-    } else if (currentPage === 'snacks') {
-      filteredProducts = products.filter((product) =>
-        product.categories.some((cat) =>
-          cat.name.toLowerCase().includes('snack'),
-        ),
-      );
-    } else if (currentPage === 'special') {
-      filteredProducts = products.filter((product) => product.on_sale);
     }
 
     // Additional URL parameter filtering
@@ -105,14 +100,14 @@ const HomePage: React.FC = () => {
     }
 
     return filteredProducts;
-  }, [products, currentPage]);
+  }, [products, selectedCategory]);
 
   // UI Actions
-  const toggleProductView = () => {
+  const toggleProductView = useCallback(() => {
     setProductView((prev) => (prev === 'grid' ? 'list' : 'grid'));
-  };
+  }, []);
 
-  const createNewSale = () => {
+  const createNewSale = useCallback(() => {
     emptyCart();
     setOrderData({
       customer_id: 0,
@@ -126,9 +121,9 @@ const HomePage: React.FC = () => {
     setCashAmount('');
     setShowQuickMenu(false);
     window.history.pushState({}, '', window.location.pathname);
-  };
+  }, [emptyCart, setOrderData]);
 
-  const initPayment = () => {
+  const initPayment = useCallback(() => {
     if (cartData.line_items.length <= 0) {
       return;
     }
@@ -141,12 +136,12 @@ const HomePage: React.FC = () => {
         payment_method_title: availableGateways[0].title,
       }));
     }
-  };
+  }, [cartData.line_items.length, availableGateways, setOrderData]);
 
-  const backToSale = () => {
+  const backToSale = useCallback(() => {
     setShowModal(false);
     setShowHelp(false);
-  };
+  }, []);
 
   const processPayment = async () => {
     if (!ableToProcess()) return;
@@ -187,11 +182,7 @@ const HomePage: React.FC = () => {
       };
 
       // Create order
-      const orderResponse = (await apiFetch({
-        path: `/${window.wepos.rest.wcversion}/orders`,
-        method: 'POST',
-        data: orderPayload,
-      })) as any;
+      const orderResponse = await posAPI.orders.createOrder(orderPayload);
 
       console.log('WooCommerce order response:', orderResponse);
       console.log('Order response line items:', orderResponse.line_items);
@@ -209,11 +200,8 @@ const HomePage: React.FC = () => {
       setCartData((prev) => ({ ...prev, line_items: updatedCartItems }));
 
       // Process payment
-      const paymentResponse = (await apiFetch({
-        path: `/${window.wepos.rest.posversion}/payment/process`,
-        method: 'POST',
-        data: orderResponse,
-      })) as any;
+      const paymentResponse =
+        await posAPI.payment.processPayment(orderResponse);
 
       if (paymentResponse.result === 'success') {
         // Debug print data before setting
@@ -330,18 +318,12 @@ const HomePage: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [emptyCart]);
+  }, [toggleProductView, emptyCart, createNewSale, initPayment, backToSale]);
 
-  // Initialize data and set default category
+  // Initialize data only once
   useEffect(() => {
     initializeData();
-  }, [initializeData]);
-
-  useEffect(() => {
-    if (categories.length > 0 && !selectedCategory) {
-      setSelectedCategory(categories[0]);
-    }
-  }, [categories, selectedCategory]);
+  }, []); // Empty dependency array to run only once
 
   // Auto-trigger print dialog when receipt is shown
   useEffect(() => {
@@ -360,7 +342,7 @@ const HomePage: React.FC = () => {
   }, [showPaymentReceipt, createprintreceipt]);
 
   return (
-    <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
+    <Layout>
       <div className="wepos-content-product">
         <div className="wepos-top-panel">
           <SearchBar />
@@ -378,7 +360,7 @@ const HomePage: React.FC = () => {
         </div>
 
         <ProductGrid
-          products={getFilteredProduct()}
+          products={getFilteredProduct}
           productView={productView}
           productLoading={productLoading}
           onAddToCart={addToCart}

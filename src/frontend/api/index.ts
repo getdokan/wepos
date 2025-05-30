@@ -7,8 +7,12 @@ import {
   APIResponse,
   PaginatedResponse,
   UseProductsOptions,
-  UseOrdersOptions
-} from '@/types';
+  UseOrdersOptions,
+  POSProduct,
+  POSGateway,
+  POSSettings,
+  POSCategory,
+} from '../types';
 
 // Configure api-fetch with WePOS endpoints
 apiFetch.use(apiFetch.createNonceMiddleware(window.wepos.rest.nonce));
@@ -21,13 +25,17 @@ const API_BASE = {
 };
 
 // Products API
-export const productsAPI = {
-  getProducts: async (options: UseProductsOptions = {}): Promise<PaginatedResponse<Product>> => {
+const productsAPI = {
+  getProducts: async (
+    options: UseProductsOptions = {},
+  ): Promise<PaginatedResponse<Product>> => {
     const params = new URLSearchParams();
 
     if (options.search) params.append('search', options.search);
-    if (options.category) params.append('category', options.category.toString());
-    if (options.per_page) params.append('per_page', options.per_page.toString());
+    if (options.category)
+      params.append('category', options.category.toString());
+    if (options.per_page)
+      params.append('per_page', options.per_page.toString());
     if (options.page) params.append('page', options.page.toString());
     if (options.status) params.append('status', options.status);
     if (options.orderby) params.append('orderby', options.orderby);
@@ -39,6 +47,88 @@ export const productsAPI = {
     });
 
     return response as PaginatedResponse<Product>;
+  },
+
+  // Get all POS products with parallel fetching
+  getAllPOSProducts: async (): Promise<POSProduct[]> => {
+    // First, fetch page 1 to get total pages count
+    const firstResponse = (await apiFetch({
+      path: `${API_BASE.WEPOS}/products?status=publish&per_page=30&page=1`,
+      parse: false,
+    })) as Response;
+
+    if (!firstResponse.ok) {
+      throw new Error(`HTTP error! status: ${firstResponse.status}`);
+    }
+
+    const firstPageProducts = (await firstResponse.json()) as POSProduct[];
+
+    // Get total pages from header
+    const totalPagesHeader = firstResponse.headers.get('X-WP-TotalPages');
+    const totalPages = totalPagesHeader ? parseInt(totalPagesHeader) : 1;
+
+    console.log(`📊 Total pages to fetch: ${totalPages}`);
+
+    // If there's only one page, we're done
+    if (totalPages === 1) {
+      return firstPageProducts;
+    }
+
+    // Fetch all remaining pages in parallel
+    const fetchPromises = [];
+    for (let pageNum = 2; pageNum <= totalPages; pageNum++) {
+      fetchPromises.push(
+        apiFetch({
+          path: `${API_BASE.WEPOS}/products?status=publish&per_page=30&page=${pageNum}`,
+        }) as Promise<POSProduct[]>,
+      );
+    }
+
+    console.log(
+      `🚀 Fetching ${fetchPromises.length} additional pages in parallel...`,
+    );
+
+    // Wait for all pages to complete
+    const allPagesResults = await Promise.all(fetchPromises);
+
+    // Combine first page + all other pages
+    const allProducts = [...firstPageProducts, ...allPagesResults.flat()];
+
+    console.log(
+      `✅ Loaded ${allProducts.length} total products from ${totalPages} pages`,
+    );
+
+    // Filter out disabled variable products
+    const isAllVariationsDisabled = (product: POSProduct): boolean => {
+      let isDisabled = true;
+      if (product.attributes) {
+        product.attributes.forEach((attribute) => {
+          if (true === attribute.variation) {
+            isDisabled = false;
+          }
+        });
+      }
+      return isDisabled;
+    };
+
+    const validProducts = allProducts.filter((product) => {
+      if ('variable' === product.type && isAllVariationsDisabled(product)) {
+        return false;
+      }
+      return true;
+    });
+
+    // Remove any potential duplicates based on product ID
+    const uniqueProducts = validProducts.filter(
+      (product, index, self) =>
+        index === self.findIndex((p) => p.id === product.id),
+    );
+
+    console.log(
+      `🔧 Final product count after filtering: ${uniqueProducts.length}`,
+    );
+
+    return uniqueProducts;
   },
 
   getProduct: async (id: number): Promise<Product> => {
@@ -71,16 +161,58 @@ export const productsAPI = {
       return null;
     }
   },
+
+  // Get product categories for POS
+  getCategories: async (): Promise<POSCategory[]> => {
+    const response = (await apiFetch({
+      path: `${API_BASE.WC}/products/categories?hide_empty=true&_fields=id,name,parent_id&per_page=100`,
+    })) as POSCategory[];
+
+    response.sort((a: POSCategory, b: POSCategory) =>
+      a.name.localeCompare(b.name),
+    );
+
+    const createTree = (
+      categories: POSCategory[],
+      parentId: number | null = null,
+      level = 0,
+    ): POSCategory[] => {
+      return categories
+        .filter((cat) => cat.parent_id === parentId)
+        .map((cat) => {
+          const categoryWithLevel = { ...cat, level };
+          const children = createTree(categories, cat.id, level + 1);
+          return [categoryWithLevel, ...children];
+        })
+        .flat();
+    };
+
+    const sortedCategories = createTree(response);
+
+    const allCategoriesOption: POSCategory = {
+      id: -1,
+      level: 0,
+      name: 'All categories',
+      parent_id: null,
+    };
+
+    return [allCategoriesOption, ...sortedCategories];
+  },
 };
 
 // Orders API
-export const ordersAPI = {
-  getOrders: async (options: UseOrdersOptions = {}): Promise<PaginatedResponse<Order>> => {
+const ordersAPI = {
+  getOrders: async (
+    options: UseOrdersOptions = {},
+  ): Promise<PaginatedResponse<Order>> => {
     const params = new URLSearchParams();
 
-    if (options.status?.length) params.append('status', options.status.join(','));
-    if (options.customer) params.append('customer', options.customer.toString());
-    if (options.per_page) params.append('per_page', options.per_page.toString());
+    if (options.status?.length)
+      params.append('status', options.status.join(','));
+    if (options.customer)
+      params.append('customer', options.customer.toString());
+    if (options.per_page)
+      params.append('per_page', options.per_page.toString());
     if (options.page) params.append('page', options.page.toString());
     if (options.after) params.append('after', options.after);
     if (options.before) params.append('before', options.before);
@@ -104,17 +236,21 @@ export const ordersAPI = {
     return response as Order;
   },
 
-  createOrder: async (orderData: Partial<Order>): Promise<Order> => {
+  // Create order using WooCommerce API (used in POS checkout)
+  createOrder: async (orderData: any): Promise<any> => {
     const response = await apiFetch({
-      path: `${API_BASE.WEPOS}/orders`,
+      path: `/${API_BASE.WC}/orders`,
       method: 'POST',
       data: orderData,
     });
 
-    return response as Order;
+    return response;
   },
 
-  updateOrder: async (id: number, orderData: Partial<Order>): Promise<Order> => {
+  updateOrder: async (
+    id: number,
+    orderData: Partial<Order>,
+  ): Promise<Order> => {
     const response = await apiFetch({
       path: `${API_BASE.WC}/orders/${id}`,
       method: 'PUT',
@@ -126,7 +262,7 @@ export const ordersAPI = {
 };
 
 // Cart API
-export const cartAPI = {
+const cartAPI = {
   getCart: async (): Promise<CartItem[]> => {
     const response = await apiFetch({
       path: `${API_BASE.WEPOS}/cart`,
@@ -136,7 +272,11 @@ export const cartAPI = {
     return response as CartItem[];
   },
 
-  addToCart: async (productId: number, quantity: number = 1, variationId?: number): Promise<APIResponse<CartItem>> => {
+  addToCart: async (
+    productId: number,
+    quantity: number = 1,
+    variationId?: number,
+  ): Promise<APIResponse<CartItem>> => {
     const data: any = {
       product_id: productId,
       quantity,
@@ -155,7 +295,10 @@ export const cartAPI = {
     return response as APIResponse<CartItem>;
   },
 
-  updateCartItem: async (key: string, quantity: number): Promise<APIResponse<CartItem>> => {
+  updateCartItem: async (
+    key: string,
+    quantity: number,
+  ): Promise<APIResponse<CartItem>> => {
     const response = await apiFetch({
       path: `${API_BASE.WEPOS}/cart/update`,
       method: 'POST',
@@ -215,7 +358,7 @@ export const cartAPI = {
 };
 
 // Customers API
-export const customersAPI = {
+const customersAPI = {
   getCustomers: async (search?: string): Promise<Customer[]> => {
     const params = new URLSearchParams();
 
@@ -238,7 +381,9 @@ export const customersAPI = {
     return response as Customer;
   },
 
-  createCustomer: async (customerData: Partial<Customer>): Promise<Customer> => {
+  createCustomer: async (
+    customerData: Partial<Customer>,
+  ): Promise<Customer> => {
     const response = await apiFetch({
       path: `${API_BASE.WC}/customers`,
       method: 'POST',
@@ -248,7 +393,10 @@ export const customersAPI = {
     return response as Customer;
   },
 
-  updateCustomer: async (id: number, customerData: Partial<Customer>): Promise<Customer> => {
+  updateCustomer: async (
+    id: number,
+    customerData: Partial<Customer>,
+  ): Promise<Customer> => {
     const response = await apiFetch({
       path: `${API_BASE.WC}/customers/${id}`,
       method: 'PUT',
@@ -260,39 +408,39 @@ export const customersAPI = {
 };
 
 // Payment API
-export const paymentAPI = {
-  processPayment: async (orderData: any, paymentMethod: string): Promise<APIResponse<Order>> => {
+const paymentAPI = {
+  // Process payment for POS orders
+  processPayment: async (orderData: any): Promise<any> => {
     const response = await apiFetch({
-      path: `${API_BASE.WEPOS}/payment/process`,
+      path: `/${API_BASE.WEPOS}/payment/process`,
       method: 'POST',
-      data: {
-        ...orderData,
-        payment_method: paymentMethod,
-      },
+      data: orderData,
     });
 
-    return response as APIResponse<Order>;
+    return response;
   },
 
-  getPaymentGateways: async (): Promise<any[]> => {
+  // Get payment gateways
+  getPaymentGateways: async (): Promise<POSGateway[]> => {
     const response = await apiFetch({
-      path: `${API_BASE.WEPOS}/payment/gateways`,
+      path: `/${API_BASE.WEPOS}/payment/gateways`,
       method: 'GET',
     });
 
-    return response as any[];
+    return response as POSGateway[];
   },
 };
 
 // Settings API
-export const settingsAPI = {
-  getSettings: async (): Promise<any> => {
+const settingsAPI = {
+  // Get POS settings
+  getSettings: async (): Promise<POSSettings> => {
     const response = await apiFetch({
-      path: `${API_BASE.WEPOS}/settings`,
+      path: `/${API_BASE.WEPOS}/settings`,
       method: 'GET',
     });
 
-    return response;
+    return response as POSSettings;
   },
 
   updateSettings: async (settings: any): Promise<APIResponse<any>> => {
@@ -307,7 +455,7 @@ export const settingsAPI = {
 };
 
 // Reports API
-export const reportsAPI = {
+const reportsAPI = {
   getSalesReport: async (period: string = 'today'): Promise<any> => {
     const response = await apiFetch({
       path: `${API_BASE.WEPOS}/reports/sales?period=${period}`,
@@ -327,8 +475,8 @@ export const reportsAPI = {
   },
 };
 
-// Export all APIs
-export default {
+// Main POS API - single export point
+export const posAPI = {
   products: productsAPI,
   orders: ordersAPI,
   cart: cartAPI,

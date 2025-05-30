@@ -20,14 +20,21 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
         value={selectedCategory?.id || ''}
         onChange={(e) => {
           const categoryId = e.target.value;
-          const category = categories.find(cat => cat.id.toString() === categoryId) || null;
-          onCategoryChange(category);
+          if (categoryId === '') {
+            onCategoryChange(null);
+          } else {
+            const category =
+              categories.find((cat) => cat.id.toString() === categoryId) ||
+              null;
+            onCategoryChange(category);
+          }
         }}
       >
         <option value="">{__('All Categories', 'wepos')}</option>
         {categories.map((category) => (
           <option key={category.id} value={category.id}>
-            {'  '.repeat(category.level)}{category.name}
+            {'  '.repeat(category.level)}
+            {category.name}
           </option>
         ))}
       </select>

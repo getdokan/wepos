@@ -1,18 +1,15 @@
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface SidebarProps {
-  currentPage: string;
-  onPageChange: (page: string) => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({
-  currentPage,
-  onPageChange,
-  isCollapsed,
-  onToggleCollapse,
-}) => {
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const menuItems = [
     {
       id: 'home',
@@ -20,7 +17,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       path: '/',
       icon: (
         <svg
-          className="w-5 h-5"
+          className="h-5 w-5"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -46,7 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       path: '/orders',
       icon: (
         <svg
-          className="w-5 h-5"
+          className="h-5 w-5"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -66,7 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       path: '/customers',
       icon: (
         <svg
-          className="w-5 h-5"
+          className="h-5 w-5"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -82,12 +79,16 @@ const Sidebar: React.FC<SidebarProps> = ({
     },
   ];
 
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+
   return (
     <div className={`wepos-sidebar ${isCollapsed ? 'collapsed' : 'expanded'}`}>
       <div className="wepos-sidebar-header">
         <div className="wepos-logo">
           <div className="logo-circle">
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
               <path d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
@@ -101,9 +102,9 @@ const Sidebar: React.FC<SidebarProps> = ({
             <li key={item.id}>
               <button
                 className={`nav-item ${
-                  currentPage === item.path ? 'active' : ''
+                  location.pathname === item.path ? 'active' : ''
                 }`}
-                onClick={() => onPageChange(item.path)}
+                onClick={() => handleNavigation(item.path)}
                 type="button"
                 title={isCollapsed ? item.label : undefined}
               >
@@ -119,13 +120,13 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       <div className="wepos-sidebar-footer relative">
         <button
-          className="w-full flex justify-center p-1 text-gray-300 hover:text-white hover:bg-wepos-dark-lighter rounded transition-colors duration-200"
+          className="hover:bg-wepos-dark-lighter flex w-full justify-center rounded p-1 text-gray-300 transition-colors duration-200 hover:text-white"
           onClick={onToggleCollapse}
           type="button"
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <svg
-            className="w-4 h-4"
+            className="h-4 w-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -150,7 +151,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         >
           <span className="nav-icon">
             <svg
-              className="w-5 h-5"
+              className="h-5 w-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -159,7 +160,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1"
               />
             </svg>
           </span>
