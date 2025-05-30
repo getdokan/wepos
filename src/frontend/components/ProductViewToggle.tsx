@@ -13,10 +13,10 @@ const ProductViewToggle: React.FC<ProductViewToggleProps> = ({
   onToggle,
 }) => {
   return (
-    <div className="wepos-toggle-view">
+    <div className="shrink-0">
       <div className="flex overflow-hidden rounded-lg border border-gray-300">
         <button
-          className={`wepos-toggle-icon ${productView === 'grid' ? 'active' : ''} first:rounded-l-lg`}
+          className={`cursor-pointer border border-gray-300 bg-white px-3 py-2 text-gray-500 transition-all duration-200 select-none first:rounded-l-lg hover:bg-gray-50 ${productView === 'grid' ? 'text-wepos-primary bg-wepos-primary/5 border-wepos-primary' : ''}`}
           onClick={onToggle}
           type="button"
           title={__('Grid View', 'wepos')}
@@ -25,7 +25,7 @@ const ProductViewToggle: React.FC<ProductViewToggleProps> = ({
           <Grid3X3 className="h-4 w-4" />
         </button>
         <button
-          className={`wepos-toggle-icon ${productView === 'list' ? 'active' : ''} last:rounded-r-lg`}
+          className={`cursor-pointer border border-gray-300 bg-white px-3 py-2 text-gray-500 transition-all duration-200 select-none last:rounded-r-lg hover:bg-gray-50 ${productView === 'list' ? 'text-wepos-primary bg-wepos-primary/5 border-wepos-primary' : ''}`}
           onClick={onToggle}
           type="button"
           title={__('List View', 'wepos')}

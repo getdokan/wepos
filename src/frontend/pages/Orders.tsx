@@ -5,7 +5,7 @@ import Layout from '../components/Layout';
 const OrdersPage: React.FC = () => {
   return (
     <Layout>
-      <div className="wepos-content-product">
+      <div className="flex-1 bg-white p-6">
         <div className="flex h-full flex-col">
           <div className="mb-6">
             <h1 className="mb-2 text-2xl font-bold text-gray-800">Orders</h1>

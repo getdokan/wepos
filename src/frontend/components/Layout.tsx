@@ -36,13 +36,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <div id="wepos-main">
+    <div
+      id="wepos-main"
+      className="flex min-h-screen flex-col bg-gray-100 md:flex-row"
+    >
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggleCollapse={toggleSidebar}
       />
 
-      <div className="wepos-main-content">{children}</div>
+      <div className="flex flex-1 flex-col md:flex-row">{children}</div>
     </div>
   );
 };

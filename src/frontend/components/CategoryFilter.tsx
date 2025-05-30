@@ -14,9 +14,9 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   onCategoryChange,
 }) => {
   return (
-    <div className="wepos-category">
+    <div className="w-64 w-full md:w-64">
       <select
-        className="wepos-select"
+        className="focus:ring-wepos-primary/20 focus:border-wepos-primary h-10 w-full cursor-pointer rounded-lg border border-gray-300 bg-white px-4 py-2 transition-colors focus:ring-2"
         value={selectedCategory?.id || ''}
         onChange={(e) => {
           const categoryId = e.target.value;

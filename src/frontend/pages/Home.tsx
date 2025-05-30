@@ -372,8 +372,8 @@ const HomePage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="wepos-content-product">
-        <div className="wepos-top-panel">
+      <div className="flex-1 bg-white p-6">
+        <div className="mb-6 flex flex-col items-center gap-4 space-y-4 md:flex-row md:space-y-0">
           <SearchBar />
 
           <CategoryFilter

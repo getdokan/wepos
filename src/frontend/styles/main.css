@@ -51,21 +51,10 @@
     }
 }
 
-/* Base Layout Styles */
-@layer base {
-    #wepos-main {
-        @apply min-h-screen bg-gray-100 flex;
-    }
-}
-
-/* WePos Component Styles */
+/* Essential Component Styles - Only what can't be done with Tailwind */
 @layer components {
 
-    /* Sidebar Styles */
-    .wepos-sidebar {
-        @apply bg-wepos-dark text-white flex flex-col shadow-wepos-lg transition-all duration-300 ease-in-out;
-    }
-
+    /* Sidebar collapse/expand animations - Complex state-based styling */
     .wepos-sidebar.collapsed {
         @apply w-16;
     }
@@ -74,216 +63,18 @@
         @apply w-64;
     }
 
-    .wepos-sidebar-header {
-        @apply p-4 border-b border-wepos-dark-lighter relative;
-    }
-
-    .wepos-logo {
-        @apply flex items-center gap-3 overflow-hidden;
-    }
-
-    .logo-circle {
-        @apply w-8 h-8 bg-wepos-primary rounded-lg flex items-center justify-center text-white shrink-0;
-    }
-
-    .logo-text {
-        @apply text-lg font-bold text-white transition-opacity duration-300;
-    }
-
-    .wepos-sidebar-toggle {
-        @apply absolute top-4 right-4 p-1 text-gray-300 hover:text-white hover:bg-wepos-dark-lighter rounded transition-colors duration-200;
-    }
-
-    .wepos-sidebar.collapsed .wepos-sidebar-toggle {
-        @apply right-2;
-    }
-
-    .wepos-sidebar-nav {
-        @apply flex-1 py-4;
-    }
-
-    .nav-list {
-        @apply space-y-1 px-2;
-    }
-
-    .nav-item {
-        @apply w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left text-gray-300 transition-all duration-200 hover:bg-wepos-dark-lighter hover:text-white relative;
-    }
-
-    .wepos-sidebar.collapsed .nav-item {
-        @apply justify-center px-3;
-    }
-
-    .nav-item.active {
-        @apply bg-wepos-primary text-white;
-    }
-
-    .nav-icon {
-        @apply flex-shrink-0;
-    }
-
-    .nav-label {
-        @apply text-sm font-medium transition-opacity duration-300 whitespace-nowrap;
-    }
-
     .wepos-sidebar.collapsed .nav-label {
         @apply opacity-0;
     }
 
-    /* Tooltip for collapsed sidebar */
+    /* Tooltip for collapsed sidebar - Complex pseudo-element that can't be done with Tailwind */
     .wepos-sidebar.collapsed .nav-item:hover::after {
         content: attr(title);
         @apply absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap z-10;
         animation: var(--animate-slide-in);
     }
 
-    .wepos-sidebar-footer {
-        @apply p-2 border-t border-wepos-dark-lighter;
-    }
-
-    .logout-btn {
-        @apply text-red-300 hover:text-red-200 hover:bg-red-900/20;
-    }
-
-    /* Main Layout */
-    .wepos-main-content {
-        @apply flex-1 flex;
-    }
-
-    .wepos-content-product {
-        @apply flex-1 p-6 bg-white;
-    }
-
-    .wepos-content-cart {
-        @apply w-96 bg-white shadow-wepos flex flex-col;
-    }
-
-    /* Top Panel */
-    .wepos-top-panel {
-        @apply mb-6 flex gap-4 items-center;
-    }
-
-    .wepos-search-bar {
-        @apply flex-1 relative;
-    }
-
-    .wepos-category {
-        @apply w-64;
-    }
-
-    .wepos-toggle-view {
-        @apply shrink-0;
-    }
-
-    /* Form Controls */
-    .wepos-input {
-        @apply w-full h-10 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-wepos-primary/20 focus:border-wepos-primary transition-colors bg-white;
-    }
-
-    .wepos-select {
-        @apply w-full h-10 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-wepos-primary/20 focus:border-wepos-primary transition-colors bg-white cursor-pointer;
-    }
-
-    /* Toggle View Controls */
-    .wepos-toggle-icon {
-        @apply px-3 py-2 bg-white border border-gray-300 text-gray-500 cursor-pointer transition-all duration-200 hover:bg-gray-50 select-none;
-    }
-
-    .wepos-toggle-icon.active {
-        @apply text-wepos-primary bg-wepos-primary/5 border-wepos-primary;
-    }
-
-    /* Product Grid/List Views */
-    .wepos-items-grid {
-        @apply grid grid-cols-4 gap-6 overflow-auto h-[calc(100vh-200px)] p-1;
-    }
-
-    .wepos-item-grid {
-        @apply bg-white border border-gray-200 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-wepos-primary/30 hover:-translate-y-1 flex flex-col items-center text-center relative;
-    }
-
-    .wepos-item-grid:hover .wepos-add-icon {
-        @apply opacity-100;
-    }
-
-    .wepos-add-icon {
-        @apply absolute top-2 right-2 w-6 h-6 bg-wepos-primary text-white rounded-full flex items-center justify-center text-sm font-bold opacity-0 transition-opacity duration-200;
-    }
-
-    .wepos-items-list {
-        @apply space-y-3 overflow-auto h-[calc(100vh-200px)] p-1;
-    }
-
-    .wepos-item-list {
-        @apply bg-white border border-gray-200 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-wepos-primary/30;
-    }
-
-    .wepos-item-disabled {
-        @apply opacity-50 cursor-not-allowed hover:shadow-none hover:border-gray-200 hover:translate-y-0;
-    }
-
-    .wepos-item-image {
-        @apply w-full h-auto object-cover;
-    }
-
-    /* Cart Panel - Three-section layout */
-    .wepos-cart-panel {
-        @apply h-full flex flex-col;
-    }
-
-    /* Cart Header */
-    .wepos-cart-header {
-        @apply p-4 border-b border-gray-200 bg-gray-50;
-    }
-
-    /* Cart Content - Scrollable area */
-    .wepos-cart-content {
-        @apply flex-1 overflow-auto;
-    }
-
-    .wepos-cart-table {
-        @apply w-full border-collapse;
-    }
-
-    .wepos-cart-th {
-        @apply border-b border-gray-200 p-3 text-left bg-gray-50 font-semibold text-gray-700 text-sm sticky top-0;
-    }
-
-    .wepos-cart-td {
-        @apply border-b border-gray-100 p-3 text-sm;
-    }
-
-    .wepos-no-item {
-        @apply text-center py-16 px-5 text-gray-400;
-    }
-
-    /* Cart Footer - Fixed bottom section */
-    .wepos-cart-footer {
-        @apply border-t border-gray-200 bg-white;
-    }
-
-    .wepos-cart-calculation {
-        @apply bg-gray-50/50;
-    }
-
-    .wepos-calculation-table {
-        @apply w-full border-collapse;
-    }
-
-    .wepos-calculation-td {
-        @apply p-4 border-b border-gray-100 last:border-b-0;
-    }
-
-    .wepos-pay-now {
-        @apply bg-wepos-primary text-white cursor-pointer font-bold hover:bg-wepos-primary-hover transition-colors duration-200 py-4 px-6 text-center text-lg;
-    }
-
-    /* Customer Search */
-    .wepos-customer-search {
-        @apply flex-1 relative;
-    }
-
-    /* Modal Components - WordPress Modal Overrides */
+    /* WordPress Modal Overrides - Targeting external component classes */
     .wepos-help-modal .components-modal__frame,
     .wepos-payment-modal .components-modal__frame,
     .wepos-receipt-modal .components-modal__frame {
@@ -302,220 +93,12 @@
         @apply max-w-2xl w-full;
     }
 
-    .wepos-help-wrapper {
-        @apply p-6;
-    }
-
+    /* Specific code styling for help modal */
     .wepos-help-wrapper .code {
         @apply bg-gray-100 px-3 py-1 rounded-md text-sm font-mono text-gray-800 border border-gray-200 min-w-24 text-center;
     }
 
-    /* Checkout Modal */
-    .wepos-checkout-wrapper {
-        @apply p-6;
-    }
-
-    .wepos-checkout-content {
-        @apply grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6;
-    }
-
-    .wepos-checkout-left {
-        @apply space-y-4;
-    }
-
-    .wepos-checkout-right {
-        @apply space-y-4;
-    }
-
-    .wepos-payment-gateway {
-        @apply flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer transition-all duration-200 hover:border-wepos-primary/50 hover:bg-wepos-primary/5 has-[:checked]:border-wepos-primary has-[:checked]:bg-wepos-primary/10;
-    }
-
-    .wepos-payment-gateway input {
-        @apply mr-3 accent-wepos-primary;
-    }
-
-    .wepos-checkout-footer {
-        @apply flex justify-between items-center pt-4 border-t border-gray-200 gap-4;
-    }
-
-    /* Buttons */
-    .wepos-button {
-        @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 border border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2;
-    }
-
-    .wepos-btn-back {
-        @apply bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-500/20 border-gray-200;
-    }
-
-    .wepos-btn-secondary {
-        @apply bg-white text-wepos-primary border-wepos-primary hover:bg-wepos-primary/5 focus:ring-wepos-primary/20;
-    }
-
-    .wepos-btn-process {
-        @apply bg-wepos-primary text-white hover:bg-wepos-primary-hover focus:ring-wepos-primary/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-wepos-primary;
-    }
-
-    /* Dropdown Menu */
-    .wepos-dropdown-menu {
-        @apply absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-20 min-w-40 overflow-hidden;
-    }
-
-    .wepos-dropdown-menu ul {
-        @apply list-none;
-    }
-
-    .wepos-dropdown-menu li a {
-        @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer;
-    }
-
-    /* Quantity Controls */
-    .wepos-update-quantity-wrap input[type="number"] {
-        @apply w-16 px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-wepos-primary/20 focus:border-wepos-primary;
-    }
-
-    .wepos-qty-action {
-        @apply flex gap-1;
-    }
-
-    .wepos-qty-action a {
-        @apply w-8 h-8 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded text-center leading-8 text-gray-600 transition-colors cursor-pointer select-none;
-    }
-
-    .wepos-qty-action a.add {
-        @apply bg-wepos-primary text-white hover:bg-wepos-primary-hover border-wepos-primary;
-    }
-
-    /* Loading States */
-    .wepos-product-loading {
-        @apply flex justify-center items-center h-64;
-    }
-
-    .wepos-no-product-found {
-        @apply text-center py-20 text-gray-500;
-    }
-
-    /* Receipt Styles */
-    .wepos-receipt-wrapper {
-        @apply bg-white;
-    }
-
-    .wepos-receipt-header {
-        @apply border-b border-gray-200 pb-4 mb-4;
-    }
-
-    .wepos-receipt-header h2 {
-        @apply text-lg font-bold text-gray-800 relative pl-6;
-    }
-
-    .wepos-receipt-header h2::before {
-        @apply absolute left-0 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-wepos-primary rounded-full content-[''];
-    }
-
-    .wepos-receipt-close {
-        @apply absolute top-4 right-4 text-gray-400 hover:text-gray-600 cursor-pointer;
-    }
-
-    .wepos-receipt-content {
-        @apply space-y-4;
-    }
-
-    .wepos-receipt-info p {
-        @apply text-sm text-gray-600 mb-2;
-    }
-
-    .wepos-receipt-items h3 {
-        @apply font-semibold text-gray-800 mb-3;
-    }
-
-    .wepos-receipt-table {
-        @apply w-full border-collapse text-sm;
-    }
-
-    .wepos-receipt-th,
-    .wepos-receipt-td {
-        @apply border-b border-gray-200 p-2 text-left;
-    }
-
-    .wepos-receipt-th {
-        @apply bg-gray-50 font-semibold;
-    }
-
-    .wepos-receipt-totals .total-line {
-        @apply flex justify-between py-1 text-sm;
-    }
-
-    .wepos-receipt-totals .final-total {
-        @apply flex justify-between py-2 text-lg font-bold border-t border-gray-300 mt-2;
-    }
-
-    .wepos-receipt-footer {
-        @apply flex gap-3 pt-4 border-t border-gray-200;
-    }
-
-    .wepos-btn-print {
-        @apply bg-wepos-secondary text-white hover:bg-wepos-secondary/90;
-    }
-
-    .wepos-btn-new-sale {
-        @apply bg-wepos-primary text-white hover:bg-wepos-primary-hover;
-    }
-
-    /* Utility Classes */
-    .wepos-clearfix:after {
-        @apply content-[''] table clear-both;
-    }
-
-    /* Show print-only elements */
-    .print-only {
-        display: block !important;
-        visibility: visible !important;
-    }
-
-    /* Hide screen-only elements */
-    .screen-only {
-        display: none !important;
-    }
-
-    /* Ensure all receipt elements are visible */
-    .wepos-receipt-wrapper,
-    .wepos-receipt-wrapper *,
-    .wepos-receipt-content,
-    .wepos-receipt-content *,
-    .wepos-receipt-info,
-    .wepos-receipt-items,
-    .wepos-receipt-table,
-    .wepos-receipt-totals {
-        visibility: visible !important;
-        /* display: block !important; */
-    }
-
-    /* Ensure table elements display correctly */
-    .wepos-receipt-table {
-        display: table !important;
-    }
-
-    .wepos-receipt-table thead,
-    .wepos-receipt-table tbody {
-        display: table-row-group !important;
-    }
-
-    .wepos-receipt-table tr {
-        display: table-row !important;
-    }
-
-    .wepos-receipt-table th,
-    .wepos-receipt-table td {
-        display: table-cell !important;
-    }
-
-    /* Ensure flex elements work */
-    .total-line,
-    .final-total {
-        display: flex !important;
-    }
-
-    /* Remove all shadows, borders, and colors for clean print */
+    /* Color-adjust for printing - Property not available in Tailwind */
     * {
         -webkit-print-color-adjust: exact !important;
         color-adjust: exact !important;
@@ -523,30 +106,15 @@
     }
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-    .wepos-sidebar.expanded {
-        @apply w-64;
-    }
-
-    .wepos-sidebar.collapsed {
-        @apply w-16;
-    }
-
-    .wepos-content-cart {
-        @apply w-80;
-    }
-
-    .wepos-items-grid {
-        @apply grid-cols-3;
-    }
-}
-
+/* Responsive Design - Complex responsive overrides */
 @media (max-width: 768px) {
+
+    /* Mobile layout - Force flex-col for main container */
     #wepos-main {
         @apply flex-col;
     }
 
+    /* Sidebar mobile layout - Complex structural changes */
     .wepos-sidebar {
         @apply w-full h-auto flex-row;
     }
@@ -556,15 +124,7 @@
         @apply w-full;
     }
 
-    .wepos-sidebar-header {
-        @apply flex-shrink-0;
-    }
-
-    .wepos-sidebar-nav {
-        @apply flex-1;
-    }
-
-    .nav-list {
+    .wepos-sidebar .nav-list {
         @apply flex overflow-x-auto space-y-0 space-x-2;
     }
 
@@ -573,41 +133,13 @@
         @apply justify-center;
     }
 
-    .wepos-content-product {
-        @apply flex-none;
-    }
-
-    .wepos-content-cart {
-        @apply w-full;
-    }
-
-    .wepos-items-grid {
-        @apply grid-cols-2;
-    }
-
-    .wepos-checkout-content {
-        @apply grid-cols-1;
-    }
-
-    .wepos-checkout-left {
-        @apply order-2;
-    }
-
-    /* Hide tooltips on mobile */
+    /* Hide tooltips on mobile - State-based hiding */
     .wepos-sidebar.collapsed .nav-item:hover::after {
         @apply hidden;
     }
 }
 
-@media (max-width: 480px) {
-    /* Empty - all styles moved to Tailwind classes */
-}
-
-@media (max-width: 360px) {
-    /* Empty - all styles moved to Tailwind classes */
-}
-
-/* Print Styles for Thermal Receipt Printers */
+/* Print Styles for Thermal Receipt Printers - Complex print-specific styling */
 @media print {
 
     /* Hide everything except the receipt modal */
@@ -777,5 +309,42 @@
         size: 80mm auto;
         margin: 0;
         padding: 0;
+    }
+
+    /* Ensure all receipt elements are visible */
+    .wepos-receipt-wrapper,
+    .wepos-receipt-wrapper *,
+    .wepos-receipt-content,
+    .wepos-receipt-content *,
+    .wepos-receipt-info,
+    .wepos-receipt-items,
+    .wepos-receipt-table,
+    .wepos-receipt-totals {
+        visibility: visible !important;
+    }
+
+    /* Ensure table elements display correctly */
+    .wepos-receipt-table {
+        display: table !important;
+    }
+
+    .wepos-receipt-table thead,
+    .wepos-receipt-table tbody {
+        display: table-row-group !important;
+    }
+
+    .wepos-receipt-table tr {
+        display: table-row !important;
+    }
+
+    .wepos-receipt-table th,
+    .wepos-receipt-table td {
+        display: table-cell !important;
+    }
+
+    /* Ensure flex elements work */
+    .total-line,
+    .final-total {
+        display: flex !important;
     }
 }
