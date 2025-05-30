@@ -14,6 +14,9 @@
     --color-wepos-dark: #192128;
     --color-wepos-dark-lighter: #1f2a35;
 
+    /* Custom Breakpoints */
+    --breakpoint-xs: 360px;
+
     /* Custom Shadows */
     --shadow-wepos: 0 2px 10px oklch(0 0 0 / 0.1);
     --shadow-wepos-lg: 0 4px 20px oklch(0 0 0 / 0.15);
@@ -594,6 +597,14 @@
     .wepos-sidebar.collapsed .nav-item:hover::after {
         @apply hidden;
     }
+}
+
+@media (max-width: 480px) {
+    /* Empty - all styles moved to Tailwind classes */
+}
+
+@media (max-width: 360px) {
+    /* Empty - all styles moved to Tailwind classes */
 }
 
 /* Print Styles for Thermal Receipt Printers */
