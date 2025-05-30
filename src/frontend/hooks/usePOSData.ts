@@ -1,14 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSelect, useDispatch } from '@wordpress/data';
 import { posAPI } from '../api';
-import {
-  POSProduct,
-  POSGateway,
-  POSSettings,
-  POSCategory,
-  POSCartData,
-  POSOrderData,
-} from '../types';
+import { POSCartData, POSOrderData } from '../types';
 import { getFromLocalStorage, setToLocalStorage } from '../utils/helpers';
+import { PRODUCTS_STORE_NAME } from '../store/products';
 
 // Helper function to sanitize cart data
 const sanitizeCartData = (storedCartData: POSCartData): POSCartData => {
@@ -37,14 +32,32 @@ export const usePOSData = () => {
   const initializeRef = useRef(false);
   const isInitializing = useRef(false);
 
-  // ===== API DATA STATE =====
-  const [products, setProducts] = useState<POSProduct[]>([]);
-  const [availableGateways, setAvailableGateways] = useState<POSGateway[]>([]);
-  const [settings, setSettings] = useState<POSSettings>({} as POSSettings);
-  const [categories, setCategories] = useState<POSCategory[]>([]);
-  const [productLoading, setProductLoading] = useState(false);
+  // Get data from products store
+  const { products, availableGateways, settings, categories, productLoading } =
+    useSelect((select) => {
+      const store = select(PRODUCTS_STORE_NAME) as any;
+      return {
+        products: store.getProducts(),
+        availableGateways: store.getGateways(),
+        settings: store.getSettings(),
+        categories: store.getCategories(),
+        productLoading: store.getProductsLoading(),
+      };
+    }, []);
 
-  // ===== STORED DATA STATE =====
+  // Dispatch actions for products store
+  const {
+    setProducts,
+    setGateways,
+    setSettings,
+    setCategories,
+    setProductsLoading,
+    setGatewaysLoading,
+    setSettingsLoading,
+    setCategoriesLoading,
+  } = useDispatch(PRODUCTS_STORE_NAME) as any;
+
+  // ===== STORED DATA STATE (for local storage data not in stores) =====
   const [cartData, setCartData] = useState<POSCartData>(() => {
     const defaultCartData: POSCartData = {
       line_items: [],
@@ -69,43 +82,48 @@ export const usePOSData = () => {
   // ===== API FUNCTIONS =====
   const fetchProducts = useCallback(async () => {
     if (productLoading) return;
-    setProductLoading(true);
+    setProductsLoading(true);
     try {
       const products = await posAPI.products.getAllPOSProducts();
       setProducts(products);
     } catch (error) {
       console.error('Error fetching products:', error);
-    } finally {
-      setProductLoading(false);
+      setProductsLoading(false);
     }
-  }, [productLoading]);
+  }, [productLoading, setProductsLoading, setProducts]);
 
   const fetchGateways = useCallback(async () => {
+    setGatewaysLoading(true);
     try {
       const gateways = await posAPI.payment.getPaymentGateways();
-      setAvailableGateways(gateways);
+      setGateways(gateways);
     } catch (error) {
       console.error('Error fetching gateways:', error);
+      setGatewaysLoading(false);
     }
-  }, []);
+  }, [setGatewaysLoading, setGateways]);
 
   const fetchSettings = useCallback(async () => {
+    setSettingsLoading(true);
     try {
       const settings = await posAPI.settings.getSettings();
       setSettings(settings);
     } catch (error) {
       console.error('Error fetching settings:', error);
+      setSettingsLoading(false);
     }
-  }, []);
+  }, [setSettingsLoading, setSettings]);
 
   const fetchCategories = useCallback(async () => {
+    setCategoriesLoading(true);
     try {
       const categories = await posAPI.products.getCategories();
       setCategories(categories);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setCategoriesLoading(false);
     }
-  }, []);
+  }, [setCategoriesLoading, setCategories]);
 
   // ===== INITIALIZATION =====
   const initializeData = useCallback(async () => {
@@ -144,19 +162,18 @@ export const usePOSData = () => {
   }, [orderData]);
 
   return {
-    // API Data
+    // API Data (from stores)
     products,
     availableGateways,
     settings,
     categories,
     productLoading,
 
-    // Stored Data
+    // Stored Data (local storage)
     cartData,
     orderData,
 
-    // Setters
-    setProducts,
+    // Setters for local storage data
     setCartData,
     setOrderData,
 

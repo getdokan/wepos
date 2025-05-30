@@ -1,5 +1,6 @@
 import React from 'react';
 import { __ } from '@wordpress/i18n';
+import { useSelect, useDispatch } from '@wordpress/data';
 import {
   Plus,
   MoreVertical,
@@ -7,63 +8,127 @@ import {
   X,
   ShoppingCart,
 } from 'lucide-react';
-import {
-  POSCartData,
-  POSOrderData,
-  POSSettings,
-  POSCartItem,
-  Customer,
-} from '../types';
+import { POSCartItem, Customer } from '../types';
 import CustomerSearch from './CustomerSearch';
+import FeeKeypad from './FeeKeypad';
+import CustomerNote from './CustomerNote';
+import { formatPrice } from '../utils/helpers';
+import { CART_STORE_NAME } from '../store/cart';
+import { PRODUCTS_STORE_NAME } from '../store/products';
 
 interface CartProps {
-  cartData: POSCartData;
-  orderData: POSOrderData;
-  settings: POSSettings;
   showQuickMenu: boolean;
   selectedCustomer?: Customer | null;
   onCustomerSelected: (customer: Customer | null) => void;
   onShowQuickMenuToggle: (show: boolean) => void;
-  onUpdateCartItem: (index: number, updatedItem: Partial<POSCartItem>) => void;
-  onRemoveItem: (index: number) => void;
   onEmptyCart: () => void;
   onShowHelp: () => void;
   onInitPayment: () => void;
-  formatPrice: (amount: number | string | undefined | null) => string;
-  getSubtotal: () => number;
-  getTotalTax: () => number;
-  getTotal: () => number;
 }
 
 const Cart: React.FC<CartProps> = ({
-  cartData,
-  orderData,
-  settings,
   showQuickMenu,
   selectedCustomer,
   onCustomerSelected,
   onShowQuickMenuToggle,
-  onUpdateCartItem,
-  onRemoveItem,
   onEmptyCart,
   onShowHelp,
   onInitPayment,
-  formatPrice,
-  getSubtotal,
-  getTotalTax,
-  getTotal,
 }) => {
+  // Use WordPress data hooks for cart data
+  const {
+    cartItems,
+    discountLines,
+    feeLines,
+    customerNote,
+    subtotal,
+    totalDiscount,
+    totalFee,
+    totalTax,
+    total,
+  } = useSelect((select) => {
+    const store = select(CART_STORE_NAME) as any;
+    return {
+      cartItems: store.getCartItems(),
+      discountLines: store.getDiscountLines(),
+      feeLines: store.getFeeLines(),
+      customerNote: store.getCustomerNote(),
+      subtotal: store.getSubtotal(),
+      totalDiscount: store.getTotalDiscount(),
+      totalFee: store.getTotalFee(),
+      totalTax: store.getTotalTax(),
+      total: store.getTotal(),
+    };
+  }, []);
+
+  // Get settings from products store
+  const { settings } = useSelect((select) => {
+    const store = select(PRODUCTS_STORE_NAME) as any;
+    return {
+      settings: store.getSettings(),
+    };
+  }, []);
+
+  const {
+    updateCartItem,
+    removeFromCart,
+    clearCart,
+    addDiscount,
+    addFee,
+    removeDiscount,
+    removeFee,
+    addCustomerNote,
+    removeCustomerNote,
+  } = useDispatch(CART_STORE_NAME) as any;
+
   const toggleEditQuantity = (item: POSCartItem, index: number) => {
-    onUpdateCartItem(index, { editQuantity: !item.editQuantity });
+    updateCartItem(index, { editQuantity: !item.editQuantity });
   };
 
   const addQuantity = (item: POSCartItem, index: number) => {
-    onUpdateCartItem(index, { quantity: item.quantity + 1 });
+    updateCartItem(index, { quantity: item.quantity + 1 });
   };
 
   const removeQuantity = (item: POSCartItem, index: number) => {
     if (item.quantity > 1) {
-      onUpdateCartItem(index, { quantity: item.quantity - 1 });
+      updateCartItem(index, { quantity: item.quantity - 1 });
+    }
+  };
+
+  const handleRemoveItem = (index: number) => {
+    removeFromCart(index);
+  };
+
+  const handleEmptyCart = () => {
+    clearCart();
+    onEmptyCart();
+  };
+
+  const handleDiscountInput = (value: number, type: 'percent' | 'fixed') => {
+    addDiscount(value, type === 'percent' ? 'percent' : 'fixed_cart');
+  };
+
+  const handleFeeInput = (value: number, type: 'percent' | 'fixed') => {
+    addFee(value, type);
+  };
+
+  const handleAddNote = (note: string) => {
+    addCustomerNote(note);
+  };
+
+  const getDiscountAmount = (discount: any) => {
+    if (discount.discount_type === 'percent') {
+      return (subtotal * discount.value) / 100;
+    } else {
+      return discount.value;
+    }
+  };
+
+  const getFeeAmount = (fee: any) => {
+    if (fee.fee_type === 'percent') {
+      return (subtotal * parseFloat(fee.value)) / 100;
+    } else {
+      return parseFloat(fee.value);
     }
   };
 
@@ -96,7 +161,7 @@ const Cart: React.FC<CartProps> = ({
                       <li>
                         <a
                           href="#"
-                          onClick={onEmptyCart}
+                          onClick={handleEmptyCart}
                           className="block cursor-pointer px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
                         >
                           {__('Empty Cart', 'wepos')}
@@ -167,8 +232,8 @@ const Cart: React.FC<CartProps> = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {cartData.line_items.length > 0 ? (
-                    cartData.line_items.map((item, index) => (
+                  {cartItems.length > 0 ? (
+                    cartItems.map((item: POSCartItem, index: number) => (
                       <React.Fragment key={item.id}>
                         <tr className="transition-colors hover:bg-gray-50">
                           <td
@@ -182,23 +247,25 @@ const Cart: React.FC<CartProps> = ({
                               item.attribute.length > 0 &&
                               item.type === 'variable' && (
                                 <div className="mt-1 text-xs text-gray-600">
-                                  {item.attribute.map((attr, attrIndex) => (
-                                    <span
-                                      key={attrIndex}
-                                      className="mr-2 inline-block"
-                                    >
-                                      <span className="font-medium text-gray-500">
-                                        {attr.name}:
+                                  {item.attribute.map(
+                                    (attr: any, attrIndex: number) => (
+                                      <span
+                                        key={attrIndex}
+                                        className="mr-2 inline-block"
+                                      >
+                                        <span className="font-medium text-gray-500">
+                                          {attr.name}:
+                                        </span>
+                                        <span className="ml-1">
+                                          {attr.option}
+                                        </span>
+                                        {attrIndex <
+                                          item.attribute.length - 1 && (
+                                          <span className="mx-1">•</span>
+                                        )}
                                       </span>
-                                      <span className="ml-1">
-                                        {attr.option}
-                                      </span>
-                                      {attrIndex <
-                                        item.attribute.length - 1 && (
-                                        <span className="mx-1">•</span>
-                                      )}
-                                    </span>
-                                  ))}
+                                    ),
+                                  )}
                                 </div>
                               )}
                           </td>
@@ -246,7 +313,7 @@ const Cart: React.FC<CartProps> = ({
                           <td className="border-b border-gray-100 p-3 text-sm">
                             <button
                               className="p-1 text-red-500 transition-colors hover:text-red-700"
-                              onClick={() => onRemoveItem(index)}
+                              onClick={() => handleRemoveItem(index)}
                               type="button"
                               title={__('Remove item', 'wepos')}
                             >
@@ -271,7 +338,7 @@ const Cart: React.FC<CartProps> = ({
                                     step="1"
                                     value={item.quantity}
                                     onChange={(e) => {
-                                      onUpdateCartItem(index, {
+                                      updateCartItem(index, {
                                         quantity: parseInt(e.target.value) || 1,
                                       });
                                     }}
@@ -336,7 +403,7 @@ const Cart: React.FC<CartProps> = ({
                       <div className="font-medium text-gray-700">
                         {__('Subtotal', 'wepos')}
                         {settings.woo_tax?.wc_tax_display_cart === 'incl' &&
-                          getTotalTax() > 0 && (
+                          totalTax > 0 && (
                             <span className="block text-xs font-normal text-gray-500">
                               {__('Including Tax', 'wepos')}
                             </span>
@@ -344,11 +411,65 @@ const Cart: React.FC<CartProps> = ({
                       </div>
                     </td>
                     <td className="border-b border-gray-100 p-4 text-right font-bold text-gray-800 last:border-b-0">
-                      {formatPrice(getSubtotal())}
+                      {formatPrice(subtotal)}
                     </td>
                   </tr>
 
-                  {getTotalTax() > 0 && (
+                  {/* Discount Lines */}
+                  {discountLines.map((discount: any, index: number) => (
+                    <tr key={`discount-${index}`}>
+                      <td className="border-b border-gray-100 p-4 font-medium text-gray-700 last:border-b-0">
+                        {__('Discount', 'wepos')}
+                        <span className="ml-2 text-xs text-gray-500">
+                          {discount.discount_type === 'percent'
+                            ? `${discount.value}%`
+                            : formatPrice(discount.value)}
+                        </span>
+                      </td>
+                      <td className="border-b border-gray-100 p-4 text-right font-bold text-green-600 last:border-b-0">
+                        −{formatPrice(getDiscountAmount(discount))}
+                      </td>
+                      <td className="border-b border-gray-100 p-2 last:border-b-0">
+                        <button
+                          className="p-1 text-red-500 transition-colors hover:text-red-700"
+                          onClick={() => removeDiscount(index)}
+                          type="button"
+                          title={__('Remove discount', 'wepos')}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {/* Fee Lines */}
+                  {feeLines.map((fee: any, index: number) => (
+                    <tr key={`fee-${index}`}>
+                      <td className="border-b border-gray-100 p-4 font-medium text-gray-700 last:border-b-0">
+                        {__('Fee', 'wepos')}
+                        <span className="ml-2 text-xs text-gray-500">
+                          {fee.fee_type === 'percent'
+                            ? `${fee.value}%`
+                            : formatPrice(fee.value)}
+                        </span>
+                      </td>
+                      <td className="border-b border-gray-100 p-4 text-right font-bold text-gray-800 last:border-b-0">
+                        {formatPrice(getFeeAmount(fee))}
+                      </td>
+                      <td className="border-b border-gray-100 p-2 last:border-b-0">
+                        <button
+                          className="p-1 text-red-500 transition-colors hover:text-red-700"
+                          onClick={() => removeFee(index)}
+                          type="button"
+                          title={__('Remove fee', 'wepos')}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {totalTax > 0 && (
                     <tr>
                       <td className="border-b border-gray-100 p-4 font-medium text-gray-700 last:border-b-0">
                         {settings.woo_tax?.wc_tax_display_cart === 'incl'
@@ -356,7 +477,57 @@ const Cart: React.FC<CartProps> = ({
                           : __('Tax', 'wepos')}
                       </td>
                       <td className="border-b border-gray-100 p-4 text-right font-bold text-gray-800 last:border-b-0">
-                        {formatPrice(getTotalTax())}
+                        {formatPrice(totalTax)}
+                      </td>
+                      <td className="border-b border-gray-100 p-2 last:border-b-0"></td>
+                    </tr>
+                  )}
+
+                  {/* Action Buttons Row */}
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="border-b border-gray-100 p-4 last:border-b-0"
+                    >
+                      <div className="flex flex-wrap gap-2">
+                        <FeeKeypad
+                          name={__('Discount', 'wepos')}
+                          onInputFee={handleDiscountInput}
+                          isDiscount={true}
+                        />
+                        <FeeKeypad
+                          name={__('Fee', 'wepos')}
+                          onInputFee={handleFeeInput}
+                          isDiscount={false}
+                        />
+                        {!customerNote && (
+                          <CustomerNote onAddNote={handleAddNote} />
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+
+                  {/* Customer Note Row */}
+                  {customerNote && (
+                    <tr>
+                      <td
+                        colSpan={2}
+                        className="border-b border-gray-100 p-4 text-sm text-gray-600 last:border-b-0"
+                      >
+                        <span className="font-medium">
+                          {__('Note:', 'wepos')}{' '}
+                        </span>
+                        {customerNote}
+                      </td>
+                      <td className="border-b border-gray-100 p-2 last:border-b-0">
+                        <button
+                          className="p-1 text-red-500 transition-colors hover:text-red-700"
+                          onClick={removeCustomerNote}
+                          type="button"
+                          title={__('Remove note', 'wepos')}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
                   )}
@@ -368,8 +539,9 @@ const Cart: React.FC<CartProps> = ({
                       </div>
                     </td>
                     <td className="text-wepos-primary border-b border-gray-100 p-4 text-right text-xl font-bold last:border-b-0">
-                      {formatPrice(getTotal())}
+                      {formatPrice(total)}
                     </td>
+                    <td className="border-b border-gray-100 last:border-b-0"></td>
                   </tr>
                 </tbody>
               </table>
@@ -379,7 +551,7 @@ const Cart: React.FC<CartProps> = ({
               className="bg-wepos-primary hover:bg-wepos-primary-hover cursor-pointer px-6 py-4 text-center text-lg font-bold text-white transition-colors duration-200"
               onClick={onInitPayment}
             >
-              {__('Checkout', 'wepos')} • {formatPrice(getTotal())}
+              {__('Checkout', 'wepos')} • {formatPrice(total)}
             </div>
           </div>
         </div>

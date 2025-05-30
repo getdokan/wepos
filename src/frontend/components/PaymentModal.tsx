@@ -1,12 +1,14 @@
 import React, { useEffect } from 'react';
 import { Modal } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { POSCartData, POSGateway, POSCartItem } from '../types';
+import { useSelect } from '@wordpress/data';
+import { POSGateway } from '../types';
+import { formatPrice } from '../utils/helpers';
+import { CART_STORE_NAME } from '../store/cart';
+import { PRODUCTS_STORE_NAME } from '../store/products';
 
 interface PaymentModalProps {
   show: boolean;
-  cartData: POSCartData;
-  availableGateways: POSGateway[];
   selectedGateway: string;
   cashAmount: string;
   ableToProcess: boolean;
@@ -14,16 +16,12 @@ interface PaymentModalProps {
   onCashAmountChange: (amount: string) => void;
   onBackToSale: () => void;
   onProcessPayment: () => void;
-  formatPrice: (amount: number | string | undefined | null) => string;
-  getTotal: () => number;
   changeAmount: number;
   cashAmountRef: React.RefObject<HTMLInputElement>;
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({
   show,
-  cartData,
-  availableGateways,
   selectedGateway,
   cashAmount,
   ableToProcess,
@@ -31,11 +29,25 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   onCashAmountChange,
   onBackToSale,
   onProcessPayment,
-  formatPrice,
-  getTotal,
   changeAmount,
   cashAmountRef,
 }) => {
+  // Get cart data from cart store
+  const { total } = useSelect((select) => {
+    const store = select(CART_STORE_NAME) as any;
+    return {
+      total: store.getTotal(),
+    };
+  }, []);
+
+  // Get gateways from products store
+  const { availableGateways } = useSelect((select) => {
+    const store = select(PRODUCTS_STORE_NAME) as any;
+    return {
+      availableGateways: store.getGateways(),
+    };
+  }, []);
+
   useEffect(() => {
     if (show && selectedGateway === 'wepos_cash' && cashAmountRef.current) {
       setTimeout(() => {
@@ -64,7 +76,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               </h3>
 
               <div className="space-y-3">
-                {availableGateways.map((gateway) => (
+                {availableGateways.map((gateway: POSGateway) => (
                   <label
                     key={gateway.id}
                     className="hover:border-wepos-primary/50 hover:bg-wepos-primary/5 has-[:checked]:border-wepos-primary has-[:checked]:bg-wepos-primary/10 flex cursor-pointer items-center rounded-lg border border-gray-200 p-4 transition-all duration-200"
@@ -104,7 +116,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                       value={cashAmount}
                       onChange={(e) => onCashAmountChange(e.target.value)}
                       className="focus:ring-wepos-primary/20 focus:border-wepos-primary h-10 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-xl font-bold transition-colors focus:ring-2"
-                      placeholder={formatPrice(getTotal())}
+                      placeholder={formatPrice(total)}
                     />
                   </div>
 
@@ -114,7 +126,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       {(() => {
-                        const total = getTotal();
                         const quickAmounts: number[] = [];
 
                         // Add exact amount
@@ -180,7 +191,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     {__('Subtotal:', 'wepos')}
                   </span>
                   <span className="font-medium text-gray-800">
-                    {formatPrice(getTotal())}
+                    {formatPrice(total)}
                   </span>
                 </div>
               </div>
@@ -189,7 +200,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 <div className="flex items-center justify-between text-xl font-bold text-gray-800">
                   <span>{__('Total:', 'wepos')}</span>
                   <span className="text-wepos-primary">
-                    {formatPrice(getTotal())}
+                    {formatPrice(total)}
                   </span>
                 </div>
               </div>
@@ -211,7 +222,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             disabled={!ableToProcess}
             type="button"
           >
-            {__('Process Payment', 'wepos')} • {formatPrice(getTotal())}
+            {__('Process Payment', 'wepos')} • {formatPrice(total)}
           </button>
         </div>
       </div>

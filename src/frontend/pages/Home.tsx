@@ -5,8 +5,17 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
+import { useSelect, useDispatch } from '@wordpress/data';
 import { posAPI } from '../api';
-import { POSPrintData, POSCategory, ProductViewType, Customer } from '../types';
+import {
+  POSPrintData,
+  POSCategory,
+  ProductViewType,
+  Customer,
+  POSCartItem,
+  POSProduct,
+  POSGateway,
+} from '../types';
 import {
   formatPrice,
   hasStock,
@@ -15,7 +24,8 @@ import {
   parseCurrencyAmount,
 } from '../utils/helpers';
 import { usePOSData } from '../hooks/usePOSData';
-import { useCart } from '../hooks/useCart';
+import { CART_STORE_NAME } from '../store/cart';
+import { PRODUCTS_STORE_NAME } from '../store/products';
 
 // Import components
 import Layout from '../components/Layout';
@@ -29,30 +39,32 @@ import CategoryFilter from '../components/CategoryFilter';
 import ProductViewToggle from '../components/ProductViewToggle';
 
 const HomePage: React.FC = () => {
-  // Simplified hook usage - same interface, cleaner implementation
-  const {
-    products,
-    availableGateways,
-    settings,
-    categories,
-    cartData,
-    orderData,
-    productLoading,
-    setCartData,
-    setOrderData,
-    initializeData,
-  } = usePOSData();
+  // Initialize data using the hook
+  const { initializeData } = usePOSData();
 
-  const {
-    getSubtotal,
-    getTotalTax,
-    getTotal,
-    addToCart,
-    addToCartItem,
-    updateCartItem,
-    removeItem,
-    emptyCart,
-  } = useCart({ cartData, setCartData, settings });
+  // Get data from stores
+  const { products, categories, availableGateways, productLoading } = useSelect(
+    (select) => {
+      const productsStore = select(PRODUCTS_STORE_NAME) as any;
+      return {
+        products: productsStore.getProducts(),
+        categories: productsStore.getCategories(),
+        availableGateways: productsStore.getGateways(),
+        productLoading: productsStore.getProductsLoading(),
+      };
+    },
+    [],
+  );
+
+  const { cartItems, total } = useSelect((select) => {
+    const cartStore = select(CART_STORE_NAME) as any;
+    return {
+      cartItems: cartStore.getCartItems(),
+      total: cartStore.getTotal(),
+    };
+  }, []);
+
+  const { addToCart, clearCart } = useDispatch(CART_STORE_NAME) as any;
 
   // UI State
   const [showHelp, setShowHelp] = useState(false);
@@ -60,7 +72,6 @@ const HomePage: React.FC = () => {
   const [productView, setProductView] = useState<ProductViewType>('grid');
   const [showModal, setShowModal] = useState(false);
   const [showPaymentReceipt, setShowPaymentReceipt] = useState(false);
-  const [showOverlay, setShowOverlay] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<POSCategory | null>(
     null,
   );
@@ -76,9 +87,59 @@ const HomePage: React.FC = () => {
     null,
   );
 
+  // Order Data State (still needed for payment processing)
+  const [orderData, setOrderData] = useState({
+    customer_id: 0,
+    customer_note: '',
+    payment_method: '',
+    payment_method_title: '',
+    billing: {},
+    shipping: {},
+  });
+
   // Refs
   const itemsWrapperRef = useRef<HTMLDivElement>(null);
   const cashAmountRef = useRef<HTMLInputElement>(null);
+
+  // Cart functions for ProductGrid
+  const handleAddToCart = useCallback(
+    (product: POSProduct) => {
+      if (!hasStock(product)) {
+        alert('Product is out of stock!');
+        return;
+      }
+
+      const cartItem: POSCartItem = {
+        id: Date.now(),
+        product_id: product.id,
+        variation_id: 0,
+        name: product.name,
+        quantity: 1,
+        regular_price:
+          typeof product.regular_price === 'string'
+            ? parseFloat(product.regular_price)
+            : product.regular_price,
+        sale_price:
+          typeof product.sale_price === 'string'
+            ? parseFloat(product.sale_price)
+            : product.sale_price,
+        on_sale: product.on_sale,
+        type: product.type,
+        attribute: [],
+        editQuantity: false,
+      };
+
+      addToCart(cartItem);
+    },
+    [addToCart],
+  );
+
+  const handleAddToCartItem = useCallback(
+    (cartItem: POSCartItem) => {
+      addToCart(cartItem);
+    },
+    [addToCart],
+  );
 
   // Memoized filtered products to prevent recalculation on every render
   const getFilteredProduct = useMemo(() => {
@@ -86,8 +147,10 @@ const HomePage: React.FC = () => {
 
     // Filter by selected category (only if one is selected and it's not "All Categories")
     if (selectedCategory && selectedCategory.id > 0) {
-      filteredProducts = products.filter((product) =>
-        product.categories.some((cat) => cat.id === selectedCategory.id),
+      filteredProducts = products.filter((product: POSProduct) =>
+        product.categories.some(
+          (cat: { id: number; name: string }) => cat.id === selectedCategory.id,
+        ),
       );
     }
 
@@ -96,9 +159,10 @@ const HomePage: React.FC = () => {
     const categoryParam = urlParams.get('category');
 
     if (categoryParam !== null) {
-      filteredProducts = filteredProducts.filter((product) => {
+      filteredProducts = filteredProducts.filter((product: POSProduct) => {
         const foundCat = product.categories.find(
-          (cat) => cat.id === parseInt(categoryParam),
+          (cat: { id: number; name: string }) =>
+            cat.id === parseInt(categoryParam),
         );
         return foundCat !== undefined;
       });
@@ -113,7 +177,7 @@ const HomePage: React.FC = () => {
   }, []);
 
   const createNewSale = useCallback(() => {
-    emptyCart();
+    clearCart();
     setSelectedCustomer(null);
     setOrderData({
       customer_id: 0,
@@ -127,33 +191,30 @@ const HomePage: React.FC = () => {
     setCashAmount('');
     setShowQuickMenu(false);
     window.history.pushState({}, '', window.location.pathname);
-  }, [emptyCart, setOrderData]);
+  }, [clearCart]);
 
   // Customer selection handler
-  const handleCustomerSelected = useCallback(
-    (customer: Customer | null) => {
-      setSelectedCustomer(customer);
-      if (customer) {
-        setOrderData((prev) => ({
-          ...prev,
-          customer_id: customer.id,
-          billing: customer.billing,
-          shipping: customer.shipping,
-        }));
-      } else {
-        setOrderData((prev) => ({
-          ...prev,
-          customer_id: 0,
-          billing: {},
-          shipping: {},
-        }));
-      }
-    },
-    [setOrderData],
-  );
+  const handleCustomerSelected = useCallback((customer: Customer | null) => {
+    setSelectedCustomer(customer);
+    if (customer) {
+      setOrderData((prev) => ({
+        ...prev,
+        customer_id: customer.id,
+        billing: customer.billing,
+        shipping: customer.shipping,
+      }));
+    } else {
+      setOrderData((prev) => ({
+        ...prev,
+        customer_id: 0,
+        billing: {},
+        shipping: {},
+      }));
+    }
+  }, []);
 
   const initPayment = useCallback(() => {
-    if (cartData.line_items.length <= 0) {
+    if (cartItems.length <= 0) {
       return;
     }
     setShowModal(true);
@@ -165,12 +226,30 @@ const HomePage: React.FC = () => {
         payment_method_title: availableGateways[0].title,
       }));
     }
-  }, [cartData.line_items.length, availableGateways, setOrderData]);
+  }, [cartItems.length, availableGateways]);
 
   const backToSale = useCallback(() => {
     setShowModal(false);
     setShowHelp(false);
   }, []);
+
+  // Computed values
+  const changeAmount = useCallback(() => {
+    const unformattedAmount = parseCurrencyAmount(cashAmount);
+    const returnMoney = unformattedAmount - total;
+    return returnMoney > 0 ? returnMoney : 0;
+  }, [cashAmount, total]);
+
+  const ableToProcess = useCallback(() => {
+    let canProcess = cartItems.length > 0 && selectedGateway !== '';
+
+    if (selectedGateway === 'wepos_cash') {
+      const unformattedAmount = parseCurrencyAmount(cashAmount);
+      canProcess = unformattedAmount >= total && canProcess;
+    }
+
+    return canProcess;
+  }, [cartItems.length, selectedGateway, cashAmount, total]);
 
   const processPayment = async () => {
     if (!ableToProcess()) return;
@@ -189,17 +268,18 @@ const HomePage: React.FC = () => {
       const orderPayload = {
         billing: orderData.billing,
         shipping: orderData.shipping,
-        line_items: cartData.line_items.map((item) => ({
+        line_items: cartItems.map((item: POSCartItem) => ({
           product_id: item.product_id,
           quantity: item.quantity,
         })),
-        fee_lines: cartData.fee_lines,
-        coupon_lines: cartData.coupon_lines,
+        fee_lines: [],
+        coupon_lines: [],
         customer_id: orderData.customer_id,
         customer_note: orderData.customer_note,
         payment_method: selectedGateway,
         payment_method_title:
-          availableGateways.find((g) => g.id === selectedGateway)?.title || '',
+          availableGateways.find((g: POSGateway) => g.id === selectedGateway)
+            ?.title || '',
         meta_data: [
           { key: '_wepos_is_pos_order', value: true },
           { key: '_wepos_cash_tendered_amount', value: cashAmount.toString() },
@@ -213,49 +293,21 @@ const HomePage: React.FC = () => {
       // Create order
       const orderResponse = await posAPI.orders.createOrder(orderPayload);
 
-      console.log('WooCommerce order response:', orderResponse);
-      console.log('Order response line items:', orderResponse.line_items);
-
-      // Update cart items with tax data
-      const totalTaxes: Record<number, number> = {};
-      orderResponse.line_items.forEach((item: any) => {
-        totalTaxes[item.product_id] = item.total_tax;
-      });
-
-      const updatedCartItems = cartData.line_items.map((item) => ({
-        ...item,
-        total_tax: totalTaxes[item.product_id] || 0,
-      }));
-      setCartData((prev) => ({ ...prev, line_items: updatedCartItems }));
-
       // Process payment
       const paymentResponse =
         await posAPI.payment.processPayment(orderResponse);
 
       if (paymentResponse.result === 'success') {
-        // Debug print data before setting
         const printDataToSet = {
-          line_items: orderResponse.line_items.map((orderItem: any) => {
-            // Find the matching cart item to get display data
-            const cartItem = cartData.line_items.find(
-              (item) => item.product_id === orderItem.product_id,
-            );
-            return {
-              ...cartItem,
-              // Use the actual order values from WooCommerce
-              sale_price: parseFloat(orderItem.price),
-              regular_price: parseFloat(orderItem.price),
-              quantity: orderItem.quantity,
-              total_tax: parseFloat(orderItem.total_tax || 0),
-            };
-          }),
-          fee_lines: cartData.fee_lines,
-          coupon_lines: cartData.coupon_lines,
-          subtotal:
-            parseFloat(orderResponse.total) -
-            parseFloat(orderResponse.total_tax || 0),
-          taxtotal: parseFloat(orderResponse.total_tax || 0),
-          ordertotal: parseFloat(orderResponse.total),
+          line_items: cartItems.map((cartItem: POSCartItem) => ({
+            ...cartItem,
+            total_tax: 0,
+          })),
+          fee_lines: [],
+          coupon_lines: [],
+          subtotal: total,
+          taxtotal: 0,
+          ordertotal: total,
           gateway: {
             id: orderResponse.payment_method,
             title: orderResponse.payment_method_title,
@@ -267,7 +319,6 @@ const HomePage: React.FC = () => {
         };
 
         setPrintdata(printDataToSet);
-
         setShowModal(false);
         setShowPaymentReceipt(true);
         setCreateprintreceipt(true);
@@ -292,26 +343,6 @@ const HomePage: React.FC = () => {
     }
   };
 
-  // Computed values
-  const changeAmount = useCallback(() => {
-    const unformattedAmount = parseCurrencyAmount(cashAmount);
-    const total = getTotal() || 0;
-    const returnMoney = unformattedAmount - total;
-    return returnMoney > 0 ? returnMoney : 0;
-  }, [cashAmount, getTotal]);
-
-  const ableToProcess = useCallback(() => {
-    let canProcess = cartData.line_items.length > 0 && selectedGateway !== '';
-
-    if (selectedGateway === 'wepos_cash') {
-      const unformattedAmount = parseCurrencyAmount(cashAmount);
-      const total = getTotal() || 0;
-      canProcess = unformattedAmount >= total && canProcess;
-    }
-
-    return canProcess;
-  }, [cartData.line_items, selectedGateway, cashAmount, getTotal]);
-
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -323,7 +354,7 @@ const HomePage: React.FC = () => {
         case 'F8':
           e.preventDefault();
           if (e.shiftKey) {
-            emptyCart();
+            clearCart();
           } else {
             createNewSale();
           }
@@ -347,12 +378,12 @@ const HomePage: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleProductView, emptyCart, createNewSale, initPayment, backToSale]);
+  }, [toggleProductView, clearCart, createNewSale, initPayment, backToSale]);
 
   // Initialize data only once
   useEffect(() => {
     initializeData();
-  }, []); // Empty dependency array to run only once
+  }, [initializeData]);
 
   // Auto-trigger print dialog when receipt is shown
   useEffect(() => {
@@ -392,8 +423,8 @@ const HomePage: React.FC = () => {
           products={getFilteredProduct}
           productView={productView}
           productLoading={productLoading}
-          onAddToCart={addToCart}
-          onAddToCartItem={addToCartItem}
+          onAddToCart={handleAddToCart}
+          onAddToCartItem={handleAddToCartItem}
           formatPrice={formatPrice}
           hasStock={hasStock}
           getProductImage={getProductImage}
@@ -403,30 +434,19 @@ const HomePage: React.FC = () => {
       </div>
 
       <Cart
-        cartData={cartData}
-        orderData={orderData}
-        settings={settings}
         showQuickMenu={showQuickMenu}
         selectedCustomer={selectedCustomer}
         onCustomerSelected={handleCustomerSelected}
         onShowQuickMenuToggle={setShowQuickMenu}
-        onUpdateCartItem={updateCartItem}
-        onRemoveItem={removeItem}
-        onEmptyCart={emptyCart}
+        onEmptyCart={clearCart}
         onShowHelp={() => setShowHelp(true)}
         onInitPayment={initPayment}
-        formatPrice={formatPrice}
-        getSubtotal={getSubtotal}
-        getTotalTax={getTotalTax}
-        getTotal={getTotal}
       />
 
       <HelpModal show={showHelp} onClose={() => setShowHelp(false)} />
 
       <PaymentModal
         show={showModal}
-        cartData={cartData}
-        availableGateways={availableGateways}
         selectedGateway={selectedGateway}
         cashAmount={cashAmount}
         ableToProcess={ableToProcess()}
@@ -434,8 +454,6 @@ const HomePage: React.FC = () => {
         onCashAmountChange={setCashAmount}
         onBackToSale={backToSale}
         onProcessPayment={processPayment}
-        formatPrice={formatPrice}
-        getTotal={getTotal}
         changeAmount={changeAmount()}
         cashAmountRef={cashAmountRef}
       />

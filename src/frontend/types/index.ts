@@ -183,6 +183,40 @@ export interface POSCartItem {
   total_tax?: number;
 }
 
+// POS-specific cart line items for discounts and fees
+export interface POSDiscountLine {
+  id?: number;
+  name: string;
+  type: 'discount';
+  isEdit?: boolean;
+  value: number;
+  discount_type: 'percent' | 'fixed_cart';
+  tax_status: 'taxable' | 'none';
+  tax_class: string;
+  total: number;
+  code: string;
+}
+
+export interface POSFeeLine {
+  id?: number;
+  name: string;
+  type: 'fee';
+  value: string;
+  isEdit?: boolean;
+  fee_type: 'percent' | 'fixed';
+  tax_status: 'taxable' | 'none';
+  tax_class: string;
+  total: number;
+}
+
+// Enhanced cart data structure for POS
+export interface POSCartData {
+  line_items: POSCartItem[];
+  fee_lines: POSFeeLine[];
+  coupon_lines: POSDiscountLine[];
+  customer_note?: string;
+}
+
 // Alias for cleaner imports
 export type CartItem = POSCartItem;
 
@@ -480,12 +514,6 @@ export interface UseOrdersOptions {
 }
 
 // POS-specific Cart and Order Types
-export interface POSCartData {
-  line_items: POSCartItem[];
-  fee_lines: any[];
-  coupon_lines: any[];
-}
-
 export interface POSOrderData {
   customer_id: number;
   customer_note: string;
