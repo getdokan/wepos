@@ -226,7 +226,10 @@ export default {
         },
 
         'orderdata.customer_id'(newVal) {
-            this.serachInput = newVal ? this.orderdata.billing.first_name + ' ' + this.orderdata.billing.last_name : '';
+            this.serachInput = newVal ? (
+            (this.orderdata.billing.first_name?.trim() || this.orderdata.billing.last_name?.trim())
+                ? (this.orderdata.billing.first_name + ' ' + this.orderdata.billing.last_name).trim()
+                : this.orderdata.billing.email || '' ) : '';
         }
 
     },
@@ -289,7 +292,9 @@ export default {
         },
         selectCustomer( customer ) {
             this.$emit( 'onCustomerSelected', customer );
-            this.serachInput = customer.first_name + ' ' + customer.last_name;
+            this.serachInput = ( (customer.first_name?.trim() || customer.last_name?.trim())
+                ? (customer.first_name + ' ' + customer.last_name).trim()
+                : customer.email || '');
             this.showCustomerResults = false;
         },
         createCustomer() {
@@ -318,7 +323,9 @@ export default {
 
                 wepos.api.post( wepos.rest.root + wepos.rest.posversion + '/customers', customerData )
                 .done(response => {
-                    this.serachInput = response.first_name + ' ' + response.last_name;
+                    this.serachInput = ( (response.first_name?.trim() || response.last_name?.trim())
+                        ? (response.first_name + ' ' + response.last_name).trim()
+                        : response.email || '' );
                     this.$emit( 'onCustomerSelected', response );
                     $contentWrap.unblock();
                     this.closeNewCustomerModal();
@@ -373,9 +380,10 @@ export default {
         } );
 
         var orderdata = JSON.parse( localStorage.getItem( 'orderdata' ) );
-
         if ( orderdata.customer_id != 'undefined' && orderdata.customer_id != 0 ) {
-            this.serachInput = orderdata.billing.first_name + ' ' + orderdata.billing.last_name;
+            this.serachInput = ( (orderdata.billing.first_name?.trim() || orderdata.billing.last_name?.trim())
+            ? (orderdata.billing.first_name + ' ' + orderdata.billing.last_name).trim()
+            : orderdata.billing.email || '');
         }
     }
 };
