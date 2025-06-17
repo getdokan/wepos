@@ -226,7 +226,7 @@ export default {
         },
 
         'orderdata.customer_id'(newVal) {
-            this.serachInput = newVal ? this.getCustomerDisplayName(first_name, last_name, email) : '';
+            this.serachInput = newVal ? this.getCustomerDisplayName(this.orderdata.billing.first_name, this.orderdata.billing.last_name, this.orderdata.billing.email) : '';
         }
 
     },
@@ -379,7 +379,7 @@ export default {
 
         var orderdata = JSON.parse( localStorage.getItem( 'orderdata' ) );
         if ( orderdata.customer_id != 'undefined' && orderdata.customer_id != 0 ) {
-           this.serachInput = this.getCustomerDisplayName(first_name, last_name, email);
+           this.serachInput = this.getCustomerDisplayName(orderdata.billing.first_name, orderdata.billing.last_name, orderdata.billing.email);
         }
     }
 };
