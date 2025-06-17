@@ -226,10 +226,7 @@ export default {
         },
 
         'orderdata.customer_id'(newVal) {
-            this.serachInput = newVal ? (
-            (this.orderdata.billing.first_name?.trim() || this.orderdata.billing.last_name?.trim())
-                ? (this.orderdata.billing.first_name + ' ' + this.orderdata.billing.last_name).trim()
-                : this.orderdata.billing.email || '' ) : '';
+            this.serachInput = newVal ? this.getCustomerDisplayName(first_name, last_name, email) : '';
         }
 
     },
@@ -290,11 +287,14 @@ export default {
                 this.$emit( 'onCustomerSelected', {} );
             }
         },
+        getCustomerDisplayName(first_name, last_name, email) {
+            return (first_name?.trim() || last_name?.trim())
+            ? `${(first_name || '').trim()} ${(last_name || '').trim()}`.trim()
+            : (email || '');
+        },
         selectCustomer( customer ) {
             this.$emit( 'onCustomerSelected', customer );
-            this.serachInput = ( (customer.first_name?.trim() || customer.last_name?.trim())
-                ? (customer.first_name + ' ' + customer.last_name).trim()
-                : customer.email || '');
+            this.serachInput = this.getCustomerDisplayName(customer.first_name, customer.last_name, customer.email);
             this.showCustomerResults = false;
         },
         createCustomer() {
@@ -323,9 +323,7 @@ export default {
 
                 wepos.api.post( wepos.rest.root + wepos.rest.posversion + '/customers', customerData )
                 .done(response => {
-                    this.serachInput = ( (response.first_name?.trim() || response.last_name?.trim())
-                        ? (response.first_name + ' ' + response.last_name).trim()
-                        : response.email || '' );
+                    this.serachInput = this.getCustomerDisplayName(response.first_name, response.last_name, response.email);
                     this.$emit( 'onCustomerSelected', response );
                     $contentWrap.unblock();
                     this.closeNewCustomerModal();
@@ -381,9 +379,7 @@ export default {
 
         var orderdata = JSON.parse( localStorage.getItem( 'orderdata' ) );
         if ( orderdata.customer_id != 'undefined' && orderdata.customer_id != 0 ) {
-            this.serachInput = ( (orderdata.billing.first_name?.trim() || orderdata.billing.last_name?.trim())
-            ? (orderdata.billing.first_name + ' ' + orderdata.billing.last_name).trim()
-            : orderdata.billing.email || '');
+           this.serachInput = this.getCustomerDisplayName(first_name, last_name, email);
         }
     }
 };
