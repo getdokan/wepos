@@ -84,6 +84,9 @@ final class WePOS {
         add_action( 'init', [ $this, 'add_rewrite_rules' ] );
         add_filter( 'query_vars', [ $this, 'register_query_var' ] );
 
+        // Declaring High Performance Order Storage Support
+        add_action( 'before_woocommerce_init', [ $this, 'declare_woocommerce_feature_compatibility' ] );
+
         add_action( 'plugins_loaded', [ $this, 'woocommerce_not_loaded' ], 11 );
 
         // Admin notice for WooCommerce dependency
@@ -117,6 +120,20 @@ final class WePOS {
 
         if (  current_user_can( 'activate_plugins' ) ) {
             require_once WEPOS_PATH . '/templates/woocommerce-dependency-notice.php';
+        }
+    }
+
+    /**
+     * Add High Performance Order Storage Support
+     *
+     * @since WEPOS_SINCE
+     * @see https://developer.woocommerce.com/docs/hpos-extension-recipe-book/
+     *
+     * @return void
+     */
+    public function declare_woocommerce_feature_compatibility() {
+        if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+            \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', WEPOS_FILE, true );
         }
     }
 
