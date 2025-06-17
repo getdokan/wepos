@@ -327,6 +327,7 @@ export default {
                     this.$emit( 'onCustomerSelected', response );
                     $contentWrap.unblock();
                     this.closeNewCustomerModal();
+                    alert( this.__( 'Customer created successfully', 'wepos' ) );
                 }).fail( response => {
                     $contentWrap.unblock();
                     alert( response.responseJSON.message );
