@@ -7,7 +7,7 @@ Tested up to: 6.8.2
 WC requires at least: 8.5.0
 WC tested up to: 10.1.2
 Requires PHP: 7.4
-Stable tag: 1.3.2
+Stable tag: 1.3.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -60,7 +60,7 @@ No FAQ
 
 == Changelog ==
 
-= v1.3.2 -> 11th Sep, 2025 =
+= v1.3.3 -> 11th Sep, 2025 =
 - **fix:** Product search results were showing in reverse order (Z → A). Updated to sort ascending (A → Z).
 - **fix:** Alerts were missing sometimes on payment or order processing errors. Now error messages are handled safely (using optional chaining) and a fallback localized message is shown if the error message is unavailable.
 - **feature:** Introduce new Vue filter hooks (`wepos_global_top`, `wepos_after_payment_content`, `wepos_after_payment_buttons`) to allow extensions to inject custom UI.

@@ -1,6 +1,6 @@
 {
   "name": "wepos",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Point of Sale plugin for WooCommerce",
   "author": "weDevs <info@wedevs.com>",
   "license": "GPLv2",
@@ -10,7 +10,8 @@
     "dev:build": "webpack --mode=development --progress",
     "build": "webpack --mode=production --progress && wpvuei18n makepot",
     "version-replace": "node ./bin/scripts/version-replace",
-    "zip": "./bin/zip.sh"
+    "zip": "./bin/zip.sh",
+    "release": "composer i && composer install --no-dev -o && npm i && npm run build && npm run version-replace && npm run zip"
   },
   "dependencies": {
     "@mathieustan/vue-datepicker": "^0.2.11",
