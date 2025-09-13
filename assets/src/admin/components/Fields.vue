@@ -202,23 +202,35 @@
         computed: {
             multicheckValue: {
                 get() {
-                    if (this.fieldData.type === 'multicheck') {
-                        const currentValue = this.fieldValue[this.fieldData.name];
-
-                        // If the current value is not an array, initialize it as an empty array
-                        if (!Array.isArray(currentValue)) {
-                            this.$set(this.fieldValue, this.fieldData.name, []);
-                            return [];
-                        }
-
-                        return currentValue;
+                    if (this.fieldData.type !== 'multicheck') {
+                        return [];
                     }
-                    return [];
+                    const raw = this.fieldValue[this.fieldData.name];
+                    // Legacy support: previously stored as object map { key: true|'on'|1 }
+                    if (raw && !Array.isArray(raw) && typeof raw === 'object') {
+                        const migrated = Object.keys(raw)
+                            .filter(k => raw[k] === true || raw[k] === 'on' || raw[k] === 1 || raw[k] === '1')
+                            .map(String);
+                        this.$set(this.fieldValue, this.fieldData.name, migrated);
+                        return migrated;
+                    }
+                    if (!Array.isArray(raw)) {
+                        this.$set(this.fieldValue, this.fieldData.name, []);
+                        return [];
+                    }
+                    // Normalize to strings and dedupe to keep v-model stable
+                    const normalized = Array.from(new Set(raw.map(String)));
+                    if (normalized.length !== raw.length || normalized.some((v, i) => v !== raw[i])) {
+                        this.$set(this.fieldValue, this.fieldData.name, normalized);
+                    }
+                    return normalized;
                 },
                 set(newValue) {
-                    if (this.fieldData.type === 'multicheck') {
-                        this.$set(this.fieldValue, this.fieldData.name, newValue);
-                    }
+                    if (this.fieldData.type !== 'multicheck') return;
+                    const normalized = Array.isArray(newValue)
+                        ? Array.from(new Set(newValue.map(String)))
+                        : [];
+                    this.$set(this.fieldValue, this.fieldData.name, normalized);
                 }
             }
         },
