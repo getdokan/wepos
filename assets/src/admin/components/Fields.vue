@@ -52,7 +52,7 @@
                 <fieldset>
                     <template v-for="(optionVal, optionKey) in fieldData.options">
                         <label :for="sectionId + '[' + fieldData.name + '][' + optionKey + ']'">
-                            <input type="checkbox" class="checkbox" :id="sectionId + '[' + fieldData.name + '][' + optionKey + ']'" :name="sectionId + '[' + fieldData.name + '][' + optionKey + ']'" v-model="fieldValue[fieldData.name][optionKey]" :true-value="optionKey" false-value="">
+                            <input type="checkbox" class="checkbox" :id="sectionId + '[' + fieldData.name + '][' + optionKey + ']'" :name="sectionId + '[' + fieldData.name + '][' + optionKey + ']'" v-model="multicheckValue" :value="optionKey" />
                             {{ optionVal }}
                         </label>
                         <br>
@@ -198,6 +198,30 @@
         },
 
         props: ['id', 'fieldData', 'sectionId', 'fieldValue'],
+
+        computed: {
+            multicheckValue: {
+                get() {
+                    if (this.fieldData.type === 'multicheck') {
+                        const currentValue = this.fieldValue[this.fieldData.name];
+
+                        // If the current value is not an array, initialize it as an empty array
+                        if (!Array.isArray(currentValue)) {
+                            this.$set(this.fieldValue, this.fieldData.name, []);
+                            return [];
+                        }
+
+                        return currentValue;
+                    }
+                    return [];
+                },
+                set(newValue) {
+                    if (this.fieldData.type === 'multicheck') {
+                        this.$set(this.fieldValue, this.fieldData.name, newValue);
+                    }
+                }
+            }
+        },
 
         methods: {
             containCommonFields( type ) {
