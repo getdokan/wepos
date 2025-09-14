@@ -52,7 +52,7 @@
                 <fieldset>
                     <template v-for="(optionVal, optionKey) in fieldData.options">
                         <label :for="sectionId + '[' + fieldData.name + '][' + optionKey + ']'">
-                            <input type="checkbox" class="checkbox" :id="sectionId + '[' + fieldData.name + '][' + optionKey + ']'" :name="sectionId + '[' + fieldData.name + '][' + optionKey + ']'" v-model="fieldValue[fieldData.name][optionKey]" :true-value="optionKey" false-value="">
+                            <input type="checkbox" class="checkbox" :id="sectionId + '[' + fieldData.name + '][' + optionKey + ']'" :name="sectionId + '[' + fieldData.name + '][]'" v-model="multicheckValue" :value="String(optionKey)" />
                             {{ optionVal }}
                         </label>
                         <br>
@@ -198,6 +198,42 @@
         },
 
         props: ['id', 'fieldData', 'sectionId', 'fieldValue'],
+
+        computed: {
+            multicheckValue: {
+                get() {
+                    if (this.fieldData.type !== 'multicheck') {
+                        return [];
+                    }
+                    const raw = this.fieldValue[this.fieldData.name];
+                    // Legacy support: previously stored as object map { key: true|'on'|1 }
+                    if (raw && !Array.isArray(raw) && typeof raw === 'object') {
+                        const migrated = Object.keys(raw)
+                            .filter(k => raw[k] === true || raw[k] === 'on' || raw[k] === 1 || raw[k] === '1')
+                            .map(String);
+                        this.$set(this.fieldValue, this.fieldData.name, migrated);
+                        return migrated;
+                    }
+                    if (!Array.isArray(raw)) {
+                        this.$set(this.fieldValue, this.fieldData.name, []);
+                        return [];
+                    }
+                    // Normalize to strings and dedupe to keep v-model stable
+                    const normalized = Array.from(new Set(raw.map(String)));
+                    if (normalized.length !== raw.length || normalized.some((v, i) => v !== raw[i])) {
+                        this.$set(this.fieldValue, this.fieldData.name, normalized);
+                    }
+                    return normalized;
+                },
+                set(newValue) {
+                    if (this.fieldData.type !== 'multicheck') return;
+                    const normalized = Array.isArray(newValue)
+                        ? Array.from(new Set(newValue.map(String)))
+                        : [];
+                    this.$set(this.fieldValue, this.fieldData.name, normalized);
+                }
+            }
+        },
 
         methods: {
             containCommonFields( type ) {
