@@ -52,7 +52,7 @@
                 <fieldset>
                     <template v-for="(optionVal, optionKey) in fieldData.options">
                         <label :for="sectionId + '[' + fieldData.name + '][' + optionKey + ']'">
-                            <input type="checkbox" class="checkbox" :id="sectionId + '[' + fieldData.name + '][' + optionKey + ']'" :name="sectionId + '[' + fieldData.name + '][' + optionKey + ']'" v-model="multicheckValue" :value="optionKey" />
+                            <input type="checkbox" class="checkbox" :id="sectionId + '[' + fieldData.name + '][' + optionKey + ']'" :name="sectionId + '[' + fieldData.name + '][]'" v-model="multicheckValue" :value="String(optionKey)" />
                             {{ optionVal }}
                         </label>
                         <br>
