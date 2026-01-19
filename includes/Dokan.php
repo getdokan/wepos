@@ -26,6 +26,9 @@ class Dokan {
 
         // If vendor created via REST API
         add_action( 'dokan_new_vendor', [ $this, 'after_create_vendor_via_rest' ], 15 );
+
+        // Exclude wepos_cash payments from vendor withdrawal balance
+        add_filter( 'dokan_order_should_exclude_from_vendor_balance', [ $this, 'exclude_wepos_cash_payment' ], 10, 5 );
     }
 
     /**
@@ -162,5 +165,30 @@ class Dokan {
         ];
 
         return $settings_fields;
+    }
+
+    /**
+     * Exclude wepos_cash payments from vendor withdrawal balance
+     *
+     * When a payment is made via wepos_cash method, exclude it from
+     * the vendor's withdrawal balance calculation.
+     *
+     * @since 1.3.3
+     *
+     * @param bool     $should_exclude Whether to exclude the payment.
+     * @param WC_Order $order          Order object.
+     * @param int      $order_id       Order ID.
+     * @param string   $new_status     New order status.
+     * @param bool     $exclude_cod    Whether exclude COD option is enabled.
+     *
+     * @return bool True if payment should be excluded, false otherwise.
+     */
+    public function exclude_wepos_cash_payment( $should_exclude, $order, $order_id, $new_status, $exclude_cod ) {
+        // Check if the payment method is wepos_cash
+        if ( $order->get_payment_method() === 'wepos_cash' ) {
+            return true;
+        }
+
+        return $should_exclude;
     }
 }
