@@ -185,7 +185,7 @@ class Dokan {
      */
     public function exclude_wepos_cash_payment( $should_exclude, $order, $order_id, $new_status, $exclude_cod ) {
         // Check if the payment method is wepos_cash
-        if ( $order->get_payment_method() === 'wepos_cash' ) {
+        if ( 'wepos_cash' === $order->get_payment_method() ) {
             return true;
         }
 
