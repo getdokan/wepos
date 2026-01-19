@@ -29,6 +29,7 @@ class Dokan {
 
         // Exclude wepos_cash payments from vendor withdrawal balance
         add_filter( 'dokan_order_should_exclude_from_vendor_balance', [ $this, 'exclude_wepos_cash_payment' ], 10, 5 );
+        add_filter( 'dokan_order_refund_should_exclude_from_vendor_balance', [ $this, 'prevent_wepos_cash_refund_deduction' ], 10, 6 );
     }
 
     /**
@@ -184,6 +185,31 @@ class Dokan {
      * @return bool True if payment should be excluded, false otherwise.
      */
     public function exclude_wepos_cash_payment( $should_exclude, $order, $order_id, $new_status, $exclude_cod ) {
+        // Check if the payment method is wepos_cash
+        if ( 'wepos_cash' === $order->get_payment_method() ) {
+            return true;
+        }
+
+        return $should_exclude;
+    }
+
+    /**
+     * Prevent reducing refund amount from vendor balance for wepos_cash payments
+     *
+     * When a refund is processed for an order paid via wepos_cash method,
+     * prevent deducting the refund amount from the vendor's balance.
+     *
+     * @since 1.3.3
+     *
+     * @param bool     $should_exclude Whether to exclude from balance deduction.
+     * @param WC_Order $order          Order object.
+     * @param int      $order_id       Order ID.
+     * @param string   $new_status     New order status.
+     * @param bool     $exclude_cod    Whether exclude COD option is enabled.
+     *
+     * @return bool True if refund should not reduce vendor balance, false otherwise.
+     */
+    public function prevent_wepos_cash_refund_deduction( $should_exclude, $order, $order_id, $new_status, $exclude_cod, $refund_order ) {
         // Check if the payment method is wepos_cash
         if ( 'wepos_cash' === $order->get_payment_method() ) {
             return true;
