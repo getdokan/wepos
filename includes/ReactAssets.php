@@ -96,9 +96,8 @@ class ReactAssets
         );
 
         // Localize script data
-        wp_localize_script(
-            'wepos-react',
-            'wepos',
+        $localize_data = apply_filters(
+            'wepos_localize_data',
             [
                 'rest' => [
                     'root' => esc_url_raw(get_rest_url()),
@@ -131,6 +130,12 @@ class ReactAssets
                 'debug' => defined('WP_DEBUG') && WP_DEBUG,
                 'dev_mode' => $is_dev,
             ]
+        );
+
+        wp_localize_script(
+            'wepos-react',
+            'wepos',
+            $localize_data
         );
     }
 }

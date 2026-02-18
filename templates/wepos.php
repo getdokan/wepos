@@ -9,7 +9,8 @@
 </head>
 <body>
     <!-- React app mount point -->
-<!--    <div id="wepos-react-app"></div>-->
+    <div id="wepos-react-app"></div>
+
     <!-- Vue.js mount point (for switching back if needed) -->
     <div id="vue-frontend-app"></div>
 

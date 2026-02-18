@@ -16,6 +16,8 @@ export const formatPrice = (amount: number | string | undefined | null): string 
  * Matches the Vue.js implementation logic
  */
 export const hasStock = (product: POSProduct, productCartQty: number = 0): boolean => {
+  if (!product) return false;
+
   if (!product.manage_stock) {
     return product.stock_status !== 'outofstock';
   }
@@ -24,22 +26,25 @@ export const hasStock = (product: POSProduct, productCartQty: number = 0): boole
     return true;
   }
 
-  return product.stock_quantity > productCartQty;
+  return (product.stock_quantity || 0) > productCartQty;
 };
 
 /**
  * Get the primary image URL for a product
  */
 export const getProductImage = (product: POSProduct): string => {
-  return product.images.length > 0
-    ? product.images[0].woocommerce_thumbnail
-    : (window as any).wepos?.placeholder_image || '';
+  if (!product || !product.images || product.images.length === 0) {
+    return (window as any).wepos?.placeholder_image || '';
+  }
+
+  return product.images[0].woocommerce_thumbnail || (window as any).wepos?.placeholder_image || '';
 };
 
 /**
  * Truncate text to a specified length with ellipsis
  */
-export const truncateTitle = (text: string, length: number): string => {
+export const truncateTitle = (text: string | undefined | null, length: number): string => {
+  if (!text) return '';
   return text.length > length ? text.substring(0, length) + '...' : text;
 };
 
