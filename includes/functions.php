@@ -198,6 +198,17 @@ function wepos_get_settings_fields() {
                     'custom' => __( 'Custom field', 'wepos' ),
                 ]
             ],
+            'pos_layout_style'        => [
+                'name'    => 'pos_layout_style',
+                'label'   => esc_html__( 'POS Layout Style', 'wepos' ),
+                'desc'    => esc_html__( 'Select the user interface for the frontend POS.', 'wepos' ),
+                'type'    => 'radio',
+                'default' => 'legacy',
+                'options' => [
+                    'latest' => esc_html__( 'New UI', 'wepos' ),
+                    'legacy' => esc_html__( 'Legacy UI', 'wepos' ),
+                ],
+            ],
         ],
         'wepos_receipts' => [
             'receipt_header' => [
