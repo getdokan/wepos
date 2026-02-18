@@ -360,8 +360,8 @@ final class WePOS
         $this->container['rest']   = new WeDevs\WePOS\REST\Manager();
 
         // Use React assets instead of Vue.js assets
-        $this->container['assets'] = new WeDevs\WePOS\ReactAssets();
-        // $this->container['assets'] = new WeDevs\WePOS\Assets(); // Vue.js version
+//        $this->container['assets'] = new WeDevs\WePOS\ReactAssets();
+         $this->container['assets'] = new WeDevs\WePOS\Assets(); // Vue.js version
 
         // Payment gateway manager
         $this->container['gateways'] = new \WeDevs\WePOS\Gateways\Manager();
