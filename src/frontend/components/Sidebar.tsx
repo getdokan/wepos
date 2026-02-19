@@ -1,119 +1,118 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Home,
   FileText,
   Users,
   Bolt,
-  ChevronRight,
-  ChevronLeft,
   LogOut,
+  Settings,
+  Package,
 } from 'lucide-react';
+import { LayoutMenu, LayoutMenuGroupData } from '@wedevs/plugin-ui';
 
-interface SidebarProps {
-  isCollapsed: boolean;
-  onToggleCollapse: () => void;
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse }) => {
+const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
-  const menuItems = [
-    {
-      id: 'home',
-      label: 'Home',
-      path: '/',
-      icon: <Home className="h-5 w-5" />,
-    },
-    {
-      id: 'orders',
-      label: 'Orders',
-      path: '/orders',
-      icon: <FileText className="h-5 w-5" />,
-    },
-    {
-      id: 'customers',
-      label: 'Customers',
-      path: '/customers',
-      icon: <Users className="h-5 w-5" />,
-    },
-  ];
+  const isCollapsed = false;
 
   const handleNavigation = (path: string) => {
     navigate(path);
   };
 
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to logout?')) {
+      window.location.href = (window as any).wepos?.logout_url || '/';
+    }
+  };
+
+  const menuGroups = useMemo<LayoutMenuGroupData[]>(() => [
+    {
+      id: 'main',
+      label: 'Main',
+      secondaryLabel: 'Primary navigation',
+      items: [
+        {
+          id: '/',
+          label: 'Home',
+          icon: <Home className="size-4" />,
+          onClick: () => handleNavigation('/'),
+          secondaryLabel: 'Dashboard'
+        },
+        {
+          id: '/orders',
+          label: 'Orders',
+          icon: <FileText className="size-4" />,
+          onClick: () => handleNavigation('/orders'),
+          secondaryLabel: 'Sales history'
+        },
+        {
+          id: '/customers',
+          label: 'Customers',
+          icon: <Users className="size-4" />,
+          onClick: () => handleNavigation('/customers'),
+          secondaryLabel: 'Manage clients'
+        },
+      ],
+    },
+    {
+      id: 'settings-group',
+      label: 'App',
+      items: [
+        {
+          id: 'settings',
+          label: 'Settings',
+          icon: <Settings className="size-4" />,
+          onClick: () => {},
+          secondaryLabel: 'Configuration'
+        },
+        {
+          id: 'products',
+          label: 'Products',
+          icon: <Package className="size-4" />,
+          onClick: () => {},
+          secondaryLabel: 'Inventory'
+        }
+      ]
+    }
+  ], [navigate]);
+
   return (
     <div
-      className={`wepos-sidebar bg-wepos-dark shadow-wepos-lg flex flex-col text-white transition-all duration-300 ease-in-out ${isCollapsed ? 'collapsed' : 'expanded'}`}
+      className="bg-sidebar flex flex-col text-white h-full"
     >
-      <div className="border-wepos-dark-lighter relative border-b p-4">
-        <div className="flex items-center gap-3 overflow-hidden">
+      <div className="border-sidebar-border border-b p-4">
+        <div className="flex items-center gap-3">
           <div className="bg-wepos-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white">
-            <Bolt className="h-6 w-6" />
+            <Bolt className="h-5 w-5" />
           </div>
-          {!isCollapsed && (
-            <span className="text-lg font-bold text-white transition-opacity duration-300">
-              WePos
-            </span>
-          )}
+          <span className="text-lg font-bold text-white">
+            WePos
+          </span>
         </div>
       </div>
 
-      <nav className="flex-1 py-4">
-        <ul className="space-y-1 px-2">
-          {menuItems.map((item) => (
-            <li key={item.id}>
-              <button
-                className={`hover:bg-wepos-dark-lighter nav-item relative flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-gray-300 transition-all duration-200 hover:text-white ${
-                  location.pathname === item.path
-                    ? 'bg-wepos-primary text-white'
-                    : ''
-                } ${isCollapsed ? 'justify-center px-3' : ''}`}
-                onClick={() => handleNavigation(item.path)}
-                type="button"
-                title={isCollapsed ? item.label : undefined}
-              >
-                <span className="flex-shrink-0">{item.icon}</span>
-                {!isCollapsed && (
-                  <span className="nav-label text-sm font-medium whitespace-nowrap transition-opacity duration-300">
-                    {item.label}
-                  </span>
-                )}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <div className="flex-1 py-2 overflow-hidden">
+        <LayoutMenu
+          groups={menuGroups}
+          activeItemId={location.pathname}
+          searchable={true}
+          className="text-gray-300"
+          menuItemClassName="px-4 h-12 hover:bg-white/10"
+          activeItemClassName="bg-wepos-primary! text-white!"
+        />
+      </div>
 
-      <div className="border-wepos-dark-lighter relative border-t p-2">
+      <div className="border-sidebar-border border-t p-2">
         <button
-          className="hover:bg-wepos-dark-lighter flex w-full justify-center rounded p-1 text-gray-300 transition-colors duration-200 hover:text-white"
-          onClick={onToggleCollapse}
+          className="hover:bg-red-900/20 flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-red-300 transition-all duration-200 hover:text-red-200"
+          onClick={handleLogout}
           type="button"
-          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {isCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
-        </button>
-
-        <button
-          className="hover:bg-wepos-dark-lighter nav-item relative flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-gray-300 text-red-300 transition-all duration-200 hover:bg-red-900/20 hover:text-red-200 hover:text-white"
-          type="button"
-          title={isCollapsed ? 'Logout' : undefined}
-        >
-          <span className="flex-shrink-0">
-            <LogOut className="h-5 w-5" />
+          <LogOut className="h-5 w-5" />
+          <span className="text-sm font-medium">
+            Logout
           </span>
-          {!isCollapsed && (
-            <span className="nav-label text-sm font-medium whitespace-nowrap transition-opacity duration-300">
-              Logout
-            </span>
-          )}
         </button>
       </div>
     </div>

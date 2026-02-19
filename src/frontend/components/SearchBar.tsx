@@ -1,20 +1,19 @@
 import React from 'react';
 import { __ } from '@wordpress/i18n';
 import { Search } from 'lucide-react';
+import { Input } from '@wedevs/plugin-ui';
 
 const SearchBar: React.FC = () => {
   return (
-    <div className="relative w-full flex-1 md:w-auto">
-      <div className="relative">
-        <input
+    <div className="relative w-full flex-1 md:w-64">
+      <div className="relative flex items-center">
+        <Search className="text-muted-foreground absolute left-3 h-4 w-4" />
+        <Input
           type="text"
           id="product-search"
           placeholder={__('Search products...', 'wepos')}
-          className="focus:ring-wepos-primary/20 focus:border-wepos-primary h-10 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 pr-10 transition-colors focus:ring-2"
+          className="h-10 pl-10 pr-4 bg-transparent border-none shadow-none focus-visible:ring-0 focus-visible:border-none"
         />
-        <span className="text-wepos-primary hover:text-wepos-primary-hover absolute top-1/2 right-3 -translate-y-1/2 transform cursor-pointer transition-colors">
-          <Search className="h-4 w-4" />
-        </span>
       </div>
     </div>
   );

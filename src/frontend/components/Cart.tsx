@@ -133,27 +133,27 @@ const Cart: React.FC<CartProps> = ({
   };
 
   return (
-    <div className="shadow-wepos flex w-full flex-col bg-white md:h-screen md:w-96">
+    <div className="shadow-wepos flex flex-none flex-col bg-white md:h-screen md:w-96">
       {settings.wepos_general && (
         <div className="flex h-full flex-col">
           {/* Cart Header - Fixed Top */}
-          <div className="flex-shrink-0 border-b border-gray-200 bg-gray-50 p-4">
-            <div className="flex items-start gap-3">
-              <CustomerSearch
-                selectedCustomer={selectedCustomer}
-                onCustomerSelected={onCustomerSelected}
-              />
+          <div className="flex-shrink-0 border-b border-gray-200 bg-white px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-bold text-gray-800">
+                  {__('Cart', 'wepos')}
+                </h2>
+              </div>
 
               <div className="relative flex-shrink-0">
                 <button
-                  className="rounded-lg border border-transparent bg-gray-100 px-4 py-2 font-medium transition-all duration-200 hover:bg-gray-200 focus:ring-2 focus:ring-offset-2 focus:outline-none"
+                  className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all duration-200 focus:outline-none"
                   onClick={() => onShowQuickMenuToggle(!showQuickMenu)}
                   type="button"
                   title={__('More options', 'wepos')}
                 >
-                  <span className="text-gray-600">
-                    <MoreVertical className="h-4 w-4" />
-                  </span>
+                  <MoreVertical className="h-5 w-5" />
                 </button>
                 {showQuickMenu && (
                   <div className="absolute top-full right-0 z-20 mt-2 min-w-40 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">

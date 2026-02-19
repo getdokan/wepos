@@ -1,6 +1,7 @@
 import React from 'react';
 import { __ } from '@wordpress/i18n';
-import { Plus } from 'lucide-react';
+import { Plus, PackageX, Loader2 } from 'lucide-react';
+import { Card, CardContent } from '@wedevs/plugin-ui';
 import { POSProduct, ProductViewType, CartItem } from '../types';
 import ProductVariationSelector from './ProductVariationSelector';
 
@@ -33,8 +34,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({
     <div
       className={
         productView === 'grid'
-          ? 'grid h-[calc(100vh-200px)] grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3 overflow-auto p-1 max-[360px]:grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(140px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(170px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] 2xl:grid-cols-[repeat(auto-fill,minmax(140px,1fr))] 2xl:gap-4'
-          : 'h-[calc(100vh-200px)] overflow-auto p-1'
+          ? 'grid flex-1 grid-cols-2 gap-4 overflow-auto p-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'
+          : 'flex-1 overflow-auto p-1'
       }
       ref={itemsWrapperRef}
     >
@@ -126,107 +127,64 @@ const ProductGrid: React.FC<ProductGridProps> = ({
             ) : (
               // Fixed-width grid cards
               products.map((product) => (
-                <div
+                <Card
                   key={product.id}
-                  className="hover:border-wepos-primary/30 group min-w-40 min-h-40 cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-white transition-all duration-200 hover:-translate-y-1 hover:shadow-lg max-[360px]:mx-auto max-[360px]:max-w-[300px] max-[360px]:min-w-full sm:min-w-[140px] md:min-w-[150px] lg:min-w-[170px] xl:min-w-[150px] 2xl:min-w-[140px]"
+                  className={`hover:border-primary/50 group cursor-pointer border-gray-200 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${!hasStock(product) ? 'opacity-50' : ''}`}
                 >
-                  {product.type === 'variable' ? (
-                    <ProductVariationSelector
-                      product={product}
-                      onAddToCart={onAddToCartItem}
-                    >
-                      <div
-                        className={`relative transition-all duration-200 ${!hasStock(product) ? 'cursor-not-allowed opacity-50 hover:translate-y-0 hover:border-gray-200 hover:shadow-none' : ''}`}
-                        title={
-                          hasStock(product)
-                            ? __('Select variations', 'wepos')
-                            : __('Out of stock', 'wepos')
-                        }
-                      >
-                        <div className="relative h-[120px] overflow-hidden max-[360px]:h-[120px] sm:h-[100px] md:h-[110px] lg:h-[130px] xl:h-[110px] 2xl:h-[100px]">
-                          <img
-                            src={getProductImage(product)}
-                            alt={product.name}
-                            className="h-full w-full object-cover"
-                          />
-                          {hasStock(product) && (
-                            <div
-                              className="bg-wepos-primary absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full text-sm font-bold text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                              title={__('Select variations', 'wepos')}
+                  <div
+                    className="flex h-full flex-col"
+                    onClick={() =>
+                      product.type !== 'variable' &&
+                      hasStock(product) &&
+                      onAddToCart(product)
+                    }
+                  >
+                    <div className="relative aspect-square overflow-hidden bg-gray-100">
+                      <img
+                        src={getProductImage(product)}
+                        alt={product.name}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      {hasStock(product) && (
+                        <div className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                          {product.type === 'variable' ? (
+                            <ProductVariationSelector
+                              product={product}
+                              onAddToCart={onAddToCartItem}
                             >
-                              <Plus className="h-4 w-4" />
-                            </div>
+                              <Plus className="h-5 w-5" />
+                            </ProductVariationSelector>
+                          ) : (
+                            <Plus className="h-5 w-5" />
                           )}
                         </div>
-                        <div className="min-h-[80px] p-3 text-center max-[360px]:min-h-auto max-[360px]:p-3 sm:min-h-[70px] sm:p-2 md:min-h-[75px] md:p-2 lg:min-h-[80px] lg:p-3 xl:min-h-[75px] xl:p-2 2xl:min-h-[70px] 2xl:p-2">
-                          <div className="mb-2 line-clamp-2 min-h-[2.5rem] text-sm leading-tight font-medium text-gray-800 max-[360px]:mb-2 max-[360px]:line-clamp-2 max-[360px]:min-h-auto max-[360px]:text-sm sm:mb-1 sm:line-clamp-3 sm:min-h-[2.5rem] sm:text-xs md:mb-1 md:line-clamp-3 md:min-h-[2.5rem] md:text-xs lg:mb-2 lg:line-clamp-2 lg:min-h-[2.5rem] lg:text-sm xl:mb-1 xl:line-clamp-2 xl:min-h-[2rem] xl:text-xs 2xl:mb-1 2xl:line-clamp-2 2xl:min-h-[2rem] 2xl:text-xs">
-                            {truncateTitle(product.name, 20)}
-                          </div>
-                          <div
-                            className="text-wepos-primary text-sm font-semibold max-[360px]:text-sm sm:text-xs md:text-xs lg:text-sm xl:text-xs 2xl:text-xs"
-                            dangerouslySetInnerHTML={{
-                              __html: product.price_html,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                    </ProductVariationSelector>
-                  ) : (
-                    <div
-                      className={`relative transition-all duration-200 ${!hasStock(product) ? 'cursor-not-allowed opacity-50 hover:translate-y-0 hover:border-gray-200 hover:shadow-none' : ''}`}
-                      onClick={() => hasStock(product) && onAddToCart(product)}
-                      title={
-                        hasStock(product)
-                          ? __('Add to cart', 'wepos')
-                          : __('Out of stock', 'wepos')
-                      }
-                    >
-                      <div className="relative h-[120px] overflow-hidden max-[360px]:h-[120px] sm:h-[100px] md:h-[110px] lg:h-[130px] xl:h-[110px] 2xl:h-[100px]">
-                        <img
-                          src={getProductImage(product)}
-                          alt={product.name}
-                          className="h-full w-full object-cover"
-                        />
-                        {hasStock(product) && (
-                          <div
-                            className="bg-wepos-primary absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full text-sm font-bold text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                            title={__('Add to cart', 'wepos')}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="min-h-[80px] p-3 text-center max-[360px]:min-h-auto max-[360px]:p-3 sm:min-h-[70px] sm:p-2 md:min-h-[75px] md:p-2 lg:min-h-[80px] lg:p-3 xl:min-h-[75px] xl:p-2 2xl:min-h-[70px] 2xl:p-2">
-                        <div className="mb-2 line-clamp-2 min-h-[2.5rem] text-sm leading-tight font-medium text-gray-800 max-[360px]:mb-2 max-[360px]:line-clamp-2 max-[360px]:min-h-auto max-[360px]:text-sm sm:mb-1 sm:line-clamp-3 sm:min-h-[2.5rem] sm:text-xs md:mb-1 md:line-clamp-3 md:min-h-[2.5rem] md:text-xs lg:mb-2 lg:line-clamp-2 lg:min-h-[2.5rem] lg:text-sm xl:mb-1 xl:line-clamp-2 xl:min-h-[2rem] xl:text-xs 2xl:mb-1 2xl:line-clamp-2 2xl:min-h-[2rem] 2xl:text-xs">
-                          {truncateTitle(product.name, 20)}
-                        </div>
-                        <div
-                          className="text-wepos-primary text-sm font-semibold max-[360px]:text-sm sm:text-xs md:text-xs lg:text-sm xl:text-xs 2xl:text-xs"
-                          dangerouslySetInnerHTML={{
-                            __html: product.price_html,
-                          }}
-                        ></div>
-                      </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                    <CardContent className="flex flex-1 flex-col p-3 text-center">
+                      <div className="mb-1 line-clamp-2 min-h-[2.5rem] text-sm font-medium text-gray-800">
+                        {truncateTitle(product.name, 25)}
+                      </div>
+                      <div
+                        className="mt-auto text-sm font-bold text-primary"
+                        dangerouslySetInnerHTML={{
+                          __html: product.price_html,
+                        }}
+                      ></div>
+                    </CardContent>
+                  </div>
+                </Card>
               ))
             )
           ) : (
-            <div className="wepos-no-product-found">
-              <img
-                src={`${(window as any).wepos?.assets_url}/images/no-product.png`}
-                alt={__('No products found', 'wepos')}
-                width="120px"
-                className="mx-auto mb-4"
-              />
-              <p>{__('No Product Found', 'wepos')}</p>
+            <div className="col-span-full py-20 text-center">
+              <PackageX className="mx-auto mb-4 h-16 w-16 text-gray-300" />
+              <p className="text-gray-500 font-medium">{__('No Product Found', 'wepos')}</p>
             </div>
           )}
         </>
       ) : (
-        <div className="wepos-product-loading">
-          <div className="border-t-wepos-primary h-8 w-8 animate-spin rounded-full border-2 border-gray-300"></div>
+        <div className="col-span-full flex h-64 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       )}
     </div>

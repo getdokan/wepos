@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { __ } from '@wordpress/i18n';
 import { Spinner } from '@wordpress/components';
-import { Users, Plus, ChevronRight, Edit3 } from 'lucide-react';
+import { Search, Plus, ChevronRight, Edit3, Users } from 'lucide-react';
+import { Input } from '@wedevs/plugin-ui';
 import { Customer } from '../types';
 import { posAPI } from '../api';
 import CustomerModal from './CustomerModal';
@@ -178,8 +179,12 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
     <div className="relative flex-1">
       {/* Search Input - Hide when customer is selected */}
       {!selectedCustomer && (
-        <div className="relative">
-          <input
+        <div className="relative flex items-center">
+          <div className="pointer-events-none absolute left-3 z-10 transform">
+            <Search className="text-muted-foreground h-4 w-4" />
+          </div>
+
+          <Input
             ref={searchInputRef}
             type="text"
             value={searchValue}
@@ -188,19 +193,14 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             placeholder={__('Search Customer or Walk-in', 'wepos')}
-            className="focus:ring-wepos-primary/20 focus:border-wepos-primary h-10 w-full rounded-lg border border-gray-300 bg-white pr-10 pl-10 text-sm placeholder-gray-500 transition-colors outline-none focus:ring-2"
+            className="h-10 w-full rounded-lg border-gray-200 bg-gray-50/50 pl-10 pr-10 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary/20"
           />
-
-          {/* Customer Icon */}
-          <div className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 transform">
-            <Users className="text-wepos-primary h-4 w-4" />
-          </div>
 
           {/* Add Customer Button */}
           <button
             type="button"
             onClick={handleOpenNewCustomerModal}
-            className="text-wepos-primary hover:text-wepos-primary-hover focus:ring-wepos-primary/20 absolute top-1/2 right-3 -translate-y-1/2 transform rounded transition-colors focus:ring-2 focus:outline-none"
+            className="text-primary hover:text-primary-hover absolute right-3 z-10 transform rounded transition-colors focus:outline-none"
             title={__('Add New Customer', 'wepos')}
           >
             <Plus className="h-4 w-4" />
@@ -208,7 +208,7 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
 
           {/* Loading indicator */}
           {isSearching && (
-            <div className="absolute top-1/2 right-10 -translate-y-1/2 transform">
+            <div className="absolute right-10 z-10 transform">
               <Spinner />
             </div>
           )}

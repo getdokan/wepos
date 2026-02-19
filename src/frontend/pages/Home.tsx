@@ -28,6 +28,7 @@ import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
 
 // Import components
+import { LayoutHeader } from '@wedevs/plugin-ui';
 import Layout from '../components/Layout';
 import ProductGrid from '../components/ProductGrid';
 import Cart from '../components/Cart';
@@ -37,6 +38,7 @@ import HelpModal from '../components/HelpModal';
 import SearchBar from '../components/SearchBar';
 import CategoryFilter from '../components/CategoryFilter';
 import ProductViewToggle from '../components/ProductViewToggle';
+import CustomerSearch from '../components/CustomerSearch';
 
 const HomePage: React.FC = () => {
   // Initialize data using the hook
@@ -402,46 +404,64 @@ const HomePage: React.FC = () => {
   }, [showPaymentReceipt, createprintreceipt]);
 
   return (
-    <Layout>
-      <div className="flex-1 bg-white p-6">
-        <div className="mb-6 flex flex-col items-center gap-4 space-y-4 md:flex-row md:space-y-0">
-          <SearchBar />
+    <Layout
+      headerContent={
+        <div className="flex flex-1 items-center gap-4">
+          <div className="flex items-center gap-2">
+            <SearchBar />
+            <div className="h-6 w-px bg-gray-200 mx-1 hidden lg:block"></div>
+            <CategoryFilter
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+            />
+          </div>
 
-          <CategoryFilter
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-          />
+          <div className="flex items-center gap-2">
+            <ProductViewToggle
+              productView={productView}
+              onToggle={toggleProductView}
+            />
+          </div>
 
-          <ProductViewToggle
-            productView={productView}
-            onToggle={toggleProductView}
+          <div className="ml-auto w-full max-w-sm">
+            <CustomerSearch
+              selectedCustomer={selectedCustomer}
+              onCustomerSelected={handleCustomerSelected}
+            />
+          </div>
+        </div>
+      }
+    >
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Main Content + Cart Area */}
+        <div className="flex flex-1 overflow-hidden md:flex-row">
+          <div className="flex flex-1 flex-col overflow-hidden bg-gray-50/30 p-6">
+            <ProductGrid
+              products={getFilteredProduct}
+              productView={productView}
+              productLoading={productLoading}
+              onAddToCart={handleAddToCart}
+              onAddToCartItem={handleAddToCartItem}
+              formatPrice={formatPrice}
+              hasStock={hasStock}
+              getProductImage={getProductImage}
+              truncateTitle={truncateTitle}
+              itemsWrapperRef={itemsWrapperRef}
+            />
+          </div>
+
+          <Cart
+            showQuickMenu={showQuickMenu}
+            selectedCustomer={selectedCustomer}
+            onCustomerSelected={handleCustomerSelected}
+            onShowQuickMenuToggle={setShowQuickMenu}
+            onEmptyCart={clearCart}
+            onShowHelp={() => setShowHelp(true)}
+            onInitPayment={initPayment}
           />
         </div>
-
-        <ProductGrid
-          products={getFilteredProduct}
-          productView={productView}
-          productLoading={productLoading}
-          onAddToCart={handleAddToCart}
-          onAddToCartItem={handleAddToCartItem}
-          formatPrice={formatPrice}
-          hasStock={hasStock}
-          getProductImage={getProductImage}
-          truncateTitle={truncateTitle}
-          itemsWrapperRef={itemsWrapperRef}
-        />
       </div>
-
-      <Cart
-        showQuickMenu={showQuickMenu}
-        selectedCustomer={selectedCustomer}
-        onCustomerSelected={handleCustomerSelected}
-        onShowQuickMenuToggle={setShowQuickMenu}
-        onEmptyCart={clearCart}
-        onShowHelp={() => setShowHelp(true)}
-        onInitPayment={initPayment}
-      />
 
       <HelpModal show={showHelp} onClose={() => setShowHelp(false)} />
 

@@ -1,53 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import {
+  Layout as PUILayout,
+  LayoutBody,
+  LayoutSidebar,
+  LayoutMain,
+  LayoutHeader,
+  LayoutFooter,
+  LayoutMenu,
+} from '@wedevs/plugin-ui';
 import Sidebar from './Sidebar';
+import { House } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
+  headerContent?: React.ReactNode;
 }
 
-const SIDEBAR_STORAGE_KEY = 'wepos-sidebar-collapsed';
-
-const Layout: React.FC<LayoutProps> = ({ children }) => {
-  // Initialize state from localStorage or default to collapsed
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    try {
-      const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
-      return stored !== null ? JSON.parse(stored) : true;
-    } catch (error) {
-      console.warn('Failed to load sidebar state from localStorage:', error);
-      return true; // Default to collapsed if localStorage fails
-    }
-  });
-
-  // Save to localStorage whenever state changes
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        SIDEBAR_STORAGE_KEY,
-        JSON.stringify(sidebarCollapsed),
-      );
-    } catch (error) {
-      console.warn('Failed to save sidebar state to localStorage:', error);
-    }
-  }, [sidebarCollapsed]);
-
-  const toggleSidebar = () => {
-    setSidebarCollapsed((prev: boolean) => !prev);
-  };
-
+ const Layout: React.FC<LayoutProps> = ({ children, headerContent }) => {
   return (
-    <div
-      id="wepos-main"
-      className="flex min-h-screen flex-col bg-gray-100 md:flex-row"
+    <PUILayout
+      key="sidebar-true-left"
+      className="bg-background"
+      defaultSidebarOpen
+      sidebarBreakpoint="lg"
+      sidebarPosition="left"
+      sidebarVariant="drawer"
     >
-      <Sidebar
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={toggleSidebar}
-      />
-
-      <div className="flex flex-1 flex-col md:flex-row">{children}</div>
-    </div>
+      <LayoutHeader className="h-16 bg-white px-6">
+        {headerContent}
+      </LayoutHeader>
+      <LayoutBody>
+        <React.Fragment key=".0">
+          <LayoutSidebar>
+            <Sidebar />
+          </LayoutSidebar>
+          <LayoutMain>{children}</LayoutMain>
+        </React.Fragment>
+      </LayoutBody>
+    </PUILayout>
   );
 };
-
 export default Layout;

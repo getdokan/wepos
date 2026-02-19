@@ -1,5 +1,9 @@
 /* WePos React App - Tailwind CSS v4 */
 @import "tailwindcss";
+@import '@wedevs/plugin-ui/styles.css';
+
+/* Source paths for Tailwind to scan */
+@source "../../frontend";
 
 /* WePos Theme Configuration */
 @theme {
@@ -13,6 +17,12 @@
     --color-wepos-text-muted: #999;
     --color-wepos-dark: #192128;
     --color-wepos-dark-lighter: #1f2a35;
+
+    /* Theme colors for Tailwind v4 */
+    --color-sidebar: #192128;
+    --color-sidebar-foreground: #ffffff;
+    --color-sidebar-primary: #1ABC9C;
+    --color-sidebar-border: #1f2a35;
 
     /* Custom Breakpoints */
     --breakpoint-xs: 360px;
@@ -306,7 +316,7 @@
 
     /* Ensure thermal printer compatibility */
     @page {
-        size: 80mm auto;
+        size: auto;
         margin: 0;
         padding: 0;
     }
