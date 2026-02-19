@@ -3,13 +3,13 @@ import { __ } from '@wordpress/i18n';
 import { useSelect, useDispatch } from '@wordpress/data';
 import {
   Plus,
-  MoreVertical,
   ChevronRight,
   X,
   ShoppingCart,
+  Minus,
 } from 'lucide-react';
-import { POSCartItem, Customer } from '../types';
-import CustomerSearch from './CustomerSearch';
+import { Button, Input, Separator, ScrollArea } from '@wedevs/plugin-ui';
+import { POSCartItem } from '../types';
 import FeeKeypad from './FeeKeypad';
 import CustomerNote from './CustomerNote';
 import { formatPrice } from '../utils/helpers';
@@ -17,17 +17,10 @@ import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
 
 interface CartProps {
-  showQuickMenu: boolean;
-  selectedCustomer?: Customer | null;
-  onCustomerSelected: (customer: Customer | null) => void;
-  onShowQuickMenuToggle: (show: boolean) => void;
-  onEmptyCart: () => void;
-  onShowHelp: () => void;
   onInitPayment: () => void;
 }
 
 const Cart: React.FC<CartProps> = ({
-  onEmptyCart,
   onInitPayment,
 }) => {
   // Use WordPress data hooks for cart data
@@ -94,10 +87,6 @@ const Cart: React.FC<CartProps> = ({
     removeFromCart(index);
   };
 
-  const handleEmptyCart = () => {
-    clearCart();
-    onEmptyCart();
-  };
 
   const handleDiscountInput = (value: number, type: 'percent' | 'fixed') => {
     addDiscount(value, type === 'percent' ? 'percent' : 'fixed_cart');
@@ -144,8 +133,8 @@ const Cart: React.FC<CartProps> = ({
           </div>
 
           {/* Cart Content - Scrollable Middle */}
-          <div className="min-h-0 flex-1 overflow-hidden">
-            <div className="h-full overflow-y-auto">
+          <ScrollArea className="min-h-0 flex-1">
+            <div className="p-0">
               <table className="w-full border-collapse">
                 <thead className="sticky top-0 bg-white">
                   <tr>
@@ -247,24 +236,26 @@ const Cart: React.FC<CartProps> = ({
                             )}
                           </td>
                           <td className="border-b border-gray-100 p-3 text-sm">
-                            <button
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
                               className={`p-1 transition-transform duration-200 ${item.editQuantity ? 'rotate-90' : ''}`}
                               onClick={() => toggleEditQuantity(item, index)}
-                              type="button"
                               title={__('Edit quantity', 'wepos')}
                             >
-                              <ChevronRight className="text-wepos-primary h-4 w-4" />
-                            </button>
+                              <ChevronRight className="h-4 w-4 text-wepos-primary" />
+                            </Button>
                           </td>
                           <td className="border-b border-gray-100 p-3 text-sm">
-                            <button
-                              className="p-1 text-red-500 transition-colors hover:text-red-700"
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              className="p-1 text-red-500 hover:bg-red-50 hover:text-red-700"
                               onClick={() => handleRemoveItem(index)}
-                              type="button"
                               title={__('Remove item', 'wepos')}
                             >
                               <X className="h-4 w-4" />
-                            </button>
+                            </Button>
                           </td>
                         </tr>
                         {item.editQuantity && (
@@ -278,7 +269,7 @@ const Cart: React.FC<CartProps> = ({
                                   {__('Quantity:', 'wepos')}
                                 </span>
                                 <div>
-                                  <input
+                                  <Input
                                     type="number"
                                     min="1"
                                     step="1"
@@ -288,30 +279,26 @@ const Cart: React.FC<CartProps> = ({
                                         quantity: parseInt(e.target.value) || 1,
                                       });
                                     }}
-                                    className="focus:ring-wepos-primary/20 focus:border-wepos-primary w-16 rounded border border-gray-300 px-2 py-1 text-center focus:ring-2"
+                                    className="h-8 w-16 text-center"
                                   />
                                 </div>
                                 <div className="flex gap-1">
-                                  <a
-                                    href="#"
-                                    className="bg-wepos-primary hover:bg-wepos-primary-hover border-wepos-primary h-8 w-8 cursor-pointer rounded text-center leading-8 text-white transition-colors select-none"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      addQuantity(item, index);
-                                    }}
+                                  <Button
+                                    variant="secondary"
+                                    size="icon-sm"
+                                    className="h-8 w-8"
+                                    onClick={() => addQuantity(item, index)}
                                   >
-                                    +
-                                  </a>
-                                  <a
-                                    href="#"
-                                    className="h-8 w-8 cursor-pointer rounded border border-gray-300 bg-gray-100 text-center leading-8 text-gray-600 transition-colors select-none hover:bg-gray-200"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      removeQuantity(item, index);
-                                    }}
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="icon-sm"
+                                    className="h-8 w-8"
+                                    onClick={() => removeQuantity(item, index)}
                                   >
-                                    -
-                                  </a>
+                                    <Minus className="h-4 w-4" />
+                                  </Button>
                                 </div>
                               </div>
                             </td>
@@ -337,7 +324,7 @@ const Cart: React.FC<CartProps> = ({
                 </tbody>
               </table>
             </div>
-          </div>
+          </ScrollArea>
 
           {/* Cart Footer - Fixed Bottom */}
           <div className="flex-shrink-0 border-t border-gray-200 bg-white">
@@ -376,14 +363,15 @@ const Cart: React.FC<CartProps> = ({
                         −{formatPrice(getDiscountAmount(discount))}
                       </td>
                       <td className="border-b border-gray-100 p-2 last:border-b-0">
-                        <button
-                          className="p-1 text-red-500 transition-colors hover:text-red-700"
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-red-500 hover:bg-red-50 hover:text-red-700"
                           onClick={() => removeDiscount(index)}
-                          type="button"
                           title={__('Remove discount', 'wepos')}
                         >
                           <X className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -403,14 +391,15 @@ const Cart: React.FC<CartProps> = ({
                         {formatPrice(getFeeAmount(fee))}
                       </td>
                       <td className="border-b border-gray-100 p-2 last:border-b-0">
-                        <button
-                          className="p-1 text-red-500 transition-colors hover:text-red-700"
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-red-500 hover:bg-red-50 hover:text-red-700"
                           onClick={() => removeFee(index)}
-                          type="button"
                           title={__('Remove fee', 'wepos')}
                         >
                           <X className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -466,14 +455,15 @@ const Cart: React.FC<CartProps> = ({
                         {customerNote}
                       </td>
                       <td className="border-b border-gray-100 p-2 last:border-b-0">
-                        <button
-                          className="p-1 text-red-500 transition-colors hover:text-red-700"
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-red-500 hover:bg-red-50 hover:text-red-700"
                           onClick={removeCustomerNote}
-                          type="button"
                           title={__('Remove note', 'wepos')}
                         >
                           <X className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                   )}
@@ -493,12 +483,12 @@ const Cart: React.FC<CartProps> = ({
               </table>
             </div>
 
-            <div
-              className="bg-wepos-primary hover:bg-wepos-primary-hover cursor-pointer px-6 py-4 text-center text-lg font-bold text-white transition-colors duration-200"
+            <Button
+              className="w-full h-14 rounded-none text-lg font-bold"
               onClick={onInitPayment}
             >
               {__('Checkout', 'wepos')} • {formatPrice(total)}
-            </div>
+            </Button>
           </div>
         </div>
       )}

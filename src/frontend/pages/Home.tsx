@@ -78,7 +78,6 @@ const HomePage: React.FC = () => {
 
   // UI State
   const [showHelp, setShowHelp] = useState(false);
-  const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [productView, setProductView] = useState<ProductViewType>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -210,7 +209,6 @@ const HomePage: React.FC = () => {
     });
     setShowPaymentReceipt(false);
     setCashAmount('');
-    setShowQuickMenu(false);
     window.history.pushState({}, '', window.location.pathname);
   }, [clearCart]);
 
@@ -494,9 +492,6 @@ const HomePage: React.FC = () => {
           </div>
 
           <Cart
-            selectedCustomer={selectedCustomer}
-            onCustomerSelected={handleCustomerSelected}
-            onShowQuickMenuToggle={setShowQuickMenu}
             onInitPayment={initPayment}
           />
         </div>

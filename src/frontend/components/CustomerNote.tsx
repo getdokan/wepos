@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Popover } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  Button,
+  Textarea,
+  Label,
+} from '@wedevs/plugin-ui';
 
 interface CustomerNoteProps {
   onAddNote: (note: string) => void;
@@ -48,67 +55,53 @@ const CustomerNote: React.FC<CustomerNoteProps> = ({
 
   return (
     <div className={`inline-block ${className || ''}`}>
-      <button
-        ref={buttonRef}
-        type="button"
-        className="focus:ring-opacity-20 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 focus:ring-2 focus:ring-gray-500"
-        onClick={() => setIsVisible(!isVisible)}
-      >
-        {__('Add Note', 'wepos')}
-      </button>
+      <Popover open={isVisible} onOpenChange={setIsVisible}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className="border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
+          >
+            {__('Add Note', 'wepos')}
+          </Button>
+        </PopoverTrigger>
 
-      {isVisible && (
-        <Popover
-          anchor={buttonRef.current}
-          placement="top"
-          onClose={() => setIsVisible(false)}
-          className="wepos-customer-note-popover"
-        >
-          <div className="w-80 rounded-lg border border-gray-200 bg-white p-4 shadow-lg">
-            <form onSubmit={handleAddNote}>
-              <div className="mb-3">
-                <label
-                  htmlFor="customer-note"
-                  className="mb-2 block text-sm font-medium text-gray-700"
-                >
-                  {__('Customer Note', 'wepos')}
-                </label>
-                <textarea
-                  ref={textareaRef}
-                  id="customer-note"
-                  value={noteText}
-                  onChange={(e) => setNoteText(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-                  rows={4}
-                  placeholder={__('Enter note for this order...', 'wepos')}
-                />
-              </div>
+        <PopoverContent className="w-80 p-4" align="start">
+          <form onSubmit={handleAddNote} className="flex flex-col gap-3">
+            <div>
+              <Label htmlFor="customer-note" className="mb-2 block">
+                {__('Customer Note', 'wepos')}
+              </Label>
+              <Textarea
+                ref={textareaRef}
+                id="customer-note"
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                onKeyDown={handleKeyPress}
+                className="resize-none"
+                rows={4}
+                placeholder={__('Enter note for this order...', 'wepos')}
+              />
+            </div>
 
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
-                  onClick={() => setIsVisible(false)}
-                >
-                  {__('Cancel', 'wepos')}
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={!noteText.trim()}
-                >
-                  {__('Add Note', 'wepos')}
-                </button>
-              </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="ghost"
+                type="button"
+                onClick={() => setIsVisible(false)}
+              >
+                {__('Cancel', 'wepos')}
+              </Button>
+              <Button type="submit" disabled={!noteText.trim()}>
+                {__('Add Note', 'wepos')}
+              </Button>
+            </div>
 
-              <div className="mt-2 text-xs text-gray-500">
-                {__('Press Ctrl+Enter to add note', 'wepos')}
-              </div>
-            </form>
-          </div>
-        </Popover>
-      )}
+            <div className="text-xs text-gray-500">
+              {__('Press Ctrl+Enter to add note', 'wepos')}
+            </div>
+          </form>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };

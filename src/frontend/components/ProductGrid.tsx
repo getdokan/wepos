@@ -1,7 +1,7 @@
 import React from 'react';
 import { __ } from '@wordpress/i18n';
 import { Plus, PackageX, Loader2 } from 'lucide-react';
-import { Card, CardContent } from '@wedevs/plugin-ui';
+import { Button, Card, CardContent } from '@wedevs/plugin-ui';
 import { POSProduct, ProductViewType, CartItem } from '../types';
 import ProductVariationSelector from './ProductVariationSelector';
 
@@ -34,8 +34,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({
     <div
       className={
         productView === 'grid'
-          ? 'grid h-full min-h-0 flex-1 grid-cols-2 gap-4 overflow-auto p-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'
-          : 'h-full min-h-0 flex-1 overflow-auto p-1'
+          ? 'grid h-full min-h-0 w-full flex-1 grid-cols-2 gap-4 overflow-auto p-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'
+          : 'h-full min-h-0 w-full flex-1 overflow-auto p-1'
       }
       ref={itemsWrapperRef}
     >
@@ -99,21 +99,25 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                             product={product}
                             onAddToCart={onAddToCartItem}
                           >
-                            <button
-                              className="bg-wepos-primary hover:bg-wepos-primary-hover focus:ring-wepos-primary/20 flex h-8 w-8 items-center justify-center rounded-full text-white transition-colors focus:ring-2 focus:outline-none sm:h-7 sm:w-7"
+                            <Button
+                              variant="default"
+                              size="icon-sm"
+                              className="rounded-full"
                               title={__('Select variations', 'wepos')}
                             >
                               <Plus className="h-4 w-4" />
-                            </button>
+                            </Button>
                           </ProductVariationSelector>
                         ) : hasStock(product) ? (
-                          <button
+                          <Button
+                            variant="default"
+                            size="icon-sm"
+                            className="rounded-full"
                             onClick={() => onAddToCart(product)}
-                            className="bg-wepos-primary hover:bg-wepos-primary-hover focus:ring-wepos-primary/20 flex h-8 w-8 items-center justify-center rounded-full text-white transition-colors focus:ring-2 focus:outline-none sm:h-7 sm:w-7"
                             title={__('Add to cart', 'wepos')}
                           >
                             <Plus className="h-4 w-4" />
-                          </button>
+                          </Button>
                         ) : (
                           <span className="text-xs text-gray-400">
                             {__('Out of stock', 'wepos')}
