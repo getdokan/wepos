@@ -68,96 +68,81 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           }
         >
           {productView === 'list' ? (
-            <Card className="w-full overflow-hidden border-gray-200 bg-white p-0 shadow-none ring-1 ring-gray-200">
-              {/* Table-like compact list view header */}
-              <div className="sticky top-0 z-10 grid grid-cols-12 gap-2 border-b border-gray-200 bg-gray-50 p-3 text-sm font-medium text-gray-700 max-[360px]:hidden sm:p-2 sm:text-xs">
-                <div className="col-span-1 flex items-center">
-                  {__('Image', 'wepos')}
-                </div>
-                <div className="col-span-5 flex items-center max-[480px]:col-span-6">
-                  {__('Product', 'wepos')}
-                </div>
-                <div className="col-span-2 flex items-center max-[480px]:col-span-1 max-[480px]:flex max-[768px]:hidden">
-                  {__('SKU', 'wepos')}
-                </div>
-                <div className="col-span-2 flex items-center max-[768px]:col-span-3">
-                  {__('Price', 'wepos')}
-                </div>
-                <div className="col-span-2 flex items-center justify-center">
-                  {__('Action', 'wepos')}
-                </div>
-              </div>
-              <div className="divide-y divide-gray-100 max-[360px]:space-y-2 max-[360px]:divide-y-0 max-[360px]:p-2">
-                {products.map((product) => (
-                  <div
-                    key={product.id}
-                    className={`grid cursor-pointer grid-cols-12 items-center gap-2 p-3 transition-colors hover:bg-gray-50 max-[360px]:mb-2 max-[360px]:block max-[360px]:rounded-lg max-[360px]:border max-[360px]:border-gray-200 max-[360px]:p-3 sm:gap-1 sm:p-2 sm:text-xs ${!hasStock(product) ? 'cursor-not-allowed opacity-50 hover:bg-transparent' : ''}`}
-                  >
-                    <div className="col-span-1 flex items-center max-[360px]:col-span-auto max-[360px]:mb-2">
-                      <Thumbnail
-                        src={getProductImage(product)}
-                        alt={product.name}
-                        size="lg"
-                        className="rounded-lg border border-gray-200 max-[360px]:mx-auto max-[360px]:h-16 max-[360px]:w-16 sm:h-10 sm:w-10"
-                      />
+            <div className="flex flex-col gap-3">
+              {products.map((product) => (
+                <Card
+                  key={product.id}
+                  className={`flex flex-row items-center gap-4 p-3 shadow-none transition-all duration-200 hover:border-primary/50 hover:shadow-md ${!hasStock(product) ? 'opacity-50' : 'cursor-pointer'}`}
+                  onClick={() =>
+                    product.type !== 'variable' &&
+                    hasStock(product) &&
+                    onAddToCart(product)
+                  }
+                >
+                  <Thumbnail
+                    src={getProductImage(product)}
+                    alt={product.name}
+                    size={64}
+                    className="rounded-lg border border-gray-100"
+                  />
+                  <div className="flex flex-1 flex-col justify-center text-left">
+                    <div className="text-base font-bold text-gray-800">
+                      {product.name}
                     </div>
-                    <div className="col-span-5 flex items-center max-[360px]:col-span-auto max-[360px]:mb-2 max-[360px]:block max-[480px]:col-span-6">
-                      <div className="font-medium text-gray-800">
-                        {product.name}
-                      </div>
-                    </div>
-                    <div className="col-span-2 flex items-center max-[360px]:col-span-auto max-[360px]:mb-2 max-[360px]:block max-[480px]:col-span-1 max-[480px]:flex max-[768px]:hidden">
-                      <span className="text-sm text-gray-600 sm:text-xs">
-                        {product.sku || '-'}
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
+                      <span>
+                        <span className="font-medium">{__('Sku :', 'wepos')}</span> {product.sku || '-'}
+                      </span>
+                      <span className="text-gray-200">|</span>
+                      <span>
+                        <span className="font-medium">{__('Price :', 'wepos')}</span>{' '}
+                        <span
+                          dangerouslySetInnerHTML={{
+                            __html: product.price_html,
+                          }}
+                        />
                       </span>
                     </div>
-                    <div className="col-span-2 flex items-center max-[360px]:col-span-auto max-[360px]:mb-2 max-[360px]:block max-[768px]:col-span-3">
-                      <span
-                        className="text-sm font-medium sm:text-xs"
-                        dangerouslySetInnerHTML={{
-                          __html: product.price_html,
-                        }}
-                      ></span>
-                    </div>
-                    <div className="col-span-2 flex items-center justify-center max-[360px]:col-span-auto max-[360px]:block">
-                      {product.type === 'variable' && hasStock(product) ? (
-                        <ProductVariationSelector
-                          product={product}
-                          onAddToCart={onAddToCartItem}
-                        >
-                          <Button
-                            variant="default"
-                            size="icon-sm"
-                            className="rounded-full"
-                            title={__('Select variations', 'wepos')}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </ProductVariationSelector>
-                      ) : hasStock(product) ? (
-                        <Button
-                          variant="default"
-                          size="icon-sm"
-                          className="rounded-full"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onAddToCart(product);
-                          }}
-                          title={__('Add to cart', 'wepos')}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      ) : (
-                        <Badge variant="destructive" className="bg-transparent text-[10px] text-gray-400 border-gray-200!">
-                          {__('Out of stock', 'wepos')}
-                        </Badge>
-                      )}
-                    </div>
                   </div>
-                ))}
-              </div>
-            </Card>
+                  <div className="flex items-center justify-center px-2">
+                    {product.type === 'variable' && hasStock(product) ? (
+                      <ProductVariationSelector
+                        product={product}
+                        onAddToCart={onAddToCartItem}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 text-primary hover:bg-primary/5 hover:text-primary"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Plus className="h-7 w-7" />
+                        </Button>
+                      </ProductVariationSelector>
+                    ) : hasStock(product) ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 text-primary hover:bg-primary/5 hover:text-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddToCart(product);
+                        }}
+                      >
+                        <Plus className="h-7 w-7" />
+                      </Button>
+                    ) : (
+                      <Badge
+                        variant="destructive"
+                        className="bg-transparent text-[10px] text-gray-400 border-gray-200!"
+                      >
+                        {__('Out of stock', 'wepos')}
+                      </Badge>
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
           ) : (
             products.map((product) => {
               const inStock = hasStock(product);
