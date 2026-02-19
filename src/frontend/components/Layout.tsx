@@ -20,7 +20,7 @@ interface LayoutProps {
   return (
     <PUILayout
       key="sidebar-true-left"
-      className="bg-background"
+      className="bg-background h-screen fixed inset-0 overflow-hidden"
       defaultSidebarOpen
       sidebarBreakpoint="lg"
       sidebarPosition="left"
@@ -29,12 +29,12 @@ interface LayoutProps {
       <LayoutHeader className="h-16 bg-white px-6">
         {headerContent}
       </LayoutHeader>
-      <LayoutBody>
+      <LayoutBody className="h-[calc(100vh-64px)] overflow-hidden">
         <React.Fragment key=".0">
-          <LayoutSidebar>
+          <LayoutSidebar className="h-full">
             <Sidebar />
           </LayoutSidebar>
-          <LayoutMain>{children}</LayoutMain>
+          <LayoutMain className="h-full overflow-hidden">{children}</LayoutMain>
         </React.Fragment>
       </LayoutBody>
     </PUILayout>

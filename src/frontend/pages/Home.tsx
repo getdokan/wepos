@@ -28,7 +28,13 @@ import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
 
 // Import components
-import { LayoutHeader } from '@wedevs/plugin-ui';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  LayoutHeader,
+} from '@wedevs/plugin-ui';
 import Layout from '../components/Layout';
 import ProductGrid from '../components/ProductGrid';
 import Cart from '../components/Cart';
@@ -39,6 +45,8 @@ import SearchBar from '../components/SearchBar';
 import CategoryFilter from '../components/CategoryFilter';
 import ProductViewToggle from '../components/ProductViewToggle';
 import CustomerSearch from '../components/CustomerSearch';
+import { MoreVertical } from 'lucide-react';
+import { __ } from '@wordpress/i18n';
 
 const HomePage: React.FC = () => {
   // Initialize data using the hook
@@ -72,6 +80,7 @@ const HomePage: React.FC = () => {
   const [showHelp, setShowHelp] = useState(false);
   const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [productView, setProductView] = useState<ProductViewType>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showPaymentReceipt, setShowPaymentReceipt] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<POSCategory | null>(
@@ -147,9 +156,19 @@ const HomePage: React.FC = () => {
   const getFilteredProduct = useMemo(() => {
     let filteredProducts = products;
 
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filteredProducts = products.filter(
+        (product: POSProduct) =>
+          product.name.toLowerCase().includes(query) ||
+          (product.sku && product.sku.toLowerCase().includes(query)),
+      );
+    }
+
     // Filter by selected category (only if one is selected and it's not "All Categories")
     if (selectedCategory && selectedCategory.id > 0) {
-      filteredProducts = products.filter((product: POSProduct) =>
+      filteredProducts = filteredProducts.filter((product: POSProduct) =>
         product.categories.some(
           (cat: { id: number; name: string }) => cat.id === selectedCategory.id,
         ),
@@ -171,7 +190,7 @@ const HomePage: React.FC = () => {
     }
 
     return filteredProducts;
-  }, [products, selectedCategory]);
+  }, [products, selectedCategory, searchQuery]);
 
   // UI Actions
   const toggleProductView = useCallback(() => {
@@ -408,8 +427,8 @@ const HomePage: React.FC = () => {
       headerContent={
         <div className="flex flex-1 items-center gap-4">
           <div className="flex items-center gap-2">
-            <SearchBar />
-            <div className="h-6 w-px bg-gray-200 mx-1 hidden lg:block"></div>
+            <SearchBar value={searchQuery} onChange={setSearchQuery} />
+            <div className="mx-1 hidden h-6 w-px bg-gray-200 lg:block"></div>
             <CategoryFilter
               categories={categories}
               selectedCategory={selectedCategory}
@@ -430,13 +449,36 @@ const HomePage: React.FC = () => {
               onCustomerSelected={handleCustomerSelected}
             />
           </div>
+          <div>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="hover:bg-accent hover:text-accent-foreground flex items-center justify-center rounded-md p-2 ring transition-colors outline-none">
+                <MoreVertical className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={clearCart}>
+                  {__('Empty Cart', 'wepos')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowHelp(true)}>
+                  {__('Help', 'wepos')}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() =>
+                    (window.location.href = (window as any).wepos?.logout_url)
+                  }
+                >
+                  {__('Logout', 'wepos')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       }
     >
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
         {/* Main Content + Cart Area */}
-        <div className="flex flex-1 overflow-hidden md:flex-row">
-          <div className="flex flex-1 flex-col overflow-hidden bg-gray-50/30 p-6">
+        <div className="flex h-full min-h-0 flex-1 flex-row overflow-hidden">
+          <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-gray-50/30 p-4">
             <ProductGrid
               products={getFilteredProduct}
               productView={productView}
@@ -452,12 +494,9 @@ const HomePage: React.FC = () => {
           </div>
 
           <Cart
-            showQuickMenu={showQuickMenu}
             selectedCustomer={selectedCustomer}
             onCustomerSelected={handleCustomerSelected}
             onShowQuickMenuToggle={setShowQuickMenu}
-            onEmptyCart={clearCart}
-            onShowHelp={() => setShowHelp(true)}
             onInitPayment={initPayment}
           />
         </div>

@@ -3,7 +3,12 @@ import { __ } from '@wordpress/i18n';
 import { Search } from 'lucide-react';
 import { Input } from '@wedevs/plugin-ui';
 
-const SearchBar: React.FC = () => {
+interface SearchBarProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
   return (
     <div className="relative w-full flex-1 md:w-64">
       <div className="relative flex items-center">
@@ -13,6 +18,8 @@ const SearchBar: React.FC = () => {
           id="product-search"
           placeholder={__('Search products...', 'wepos')}
           className="h-10 pl-10 pr-4 bg-transparent border-none shadow-none focus-visible:ring-0 focus-visible:border-none"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
         />
       </div>
     </div>

@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@mathieustan/vue-datepicker": "^0.2.11",
-    "@wedevs/plugin-ui": "github:getdokan/plugin-ui",
+    "@wedevs/plugin-ui": "file:../plugin-ui",
     "@wordpress/api-fetch": "^7.24.0",
     "@wordpress/components": "^29.10.0",
     "@wordpress/data": "^10.24.0",

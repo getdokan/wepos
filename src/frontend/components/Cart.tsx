@@ -27,12 +27,7 @@ interface CartProps {
 }
 
 const Cart: React.FC<CartProps> = ({
-  showQuickMenu,
-  selectedCustomer,
-  onCustomerSelected,
-  onShowQuickMenuToggle,
   onEmptyCart,
-  onShowHelp,
   onInitPayment,
 }) => {
   // Use WordPress data hooks for cart data
@@ -133,7 +128,7 @@ const Cart: React.FC<CartProps> = ({
   };
 
   return (
-    <div className="shadow-wepos flex flex-none flex-col bg-white md:h-screen md:w-96">
+    <div className="shadow-wepos flex h-full flex-none flex-col bg-white w-1/2">
       {settings.wepos_general && (
         <div className="flex h-full flex-col">
           {/* Cart Header - Fixed Top */}
@@ -145,60 +140,11 @@ const Cart: React.FC<CartProps> = ({
                   {__('Cart', 'wepos')}
                 </h2>
               </div>
-
-              <div className="relative flex-shrink-0">
-                <button
-                  className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all duration-200 focus:outline-none"
-                  onClick={() => onShowQuickMenuToggle(!showQuickMenu)}
-                  type="button"
-                  title={__('More options', 'wepos')}
-                >
-                  <MoreVertical className="h-5 w-5" />
-                </button>
-                {showQuickMenu && (
-                  <div className="absolute top-full right-0 z-20 mt-2 min-w-40 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
-                    <ul className="list-none">
-                      <li>
-                        <a
-                          href="#"
-                          onClick={handleEmptyCart}
-                          className="block cursor-pointer px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
-                        >
-                          {__('Empty Cart', 'wepos')}
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          href="#"
-                          onClick={onShowHelp}
-                          className="block cursor-pointer px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
-                        >
-                          {__('Help', 'wepos')}
-                        </a>
-                      </li>
-                      <li className="my-1 border-t border-gray-200"></li>
-                      <li>
-                        <a
-                          href="#"
-                          onClick={() =>
-                            (window.location.href = (
-                              window as any
-                            ).wepos?.logout_url)
-                          }
-                          className="block cursor-pointer px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
-                        >
-                          {__('Logout', 'wepos')}
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
 
           {/* Cart Content - Scrollable Middle */}
-          <div className="flex-1 overflow-hidden">
+          <div className="min-h-0 flex-1 overflow-hidden">
             <div className="h-full overflow-y-auto">
               <table className="w-full border-collapse">
                 <thead className="sticky top-0 bg-white">

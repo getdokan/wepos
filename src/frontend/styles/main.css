@@ -2,6 +2,14 @@
 @import "tailwindcss";
 @import '@wedevs/plugin-ui/styles.css';
 
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
 /* Source paths for Tailwind to scan */
 @source "../../frontend";
 

@@ -34,8 +34,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({
     <div
       className={
         productView === 'grid'
-          ? 'grid flex-1 grid-cols-2 gap-4 overflow-auto p-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'
-          : 'flex-1 overflow-auto p-1'
+          ? 'grid h-full min-h-0 flex-1 grid-cols-2 gap-4 overflow-auto p-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'
+          : 'h-full min-h-0 flex-1 overflow-auto p-1'
       }
       ref={itemsWrapperRef}
     >
@@ -129,21 +129,21 @@ const ProductGrid: React.FC<ProductGridProps> = ({
               products.map((product) => (
                 <Card
                   key={product.id}
-                  className={`hover:border-primary/50 group cursor-pointer border-gray-200 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${!hasStock(product) ? 'opacity-50' : ''}`}
+                  className={`group cursor-pointer border-gray-200 transition-all duration-200 hover:-translate-y-1 hover:border-primary/50 hover:shadow-lg ${!hasStock(product) ? 'opacity-50' : ''}`}
                 >
                   <div
-                    className="flex h-full flex-col"
+                    className="flex flex-col"
                     onClick={() =>
                       product.type !== 'variable' &&
                       hasStock(product) &&
                       onAddToCart(product)
                     }
                   >
-                    <div className="relative aspect-square overflow-hidden bg-gray-100">
+                    <div className="relative w-full overflow-hidden bg-gray-100 pb-[100%]">
                       <img
                         src={getProductImage(product)}
                         alt={product.name}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                       {hasStock(product) && (
                         <div className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
