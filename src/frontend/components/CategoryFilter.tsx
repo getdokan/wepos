@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { __ } from '@wordpress/i18n';
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
+  Combobox,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxList,
+  ComboboxItem,
+  ComboboxEmpty,
 } from '@wedevs/plugin-ui';
 import { POSCategory } from '../types';
+import { RawHTML } from '@wordpress/element';
 
 interface CategoryFilterProps {
   categories: POSCategory[];
@@ -20,33 +22,47 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   selectedCategory,
   onCategoryChange,
 }) => {
+  const allCategory = useMemo(() => ({ id: 'all', name: __('All Categories', 'wepos') }), []);
+
+  const items = useMemo(() => [
+    allCategory,
+    ...categories.map(cat => ({ id: cat.id.toString(), name: cat.name }))
+  ], [categories, allCategory]);
+
+  const selectedValue = useMemo(() => {
+    if (!selectedCategory) return allCategory;
+    return items.find(item => item.id === selectedCategory.id.toString()) || allCategory;
+  }, [selectedCategory, items, allCategory]);
+
   return (
-    <div className="w-full md:w-48">
-      <Select
-        value={selectedCategory?.id.toString() || ''}
-        onValueChange={(value) => {
-          if (value === '' || value === 'all') {
-            onCategoryChange(null);
-          } else {
-            const category =
-              categories.find((cat) => cat.id.toString() === value) || null;
-            onCategoryChange(category);
-          }
-        }}
-      >
-        <SelectTrigger className="h-10 w-full border-none bg-transparent shadow-none focus-visible:ring-0">
-          <SelectValue placeholder={__('All Categories', 'wepos')} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{__('All Categories', 'wepos')}</SelectItem>
-          {categories.map((category) => (
-            <SelectItem key={category.id} value={category.id.toString()}>
-              {category.name}
-            </SelectItem>
+    <Combobox
+      items={items}
+      value={selectedValue}
+      onValueChange={(val: any) => {
+        if (!val || val.id === 'all') {
+          onCategoryChange(null);
+        } else {
+          const originalCategory = categories.find(
+            (cat) => cat.id.toString() === val.id,
+          );
+          onCategoryChange(originalCategory || null);
+        }
+      }}
+      itemToStringLabel={(item: any) => item?.name}
+      itemToStringValue={(item: any) => item?.id}
+    >
+      <ComboboxInput placeholder={__('Select a category', 'wepos')} />
+      <ComboboxContent>
+        <ComboboxList>
+          {items.map((item) => (
+            <ComboboxItem key={item.id} value={item}>
+              <RawHTML>{item.name}</RawHTML>
+            </ComboboxItem>
           ))}
-        </SelectContent>
-      </Select>
-    </div>
+        </ComboboxList>
+        <ComboboxEmpty>{__('No category found.', 'wepos')}</ComboboxEmpty>
+      </ComboboxContent>
+    </Combobox>
   );
 };
 
