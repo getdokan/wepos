@@ -3,12 +3,11 @@ import { __ } from '@wordpress/i18n';
 import { useSelect, useDispatch } from '@wordpress/data';
 import {
   Plus,
-  ChevronRight,
   X,
   ShoppingCart,
   Minus,
 } from 'lucide-react';
-import { Button, Input, Separator, ScrollArea } from '@wedevs/plugin-ui';
+import { Button, ScrollArea } from '@wedevs/plugin-ui';
 import { POSCartItem } from '../types';
 import FeeKeypad from './FeeKeypad';
 import CustomerNote from './CustomerNote';
@@ -69,10 +68,6 @@ const Cart: React.FC<CartProps> = ({
     removeCustomerNote,
   } = useDispatch(CART_STORE_NAME) as any;
 
-  const toggleEditQuantity = (item: POSCartItem, index: number) => {
-    updateCartItem(index, { editQuantity: !item.editQuantity });
-  };
-
   const addQuantity = (item: POSCartItem, index: number) => {
     updateCartItem(index, { quantity: item.quantity + 1 });
   };
@@ -117,7 +112,7 @@ const Cart: React.FC<CartProps> = ({
   };
 
   return (
-    <div className="shadow-wepos flex h-full flex-none flex-col bg-white w-1/2">
+    <div className="shadow-wepos flex h-full flex-none flex-col bg-white w-[35%]">
       {settings.wepos_general && (
         <div className="flex h-full flex-col">
           {/* Cart Header - Fixed Top */}
@@ -139,30 +134,32 @@ const Cart: React.FC<CartProps> = ({
                 <thead className="sticky top-0 bg-white">
                   <tr>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-sm font-semibold text-gray-700"
-                      style={{ width: '50%' }}
-                    >
-                      {__('Product', 'wepos')}
-                    </th>
-                    <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-sm font-semibold text-gray-700"
-                      style={{ width: '15%' }}
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                      style={{ width: '20%' }}
                     >
                       {__('Qty', 'wepos')}
                     </th>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-sm font-semibold text-gray-700"
-                      style={{ width: '25%' }}
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                      style={{ width: '40%' }}
+                    >
+                      {__('Name', 'wepos')}
+                    </th>
+                    <th
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                      style={{ width: '15%' }}
                     >
                       {__('Price', 'wepos')}
                     </th>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-sm font-semibold text-gray-700"
-                      style={{ width: '5%' }}
-                    ></th>
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                      style={{ width: '15%' }}
+                    >
+                      {__('Total', 'wepos')}
+                    </th>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-sm font-semibold text-gray-700"
-                      style={{ width: '5%' }}
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                      style={{ width: '10%' }}
                     ></th>
                   </tr>
                 </thead>
@@ -170,25 +167,48 @@ const Cart: React.FC<CartProps> = ({
                   {cartItems.length > 0 ? (
                     cartItems.map((item: POSCartItem, index: number) => (
                       <React.Fragment key={item.id}>
-                        <tr className="transition-colors hover:bg-gray-50">
-                          <td
-                            className="cursor-pointer border-b border-gray-100 p-3 text-sm"
-                            onClick={() => toggleEditQuantity(item, index)}
-                          >
+                        <tr className="transition-colors hover:bg-gray-50 border-b border-gray-100">
+                          {/* QTY Column */}
+                          <td className="p-3 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="icon-sm"
+                                className="h-8 w-8 bg-gray-100 border-none hover:bg-gray-200 text-gray-600 rounded"
+                                onClick={() => removeQuantity(item, index)}
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                              <span className="w-8 text-center font-medium">
+                                {item.quantity}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="icon-sm"
+                                className="h-8 w-8 bg-gray-100 border-none hover:bg-gray-200 text-gray-600 rounded"
+                                onClick={() => addQuantity(item, index)}
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+
+                          {/* NAME Column */}
+                          <td className="p-3 text-sm">
                             <div className="font-medium text-gray-800">
                               {item.name}
                             </div>
                             {item.attribute &&
                               item.attribute.length > 0 &&
                               item.type === 'variable' && (
-                                <div className="mt-1 text-xs text-gray-600">
+                                <div className="mt-1 text-xs text-gray-500">
                                   {item.attribute.map(
                                     (attr: any, attrIndex: number) => (
                                       <span
                                         key={attrIndex}
                                         className="mr-2 inline-block"
                                       >
-                                        <span className="font-medium text-gray-500">
+                                        <span className="font-medium">
                                           {attr.name}:
                                         </span>
                                         <span className="ml-1">
@@ -204,53 +224,39 @@ const Cart: React.FC<CartProps> = ({
                                 </div>
                               )}
                           </td>
-                          <td
-                            className="cursor-pointer border-b border-gray-100 p-3 text-sm"
-                            onClick={() => toggleEditQuantity(item, index)}
-                          >
-                            <span className="inline-block min-w-8 rounded bg-gray-100 px-2 py-1 text-center font-medium">
-                              {item.quantity}
-                            </span>
-                          </td>
-                          <td
-                            className="cursor-pointer border-b border-gray-100 p-3 text-sm"
-                            onClick={() => toggleEditQuantity(item, index)}
-                          >
+
+                          {/* PRICE Column */}
+                          <td className="p-3 text-sm text-gray-600">
                             {item.on_sale ? (
-                              <div className="space-y-1">
-                                <div className="font-semibold text-red-600">
-                                  {formatPrice(item.quantity * item.sale_price)}
-                                </div>
-                                <div className="text-xs text-gray-400 line-through">
-                                  {formatPrice(
-                                    item.quantity * item.regular_price,
-                                  )}
-                                </div>
+                              <div className="flex flex-col">
+                                <span className="text-red-600 font-medium">
+                                  {formatPrice(item.sale_price)}
+                                </span>
+                                <span className="text-xs text-gray-400 line-through">
+                                  {formatPrice(item.regular_price)}
+                                </span>
                               </div>
                             ) : (
-                              <span className="font-semibold text-gray-800">
-                                {formatPrice(
-                                  item.quantity * item.regular_price,
-                                )}
-                              </span>
+                              <span>{formatPrice(item.regular_price)}</span>
                             )}
                           </td>
-                          <td className="border-b border-gray-100 p-3 text-sm">
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              className={`p-1 transition-transform duration-200 ${item.editQuantity ? 'rotate-90' : ''}`}
-                              onClick={() => toggleEditQuantity(item, index)}
-                              title={__('Edit quantity', 'wepos')}
-                            >
-                              <ChevronRight className="h-4 w-4 text-wepos-primary" />
-                            </Button>
+
+                          {/* TOTAL Column */}
+                          <td className="p-3 text-sm font-bold text-gray-800">
+                            {formatPrice(
+                              item.quantity *
+                                (item.on_sale
+                                  ? item.sale_price
+                                  : item.regular_price),
+                            )}
                           </td>
-                          <td className="border-b border-gray-100 p-3 text-sm">
+
+                          {/* Delete Column */}
+                          <td className="p-3 text-sm text-right">
                             <Button
                               variant="ghost"
                               size="icon-sm"
-                              className="p-1 text-red-500 hover:bg-red-50 hover:text-red-700"
+                              className="h-8 w-8 rounded-full bg-red-500 text-white hover:bg-red-600 p-0 flex items-center justify-center border-none"
                               onClick={() => handleRemoveItem(index)}
                               title={__('Remove item', 'wepos')}
                             >
@@ -258,52 +264,6 @@ const Cart: React.FC<CartProps> = ({
                             </Button>
                           </td>
                         </tr>
-                        {item.editQuantity && (
-                          <tr className="bg-gray-50">
-                            <td
-                              colSpan={5}
-                              className="border-b border-gray-100 p-3 text-sm"
-                            >
-                              <div className="flex items-center gap-3 py-2">
-                                <span className="text-sm font-medium">
-                                  {__('Quantity:', 'wepos')}
-                                </span>
-                                <div>
-                                  <Input
-                                    type="number"
-                                    min="1"
-                                    step="1"
-                                    value={item.quantity}
-                                    onChange={(e) => {
-                                      updateCartItem(index, {
-                                        quantity: parseInt(e.target.value) || 1,
-                                      });
-                                    }}
-                                    className="h-8 w-16 text-center"
-                                  />
-                                </div>
-                                <div className="flex gap-1">
-                                  <Button
-                                    variant="secondary"
-                                    size="icon-sm"
-                                    className="h-8 w-8"
-                                    onClick={() => addQuantity(item, index)}
-                                  >
-                                    <Plus className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="icon-sm"
-                                    className="h-8 w-8"
-                                    onClick={() => removeQuantity(item, index)}
-                                  >
-                                    <Minus className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
                       </React.Fragment>
                     ))
                   ) : (

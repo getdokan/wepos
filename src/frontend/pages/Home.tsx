@@ -34,6 +34,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   LayoutHeader,
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
 } from '@wedevs/plugin-ui';
 import Layout from '../components/Layout';
 import ProductGrid from '../components/ProductGrid';
