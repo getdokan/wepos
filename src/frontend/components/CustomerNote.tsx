@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { __ } from '@wordpress/i18n';
 import {
   Popover,
@@ -14,14 +14,22 @@ interface CustomerNoteProps {
   className?: string;
 }
 
-const CustomerNote: React.FC<CustomerNoteProps> = ({
+export interface CustomerNoteHandle {
+  open: () => void;
+}
+
+const CustomerNote = forwardRef<CustomerNoteHandle, CustomerNoteProps>(({
   onAddNote,
   className,
-}) => {
+}, ref) => {
   const [isVisible, setIsVisible] = useState(false);
   const [noteText, setNoteText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    open: () => setIsVisible(true),
+  }));
 
   // Focus textarea when popover opens
   useEffect(() => {
@@ -104,6 +112,6 @@ const CustomerNote: React.FC<CustomerNoteProps> = ({
       </Popover>
     </div>
   );
-};
+});
 
 export default CustomerNote;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, forwardRef, useImperativeHandle } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useSelect, useDispatch } from '@wordpress/data';
 import {
@@ -16,24 +16,46 @@ import {
   DropdownMenuTrigger,
 } from '@wedevs/plugin-ui';
 import { POSCartItem } from '../types';
-import FeeKeypad from './FeeKeypad';
-import CustomerNote from './CustomerNote';
+import FeeKeypad, { FeeKeypadHandle } from './FeeKeypad';
+import CustomerNote, { CustomerNoteHandle } from './CustomerNote';
 import { formatPrice } from '../utils/helpers';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
-import CustomerSearch from '../components/CustomerSearch';
+import CustomerSearch, { CustomerSearchHandle } from '../components/CustomerSearch';
 
 interface CartProps {
   onInitPayment: () => void;
   [name: string]: any;
 }
 
-const Cart: React.FC<CartProps> = ({
+export interface CartHandle {
+  openDiscount: () => void;
+  openFee: () => void;
+  openNote: () => void;
+  focusCustomerSearch: () => void;
+  openNewCustomer: () => void;
+}
+
+const Cart = forwardRef<CartHandle, CartProps>(({
   onInitPayment,
   selectedCustomer,
   handleCustomerSelected,
   setShowHelp,
-}) => {
+}, ref) => {
+  // Refs for child components
+  const discountRef = useRef<FeeKeypadHandle>(null);
+  const feeRef = useRef<FeeKeypadHandle>(null);
+  const noteRef = useRef<CustomerNoteHandle>(null);
+  const customerSearchRef = useRef<CustomerSearchHandle>(null);
+
+  useImperativeHandle(ref, () => ({
+    openDiscount: () => discountRef.current?.open(),
+    openFee: () => feeRef.current?.open(),
+    openNote: () => noteRef.current?.open(),
+    focusCustomerSearch: () => customerSearchRef.current?.focus(),
+    openNewCustomer: () => customerSearchRef.current?.openNewCustomer(),
+  }));
+
   // Use WordPress data hooks for cart data
   const {
     cartItems,
@@ -129,6 +151,7 @@ const Cart: React.FC<CartProps> = ({
           {/* Cart Header - Fixed Top */}
           <div className="flex flex-row justify-between gap-2.5 p-2 pt-0">
             <CustomerSearch
+              ref={customerSearchRef}
               selectedCustomer={selectedCustomer}
               onCustomerSelected={handleCustomerSelected}
               className="w-full"
@@ -414,17 +437,19 @@ const Cart: React.FC<CartProps> = ({
               <div className="border-b border-gray-100 p-4">
                 <div className="flex flex-wrap gap-2">
                   <FeeKeypad
+                    ref={discountRef}
                     name={__('Discount', 'wepos')}
                     onInputFee={handleDiscountInput}
                     isDiscount={true}
                   />
                   <FeeKeypad
+                    ref={feeRef}
                     name={__('Fee', 'wepos')}
                     onInputFee={handleFeeInput}
                     isDiscount={false}
                   />
                   {!customerNote && (
-                    <CustomerNote onAddNote={handleAddNote} />
+                    <CustomerNote ref={noteRef} onAddNote={handleAddNote} />
                   )}
                 </div>
               </div>
@@ -474,6 +499,6 @@ const Cart: React.FC<CartProps> = ({
       )}
     </div>
   );
-};
+});
 
 export default Cart;

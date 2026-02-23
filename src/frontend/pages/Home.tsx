@@ -33,7 +33,7 @@ import {
 } from '@wedevs/plugin-ui';
 import Layout from '../components/Layout';
 import ProductGrid from '../components/ProductGrid';
-import Cart from '../components/Cart';
+import Cart, { CartHandle } from '../components/Cart';
 import PaymentModal from '../components/PaymentModal';
 import ReceiptModal from '../components/ReceiptModal';
 import HelpModal from '../components/HelpModal';
@@ -103,6 +103,7 @@ const HomePage: React.FC = () => {
   // Refs
   const itemsWrapperRef = useRef<HTMLDivElement>(null);
   const cashAmountRef = useRef<HTMLInputElement>(null);
+  const cartRef = useRef<CartHandle>(null);
 
   // Cart functions for ProductGrid
   const handleAddToCart = useCallback(
@@ -339,13 +340,97 @@ const HomePage: React.FC = () => {
     }
   };
 
+  // Keep a ref to processPayment so the keyboard handler always has the latest version
+  const processPaymentRef = useRef(processPayment);
+  useEffect(() => {
+    processPaymentRef.current = processPayment;
+  });
+
+  // Print receipt helper
+  const printReceipt = useCallback(() => {
+    const receiptElement = document.getElementById('wepos-print-receipt');
+    if (receiptElement) {
+      const printWindow = window.open('', '_blank', 'width=800,height=600');
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>WePos Receipt</title>
+            <style>
+              @page { margin: 0; }
+              body { margin: 0; padding: 8px; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.3; color: black; background: white; }
+              table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 8px; }
+              th, td { padding: 2px 1px; border-bottom: 1px solid #ddd; text-align: left; }
+              th { font-weight: bold; border-bottom: 1px solid #000; }
+              .total-line, .final-total { display: flex; justify-content: space-between; margin-bottom: 2px; }
+              .final-total { font-weight: bold; border-top: 1px solid #000; padding-top: 4px; margin-top: 4px; }
+            </style>
+          </head>
+          <body>${receiptElement.innerHTML}</body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+        printWindow.close();
+      }
+    }
+  }, []);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // When payment modal is open, only handle payment-related shortcuts
+      if (showModal) {
+        if (e.key === 'F10') {
+          e.preventDefault();
+          processPaymentRef.current();
+        }
+        return;
+      }
+
+      // When receipt is showing, handle receipt shortcuts
+      if (showPaymentReceipt) {
+        if (e.key === 'p' && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          printReceipt();
+        }
+        return;
+      }
+
+      // Main sale view shortcuts
       switch (e.key) {
+        case 'F1':
+          e.preventDefault();
+          document.getElementById('product-search')?.focus();
+          break;
+        case 'F2':
+          e.preventDefault();
+          document.getElementById('product-search')?.focus();
+          break;
         case 'F3':
           e.preventDefault();
           toggleProductView();
+          break;
+        case 'F4':
+          e.preventDefault();
+          cartRef.current?.openFee();
+          break;
+        case 'F5':
+          e.preventDefault();
+          cartRef.current?.openDiscount();
+          break;
+        case 'F6':
+          e.preventDefault();
+          cartRef.current?.openNote();
+          break;
+        case 'F7':
+          e.preventDefault();
+          if (e.shiftKey) {
+            cartRef.current?.openNewCustomer();
+          } else {
+            cartRef.current?.focusCustomerSearch();
+          }
           break;
         case 'F8':
           e.preventDefault();
@@ -359,6 +444,10 @@ const HomePage: React.FC = () => {
           e.preventDefault();
           initPayment();
           break;
+        case 'F10':
+          e.preventDefault();
+          initPayment();
+          break;
         case 'Escape':
           e.preventDefault();
           backToSale();
@@ -369,12 +458,17 @@ const HomePage: React.FC = () => {
             setShowHelp((prev) => !prev);
           }
           break;
+        case 'p':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+          }
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleProductView, clearCart, createNewSale, initPayment, backToSale]);
+  }, [showModal, showPaymentReceipt, toggleProductView, clearCart, createNewSale, initPayment, backToSale, printReceipt]);
 
   // Initialize data only once
   useEffect(() => {
@@ -441,6 +535,7 @@ const HomePage: React.FC = () => {
           <Separator orientation="vertical" className="h-full" />
 
           <Cart
+            ref={cartRef}
             onInitPayment={initPayment}
             selectedCustomer={selectedCustomer}
             handleCustomerSelected={handleCustomerSelected}

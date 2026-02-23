@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { __ } from '@wordpress/i18n';
 import { Plus, CornerDownLeft, Edit3, Users } from 'lucide-react';
 import {
@@ -29,13 +29,18 @@ interface CustomerSearchProps {
   className?: string;
 }
 
-const CustomerSearch: React.FC<CustomerSearchProps> = ({
+export interface CustomerSearchHandle {
+  focus: () => void;
+  openNewCustomer: () => void;
+}
+
+const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
   selectedCustomer,
   onCustomerSelected,
   onFocus,
   onBlur,
   className=''
-}) => {
+}, ref) => {
   // State management
   const [searchValue, setSearchValue] = useState('');
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -48,6 +53,14 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
   // Refs
   const searchInputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
+
+  useImperativeHandle(ref, () => ({
+    focus: () => searchInputRef.current?.focus(),
+    openNewCustomer: () => {
+      setEditingCustomer(null);
+      setShowCustomerModal(true);
+    },
+  }));
 
   // Update search value when customer is selected externally
   useEffect(() => {
@@ -369,6 +382,6 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
       />
     </div>
   );
-};
+});
 
 export default CustomerSearch;
