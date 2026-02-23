@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useSelect } from '@wordpress/data';
+import { LoaderCircle } from 'lucide-react';
 import { POSGateway, POSCartItem, POSDiscountLine, POSFeeLine } from '../types';
 import { formatPrice } from '../utils/helpers';
 import { CART_STORE_NAME } from '../store/cart';
@@ -19,6 +20,7 @@ interface PaymentModalProps {
   selectedGateway: string;
   cashAmount: string;
   ableToProcess: boolean;
+  processing: boolean;
   onGatewayChange: (gateway: string) => void;
   onCashAmountChange: (amount: string) => void;
   onBackToSale: () => void;
@@ -32,6 +34,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   selectedGateway,
   cashAmount,
   ableToProcess,
+  processing,
   onGatewayChange,
   onCashAmountChange,
   onBackToSale,
@@ -134,7 +137,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       className="wepos-payment-modal !p-0"
       size="full"
     >
-      <div className="flex h-[calc(100vh-2rem)]">
+      <div className="relative flex h-[calc(100vh-2rem)]">
+        {/* Processing Overlay */}
+        {processing && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60">
+            <LoaderCircle className="h-12 w-12 animate-spin text-gray-500" />
+          </div>
+        )}
+
         {/* Left Panel - Sale Summary */}
         <div
           className="flex flex-col bg-[#FBFCFE]"
@@ -356,7 +366,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             <Button
               onClick={onProcessPayment}
               disabled={!ableToProcess}
-              className="rounded-[3px] bg-[#3B80F4] px-6 py-3 text-white hover:bg-[#2d6ad4] disabled:cursor-not-allowed disabled:bg-[#76A2ED] disabled:opacity-100"
+              className="bg-[#3B80F4] text-white hover:bg-[#2d6ad4] disabled:cursor-not-allowed disabled:bg-[#76A2ED] disabled:opacity-100"
             >
               {__('Process Payment', 'wepos')}
             </Button>

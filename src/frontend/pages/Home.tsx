@@ -263,18 +263,13 @@ const HomePage: React.FC = () => {
     return canProcess;
   }, [cartItems.length, selectedGateway, cashAmount, total]);
 
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
+
   const processPayment = async () => {
     if (!ableToProcess()) return;
 
     try {
-      // Show loading state
-      const contentWrap = document.querySelector(
-        '.wepos-checkout-wrapper',
-      ) as HTMLElement;
-      if (contentWrap) {
-        contentWrap.style.opacity = '0.6';
-        contentWrap.style.pointerEvents = 'none';
-      }
+      setPaymentProcessing(true);
 
       // Prepare order payload
       const orderPayload = {
@@ -336,20 +331,9 @@ const HomePage: React.FC = () => {
         setCreateprintreceipt(true);
       }
 
-      // Remove loading state
-      if (contentWrap) {
-        contentWrap.style.opacity = '1';
-        contentWrap.style.pointerEvents = 'auto';
-      }
+      setPaymentProcessing(false);
     } catch (error: any) {
-      // Handle error and remove loading state
-      const contentWrap = document.querySelector(
-        '.wepos-checkout-wrapper',
-      ) as HTMLElement;
-      if (contentWrap) {
-        contentWrap.style.opacity = '1';
-        contentWrap.style.pointerEvents = 'auto';
-      }
+      setPaymentProcessing(false);
       alert(error?.message || 'Payment processing failed');
       console.error('Payment processing error:', error);
     }
@@ -472,6 +456,7 @@ const HomePage: React.FC = () => {
         selectedGateway={selectedGateway}
         cashAmount={cashAmount}
         ableToProcess={ableToProcess()}
+        processing={paymentProcessing}
         onGatewayChange={setSelectedGateway}
         onCashAmountChange={setCashAmount}
         onBackToSale={backToSale}
