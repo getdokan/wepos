@@ -318,158 +318,149 @@ const Cart: React.FC<CartProps> = ({
           {/* Cart Footer - Fixed Bottom */}
           <div className="flex-shrink-0 border-t border-gray-200 bg-white">
             <div className="bg-gray-50/50">
-              <table className="w-full border-collapse">
-                <tbody>
-                  <tr>
-                    <td className="border-b border-gray-100 p-4 last:border-b-0">
-                      <div className="font-medium text-gray-700">
-                        {__('Subtotal', 'wepos')}
-                        {settings.woo_tax?.wc_tax_display_cart === 'incl' &&
-                          totalTax > 0 && (
-                            <span className="block text-xs font-normal text-gray-500">
-                              {__('Including Tax', 'wepos')}
-                            </span>
-                          )}
-                      </div>
-                    </td>
-                    <td className="border-b border-gray-100 p-4 text-right font-bold text-gray-800 last:border-b-0">
-                      {formatPrice(subtotal)}
-                    </td>
-                  </tr>
+              {/* Subtotal */}
+              <div className="flex items-center justify-between border-b border-gray-100 p-4">
+                <div className="font-medium text-gray-700">
+                  {__('Subtotal', 'wepos')}
+                  {settings.woo_tax?.wc_tax_display_cart === 'incl' &&
+                    totalTax > 0 && (
+                      <span className="block text-xs font-normal text-gray-500">
+                        {__('Including Tax', 'wepos')}
+                      </span>
+                    )}
+                </div>
+                <div className="font-bold text-gray-800">
+                  {formatPrice(subtotal)}
+                </div>
+              </div>
 
-                  {/* Discount Lines */}
-                  {discountLines.map((discount: any, index: number) => (
-                    <tr key={`discount-${index}`}>
-                      <td className="border-b border-gray-100 p-4 font-medium text-gray-700 last:border-b-0">
-                        {__('Discount', 'wepos')}
-                        <span className="ml-2 text-xs text-gray-500">
-                          {discount.discount_type === 'percent'
-                            ? `${discount.value}%`
-                            : formatPrice(discount.value)}
-                        </span>
-                      </td>
-                      <td className="border-b border-gray-100 p-4 text-right font-bold text-green-600 last:border-b-0">
-                        −{formatPrice(getDiscountAmount(discount))}
-                      </td>
-                      <td className="border-b border-gray-100 p-2 last:border-b-0">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-red-500 hover:bg-red-50 hover:text-red-700"
-                          onClick={() => removeDiscount(index)}
-                          title={__('Remove discount', 'wepos')}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-
-                  {/* Fee Lines */}
-                  {feeLines.map((fee: any, index: number) => (
-                    <tr key={`fee-${index}`}>
-                      <td className="border-b border-gray-100 p-4 font-medium text-gray-700 last:border-b-0">
-                        {__('Fee', 'wepos')}
-                        <span className="ml-2 text-xs text-gray-500">
-                          {fee.fee_type === 'percent'
-                            ? `${fee.value}%`
-                            : formatPrice(fee.value)}
-                        </span>
-                      </td>
-                      <td className="border-b border-gray-100 p-4 text-right font-bold text-gray-800 last:border-b-0">
-                        {formatPrice(getFeeAmount(fee))}
-                      </td>
-                      <td className="border-b border-gray-100 p-2 last:border-b-0">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-red-500 hover:bg-red-50 hover:text-red-700"
-                          onClick={() => removeFee(index)}
-                          title={__('Remove fee', 'wepos')}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-
-                  {totalTax > 0 && (
-                    <tr>
-                      <td className="border-b border-gray-100 p-4 font-medium text-gray-700 last:border-b-0">
-                        {settings.woo_tax?.wc_tax_display_cart === 'incl'
-                          ? __('Fee Tax', 'wepos')
-                          : __('Tax', 'wepos')}
-                      </td>
-                      <td className="border-b border-gray-100 p-4 text-right font-bold text-gray-800 last:border-b-0">
-                        {formatPrice(totalTax)}
-                      </td>
-                      <td className="border-b border-gray-100 p-2 last:border-b-0"></td>
-                    </tr>
-                  )}
-
-                  {/* Action Buttons Row */}
-                  <tr>
-                    <td
-                      colSpan={3}
-                      className="border-b border-gray-100 p-4 last:border-b-0"
+              {/* Discount Lines */}
+              {discountLines.map((discount: any, index: number) => (
+                <div
+                  key={`discount-${index}`}
+                  className="flex items-center border-b border-gray-100 p-4"
+                >
+                  <div className="flex-1 font-medium text-gray-700">
+                    {__('Discount', 'wepos')}
+                    <span className="ml-2 text-xs text-gray-500">
+                      {discount.discount_type === 'percent'
+                        ? `${discount.value}%`
+                        : formatPrice(discount.value)}
+                    </span>
+                  </div>
+                  <div className="font-bold text-green-600">
+                    −{formatPrice(getDiscountAmount(discount))}
+                  </div>
+                  <div className="ml-2">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                      onClick={() => removeDiscount(index)}
+                      title={__('Remove discount', 'wepos')}
                     >
-                      <div className="flex flex-wrap gap-2">
-                        <FeeKeypad
-                          name={__('Discount', 'wepos')}
-                          onInputFee={handleDiscountInput}
-                          isDiscount={true}
-                        />
-                        <FeeKeypad
-                          name={__('Fee', 'wepos')}
-                          onInputFee={handleFeeInput}
-                          isDiscount={false}
-                        />
-                        {!customerNote && (
-                          <CustomerNote onAddNote={handleAddNote} />
-                        )}
-                      </div>
-                    </td>
-                  </tr>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
 
-                  {/* Customer Note Row */}
-                  {customerNote && (
-                    <tr>
-                      <td
-                        colSpan={2}
-                        className="border-b border-gray-100 p-4 text-sm text-gray-600 last:border-b-0"
-                      >
-                        <span className="font-medium">
-                          {__('Note:', 'wepos')}{' '}
-                        </span>
-                        {customerNote}
-                      </td>
-                      <td className="border-b border-gray-100 p-2 last:border-b-0">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-red-500 hover:bg-red-50 hover:text-red-700"
-                          onClick={removeCustomerNote}
-                          title={__('Remove note', 'wepos')}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
+              {/* Fee Lines */}
+              {feeLines.map((fee: any, index: number) => (
+                <div
+                  key={`fee-${index}`}
+                  className="flex items-center border-b border-gray-100 p-4"
+                >
+                  <div className="flex-1 font-medium text-gray-700">
+                    {__('Fee', 'wepos')}
+                    <span className="ml-2 text-xs text-gray-500">
+                      {fee.fee_type === 'percent'
+                        ? `${fee.value}%`
+                        : formatPrice(fee.value)}
+                    </span>
+                  </div>
+                  <div className="font-bold text-gray-800">
+                    {formatPrice(getFeeAmount(fee))}
+                  </div>
+                  <div className="ml-2">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                      onClick={() => removeFee(index)}
+                      title={__('Remove fee', 'wepos')}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Tax */}
+              {totalTax > 0 && (
+                <div className="flex items-center justify-between border-b border-gray-100 p-4">
+                  <div className="font-medium text-gray-700">
+                    {settings.woo_tax?.wc_tax_display_cart === 'incl'
+                      ? __('Fee Tax', 'wepos')
+                      : __('Tax', 'wepos')}
+                  </div>
+                  <div className="font-bold text-gray-800">
+                    {formatPrice(totalTax)}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="border-b border-gray-100 p-4">
+                <div className="flex flex-wrap gap-2">
+                  <FeeKeypad
+                    name={__('Discount', 'wepos')}
+                    onInputFee={handleDiscountInput}
+                    isDiscount={true}
+                  />
+                  <FeeKeypad
+                    name={__('Fee', 'wepos')}
+                    onInputFee={handleFeeInput}
+                    isDiscount={false}
+                  />
+                  {!customerNote && (
+                    <CustomerNote onAddNote={handleAddNote} />
                   )}
+                </div>
+              </div>
 
-                  <tr>
-                    <td className="border-b border-gray-100 p-4 last:border-b-0">
-                      <div className="text-lg font-bold text-gray-800">
-                        {__('Total', 'wepos')}
-                      </div>
-                    </td>
-                    <td className="text-primary border-b border-gray-100 p-4 text-right text-xl font-bold last:border-b-0">
-                      {formatPrice(total)}
-                    </td>
-                    <td className="border-b border-gray-100 last:border-b-0"></td>
-                  </tr>
-                </tbody>
-              </table>
+              {/* Customer Note */}
+              {customerNote && (
+                <div className="flex items-center border-b border-gray-100 p-4">
+                  <div className="flex-1 text-sm text-gray-600">
+                    <span className="font-medium">
+                      {__('Note:', 'wepos')}{' '}
+                    </span>
+                    {customerNote}
+                  </div>
+                  <div className="ml-2">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                      onClick={removeCustomerNote}
+                      title={__('Remove note', 'wepos')}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Total */}
+              <div className="flex items-center justify-between p-4">
+                <div className="text-lg font-bold text-gray-800">
+                  {__('Total', 'wepos')}
+                </div>
+                <div className="text-primary text-xl font-bold">
+                  {formatPrice(total)}
+                </div>
+              </div>
             </div>
 
             <Button
