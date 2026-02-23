@@ -59,7 +59,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
 
   return (
     <div className="h-full min-h-0 w-full flex-1 overflow-hidden" ref={itemsWrapperRef}>
-      <ScrollArea className="h-full w-full">
+      <div className="h-full w-full overflow-y-auto">
         <div
           className={
             productView === 'grid'
@@ -212,7 +212,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
             })
           )}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 };

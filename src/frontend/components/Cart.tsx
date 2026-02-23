@@ -5,22 +5,34 @@ import {
   Plus,
   X,
   ShoppingCart,
-  Minus,
+  Minus, MoreVertical,
 } from 'lucide-react';
-import { Button, ScrollArea } from '@wedevs/plugin-ui';
+import {
+  Button,
+  ScrollArea,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@wedevs/plugin-ui';
 import { POSCartItem } from '../types';
 import FeeKeypad from './FeeKeypad';
 import CustomerNote from './CustomerNote';
 import { formatPrice } from '../utils/helpers';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
+import CustomerSearch from '../components/CustomerSearch';
 
 interface CartProps {
   onInitPayment: () => void;
+  [name: string]: any;
 }
 
 const Cart: React.FC<CartProps> = ({
   onInitPayment,
+  selectedCustomer,
+  handleCustomerSelected,
+  setShowHelp,
 }) => {
   // Use WordPress data hooks for cart data
   const {
@@ -82,7 +94,6 @@ const Cart: React.FC<CartProps> = ({
     removeFromCart(index);
   };
 
-
   const handleDiscountInput = (value: number, type: 'percent' | 'fixed') => {
     addDiscount(value, type === 'percent' ? 'percent' : 'fixed_cart');
   };
@@ -112,19 +123,37 @@ const Cart: React.FC<CartProps> = ({
   };
 
   return (
-    <div className="shadow-wepos flex h-full flex-none flex-col bg-white w-[35%]">
+    <div className="flex h-full w-[35%] flex-none flex-col bg-white">
       {settings.wepos_general && (
         <div className="flex h-full flex-col">
           {/* Cart Header - Fixed Top */}
-          <div className="flex-shrink-0 border-b border-gray-200 bg-white px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-bold text-gray-800">
-                  {__('Cart', 'wepos')}
-                </h2>
-              </div>
-            </div>
+          <div className="flex flex-row justify-between gap-2.5">
+            <CustomerSearch
+              selectedCustomer={selectedCustomer}
+              onCustomerSelected={handleCustomerSelected}
+              className="w-full"
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger className="hover:bg-accent hover:text-accent-foreground flex items-center justify-center rounded-md p-2 ring transition-colors outline-none">
+                <MoreVertical className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={clearCart}>
+                  {__('Empty Cart', 'wepos')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowHelp(true)}>
+                  {__('Help', 'wepos')}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() =>
+                    (window.location.href = (window as any).wepos?.logout_url)
+                  }
+                >
+                  {__('Logout', 'wepos')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Cart Content - Scrollable Middle */}
@@ -134,31 +163,31 @@ const Cart: React.FC<CartProps> = ({
                 <thead className="sticky top-0 bg-white">
                   <tr>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase"
                       style={{ width: '20%' }}
                     >
                       {__('Qty', 'wepos')}
                     </th>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase"
                       style={{ width: '40%' }}
                     >
                       {__('Name', 'wepos')}
                     </th>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase"
                       style={{ width: '15%' }}
                     >
                       {__('Price', 'wepos')}
                     </th>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase"
                       style={{ width: '15%' }}
                     >
                       {__('Total', 'wepos')}
                     </th>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase"
                       style={{ width: '10%' }}
                     ></th>
                   </tr>
@@ -167,14 +196,14 @@ const Cart: React.FC<CartProps> = ({
                   {cartItems.length > 0 ? (
                     cartItems.map((item: POSCartItem, index: number) => (
                       <React.Fragment key={item.id}>
-                        <tr className="transition-colors hover:bg-gray-50 border-b border-gray-100">
+                        <tr className="border-b border-gray-100 transition-colors hover:bg-gray-50">
                           {/* QTY Column */}
                           <td className="p-3 text-sm">
                             <div className="flex items-center gap-2">
                               <Button
                                 variant="outline"
                                 size="icon-sm"
-                                className="h-8 w-8 bg-gray-100 border-none hover:bg-gray-200 text-gray-600 rounded"
+                                className="h-8 w-8 rounded border-none bg-gray-100 text-gray-600 hover:bg-gray-200"
                                 onClick={() => removeQuantity(item, index)}
                               >
                                 <Minus className="h-4 w-4" />
@@ -185,7 +214,7 @@ const Cart: React.FC<CartProps> = ({
                               <Button
                                 variant="outline"
                                 size="icon-sm"
-                                className="h-8 w-8 bg-gray-100 border-none hover:bg-gray-200 text-gray-600 rounded"
+                                className="h-8 w-8 rounded border-none bg-gray-100 text-gray-600 hover:bg-gray-200"
                                 onClick={() => addQuantity(item, index)}
                               >
                                 <Plus className="h-4 w-4" />
@@ -229,7 +258,7 @@ const Cart: React.FC<CartProps> = ({
                           <td className="p-3 text-sm text-gray-600">
                             {item.on_sale ? (
                               <div className="flex flex-col">
-                                <span className="text-red-600 font-medium">
+                                <span className="font-medium text-red-600">
                                   {formatPrice(item.sale_price)}
                                 </span>
                                 <span className="text-xs text-gray-400 line-through">
@@ -252,11 +281,11 @@ const Cart: React.FC<CartProps> = ({
                           </td>
 
                           {/* Delete Column */}
-                          <td className="p-3 text-sm text-right">
+                          <td className="p-3 text-right text-sm">
                             <Button
                               variant="ghost"
                               size="icon-sm"
-                              className="h-8 w-8 rounded-full bg-red-500 text-white hover:bg-red-600 p-0 flex items-center justify-center border-none"
+                              className="flex h-8 w-8 items-center justify-center rounded-full border-none bg-red-500 p-0 text-white hover:bg-red-600"
                               onClick={() => handleRemoveItem(index)}
                               title={__('Remove item', 'wepos')}
                             >
@@ -434,7 +463,7 @@ const Cart: React.FC<CartProps> = ({
                         {__('Total', 'wepos')}
                       </div>
                     </td>
-                    <td className="text-wepos-primary border-b border-gray-100 p-4 text-right text-xl font-bold last:border-b-0">
+                    <td className="text-primary border-b border-gray-100 p-4 text-right text-xl font-bold last:border-b-0">
                       {formatPrice(total)}
                     </td>
                     <td className="border-b border-gray-100 last:border-b-0"></td>
@@ -444,7 +473,7 @@ const Cart: React.FC<CartProps> = ({
             </div>
 
             <Button
-              className="w-full h-14 rounded-none text-lg font-bold"
+              className="h-14 w-full rounded-none text-lg font-bold"
               onClick={onInitPayment}
             >
               {__('Checkout', 'wepos')} • {formatPrice(total)}

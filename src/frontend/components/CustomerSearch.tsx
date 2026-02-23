@@ -1,8 +1,22 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { __ } from '@wordpress/i18n';
-import { Spinner } from '@wordpress/components';
 import { Search, Plus, ChevronRight, Edit3, Users } from 'lucide-react';
-import { Input } from '@wedevs/plugin-ui';
+import {
+  Button,
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupButton,
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+  ScrollArea,
+  Spinner,
+} from '@wedevs/plugin-ui';
 import { Customer } from '../types';
 import { posAPI } from '../api';
 import CustomerModal from './CustomerModal';
@@ -12,6 +26,7 @@ interface CustomerSearchProps {
   onCustomerSelected: (customer: Customer | null) => void;
   onFocus?: () => void;
   onBlur?: () => void;
+  className?: string;
 }
 
 const CustomerSearch: React.FC<CustomerSearchProps> = ({
@@ -19,6 +34,7 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
   onCustomerSelected,
   onFocus,
   onBlur,
+  className=''
 }) => {
   // State management
   const [searchValue, setSearchValue] = useState('');
@@ -176,15 +192,15 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
   };
 
   return (
-    <div className="relative flex-1">
+    <div className={`relative ${className}`}>
       {/* Search Input - Hide when customer is selected */}
       {!selectedCustomer && (
-        <div className="relative flex items-center">
-          <div className="pointer-events-none absolute left-3 z-10 transform">
-            <Search className="text-muted-foreground h-4 w-4" />
-          </div>
+        <InputGroup className="h-10">
+          <InputGroupAddon align="inline-start">
+            <Search className="text-muted-foreground size-4" />
+          </InputGroupAddon>
 
-          <Input
+          <InputGroupInput
             ref={searchInputRef}
             type="text"
             value={searchValue}
@@ -193,108 +209,124 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             placeholder={__('Search Customer or Walk-in', 'wepos')}
-            className="h-10 w-full rounded-lg border-gray-200 bg-gray-50/50 pl-10 pr-10 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-primary/20"
           />
 
-          {/* Add Customer Button */}
-          <button
-            type="button"
-            onClick={handleOpenNewCustomerModal}
-            className="text-primary hover:text-primary-hover absolute right-3 z-10 transform rounded transition-colors focus:outline-none"
-            title={__('Add New Customer', 'wepos')}
-          >
-            <Plus className="h-4 w-4" />
-          </button>
+          <InputGroupAddon align="inline-end">
+            {isSearching && <Spinner className="text-primary mr-1" />}
 
-          {/* Loading indicator */}
-          {isSearching && (
-            <div className="absolute right-10 z-10 transform">
-              <Spinner />
-            </div>
-          )}
-        </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InputGroupButton
+                    onClick={handleOpenNewCustomerModal}
+                    size="icon-xs"
+                    className="text-primary hover:text-primary-hover"
+                  >
+                    <Plus className="size-4" />
+                  </InputGroupButton>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {__('Add New Customer', 'wepos')}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </InputGroupAddon>
+        </InputGroup>
       )}
 
       {/* Selected Customer Display - Replace search input when customer is selected */}
       {selectedCustomer && (
-        <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-3 shadow-sm">
+        <div className="border-border bg-card flex items-center justify-between rounded-lg border px-3 py-0 shadow-sm">
           <div className="flex min-w-0 flex-1 items-center gap-3">
-            <Users className="text-wepos-primary h-5 w-5 flex-shrink-0" />
+            <Avatar className="h-5 w-5">
+              <AvatarImage
+                src={selectedCustomer.avatar_url}
+                alt={`${selectedCustomer.first_name} ${selectedCustomer.last_name}`}
+              />
+              <AvatarFallback>
+                <Users className="text-primary size-5" />
+              </AvatarFallback>
+            </Avatar>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-medium text-gray-900">
+              <div className="text-foreground truncate text-sm font-medium">
                 {selectedCustomer.first_name} {selectedCustomer.last_name}
-              </div>
-              <div className="truncate text-xs text-gray-500">
-                {selectedCustomer.email}
               </div>
             </div>
           </div>
           <div className="flex flex-shrink-0 items-center gap-2">
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleEditCustomer}
-              className="text-wepos-primary hover:text-wepos-primary-hover hover:bg-wepos-primary/5 focus:ring-wepos-primary/20 flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors focus:ring-2 focus:outline-none"
+              className="text-primary hover:text-primary-hover hover:bg-primary/5 focus-visible:ring-primary/20 flex h-8 items-center gap-1 px-2 text-xs font-medium transition-colors focus-visible:ring-2"
               title={__('Edit Customer', 'wepos')}
             >
-              <Edit3 className="h-3 w-3" />
+              <Edit3 className="size-3" />
               {__('Edit', 'wepos')}
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleClearCustomer}
-              className="rounded px-2 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 focus:ring-2 focus:ring-red-500/20 focus:outline-none"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10 focus-visible:ring-destructive/20 h-8 px-2 text-xs font-medium transition-colors focus-visible:ring-2"
               title={__('Clear Customer', 'wepos')}
             >
               {__('Clear', 'wepos')}
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {/* Search Results */}
       {showResults && !selectedCustomer && (
-        <div className="absolute top-full right-0 left-0 z-50 mt-1 max-h-60 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg">
-          {customers.length > 0 ? (
-            <ul className="py-1">
-              {customers.map((customer, index) => (
-                <li key={customer.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleCustomerSelect(customer)}
-                    className={`flex w-full items-center gap-3 border-b border-gray-100 px-3 py-2 text-left transition-colors last:border-b-0 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none ${
-                      index === selectedIndex
-                        ? 'bg-wepos-primary/10 border-l-wepos-primary border-l-4'
-                        : ''
-                    }`}
-                  >
-                    <img
-                      src={customer.avatar_url}
-                      alt={`${customer.first_name} ${customer.last_name}`}
-                      className="h-8 w-8 flex-shrink-0 rounded-full object-cover"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-medium text-gray-900">
-                        {customer.first_name} {customer.last_name}
+        <div className="border-border bg-popover absolute top-full right-0 left-0 z-50 mt-1 overflow-hidden rounded-md border shadow-lg">
+          <ScrollArea className="max-h-60">
+            {customers.length > 0 ? (
+              <ul className="py-1">
+                {customers.map((customer, index) => (
+                  <li key={customer.id}>
+                    <button
+                      type="button"
+                      onClick={() => handleCustomerSelect(customer)}
+                      className={`border-border hover:bg-accent focus:bg-accent flex w-full items-center gap-3 border-b px-3 py-2 text-left transition-colors last:border-b-0 focus:outline-none ${
+                        index === selectedIndex
+                          ? 'bg-accent border-l-primary border-l-4'
+                          : ''
+                      }`}
+                    >
+                      <Avatar className="h-8 w-8 flex-shrink-0">
+                        <AvatarImage
+                          src={customer.avatar_url}
+                          alt={`${customer.first_name} ${customer.last_name}`}
+                        />
+                        <AvatarFallback>
+                          <Users className="size-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-foreground truncate text-sm font-medium">
+                          {customer.first_name} {customer.last_name}
+                        </div>
+                        <div className="text-muted-foreground truncate text-xs">
+                          {customer.email}
+                        </div>
                       </div>
-                      <div className="truncate text-xs text-gray-500">
-                        {customer.email}
-                      </div>
-                    </div>
-                    <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-400" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="px-3 py-6 text-center text-sm text-gray-500">
-              {__('No customer found', 'wepos')}
-            </div>
-          )}
+                      <ChevronRight className="text-muted-foreground size-4 flex-shrink-0" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-muted-foreground px-3 py-6 text-center text-sm">
+                {__('No customer found', 'wepos')}
+              </div>
+            )}
+          </ScrollArea>
 
           {/* Navigation hints */}
-          <div className="flex flex-wrap gap-4 border-t border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-500">
+          <div className="border-border bg-muted/50 text-muted-foreground flex flex-wrap gap-4 border-t px-3 py-2 text-xs">
             <span className="flex items-center gap-1">
-              <kbd className="rounded bg-gray-200 px-1 py-0.5 font-mono text-xs">
+              <kbd className="bg-muted rounded px-1 py-0.5 font-mono text-xs">
                 ↑↓
               </kbd>
               <span className="whitespace-nowrap">
@@ -302,7 +334,7 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
               </span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="rounded bg-gray-200 px-1 py-0.5 font-mono text-xs">
+              <kbd className="bg-muted rounded px-1 py-0.5 font-mono text-xs">
                 ↵
               </kbd>
               <span className="whitespace-nowrap">
@@ -310,7 +342,7 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
               </span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="rounded bg-gray-200 px-1 py-0.5 font-mono text-xs">
+              <kbd className="bg-muted rounded px-1 py-0.5 font-mono text-xs">
                 esc
               </kbd>
               <span className="whitespace-nowrap">

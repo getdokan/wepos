@@ -79,14 +79,14 @@ const Sidebar: React.FC = () => {
 
   return (
     <div
-      className="bg-sidebar flex flex-col text-white h-full"
+      className="bg-sidebar flex flex-col h-full"
     >
       <div className="border-sidebar-border border-b p-4">
         <div className="flex items-center gap-3">
-          <div className="bg-wepos-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white">
+          <div className="bg-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
             <Bolt className="h-5 w-5" />
           </div>
-          <span className="text-lg font-bold text-white">
+          <span className="text-lg font-bold">
             WePos
           </span>
         </div>
@@ -97,23 +97,7 @@ const Sidebar: React.FC = () => {
           groups={menuGroups}
           activeItemId={location.pathname}
           searchable={true}
-          className="text-gray-300"
-          menuItemClassName="px-4 h-12 hover:bg-white/10"
-          activeItemClassName="bg-wepos-primary! text-white!"
         />
-      </div>
-
-      <div className="border-sidebar-border border-t p-2">
-        <button
-          className="hover:bg-red-900/20 flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-red-300 transition-all duration-200 hover:text-red-200"
-          onClick={handleLogout}
-          type="button"
-        >
-          <LogOut className="h-5 w-5" />
-          <span className="text-sm font-medium">
-            Logout
-          </span>
-        </button>
       </div>
     </div>
   );

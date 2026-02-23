@@ -15,3 +15,301 @@ body {
 
 /* Source paths for Tailwind to scan */
 @source "../../../node_modules/@wedevs/plugin-ui/dist";
+
+/* Essential Component Styles - Only what can't be done with Tailwind */
+@layer components {
+
+    /* Sidebar collapse/expand animations - Complex state-based styling */
+    .wepos-sidebar.collapsed {
+        @apply w-16;
+    }
+
+    .wepos-sidebar.expanded {
+        @apply w-64;
+    }
+
+    .wepos-sidebar.collapsed .nav-label {
+        @apply opacity-0;
+    }
+
+    /* Tooltip for collapsed sidebar - Complex pseudo-element that can't be done with Tailwind */
+    .wepos-sidebar.collapsed .nav-item:hover::after {
+        content: attr(title);
+        @apply absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap z-10;
+        animation: var(--animate-slide-in);
+    }
+
+    /* WordPress Modal Overrides - Targeting external component classes */
+    .wepos-help-modal .components-modal__frame,
+    .wepos-payment-modal .components-modal__frame,
+    .wepos-receipt-modal .components-modal__frame {
+        @apply shadow-xl;
+    }
+
+    .wepos-help-modal .components-modal__header {
+        @apply border-b border-gray-200 pb-4;
+    }
+
+    .wepos-payment-modal .components-modal__frame {
+        @apply max-w-4xl w-full;
+    }
+
+    .wepos-receipt-modal .components-modal__frame {
+        @apply max-w-2xl w-full;
+    }
+
+    /* Specific code styling for help modal */
+    .wepos-help-wrapper .code {
+        @apply bg-gray-100 px-3 py-1 rounded-md text-sm font-mono text-gray-800 border border-gray-200 min-w-24 text-center;
+    }
+
+    /* Color-adjust for printing - Property not available in Tailwind */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
+
+/* Responsive Design - Complex responsive overrides */
+@media (max-width: 768px) {
+
+    /* Mobile layout - Force flex-col for main container */
+    #wepos-main {
+        @apply flex-col;
+    }
+
+    /* Sidebar mobile layout - Complex structural changes */
+    .wepos-sidebar {
+        @apply w-full h-auto flex-row;
+    }
+
+    .wepos-sidebar.collapsed,
+    .wepos-sidebar.expanded {
+        @apply w-full;
+    }
+
+    .wepos-sidebar .nav-list {
+        @apply flex overflow-x-auto space-y-0 space-x-2;
+    }
+
+    .wepos-sidebar.collapsed .nav-item,
+    .wepos-sidebar.expanded .nav-item {
+        @apply justify-center;
+    }
+
+    /* Hide tooltips on mobile - State-based hiding */
+    .wepos-sidebar.collapsed .nav-item:hover::after {
+        @apply hidden;
+    }
+}
+
+/* Print Styles for Thermal Receipt Printers - Complex print-specific styling */
+@media print {
+
+    /* Hide everything except the receipt modal */
+    body>*:not(.components-modal__screen-overlay) {
+        display: none !important;
+    }
+
+    /* Hide modal overlay background but keep content */
+    .components-modal__screen-overlay {
+        background: white !important;
+        position: static !important;
+    }
+
+    /* Show and style the modal frame */
+    .components-modal__frame {
+        position: static !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        max-width: none !important;
+        width: 80mm !important;
+        /* Thermal printer width */
+        min-height: auto !important;
+        background: white !important;
+        transform: none !important;
+    }
+
+    /* Hide modal header for print */
+    .components-modal__header {
+        display: none !important;
+    }
+
+    /* Hide action buttons for print */
+    .wepos-receipt-footer {
+        display: none !important;
+    }
+
+    /* Optimize receipt content for thermal printer */
+    .wepos-receipt-wrapper {
+        width: 100% !important;
+        max-width: 80mm !important;
+        margin: 0 !important;
+        padding: 8px !important;
+        font-size: 12px !important;
+        line-height: 1.3 !important;
+        color: black !important;
+        background: white !important;
+    }
+
+    .wepos-receipt-content {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Receipt info section */
+    .wepos-receipt-info {
+        margin-bottom: 8px !important;
+        border-bottom: 1px dashed #000 !important;
+        padding-bottom: 8px !important;
+    }
+
+    .wepos-receipt-info p {
+        font-size: 11px !important;
+        margin-bottom: 3px !important;
+        color: black !important;
+    }
+
+    /* Items table optimization */
+    .wepos-receipt-items {
+        margin-bottom: 8px !important;
+    }
+
+    .wepos-receipt-items h3 {
+        font-size: 12px !important;
+        font-weight: bold !important;
+        margin-bottom: 4px !important;
+        color: black !important;
+    }
+
+    .wepos-receipt-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 10px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .wepos-receipt-th,
+    .wepos-receipt-td {
+        padding: 2px 1px !important;
+        border: none !important;
+        border-bottom: 1px solid #ddd !important;
+        text-align: left !important;
+        color: black !important;
+        background: white !important;
+    }
+
+    .wepos-receipt-th {
+        font-weight: bold !important;
+        font-size: 10px !important;
+        border-bottom: 1px solid #000 !important;
+    }
+
+    /* Totals section */
+    .wepos-receipt-totals {
+        border-top: 1px dashed #000 !important;
+        padding-top: 4px !important;
+    }
+
+    .wepos-receipt-totals .total-line {
+        display: flex !important;
+        justify-content: space-between !important;
+        font-size: 11px !important;
+        margin-bottom: 2px !important;
+        color: black !important;
+    }
+
+    .wepos-receipt-totals .final-total {
+        display: flex !important;
+        justify-content: space-between !important;
+        font-size: 13px !important;
+        font-weight: bold !important;
+        border-top: 1px solid #000 !important;
+        padding-top: 4px !important;
+        margin-top: 4px !important;
+        color: black !important;
+    }
+
+    /* Show print-only elements */
+    .print-only {
+        display: block !important;
+        visibility: visible !important;
+    }
+
+    /* Hide screen-only elements */
+    .screen-only {
+        display: none !important;
+    }
+
+    /* Alternative approach: Show only the receipt content */
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    #wepos-print-receipt {
+        position: static !important;
+        display: block !important;
+        visibility: visible !important;
+        width: 80mm !important;
+        margin: 0 !important;
+        padding: 8px !important;
+        background: white !important;
+        color: black !important;
+        font-size: 12px !important;
+        line-height: 1.3 !important;
+    }
+
+    #wepos-print-receipt * {
+        visibility: visible !important;
+        color: black !important;
+    }
+
+    /* Ensure thermal printer compatibility */
+    @page {
+        size: auto;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Ensure all receipt elements are visible */
+    .wepos-receipt-wrapper,
+    .wepos-receipt-wrapper *,
+    .wepos-receipt-content,
+    .wepos-receipt-content *,
+    .wepos-receipt-info,
+    .wepos-receipt-items,
+    .wepos-receipt-table,
+    .wepos-receipt-totals {
+        visibility: visible !important;
+    }
+
+    /* Ensure table elements display correctly */
+    .wepos-receipt-table {
+        display: table !important;
+    }
+
+    .wepos-receipt-table thead,
+    .wepos-receipt-table tbody {
+        display: table-row-group !important;
+    }
+
+    .wepos-receipt-table tr {
+        display: table-row !important;
+    }
+
+    .wepos-receipt-table th,
+    .wepos-receipt-table td {
+        display: table-cell !important;
+    }
+
+    /* Ensure flex elements work */
+    .total-line,
+    .final-total {
+        display: flex !important;
+    }
+}

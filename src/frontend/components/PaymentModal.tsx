@@ -79,7 +79,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 {availableGateways.map((gateway: POSGateway) => (
                   <label
                     key={gateway.id}
-                    className="hover:border-wepos-primary/50 hover:bg-wepos-primary/5 has-[:checked]:border-wepos-primary has-[:checked]:bg-wepos-primary/10 flex cursor-pointer items-center rounded-lg border border-gray-200 p-4 transition-all duration-200"
+                    className="hover:border-primary/50 hover:bg-primary/5 has-[:checked]:border-primary has-[:checked]:bg-primary/10 flex cursor-pointer items-center rounded-lg border border-gray-200 p-4 transition-all duration-200"
                   >
                     <input
                       type="radio"
@@ -87,7 +87,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                       value={gateway.id}
                       checked={selectedGateway === gateway.id}
                       onChange={(e) => onGatewayChange(e.target.value)}
-                      className="accent-wepos-primary mr-3"
+                      className="accent-primary mr-3"
                     />
                     <span className="font-medium text-gray-700">
                       {gateway.title}
@@ -115,7 +115,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                       min="0"
                       value={cashAmount}
                       onChange={(e) => onCashAmountChange(e.target.value)}
-                      className="focus:ring-wepos-primary/20 focus:border-wepos-primary h-10 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-xl font-bold transition-colors focus:ring-2"
+                      className="focus:ring-primary/20 focus:border-primary h-10 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-xl font-bold transition-colors focus:ring-2"
                       placeholder={formatPrice(total)}
                     />
                   </div>
@@ -153,7 +153,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                         <button
                           key={amount}
                           type="button"
-                          className="text-wepos-primary border-wepos-primary hover:bg-wepos-primary/5 focus:ring-wepos-primary/20 rounded-lg border border-transparent bg-white px-4 py-2 text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:outline-none"
+                          className="text-primary border-primary hover:bg-primary/5 focus:ring-primary/20 rounded-lg border border-transparent bg-white px-4 py-2 text-sm font-medium transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:outline-none"
                           onClick={() => onCashAmountChange(amount.toString())}
                         >
                           {formatPrice(amount)}
@@ -199,7 +199,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               <div className="mt-4 border-t border-gray-300 pt-4">
                 <div className="flex items-center justify-between text-xl font-bold text-gray-800">
                   <span>{__('Total:', 'wepos')}</span>
-                  <span className="text-wepos-primary">
+                  <span className="text-primary">
                     {formatPrice(total)}
                   </span>
                 </div>
@@ -217,7 +217,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             {__('← Back to Sale', 'wepos')}
           </button>
           <button
-            className="bg-wepos-primary hover:bg-wepos-primary-hover focus:ring-wepos-primary/20 disabled:hover:bg-wepos-primary rounded-lg border border-transparent px-4 py-2 font-medium text-white transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="bg-primary hover:bg-primary-hover focus:ring-primary/20 disabled:hover:bg-primary rounded-lg border border-transparent px-4 py-2 font-medium transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             onClick={onProcessPayment}
             disabled={!ableToProcess}
             type="button"

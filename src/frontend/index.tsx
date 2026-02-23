@@ -28,7 +28,7 @@ const weposTokens: ThemeTokens = {
   destructiveForeground: 'oklch(1 0 0)',
   border: 'oklch(0.9220 0 0)',
   input: 'oklch(0.9220 0 0)',
-  ring: 'oklch(0.7080 0 0)',
+  ring: 'oklch(0.8100 0.1000 252)',
   chart1: 'oklch(0.8100 0.1000 252)',
   chart2: 'oklch(0.6200 0.1900 260)',
   chart3: 'oklch(0.5500 0.2200 263)',
@@ -58,7 +58,8 @@ const weposTokens: ThemeTokens = {
   'shadow-xs': '0 1px 3px 0px hsl(0 0% 0% / 0.05)',
   'shadow-sm':
     '0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10)',
-  shadow: '0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10)',
+  shadow:
+    '0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10)',
   'shadow-md':
     '0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10)',
   'shadow-lg':

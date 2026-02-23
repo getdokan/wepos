@@ -21,10 +21,10 @@ interface LayoutProps {
     <PUILayout
       key="sidebar-true-left"
       className="bg-background h-screen fixed inset-0 overflow-hidden"
-      defaultSidebarOpen
+      defaultSidebarOpen={false}
       sidebarBreakpoint="lg"
       sidebarPosition="left"
-      sidebarVariant="drawer"
+      sidebarVariant="inline"
     >
       <LayoutHeader className="h-16 bg-white px-6">
         {headerContent}
