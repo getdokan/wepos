@@ -127,14 +127,14 @@ const Cart: React.FC<CartProps> = ({
       {settings.wepos_general && (
         <div className="flex h-full flex-col">
           {/* Cart Header - Fixed Top */}
-          <div className="flex flex-row justify-between gap-2.5">
+          <div className="flex flex-row justify-between gap-2.5 p-2 pt-0">
             <CustomerSearch
               selectedCustomer={selectedCustomer}
               onCustomerSelected={handleCustomerSelected}
               className="w-full"
             />
             <DropdownMenu>
-              <DropdownMenuTrigger className="hover:bg-accent hover:text-accent-foreground flex items-center justify-center rounded-md p-2 ring transition-colors outline-none">
+              <DropdownMenuTrigger className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex items-center justify-center rounded-md p-2 transition-colors outline-none">
                 <MoreVertical className="h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">

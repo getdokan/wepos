@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { __ } from '@wordpress/i18n';
-import { Search, Plus, ChevronRight, Edit3, Users } from 'lucide-react';
+import { Plus, CornerDownLeft, Edit3, Users } from 'lucide-react';
 import {
   Button,
   InputGroup,
@@ -197,7 +197,11 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
       {!selectedCustomer && (
         <InputGroup className="h-10">
           <InputGroupAddon align="inline-start">
-            <Search className="text-muted-foreground size-4" />
+            <Avatar size="xs" shape="circle">
+              <AvatarFallback className="bg-primary text-primary-foreground">
+                <Users className="size-3" />
+              </AvatarFallback>
+            </Avatar>
           </InputGroupAddon>
 
           <InputGroupInput
@@ -208,7 +212,7 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
             onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
-            placeholder={__('Search Customer or Walk-in', 'wepos')}
+            placeholder={__('Search customer', 'wepos')}
           />
 
           <InputGroupAddon align="inline-end">
@@ -220,7 +224,7 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
                   <InputGroupButton
                     onClick={handleOpenNewCustomerModal}
                     size="icon-xs"
-                    className="text-primary hover:text-primary-hover"
+                    className="text-primary hover:text-primary-hover mr-1"
                   >
                     <Plus className="size-4" />
                   </InputGroupButton>
@@ -234,31 +238,31 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
         </InputGroup>
       )}
 
-      {/* Selected Customer Display - Replace search input when customer is selected */}
+      {/* Selected Customer Display */}
       {selectedCustomer && (
-        <div className="border-border bg-card flex items-center justify-between rounded-lg border px-3 py-0 shadow-sm">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <Avatar className="h-5 w-5">
+        <InputGroup className="h-10">
+          <InputGroupAddon align="inline-start">
+            <Avatar size="xs" shape="circle">
               <AvatarImage
                 src={selectedCustomer.avatar_url}
                 alt={`${selectedCustomer.first_name} ${selectedCustomer.last_name}`}
               />
-              <AvatarFallback>
-                <Users className="text-primary size-5" />
+              <AvatarFallback className="bg-primary text-primary-foreground">
+                <Users className="size-3" />
               </AvatarFallback>
             </Avatar>
-            <div className="min-w-0 flex-1">
-              <div className="text-foreground truncate text-sm font-medium">
-                {selectedCustomer.first_name} {selectedCustomer.last_name}
-              </div>
-            </div>
+          </InputGroupAddon>
+
+          <div className="text-foreground flex min-w-0 flex-1 items-center truncate px-2 text-sm font-medium">
+            {selectedCustomer.first_name} {selectedCustomer.last_name}
           </div>
-          <div className="flex flex-shrink-0 items-center gap-2">
+
+          <InputGroupAddon align="inline-end" className="gap-1">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleEditCustomer}
-              className="text-primary hover:text-primary-hover hover:bg-primary/5 focus-visible:ring-primary/20 flex h-8 items-center gap-1 px-2 text-xs font-medium transition-colors focus-visible:ring-2"
+              className="text-primary hover:text-primary-hover hover:bg-primary/5 flex h-7 items-center gap-1 px-2 text-xs font-medium"
               title={__('Edit Customer', 'wepos')}
             >
               <Edit3 className="size-3" />
@@ -268,13 +272,13 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
               variant="ghost"
               size="sm"
               onClick={handleClearCustomer}
-              className="text-destructive hover:text-destructive hover:bg-destructive/10 focus-visible:ring-destructive/20 h-8 px-2 text-xs font-medium transition-colors focus-visible:ring-2"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2 text-xs font-medium"
               title={__('Clear Customer', 'wepos')}
             >
               {__('Clear', 'wepos')}
             </Button>
-          </div>
-        </div>
+          </InputGroupAddon>
+        </InputGroup>
       )}
 
       {/* Search Results */}
@@ -288,13 +292,13 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
                     <button
                       type="button"
                       onClick={() => handleCustomerSelect(customer)}
-                      className={`border-border hover:bg-accent focus:bg-accent flex w-full items-center gap-3 border-b px-3 py-2 text-left transition-colors last:border-b-0 focus:outline-none ${
+                      className={`hover:bg-accent focus:bg-accent flex w-full items-center gap-3 px-4 py-3 text-left transition-colors focus:outline-none ${
                         index === selectedIndex
-                          ? 'bg-accent border-l-primary border-l-4'
+                          ? 'bg-accent'
                           : ''
                       }`}
                     >
-                      <Avatar className="h-8 w-8 flex-shrink-0">
+                      <Avatar size="sm" shape="circle" className="shrink-0">
                         <AvatarImage
                           src={customer.avatar_url}
                           alt={`${customer.first_name} ${customer.last_name}`}
@@ -304,14 +308,16 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <div className="text-foreground truncate text-sm font-medium">
+                        <span className="text-foreground text-sm font-semibold">
                           {customer.first_name} {customer.last_name}
-                        </div>
-                        <div className="text-muted-foreground truncate text-xs">
+                        </span>
+                        <span className="text-muted-foreground ml-3 text-sm">
                           {customer.email}
-                        </div>
+                        </span>
                       </div>
-                      <ChevronRight className="text-muted-foreground size-4 flex-shrink-0" />
+                      {index === selectedIndex && (
+                        <CornerDownLeft className="text-muted-foreground size-4 shrink-0" />
+                      )}
                     </button>
                   </li>
                 ))}
@@ -335,7 +341,7 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({
             </span>
             <span className="flex items-center gap-1">
               <kbd className="bg-muted rounded px-1 py-0.5 font-mono text-xs">
-                ↵
+                ←
               </kbd>
               <span className="whitespace-nowrap">
                 {__('to select', 'wepos')}

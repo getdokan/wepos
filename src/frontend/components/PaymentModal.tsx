@@ -366,7 +366,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             <Button
               onClick={onProcessPayment}
               disabled={!ableToProcess}
-              className="bg-[#3B80F4] text-white hover:bg-[#2d6ad4] disabled:cursor-not-allowed disabled:bg-[#76A2ED] disabled:opacity-100"
+              className="bg-primary text-primary-foreground disabled:cursor-not-allowed"
             >
               {__('Process Payment', 'wepos')}
             </Button>
