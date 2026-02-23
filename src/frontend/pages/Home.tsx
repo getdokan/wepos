@@ -484,7 +484,7 @@ const HomePage: React.FC = () => {
         show={showPaymentReceipt}
         printdata={printdata}
         selectedGateway={selectedGateway}
-        onClose={() => setShowPaymentReceipt(false)}
+        onClose={createNewSale}
         onNewSale={createNewSale}
         formatPrice={formatPrice}
       />
