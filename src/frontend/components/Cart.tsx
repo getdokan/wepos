@@ -145,7 +145,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
   };
 
   return (
-    <div className="flex h-full w-[35%] flex-none flex-col bg-white">
+    <div className="flex h-full flex-none flex-col bg-white">
       {settings.wepos_general && (
         <div className="flex h-full flex-col">
           {/* Cart Header - Fixed Top */}

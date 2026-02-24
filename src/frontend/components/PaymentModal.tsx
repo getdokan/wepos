@@ -6,6 +6,7 @@ import { POSGateway, POSCartItem, POSDiscountLine, POSFeeLine } from '../types';
 import { formatPrice } from '../utils/helpers';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
+import { applyFilters } from '../hooks/useExtensions';
 import {
   Modal,
   Button,
@@ -350,6 +351,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               </div>
             </div>
           )}
+
+          {/* Extension slot: pro card gateway form */}
+          {applyFilters<React.ReactNode[]>('wepos_react_gateway_content', [], {
+            selectedGateway,
+            availableGateways,
+          }).map((Component: any, i: number) => (
+            <Component key={i} selectedGateway={selectedGateway} availableGateways={availableGateways} />
+          ))}
 
           {/* Spacer */}
           <div className="flex-1" />

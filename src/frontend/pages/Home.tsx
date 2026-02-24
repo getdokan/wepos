@@ -26,6 +26,7 @@ import {
 import { usePOSData } from '../hooks/usePOSData';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
+import { applyFilters } from '../hooks/useExtensions';
 
 // Import components
 import {
@@ -268,7 +269,7 @@ const HomePage: React.FC = () => {
       setPaymentProcessing(true);
 
       // Prepare order payload
-      const orderPayload = {
+      let orderPayload: any = {
         billing: orderData.billing,
         shipping: orderData.shipping,
         line_items: cartItems.map((item: POSCartItem) => ({
@@ -292,6 +293,9 @@ const HomePage: React.FC = () => {
           },
         ],
       };
+
+      // Allow pro to add cashier/outlet/counter/card metadata
+      orderPayload = applyFilters('wepos_react_order_form_data', orderPayload, orderData);
 
       // Create order
       const orderResponse = await posAPI.orders.createOrder(orderPayload);
@@ -321,7 +325,10 @@ const HomePage: React.FC = () => {
           changeamount: changeAmount().toString(),
         };
 
-        setPrintdata(printDataToSet);
+        // Allow pro to enrich print data with cashier/outlet/counter info
+        const enrichedPrintData = applyFilters('wepos_react_print_data', printDataToSet, orderResponse);
+
+        setPrintdata(enrichedPrintData);
         setShowModal(false);
         setShowPaymentReceipt(true);
         setCreateprintreceipt(true);
@@ -529,13 +536,20 @@ const HomePage: React.FC = () => {
 
           <Separator orientation="vertical" className="h-full" />
 
-          <Cart
-            ref={cartRef}
-            onInitPayment={initPayment}
-            selectedCustomer={selectedCustomer}
-            handleCustomerSelected={handleCustomerSelected}
-            setShowHelp={setShowHelp}
-          />
+          <div className="flex h-full w-[35%] min-h-0 flex-col">
+            {/* Extension slot: SaveCarts tab bar injected by pro */}
+            {applyFilters<React.ReactNode[]>('wepos_react_before_cart_panel', []).map(
+              (Component: any, i: number) => <Component key={i} />
+            )}
+
+            <Cart
+              ref={cartRef}
+              onInitPayment={initPayment}
+              selectedCustomer={selectedCustomer}
+              handleCustomerSelected={handleCustomerSelected}
+              setShowHelp={setShowHelp}
+            />
+          </div>
         </div>
       </div>
 
@@ -563,6 +577,11 @@ const HomePage: React.FC = () => {
         onNewSale={createNewSale}
         formatPrice={formatPrice}
       />
+
+      {/* Extension slot: pro components like ReceiptContent */}
+      {applyFilters<React.ReactNode[]>('wepos_react_after_main_content', []).map(
+        (Component: any, i: number) => <Component key={i} />
+      )}
     </Layout>
   );
 };

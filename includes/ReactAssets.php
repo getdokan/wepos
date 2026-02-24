@@ -74,6 +74,20 @@ class ReactAssets
             $dependencies[] = 'wepos-react-runtime';
         }
 
+        // Create shared instances BEFORE any bundles load.
+        // wepos-pro-react loads as a dependency of wepos-react (so pro hooks
+        // register first), which means these globals must exist before pro loads.
+        // The empty objects for router/plugin-ui are populated via Object.assign
+        // when the base bundle loads, keeping the same object reference.
+        wp_enqueue_script('wp-hooks');
+        wp_add_inline_script(
+            'wp-hooks',
+            'if ( typeof window.__weposReactHooks === "undefined" ) { window.__weposReactHooks = wp.hooks.createHooks(); }' .
+            ' window.__weposReactRouterDOM = window.__weposReactRouterDOM || {};' .
+            ' window.__weposPluginUI = window.__weposPluginUI || {};',
+            'after'
+        );
+
         // Enqueue main React application
         wp_enqueue_script(
             'wepos-react',

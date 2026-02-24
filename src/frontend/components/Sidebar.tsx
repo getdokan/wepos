@@ -5,100 +5,130 @@ import {
   FileText,
   Users,
   Bolt,
-  LogOut,
   Settings,
   Package,
 } from 'lucide-react';
 import { LayoutMenu, LayoutMenuGroupData } from '@wedevs/plugin-ui';
+import { applyFilters, doAction } from '../hooks/useExtensions';
+
+export interface WeposSidebarMenuItem {
+	id: string;
+	label: string;
+	icon: React.ReactNode;
+	onClick: () => void;
+	secondaryLabel?: string;
+}
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const isCollapsed = false;
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
+  const handleNavigation = ( path: string ) => {
+    navigate( path );
   };
 
   const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      window.location.href = (window as any).wepos?.logout_url || '/';
+    if ( window.confirm( 'Are you sure you want to logout?' ) ) {
+      // Fire action so pro can clear cashier session before redirect
+      doAction( 'wepos_react_before_logout' );
+      window.location.href = ( window as any ).wepos?.logout_url || '/';
     }
   };
 
-  const menuGroups = useMemo<LayoutMenuGroupData[]>(() => [
-    {
-      id: 'main',
-      label: 'Main',
-      secondaryLabel: 'Primary navigation',
-      items: [
-        {
-          id: '/',
-          label: 'Home',
-          icon: <Home className="size-4" />,
-          onClick: () => handleNavigation('/'),
-          secondaryLabel: 'Dashboard'
-        },
-        {
-          id: '/orders',
-          label: 'Orders',
-          icon: <FileText className="size-4" />,
-          onClick: () => handleNavigation('/orders'),
-          secondaryLabel: 'Sales history'
-        },
-        {
-          id: '/customers',
-          label: 'Customers',
-          icon: <Users className="size-4" />,
-          onClick: () => handleNavigation('/customers'),
-          secondaryLabel: 'Manage clients'
-        },
-      ],
-    },
-    {
-      id: 'settings-group',
-      label: 'App',
-      items: [
-        {
-          id: 'settings',
-          label: 'Settings',
-          icon: <Settings className="size-4" />,
-          onClick: () => {},
-          secondaryLabel: 'Configuration'
-        },
-        {
-          id: 'products',
-          label: 'Products',
-          icon: <Package className="size-4" />,
-          onClick: () => {},
-          secondaryLabel: 'Inventory'
-        }
-      ]
-    }
-  ], [navigate]);
+  const menuGroups = useMemo< LayoutMenuGroupData[] >( () => {
+    const mainItems: WeposSidebarMenuItem[] = [
+      {
+        id: '/',
+        label: 'Home',
+        icon: <Home className="size-4" />,
+        onClick: () => handleNavigation( '/' ),
+        secondaryLabel: 'Dashboard',
+      },
+      {
+        id: '/orders',
+        label: 'Orders',
+        icon: <FileText className="size-4" />,
+        onClick: () => handleNavigation( '/orders' ),
+        secondaryLabel: 'Sales history',
+      },
+      {
+        id: '/customers',
+        label: 'Customers',
+        icon: <Users className="size-4" />,
+        onClick: () => handleNavigation( '/customers' ),
+        secondaryLabel: 'Manage clients',
+      },
+    ];
+
+    const appItems: WeposSidebarMenuItem[] = [
+      {
+        id: '/settings',
+        label: 'Settings',
+        icon: <Settings className="size-4" />,
+        onClick: () => handleNavigation( '/settings' ),
+        secondaryLabel: 'Configuration',
+      },
+      {
+        id: '/products',
+        label: 'Products',
+        icon: <Package className="size-4" />,
+        onClick: () => handleNavigation( '/products' ),
+        secondaryLabel: 'Inventory',
+      },
+    ];
+
+    // Allow pro/extensions to modify menu items
+    const filteredMainItems = applyFilters< WeposSidebarMenuItem[] >(
+      'wepos_react_sidebar_main_items',
+      mainItems,
+    );
+
+    const filteredAppItems = applyFilters< WeposSidebarMenuItem[] >(
+      'wepos_react_sidebar_app_items',
+      appItems,
+    );
+
+    return [
+      {
+        id: 'main',
+        label: 'Main',
+        secondaryLabel: 'Primary navigation',
+        items: filteredMainItems,
+      },
+      {
+        id: 'settings-group',
+        label: 'App',
+        items: filteredAppItems,
+      },
+    ];
+  }, [ navigate ] );
+
+  // Allow pro to render extra content in the sidebar footer (e.g. cashier info)
+  const sidebarFooter = applyFilters< React.ReactNode >(
+    'wepos_react_sidebar_footer',
+    null,
+  );
 
   return (
-    <div
-      className="bg-sidebar flex flex-col h-full"
-    >
+    <div className="bg-sidebar flex h-full flex-col">
       <div className="border-sidebar-border border-b p-4">
         <div className="flex items-center gap-3">
           <div className="bg-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
             <Bolt className="h-5 w-5" />
           </div>
-          <span className="text-lg font-bold">
-            WePos
-          </span>
+          <span className="text-lg font-bold">WePos</span>
         </div>
       </div>
 
-      <div className="flex-1 py-2 overflow-hidden">
+      <div className="flex-1 overflow-hidden py-2">
         <LayoutMenu
-          groups={menuGroups}
-          activeItemId={location.pathname}
-          searchable={true}
+          groups={ menuGroups }
+          activeItemId={ location.pathname }
+          searchable={ true }
         />
       </div>
+
+      { sidebarFooter }
     </div>
   );
 };
