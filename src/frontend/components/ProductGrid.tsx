@@ -10,6 +10,7 @@ import {
   Thumbnail,
   ScrollArea,
 } from '@wedevs/plugin-ui';
+import { formatPrice } from '../utils/helpers';
 import { POSProduct, ProductViewType, CartItem } from '../types';
 import ProductVariationSelector from './ProductVariationSelector';
 
@@ -55,6 +56,16 @@ const ProductGrid: React.FC<ProductGridProps> = ({
         </p>
       </div>
     );
+  }
+
+  const getStockQuantityLabel = (stock_quantity) => {
+    if (stock_quantity === null) {
+      return '';
+    } else if (stock_quantity === 0) {
+      return 'Empty';
+    } else {
+      return `${stock_quantity} Left`;
+    }
   }
 
   return (
@@ -149,12 +160,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
               return (
                 <Card
                   key={product.id}
-                  className={`group cursor-pointer border-gray-200 p-0 transition-all duration-200 hover:-translate-y-1 hover:border-primary/50 hover:shadow-lg ${!inStock ? 'opacity-50' : ''}`}
-                  onClick={() =>
-                    product.type !== 'variable' &&
-                    inStock &&
-                    onAddToCart(product)
-                  }
+                  className="group cursor-pointer border-gray-200 p-0 transition-all duration-200 hover:shadow-lg"
                 >
                   <div className="relative w-full overflow-hidden rounded-t-xl bg-gray-100 pb-[100%]">
                     <Thumbnail
@@ -162,8 +168,15 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                       alt={product.name}
                       aspect="square"
                       size="custom"
-                      className="absolute inset-0 h-full w-full rounded-none transition-transform duration-300 group-hover:scale-105"
+                      className="absolute inset-0 h-full w-full rounded-none transition-transform duration-300"
                     />
+                    {!inStock && (
+                      <div className="absolute inset-0 bg-white/60 flex items-center justify-center backdrop-blur-[2px] z-10">
+                        <span className="bg-red-50 text-red-600 px-3 py-1 rounded-full text-xs font-semibold border border-red-100 shadow-sm uppercase tracking-wide text-center">
+                          Out of Stock
+                        </span>
+                      </div>
+                    )}
                     {inStock && (
                       <div className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                         {product.type === 'variable' ? (
@@ -175,7 +188,6 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                               variant="default"
                               size="icon-sm"
                               className="h-8 w-8 rounded-full shadow-md"
-                              onClick={(e) => e.stopPropagation()}
                             >
                               <Plus className="h-5 w-5" />
                             </Button>
@@ -197,15 +209,30 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                     )}
                   </div>
                   <CardContent className="flex flex-1 flex-col p-3 text-center">
-                    <div className="mb-1 line-clamp-2 min-h-[2.5rem] text-sm font-medium text-gray-800">
+                    <h3 className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 min-h-[40px]" title={product.name}>
                       {truncateTitle(product.name, 25)}
+                    </h3>
+                    <div className="flex items-center flex-wrap justify-center gap-2 mb-3">
+                      <Badge className="text-[10px] uppercase tracking-wider font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-sm">
+                        {product.categories[0].name}
+                      </Badge>
+                      <span className={`text-xs truncate ${!inStock ? "text-red-600 font-medium" : "text-gray-400"}`}>
+                        {getStockQuantityLabel(product.stock_quantity)}
+                      </span>
                     </div>
-                    <div
-                      className="mt-auto text-sm font-bold text-primary"
-                      dangerouslySetInnerHTML={{
-                        __html: product.price_html,
-                      }}
-                    ></div>
+
+                    <div className="mt-auto flex items-end justify-between pt-3 border-t border-gray-50">
+                      <div className="flex flex-col">
+                        {product.regular_price && product.regular_price !== product.price && (
+                          <span className="text-xs text-gray-400 line-through mb-0.5">
+                            {formatPrice(product.regular_price)}
+                          </span>
+                        )}
+                        <span className="text-sm font-bold text-gray-900">
+                          {formatPrice(product.price)}
+                        </span>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               );

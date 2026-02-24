@@ -3,12 +3,46 @@ import { POSProduct } from '../types';
 /**
  * Format a price amount for display
  */
-export const formatPrice = (amount: number | string | undefined | null): string => {
-  const numericAmount = typeof amount === 'number' ? amount : parseFloat(String(amount || 0));
-  if (isNaN(numericAmount)) {
-    return '$0.00';
-  }
-  return `$${numericAmount.toFixed(2)}`;
+export const formatPrice = (
+    price: number | string = '',
+    currencySymbol = '',
+    precision = null,
+    thousand = '',
+    decimal = '',
+    format = ''
+): string | number => {
+    if ( ! window.accounting ) {
+        console.warn( 'Woocommerce Accounting Library Not Found' );
+        return price;
+    }
+    if ( ! currencySymbol ) {
+        currencySymbol = window?.wepos?.currency_format_symbol
+    }
+
+    if ( ! precision ) {
+        precision = window?.wepos?.currency_format_num_decimals
+    }
+
+    if ( ! thousand ) {
+        thousand = window?.wepos?.currency_format_thousand_sep
+    }
+
+    if ( ! decimal ) {
+        decimal = window?.wepos?.currency_format_decimal_sep
+    }
+
+    if ( ! format ) {
+        format = window?.wepos?.currency_format
+    }
+
+    return window.accounting.formatMoney(
+        price,
+        currencySymbol,
+        precision,
+        thousand,
+        decimal,
+        format
+    );
 };
 
 /**
