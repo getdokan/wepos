@@ -494,34 +494,13 @@ const HomePage: React.FC = () => {
   }, [showPaymentReceipt, createprintreceipt]);
 
   return (
-    <Layout
-      headerContent={
-        <div className="flex flex-1 items-center gap-4">
-          <div className="flex items-center gap-2">
-            <SearchBar value={searchQuery} onChange={setSearchQuery} />
-            <div className="mx-1 hidden h-6 w-px bg-gray-200 lg:block"></div>
-            <CategoryFilter
-              categories={categories}
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <ProductViewToggle
-              productView={productView}
-              onToggle={toggleProductView}
-            />
-          </div>
-        </div>
-      }
-    >
+    <Layout>
       <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
         {/* Main Content + Cart Area */}
         <div className="flex h-full min-h-0 flex-1 flex-row overflow-hidden">
-          <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-gray-50/30 p-4">
+          <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidde">
 
-         <div className="flex flex-row overflow-hidden bg-gray-50/30 p-4">
+         <div className="flex flex-row overflow-hidden bg-gray-50/30 mb-4">
           <div className="flex items-center gap-2">
             <SearchBar value={searchQuery} onChange={setSearchQuery} />
             <div className="mx-1 hidden h-6 w-px bg-gray-200 lg:block"></div>
