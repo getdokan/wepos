@@ -58,6 +58,7 @@ subscribe(() => {
     coupon_lines: storeSelect.getDiscountLines(),
     fee_lines: storeSelect.getFeeLines(),
     customer_note: storeSelect.getCustomerNote(),
+    customer: storeSelect.getCustomer(),
   };
 
   const serialized = JSON.stringify(currentState);

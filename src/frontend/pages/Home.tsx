@@ -59,15 +59,16 @@ const HomePage: React.FC = () => {
     [],
   );
 
-  const { cartItems, total } = useSelect((select) => {
+  const { cartItems, total, selectedCustomer } = useSelect((select) => {
     const cartStore = select(CART_STORE_NAME) as any;
     return {
       cartItems: cartStore.getCartItems(),
       total: cartStore.getTotal(),
+      selectedCustomer: cartStore.getCustomer(),
     };
   }, []);
 
-  const { addToCart, clearCart } = useDispatch(CART_STORE_NAME) as any;
+  const { addToCart, clearCart, setCustomer } = useDispatch(CART_STORE_NAME) as any;
 
   // UI State
   const [showHelp, setShowHelp] = useState(false);
@@ -84,11 +85,6 @@ const HomePage: React.FC = () => {
     gateway: { id: '', title: '' },
   });
   const [createprintreceipt, setCreateprintreceipt] = useState(false);
-
-  // Customer State
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
-    null,
-  );
 
   // Order Data State (still needed for payment processing)
   const [orderData, setOrderData] = useState({
@@ -192,7 +188,6 @@ const HomePage: React.FC = () => {
 
   const createNewSale = useCallback(() => {
     clearCart();
-    setSelectedCustomer(null);
     setOrderData({
       customer_id: 0,
       customer_note: '',
@@ -208,7 +203,7 @@ const HomePage: React.FC = () => {
 
   // Customer selection handler
   const handleCustomerSelected = useCallback((customer: Customer | null) => {
-    setSelectedCustomer(customer);
+    setCustomer(customer);
     if (customer) {
       setOrderData((prev) => ({
         ...prev,
@@ -224,7 +219,7 @@ const HomePage: React.FC = () => {
         shipping: {},
       }));
     }
-  }, []);
+  }, [setCustomer]);
 
   const initPayment = useCallback(() => {
     if (cartItems.length <= 0) {

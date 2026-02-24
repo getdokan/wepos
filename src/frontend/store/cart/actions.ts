@@ -1,4 +1,4 @@
-import { POSCartItem } from '../../types';
+import { POSCartItem, Customer } from '../../types';
 
 export const actions = {
   addToCart(item: POSCartItem) {
@@ -69,6 +69,13 @@ export const actions = {
   removeCustomerNote() {
     return {
       type: 'REMOVE_CUSTOMER_NOTE' as const,
+    };
+  },
+
+  setCustomer(customer: Customer | null) {
+    return {
+      type: 'SET_CUSTOMER' as const,
+      customer,
     };
   },
 };
