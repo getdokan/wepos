@@ -157,7 +157,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               className="w-full"
             />
             <DropdownMenu>
-              <DropdownMenuTrigger className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex items-center justify-center rounded-md p-2 transition-colors outline-none">
+              <DropdownMenuTrigger className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex items-center justify-center rounded-md p-2 transition-colors outline-none border border-border">
                 <MoreVertical className="h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -226,18 +226,18 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                               <Button
                                 variant="outline"
                                 size="icon-sm"
-                                className="h-8 w-8 rounded border-none bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                className="h-5 w-5 rounded border-none bg-gray-100 text-gray-600 hover:bg-gray-200"
                                 onClick={() => removeQuantity(item, index)}
                               >
                                 <Minus className="h-4 w-4" />
                               </Button>
-                              <span className="w-8 text-center font-medium">
+                              <span className="w-8 text-center font-sm">
                                 {item.quantity}
                               </span>
                               <Button
                                 variant="outline"
                                 size="icon-sm"
-                                className="h-8 w-8 rounded border-none bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                className="h-5 w-5 rounded border-none bg-gray-100 text-gray-600 hover:bg-gray-200"
                                 onClick={() => addQuantity(item, index)}
                               >
                                 <Plus className="h-4 w-4" />
@@ -247,7 +247,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
                           {/* NAME Column */}
                           <td className="p-3 text-sm">
-                            <div className="font-medium text-gray-800">
+                            <div className="font-sm text-gray-800">
                               {item.name}
                             </div>
                             {item.attribute &&
@@ -294,7 +294,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                           </td>
 
                           {/* TOTAL Column */}
-                          <td className="p-3 text-sm font-bold text-gray-800">
+                          <td className="p-3 text-sm">
                             {formatPrice(
                               item.quantity *
                                 (item.on_sale
@@ -308,7 +308,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                             <Button
                               variant="ghost"
                               size="icon-sm"
-                              className="flex h-8 w-8 items-center justify-center rounded-full border-none bg-red-500 p-0 text-white hover:bg-red-600"
+                              className="flex h-6 w-6 items-center justify-center rounded-full border-none bg-destructive p-0 text-destructive-foreground hover:bg-destructive/90 hover:text-destructive-foreground"
                               onClick={() => handleRemoveItem(index)}
                               title={__('Remove item', 'wepos')}
                             >
@@ -339,11 +339,11 @@ const Cart = forwardRef<CartHandle, CartProps>(({
           </ScrollArea>
 
           {/* Cart Footer - Fixed Bottom */}
-          <div className="flex-shrink-0 border-t border-gray-200 bg-white">
+          <div className="shrink-0 border-t border-border">
             <div className="bg-gray-50/50">
               {/* Subtotal */}
-              <div className="flex items-center justify-between border-b border-gray-100 p-4">
-                <div className="font-medium text-gray-700">
+              <div className="flex items-center justify-between border-b border-border p-4">
+                <div className="flex-1 text-sm">
                   {__('Subtotal', 'wepos')}
                   {settings.woo_tax?.wc_tax_display_cart === 'incl' &&
                     totalTax > 0 && (
@@ -352,8 +352,11 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       </span>
                     )}
                 </div>
-                <div className="font-bold text-gray-800">
+                <div className="text-sm">
                   {formatPrice(subtotal)}
+                </div>
+                <div className="ml-2 h-4 w-4">
+                  &nbsp;
                 </div>
               </div>
 
@@ -361,9 +364,9 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               {discountLines.map((discount: any, index: number) => (
                 <div
                   key={`discount-${index}`}
-                  className="flex items-center border-b border-gray-100 p-4"
+                  className="flex items-center border-b border-border p-4"
                 >
-                  <div className="flex-1 font-medium text-gray-700">
+                  <div className="flex-1 text-sm">
                     {__('Discount', 'wepos')}
                     <span className="ml-2 text-xs text-gray-500">
                       {discount.discount_type === 'percent'
@@ -371,7 +374,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                         : formatPrice(discount.value)}
                     </span>
                   </div>
-                  <div className="font-bold text-green-600">
+                  <div className="text-sm">
                     −{formatPrice(getDiscountAmount(discount))}
                   </div>
                   <div className="ml-2">
@@ -392,9 +395,9 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               {feeLines.map((fee: any, index: number) => (
                 <div
                   key={`fee-${index}`}
-                  className="flex items-center border-b border-gray-100 p-4"
+                  className="flex items-center border-b border-border p-4"
                 >
-                  <div className="flex-1 font-medium text-gray-700">
+                  <div className="flex-1 text-sm text-gray-700">
                     {__('Fee', 'wepos')}
                     <span className="ml-2 text-xs text-gray-500">
                       {fee.fee_type === 'percent'
@@ -402,7 +405,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                         : formatPrice(fee.value)}
                     </span>
                   </div>
-                  <div className="font-bold text-gray-800">
+                  <div className="text-sm">
                     {formatPrice(getFeeAmount(fee))}
                   </div>
                   <div className="ml-2">
@@ -421,20 +424,20 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
               {/* Tax */}
               {totalTax > 0 && (
-                <div className="flex items-center justify-between border-b border-gray-100 p-4">
-                  <div className="font-medium text-gray-700">
+                <div className="flex items-center justify-between border-b border-border p-4">
+                  <div className="text-sm font-medium text-gray-700">
                     {settings.woo_tax?.wc_tax_display_cart === 'incl'
                       ? __('Fee Tax', 'wepos')
                       : __('Tax', 'wepos')}
                   </div>
-                  <div className="font-bold text-gray-800">
+                  <div className="text-sm font-bold text-gray-800">
                     {formatPrice(totalTax)}
                   </div>
                 </div>
               )}
 
               {/* Action Buttons */}
-              <div className="border-b border-gray-100 p-4">
+              <div className="border-b border-border p-4">
                 <div className="flex flex-wrap gap-2">
                   <FeeKeypad
                     ref={discountRef}
@@ -456,7 +459,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
               {/* Customer Note */}
               {customerNote && (
-                <div className="flex items-center border-b border-gray-100 p-4">
+                <div className="flex items-center border-b border-border p-4">
                   <div className="flex-1 text-sm text-gray-600">
                     <span className="font-medium">
                       {__('Note:', 'wepos')}{' '}
@@ -489,10 +492,10 @@ const Cart = forwardRef<CartHandle, CartProps>(({
             </div>
 
             <Button
-              className="h-14 w-full rounded-none text-lg font-bold"
+              className="h-14 w-full text-lg font-bold"
               onClick={onInitPayment}
             >
-              {__('Checkout', 'wepos')} • {formatPrice(total)}
+              {__('Checkout', 'wepos')} {formatPrice(total)}
             </Button>
           </div>
         </div>
