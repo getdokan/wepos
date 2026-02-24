@@ -8,6 +8,13 @@ export const actions = {
     };
   },
 
+  appendProducts(products: POSProduct[]) {
+    return {
+      type: 'APPEND_PRODUCTS' as const,
+      products,
+    };
+  },
+
   setCategories(categories: POSCategory[]) {
     return {
       type: 'SET_CATEGORIES' as const,
