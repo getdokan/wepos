@@ -490,7 +490,7 @@ const HomePage: React.FC = () => {
         <div className="flex h-full min-h-0 flex-1 flex-row overflow-hidden">
           <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidde">
 
-         <div className="flex flex-row items-center gap-3 overflow-visible bg-gray-50/30 mb-4 px-2 py-2">
+         <div className="flex flex-row items-center gap-3 overflow-visible mb-4">
             <div className="w-[56%]">
               <SearchBar products={products} settings={settings} onProductAdded={handleAddToCart} />
             </div>
