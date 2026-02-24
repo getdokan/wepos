@@ -47,7 +47,7 @@ const HomePage: React.FC = () => {
   const { initializeData } = usePOSData();
 
   // Get data from stores
-  const { products, categories, availableGateways, productLoading } = useSelect(
+  const { products, categories, availableGateways, productLoading, settings } = useSelect(
     (select) => {
       const productsStore = select(PRODUCTS_STORE_NAME) as any;
       return {
@@ -55,6 +55,7 @@ const HomePage: React.FC = () => {
         categories: productsStore.getCategories(),
         availableGateways: productsStore.getGateways(),
         productLoading: productsStore.getProductsLoading(),
+        settings: productsStore.getSettings(),
       };
     },
     [],
@@ -74,7 +75,6 @@ const HomePage: React.FC = () => {
   // UI State
   const [showHelp, setShowHelp] = useState(false);
   const [productView, setProductView] = useState<ProductViewType>('grid');
-  const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showPaymentReceipt, setShowPaymentReceipt] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<POSCategory | null>(
@@ -146,16 +146,6 @@ const HomePage: React.FC = () => {
   const getFilteredProduct = useMemo(() => {
     let filteredProducts = products;
 
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filteredProducts = products.filter(
-        (product: POSProduct) =>
-          product.name.toLowerCase().includes(query) ||
-          (product.sku && product.sku.toLowerCase().includes(query)),
-      );
-    }
-
     // Filter by selected category (only if one is selected and it's not "All Categories")
     if (selectedCategory && selectedCategory.id > 0) {
       filteredProducts = filteredProducts.filter((product: POSProduct) =>
@@ -180,7 +170,7 @@ const HomePage: React.FC = () => {
     }
 
     return filteredProducts;
-  }, [products, selectedCategory, searchQuery]);
+  }, [products, selectedCategory]);
 
   // UI Actions
   const toggleProductView = useCallback(() => {
@@ -500,22 +490,23 @@ const HomePage: React.FC = () => {
         <div className="flex h-full min-h-0 flex-1 flex-row overflow-hidden">
           <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidde">
 
-         <div className="flex flex-row overflow-hidden bg-gray-50/30 mb-4">
-          <div className="flex items-center gap-2">
-            <SearchBar value={searchQuery} onChange={setSearchQuery} />
-            <div className="mx-1 hidden h-6 w-px bg-gray-200 lg:block"></div>
-            <CategoryFilter
+         <div className="flex flex-row items-center gap-3 overflow-visible bg-gray-50/30 mb-4 px-2 py-2">
+            <div className="w-[56%]">
+              <SearchBar products={products} settings={settings} onProductAdded={handleAddToCart} />
+            </div>
+            <div className="w-[26%]">
+              <CategoryFilter
               categories={categories}
               selectedCategory={selectedCategory}
               onCategoryChange={setSelectedCategory}
             />
-          </div>
-          <div className="flex items-center gap-2">
-            <ProductViewToggle
-              productView={productView}
-              onToggle={toggleProductView}
-            />
-          </div>
+            </div>
+            <div className='w-[14%]'>
+              <ProductViewToggle
+                productView={productView}
+                onToggle={toggleProductView}
+              />
+            </div>
          </div>
             <ProductGrid
               products={getFilteredProduct}
