@@ -7,6 +7,7 @@ export const initialState: CartState = {
   coupon_lines: [],
   fee_lines: [],
   customer_note: '',
+  customer: null,
 };
 
 // Reducer
@@ -119,6 +120,12 @@ export const reducer = (
       return {
         ...state,
         customer_note: '',
+      };
+
+    case 'SET_CUSTOMER':
+      return {
+        ...state,
+        customer: action.customer,
       };
 
     default:

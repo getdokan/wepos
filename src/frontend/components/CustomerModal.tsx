@@ -1,11 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { __ } from '@wordpress/i18n';
+import { LoaderCircle } from 'lucide-react';
 import {
   Modal,
-  TextControl,
-  SelectControl,
+  ModalHeader,
+  ModalTitle,
+  ModalFooter,
   Button,
-} from '@wordpress/components';
+  Input,
+  Combobox,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxList,
+  ComboboxItem,
+  ComboboxEmpty,
+  Separator,
+} from '@wedevs/plugin-ui';
 import { Customer, BillingAddress } from '../types';
 import { posAPI } from '../api';
 
@@ -14,7 +24,7 @@ interface CustomerModalProps {
   onClose: () => void;
   onCustomerCreated?: (customer: Customer) => void;
   onCustomerUpdated?: (customer: Customer) => void;
-  editingCustomer?: Customer | null; // Add this prop for editing mode
+  editingCustomer?: Customer | null;
 }
 
 interface CustomerFormData {
@@ -56,6 +66,8 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
 
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('');
+  const [countrySearch, setCountrySearch] = useState('');
+  const [stateSearch, setStateSearch] = useState('');
   const [availableStates, setAvailableStates] = useState<
     Array<{ value: string; label: string }>
   >([]);
@@ -64,11 +76,52 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
   const countries = (window as any).wepos?.countries || {};
   const states = (window as any).wepos?.states || {};
 
-  // Country options
-  const countryOptions = Object.entries(countries).map(([code, name]) => ({
-    value: code,
-    label: name as string,
-  }));
+  // Country items for Combobox
+  const countryItems = useMemo(
+    () =>
+      Object.entries(countries).map(([code, name]) => ({
+        value: code,
+        label: name as string,
+      })),
+    [countries],
+  );
+
+  // Selected country item for Combobox
+  const selectedCountryItem = useMemo(
+    () => countryItems.find((item) => item.value === selectedCountry) || null,
+    [countryItems, selectedCountry],
+  );
+
+  // State items for Combobox
+  const stateItems = useMemo(
+    () => availableStates.map((s) => ({ value: s.value, label: s.label })),
+    [availableStates],
+  );
+
+  // Selected state item for Combobox
+  const selectedStateItem = useMemo(
+    () => stateItems.find((item) => item.value === customerForm.state) || null,
+    [stateItems, customerForm.state],
+  );
+
+  // Filtered items based on search
+  const filteredCountryItems = useMemo(
+    () => {
+      if (!countrySearch.trim()) return countryItems;
+      const query = countrySearch.toLowerCase();
+      return countryItems.filter((item) => item.label.toLowerCase().includes(query));
+    },
+    [countryItems, countrySearch],
+  );
+
+  const filteredStateItems = useMemo(
+    () => {
+      if (!stateSearch.trim()) return stateItems;
+      const query = stateSearch.toLowerCase();
+      return stateItems.filter((item) => item.label.toLowerCase().includes(query));
+    },
+    [stateItems, stateSearch],
+  );
 
   // Load existing customer data when editing
   useEffect(() => {
@@ -112,20 +165,23 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
   };
 
   // Handle country selection
-  const handleCountryChange = (countryCode: string) => {
-    setSelectedCountry(countryCode);
-    setCustomerForm((prev) => ({ ...prev, country: countryCode, state: '' }));
+  const handleCountryChange = (val: any) => {
+    const code = val?.value ?? '';
+    setSelectedCountry(code);
+    setCountrySearch('');
+    setStateSearch('');
+    setCustomerForm((prev) => ({ ...prev, country: code, state: '' }));
   };
 
   // Handle state selection
-  const handleStateChange = (stateCode: string) => {
-    setCustomerForm((prev) => ({ ...prev, state: stateCode }));
+  const handleStateChange = (val: any) => {
+    setStateSearch('');
+    setCustomerForm((prev) => ({ ...prev, state: val?.value ?? '' }));
   };
 
   // Check if form is valid
   const isFormValid =
     customerForm.first_name.trim() !== '' &&
-    customerForm.last_name.trim() !== '' &&
     customerForm.email.trim() !== '';
 
   // Save customer (create or update)
@@ -150,7 +206,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
           country: customerForm.country,
           phone: customerForm.phone,
           email: customerForm.email,
-          company: '', // Add required fields
+          company: '',
         } as BillingAddress,
         shipping: {
           first_name: customerForm.first_name,
@@ -161,21 +217,19 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
           state: customerForm.state,
           postcode: customerForm.postcode,
           country: customerForm.country,
-          company: '', // Add required fields
+          company: '',
         },
       };
 
       let savedCustomer: Customer;
 
       if (isEditMode) {
-        // Update existing customer
         savedCustomer = await posAPI.customers.updateCustomer(
           editingCustomer!.id,
           customerData,
         );
         onCustomerUpdated?.(savedCustomer);
       } else {
-        // Create new customer
         savedCustomer = await posAPI.customers.createCustomer(customerData);
         onCustomerCreated?.(savedCustomer);
       }
@@ -186,7 +240,6 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
         `Error ${isEditMode ? 'updating' : 'creating'} customer:`,
         error,
       );
-      // TODO: Show error notification
     } finally {
       setIsLoading(false);
     }
@@ -207,6 +260,8 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
       phone: '',
     });
     setSelectedCountry('');
+    setCountrySearch('');
+    setStateSearch('');
   };
 
   // Handle modal close
@@ -219,133 +274,168 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
 
   return (
     <Modal
-      title={
-        isEditMode
-          ? __('Edit Customer', 'wepos')
-          : __('Add New Customer', 'wepos')
-      }
-      onRequestClose={handleClose}
-      className="wepos-customer-modal"
-      style={{ maxWidth: '700px' }}
+      open={isOpen}
+      onClose={handleClose}
+      showCloseButton={true}
+      closeOnOverlayClick={false}
+      closeOnEscape={true}
+      className="wepos-customer-modal max-w-175 p-0!"
     >
-      <div className="wepos-customer-form space-y-4">
-        {/* Name Fields */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <TextControl
-            label={__('First Name', 'wepos')}
+      {/* Header */}
+      <ModalHeader className="px-6 py-5">
+        <ModalTitle className="text-lg font-bold text-gray-900">
+          {isEditMode
+            ? __('Edit Customer', 'wepos')
+            : __('Add New Customer', 'wepos')}
+        </ModalTitle>
+      </ModalHeader>
+
+      <Separator />
+
+      {/* Form Body */}
+      <div className="space-y-5 px-6 py-6">
+        {/* First Name / Last Name */}
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            type="text"
+            placeholder={__('First Name*', 'wepos')}
             value={customerForm.first_name}
-            onChange={(value) => handleFormChange('first_name', value)}
-            placeholder={__('First Name', 'wepos')}
+            onChange={(e) => handleFormChange('first_name', e.target.value)}
             required
           />
-          <TextControl
-            label={__('Last Name', 'wepos')}
-            value={customerForm.last_name}
-            onChange={(value) => handleFormChange('last_name', value)}
+          <Input
+            type="text"
             placeholder={__('Last Name', 'wepos')}
-            required
+            value={customerForm.last_name}
+            onChange={(e) => handleFormChange('last_name', e.target.value)}
           />
         </div>
 
         {/* Email */}
-        <TextControl
-          label={__('Email', 'wepos')}
+        <Input
           type="email"
+          placeholder={__('Email*', 'wepos')}
           value={customerForm.email}
-          onChange={(value) => handleFormChange('email', value)}
-          placeholder={__('Email', 'wepos')}
+          onChange={(e) => handleFormChange('email', e.target.value)}
           required
         />
 
-        {/* Address Fields */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <TextControl
-            label={__('Address 1', 'wepos')}
-            value={customerForm.address_1}
-            onChange={(value) => handleFormChange('address_1', value)}
+        {/* Address 1 / Address 2 */}
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            type="text"
             placeholder={__('Address 1', 'wepos')}
+            value={customerForm.address_1}
+            onChange={(e) => handleFormChange('address_1', e.target.value)}
           />
-          <TextControl
-            label={__('Address 2 (optional)', 'wepos')}
-            value={customerForm.address_2}
-            onChange={(value) => handleFormChange('address_2', value)}
+          <Input
+            type="text"
             placeholder={__('Address 2 (optional)', 'wepos')}
+            value={customerForm.address_2}
+            onChange={(e) => handleFormChange('address_2', e.target.value)}
           />
         </div>
 
-        {/* Country and State */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <SelectControl
-            label={__('Country', 'wepos')}
-            value={selectedCountry}
-            onChange={handleCountryChange}
-            options={[
-              { value: '', label: __('Select a country', 'wepos') },
-              ...countryOptions,
-            ]}
-          />
-          {availableStates.length > 0 ? (
-            <SelectControl
-              label={__('State', 'wepos')}
-              value={customerForm.state}
-              onChange={handleStateChange}
-              options={[
-                { value: '', label: __('Select a state', 'wepos') },
-                ...availableStates,
-              ]}
+        {/* Country / State */}
+        <div className="grid grid-cols-2 gap-4">
+          <Combobox
+            items={filteredCountryItems}
+            value={selectedCountryItem}
+            onValueChange={handleCountryChange}
+            itemToStringLabel={(item: any) => item?.label}
+            itemToStringValue={(item: any) => item?.value}
+          >
+            <ComboboxInput
+              placeholder={__('Select a country', 'wepos')}
+              onInput={(e: React.FormEvent<HTMLInputElement>) =>
+                setCountrySearch((e.target as HTMLInputElement).value)
+              }
             />
+            <ComboboxContent>
+              <ComboboxList>
+                {filteredCountryItems.map((item) => (
+                  <ComboboxItem key={item.value} value={item}>
+                    {item.label}
+                  </ComboboxItem>
+                ))}
+              </ComboboxList>
+              <ComboboxEmpty>{__('No country found.', 'wepos')}</ComboboxEmpty>
+            </ComboboxContent>
+          </Combobox>
+
+          {availableStates.length > 0 ? (
+            <Combobox
+              items={filteredStateItems}
+              value={selectedStateItem}
+              onValueChange={handleStateChange}
+              itemToStringLabel={(item: any) => item?.label}
+              itemToStringValue={(item: any) => item?.value}
+            >
+              <ComboboxInput
+                placeholder={__('Select a state', 'wepos')}
+                onInput={(e: React.FormEvent<HTMLInputElement>) =>
+                  setStateSearch((e.target as HTMLInputElement).value)
+                }
+              />
+              <ComboboxContent>
+                <ComboboxList>
+                  {filteredStateItems.map((item) => (
+                    <ComboboxItem key={item.value} value={item}>
+                      {item.label}
+                    </ComboboxItem>
+                  ))}
+                </ComboboxList>
+                <ComboboxEmpty>{__('No state found.', 'wepos')}</ComboboxEmpty>
+              </ComboboxContent>
+            </Combobox>
           ) : (
-            <TextControl
-              label={__('State (optional)', 'wepos')}
+            <Input
+              type="text"
+              placeholder={__('States (optional)', 'wepos')}
               value={customerForm.state}
-              onChange={(value) => handleFormChange('state', value)}
-              placeholder={__('State (optional)', 'wepos')}
+              onChange={(e) => handleFormChange('state', e.target.value)}
             />
           )}
         </div>
 
-        {/* City and Postal Code */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <TextControl
-            label={__('City (optional)', 'wepos')}
-            value={customerForm.city}
-            onChange={(value) => handleFormChange('city', value)}
+        {/* City / Zip Code */}
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            type="text"
             placeholder={__('City (optional)', 'wepos')}
+            value={customerForm.city}
+            onChange={(e) => handleFormChange('city', e.target.value)}
           />
-          <TextControl
-            label={__('Zip/Postal Code (optional)', 'wepos')}
-            value={customerForm.postcode}
-            onChange={(value) => handleFormChange('postcode', value)}
+          <Input
+            type="text"
             placeholder={__('Zip/Postal Code (optional)', 'wepos')}
+            value={customerForm.postcode}
+            onChange={(e) => handleFormChange('postcode', e.target.value)}
           />
         </div>
 
         {/* Phone */}
-        <TextControl
-          label={__('Phone (optional)', 'wepos')}
+        <Input
           type="tel"
-          value={customerForm.phone}
-          onChange={(value) => handleFormChange('phone', value)}
           placeholder={__('Phone (optional)', 'wepos')}
+          value={customerForm.phone}
+          onChange={(e) => handleFormChange('phone', e.target.value)}
         />
-
-        {/* Form Actions */}
-        <div className="flex justify-end gap-3 border-t border-gray-200 pt-4">
-          <Button variant="tertiary" onClick={handleClose} disabled={isLoading}>
-            {__('Cancel', 'wepos')}
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleSaveCustomer}
-            disabled={!isFormValid || isLoading}
-            isBusy={isLoading}
-          >
-            {isEditMode
-              ? __('Update Customer', 'wepos')
-              : __('Add Customer', 'wepos')}
-          </Button>
-        </div>
       </div>
+
+      {/* Footer */}
+      <ModalFooter className="flex justify-end px-6 py-4">
+        <Button
+          onClick={handleSaveCustomer}
+          disabled={!isFormValid || isLoading}
+          className="px-8"
+        >
+          {isLoading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+          {isEditMode
+            ? __('Update Customer', 'wepos')
+            : __('Add Customer', 'wepos')}
+        </Button>
+      </ModalFooter>
     </Modal>
   );
 };

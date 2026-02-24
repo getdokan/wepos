@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { __ } from '@wordpress/i18n';
 import {
   Popover,
@@ -16,16 +16,24 @@ interface FeeKeypadProps {
   isDiscount?: boolean;
 }
 
-const FeeKeypad: React.FC<FeeKeypadProps> = ({
+export interface FeeKeypadHandle {
+  open: () => void;
+}
+
+const FeeKeypad = forwardRef<FeeKeypadHandle, FeeKeypadProps>(({
   name,
   onInputFee,
   className,
   isDiscount = false,
-}) => {
+}, ref) => {
   const [isVisible, setIsVisible] = useState(false);
   const [displayValue, setDisplayValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    open: () => setIsVisible(true),
+  }));
 
   // Focus input when popover opens
   useEffect(() => {
@@ -182,6 +190,6 @@ const FeeKeypad: React.FC<FeeKeypadProps> = ({
       </Popover>
     </div>
   );
-};
+});
 
 export default FeeKeypad;

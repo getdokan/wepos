@@ -1,8 +1,9 @@
 import { CartState } from './types';
-import { POSCartItem, POSDiscountLine, POSFeeLine } from '../../types';
+import { POSCartItem, POSDiscountLine, POSFeeLine, Customer } from '../../types';
 
 export const selectors = {
   getCartItems: (state: CartState): POSCartItem[] => state.line_items,
+  getCustomer: (state: CartState): Customer | null => state.customer,
   getDiscountLines: (state: CartState): POSDiscountLine[] => state.coupon_lines,
   getFeeLines: (state: CartState): POSFeeLine[] => state.fee_lines,
   getCustomerNote: (state: CartState): string => state.customer_note,

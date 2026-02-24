@@ -1,4 +1,4 @@
-import { POSCartItem, POSDiscountLine, POSFeeLine } from '../../types';
+import { POSCartItem, POSDiscountLine, POSFeeLine, Customer } from '../../types';
 
 // Cart state interface
 export interface CartState {
@@ -6,6 +6,7 @@ export interface CartState {
   coupon_lines: POSDiscountLine[];
   fee_lines: POSFeeLine[];
   customer_note: string;
+  customer: Customer | null;
 }
 
 // Action types
@@ -23,4 +24,5 @@ export type CartAction =
   | { type: 'REMOVE_DISCOUNT'; index: number }
   | { type: 'REMOVE_FEE'; index: number }
   | { type: 'ADD_CUSTOMER_NOTE'; note: string }
-  | { type: 'REMOVE_CUSTOMER_NOTE' };
+  | { type: 'REMOVE_CUSTOMER_NOTE' }
+  | { type: 'SET_CUSTOMER'; customer: Customer | null };

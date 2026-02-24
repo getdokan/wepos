@@ -1,28 +1,61 @@
-import React from 'react';
+import React, { useRef, forwardRef, useImperativeHandle } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useSelect, useDispatch } from '@wordpress/data';
 import {
   Plus,
-  ChevronRight,
   X,
   ShoppingCart,
-  Minus,
+  Minus, MoreVertical,
 } from 'lucide-react';
-import { Button, Input, Separator, ScrollArea } from '@wedevs/plugin-ui';
+import {
+  Button,
+  ScrollArea,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@wedevs/plugin-ui';
 import { POSCartItem } from '../types';
-import FeeKeypad from './FeeKeypad';
-import CustomerNote from './CustomerNote';
+import FeeKeypad, { FeeKeypadHandle } from './FeeKeypad';
+import CustomerNote, { CustomerNoteHandle } from './CustomerNote';
 import { formatPrice } from '../utils/helpers';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
+import CustomerSearch, { CustomerSearchHandle } from '../components/CustomerSearch';
 
 interface CartProps {
   onInitPayment: () => void;
+  [name: string]: any;
 }
 
-const Cart: React.FC<CartProps> = ({
+export interface CartHandle {
+  openDiscount: () => void;
+  openFee: () => void;
+  openNote: () => void;
+  focusCustomerSearch: () => void;
+  openNewCustomer: () => void;
+}
+
+const Cart = forwardRef<CartHandle, CartProps>(({
   onInitPayment,
-}) => {
+  selectedCustomer,
+  handleCustomerSelected,
+  setShowHelp,
+}, ref) => {
+  // Refs for child components
+  const discountRef = useRef<FeeKeypadHandle>(null);
+  const feeRef = useRef<FeeKeypadHandle>(null);
+  const noteRef = useRef<CustomerNoteHandle>(null);
+  const customerSearchRef = useRef<CustomerSearchHandle>(null);
+
+  useImperativeHandle(ref, () => ({
+    openDiscount: () => discountRef.current?.open(),
+    openFee: () => feeRef.current?.open(),
+    openNote: () => noteRef.current?.open(),
+    focusCustomerSearch: () => customerSearchRef.current?.focus(),
+    openNewCustomer: () => customerSearchRef.current?.openNewCustomer(),
+  }));
+
   // Use WordPress data hooks for cart data
   const {
     cartItems,
@@ -69,10 +102,6 @@ const Cart: React.FC<CartProps> = ({
     removeCustomerNote,
   } = useDispatch(CART_STORE_NAME) as any;
 
-  const toggleEditQuantity = (item: POSCartItem, index: number) => {
-    updateCartItem(index, { editQuantity: !item.editQuantity });
-  };
-
   const addQuantity = (item: POSCartItem, index: number) => {
     updateCartItem(index, { quantity: item.quantity + 1 });
   };
@@ -86,7 +115,6 @@ const Cart: React.FC<CartProps> = ({
   const handleRemoveItem = (index: number) => {
     removeFromCart(index);
   };
-
 
   const handleDiscountInput = (value: number, type: 'percent' | 'fixed') => {
     addDiscount(value, type === 'percent' ? 'percent' : 'fixed_cart');
@@ -117,19 +145,38 @@ const Cart: React.FC<CartProps> = ({
   };
 
   return (
-    <div className="shadow-wepos flex h-full flex-none flex-col bg-white w-1/2">
+    <div className="flex h-full flex-none flex-col bg-white">
       {settings.wepos_general && (
         <div className="flex h-full flex-col">
           {/* Cart Header - Fixed Top */}
-          <div className="flex-shrink-0 border-b border-gray-200 bg-white px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-bold text-gray-800">
-                  {__('Cart', 'wepos')}
-                </h2>
-              </div>
-            </div>
+          <div className="flex flex-row justify-between gap-2.5 p-2 pt-0">
+            <CustomerSearch
+              ref={customerSearchRef}
+              selectedCustomer={selectedCustomer}
+              onCustomerSelected={handleCustomerSelected}
+              className="w-full"
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex items-center justify-center rounded-md p-2 transition-colors outline-none border border-border">
+                <MoreVertical className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={clearCart}>
+                  {__('Empty Cart', 'wepos')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowHelp(true)}>
+                  {__('Help', 'wepos')}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() =>
+                    (window.location.href = (window as any).wepos?.logout_url)
+                  }
+                >
+                  {__('Logout', 'wepos')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Cart Content - Scrollable Middle */}
@@ -139,30 +186,32 @@ const Cart: React.FC<CartProps> = ({
                 <thead className="sticky top-0 bg-white">
                   <tr>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-sm font-semibold text-gray-700"
-                      style={{ width: '50%' }}
-                    >
-                      {__('Product', 'wepos')}
-                    </th>
-                    <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-sm font-semibold text-gray-700"
-                      style={{ width: '15%' }}
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                      style={{ width: '20%' }}
                     >
                       {__('Qty', 'wepos')}
                     </th>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-sm font-semibold text-gray-700"
-                      style={{ width: '25%' }}
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                      style={{ width: '40%' }}
+                    >
+                      {__('Name', 'wepos')}
+                    </th>
+                    <th
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                      style={{ width: '15%' }}
                     >
                       {__('Price', 'wepos')}
                     </th>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-sm font-semibold text-gray-700"
-                      style={{ width: '5%' }}
-                    ></th>
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                      style={{ width: '15%' }}
+                    >
+                      {__('Total', 'wepos')}
+                    </th>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-sm font-semibold text-gray-700"
-                      style={{ width: '5%' }}
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                      style={{ width: '10%' }}
                     ></th>
                   </tr>
                 </thead>
@@ -170,25 +219,48 @@ const Cart: React.FC<CartProps> = ({
                   {cartItems.length > 0 ? (
                     cartItems.map((item: POSCartItem, index: number) => (
                       <React.Fragment key={item.id}>
-                        <tr className="transition-colors hover:bg-gray-50">
-                          <td
-                            className="cursor-pointer border-b border-gray-100 p-3 text-sm"
-                            onClick={() => toggleEditQuantity(item, index)}
-                          >
-                            <div className="font-medium text-gray-800">
+                        <tr className="border-b border-gray-100 transition-colors hover:bg-gray-50">
+                          {/* QTY Column */}
+                          <td className="p-3 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="icon-sm"
+                                className="h-5 w-5 rounded border-none bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                onClick={() => removeQuantity(item, index)}
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                              <span className="w-8 text-center font-sm">
+                                {item.quantity}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="icon-sm"
+                                className="h-5 w-5 rounded border-none bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                onClick={() => addQuantity(item, index)}
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+
+                          {/* NAME Column */}
+                          <td className="p-3 text-sm">
+                            <div className="font-sm text-gray-800">
                               {item.name}
                             </div>
                             {item.attribute &&
                               item.attribute.length > 0 &&
                               item.type === 'variable' && (
-                                <div className="mt-1 text-xs text-gray-600">
+                                <div className="mt-1 text-xs text-gray-500">
                                   {item.attribute.map(
                                     (attr: any, attrIndex: number) => (
                                       <span
                                         key={attrIndex}
                                         className="mr-2 inline-block"
                                       >
-                                        <span className="font-medium text-gray-500">
+                                        <span className="font-medium">
                                           {attr.name}:
                                         </span>
                                         <span className="ml-1">
@@ -204,53 +276,39 @@ const Cart: React.FC<CartProps> = ({
                                 </div>
                               )}
                           </td>
-                          <td
-                            className="cursor-pointer border-b border-gray-100 p-3 text-sm"
-                            onClick={() => toggleEditQuantity(item, index)}
-                          >
-                            <span className="inline-block min-w-8 rounded bg-gray-100 px-2 py-1 text-center font-medium">
-                              {item.quantity}
-                            </span>
-                          </td>
-                          <td
-                            className="cursor-pointer border-b border-gray-100 p-3 text-sm"
-                            onClick={() => toggleEditQuantity(item, index)}
-                          >
+
+                          {/* PRICE Column */}
+                          <td className="p-3 text-sm text-gray-600">
                             {item.on_sale ? (
-                              <div className="space-y-1">
-                                <div className="font-semibold text-red-600">
-                                  {formatPrice(item.quantity * item.sale_price)}
-                                </div>
-                                <div className="text-xs text-gray-400 line-through">
-                                  {formatPrice(
-                                    item.quantity * item.regular_price,
-                                  )}
-                                </div>
+                              <div className="flex flex-col">
+                                <span className="font-medium text-red-600">
+                                  {formatPrice(item.sale_price)}
+                                </span>
+                                <span className="text-xs text-gray-400 line-through">
+                                  {formatPrice(item.regular_price)}
+                                </span>
                               </div>
                             ) : (
-                              <span className="font-semibold text-gray-800">
-                                {formatPrice(
-                                  item.quantity * item.regular_price,
-                                )}
-                              </span>
+                              <span>{formatPrice(item.regular_price)}</span>
                             )}
                           </td>
-                          <td className="border-b border-gray-100 p-3 text-sm">
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              className={`p-1 transition-transform duration-200 ${item.editQuantity ? 'rotate-90' : ''}`}
-                              onClick={() => toggleEditQuantity(item, index)}
-                              title={__('Edit quantity', 'wepos')}
-                            >
-                              <ChevronRight className="h-4 w-4 text-wepos-primary" />
-                            </Button>
+
+                          {/* TOTAL Column */}
+                          <td className="p-3 text-sm">
+                            {formatPrice(
+                              item.quantity *
+                                (item.on_sale
+                                  ? item.sale_price
+                                  : item.regular_price),
+                            )}
                           </td>
-                          <td className="border-b border-gray-100 p-3 text-sm">
+
+                          {/* Delete Column */}
+                          <td className="p-3 text-right text-sm">
                             <Button
                               variant="ghost"
                               size="icon-sm"
-                              className="p-1 text-red-500 hover:bg-red-50 hover:text-red-700"
+                              className="flex h-6 w-6 items-center justify-center rounded-full border-none bg-destructive p-0 text-destructive-foreground hover:bg-destructive/90 hover:text-destructive-foreground"
                               onClick={() => handleRemoveItem(index)}
                               title={__('Remove item', 'wepos')}
                             >
@@ -258,52 +316,6 @@ const Cart: React.FC<CartProps> = ({
                             </Button>
                           </td>
                         </tr>
-                        {item.editQuantity && (
-                          <tr className="bg-gray-50">
-                            <td
-                              colSpan={5}
-                              className="border-b border-gray-100 p-3 text-sm"
-                            >
-                              <div className="flex items-center gap-3 py-2">
-                                <span className="text-sm font-medium">
-                                  {__('Quantity:', 'wepos')}
-                                </span>
-                                <div>
-                                  <Input
-                                    type="number"
-                                    min="1"
-                                    step="1"
-                                    value={item.quantity}
-                                    onChange={(e) => {
-                                      updateCartItem(index, {
-                                        quantity: parseInt(e.target.value) || 1,
-                                      });
-                                    }}
-                                    className="h-8 w-16 text-center"
-                                  />
-                                </div>
-                                <div className="flex gap-1">
-                                  <Button
-                                    variant="secondary"
-                                    size="icon-sm"
-                                    className="h-8 w-8"
-                                    onClick={() => addQuantity(item, index)}
-                                  >
-                                    <Plus className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="icon-sm"
-                                    className="h-8 w-8"
-                                    onClick={() => removeQuantity(item, index)}
-                                  >
-                                    <Minus className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
                       </React.Fragment>
                     ))
                   ) : (
@@ -327,173 +339,169 @@ const Cart: React.FC<CartProps> = ({
           </ScrollArea>
 
           {/* Cart Footer - Fixed Bottom */}
-          <div className="flex-shrink-0 border-t border-gray-200 bg-white">
+          <div className="shrink-0 border-t border-border">
             <div className="bg-gray-50/50">
-              <table className="w-full border-collapse">
-                <tbody>
-                  <tr>
-                    <td className="border-b border-gray-100 p-4 last:border-b-0">
-                      <div className="font-medium text-gray-700">
-                        {__('Subtotal', 'wepos')}
-                        {settings.woo_tax?.wc_tax_display_cart === 'incl' &&
-                          totalTax > 0 && (
-                            <span className="block text-xs font-normal text-gray-500">
-                              {__('Including Tax', 'wepos')}
-                            </span>
-                          )}
-                      </div>
-                    </td>
-                    <td className="border-b border-gray-100 p-4 text-right font-bold text-gray-800 last:border-b-0">
-                      {formatPrice(subtotal)}
-                    </td>
-                  </tr>
+              {/* Subtotal */}
+              <div className="flex items-center justify-between border-b border-border p-4">
+                <div className="flex-1 text-sm">
+                  {__('Subtotal', 'wepos')}
+                  {settings.woo_tax?.wc_tax_display_cart === 'incl' &&
+                    totalTax > 0 && (
+                      <span className="block text-xs font-normal text-gray-500">
+                        {__('Including Tax', 'wepos')}
+                      </span>
+                    )}
+                </div>
+                <div className="text-sm">
+                  {formatPrice(subtotal)}
+                </div>
+                <div className="ml-2 h-4 w-4">
+                  &nbsp;
+                </div>
+              </div>
 
-                  {/* Discount Lines */}
-                  {discountLines.map((discount: any, index: number) => (
-                    <tr key={`discount-${index}`}>
-                      <td className="border-b border-gray-100 p-4 font-medium text-gray-700 last:border-b-0">
-                        {__('Discount', 'wepos')}
-                        <span className="ml-2 text-xs text-gray-500">
-                          {discount.discount_type === 'percent'
-                            ? `${discount.value}%`
-                            : formatPrice(discount.value)}
-                        </span>
-                      </td>
-                      <td className="border-b border-gray-100 p-4 text-right font-bold text-green-600 last:border-b-0">
-                        −{formatPrice(getDiscountAmount(discount))}
-                      </td>
-                      <td className="border-b border-gray-100 p-2 last:border-b-0">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-red-500 hover:bg-red-50 hover:text-red-700"
-                          onClick={() => removeDiscount(index)}
-                          title={__('Remove discount', 'wepos')}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-
-                  {/* Fee Lines */}
-                  {feeLines.map((fee: any, index: number) => (
-                    <tr key={`fee-${index}`}>
-                      <td className="border-b border-gray-100 p-4 font-medium text-gray-700 last:border-b-0">
-                        {__('Fee', 'wepos')}
-                        <span className="ml-2 text-xs text-gray-500">
-                          {fee.fee_type === 'percent'
-                            ? `${fee.value}%`
-                            : formatPrice(fee.value)}
-                        </span>
-                      </td>
-                      <td className="border-b border-gray-100 p-4 text-right font-bold text-gray-800 last:border-b-0">
-                        {formatPrice(getFeeAmount(fee))}
-                      </td>
-                      <td className="border-b border-gray-100 p-2 last:border-b-0">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-red-500 hover:bg-red-50 hover:text-red-700"
-                          onClick={() => removeFee(index)}
-                          title={__('Remove fee', 'wepos')}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-
-                  {totalTax > 0 && (
-                    <tr>
-                      <td className="border-b border-gray-100 p-4 font-medium text-gray-700 last:border-b-0">
-                        {settings.woo_tax?.wc_tax_display_cart === 'incl'
-                          ? __('Fee Tax', 'wepos')
-                          : __('Tax', 'wepos')}
-                      </td>
-                      <td className="border-b border-gray-100 p-4 text-right font-bold text-gray-800 last:border-b-0">
-                        {formatPrice(totalTax)}
-                      </td>
-                      <td className="border-b border-gray-100 p-2 last:border-b-0"></td>
-                    </tr>
-                  )}
-
-                  {/* Action Buttons Row */}
-                  <tr>
-                    <td
-                      colSpan={3}
-                      className="border-b border-gray-100 p-4 last:border-b-0"
+              {/* Discount Lines */}
+              {discountLines.map((discount: any, index: number) => (
+                <div
+                  key={`discount-${index}`}
+                  className="flex items-center border-b border-border p-4"
+                >
+                  <div className="flex-1 text-sm">
+                    {__('Discount', 'wepos')}
+                    <span className="ml-2 text-xs text-gray-500">
+                      {discount.discount_type === 'percent'
+                        ? `${discount.value}%`
+                        : formatPrice(discount.value)}
+                    </span>
+                  </div>
+                  <div className="text-sm">
+                    −{formatPrice(getDiscountAmount(discount))}
+                  </div>
+                  <div className="ml-2">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                      onClick={() => removeDiscount(index)}
+                      title={__('Remove discount', 'wepos')}
                     >
-                      <div className="flex flex-wrap gap-2">
-                        <FeeKeypad
-                          name={__('Discount', 'wepos')}
-                          onInputFee={handleDiscountInput}
-                          isDiscount={true}
-                        />
-                        <FeeKeypad
-                          name={__('Fee', 'wepos')}
-                          onInputFee={handleFeeInput}
-                          isDiscount={false}
-                        />
-                        {!customerNote && (
-                          <CustomerNote onAddNote={handleAddNote} />
-                        )}
-                      </div>
-                    </td>
-                  </tr>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
 
-                  {/* Customer Note Row */}
-                  {customerNote && (
-                    <tr>
-                      <td
-                        colSpan={2}
-                        className="border-b border-gray-100 p-4 text-sm text-gray-600 last:border-b-0"
-                      >
-                        <span className="font-medium">
-                          {__('Note:', 'wepos')}{' '}
-                        </span>
-                        {customerNote}
-                      </td>
-                      <td className="border-b border-gray-100 p-2 last:border-b-0">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-red-500 hover:bg-red-50 hover:text-red-700"
-                          onClick={removeCustomerNote}
-                          title={__('Remove note', 'wepos')}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
+              {/* Fee Lines */}
+              {feeLines.map((fee: any, index: number) => (
+                <div
+                  key={`fee-${index}`}
+                  className="flex items-center border-b border-border p-4"
+                >
+                  <div className="flex-1 text-sm text-gray-700">
+                    {__('Fee', 'wepos')}
+                    <span className="ml-2 text-xs text-gray-500">
+                      {fee.fee_type === 'percent'
+                        ? `${fee.value}%`
+                        : formatPrice(fee.value)}
+                    </span>
+                  </div>
+                  <div className="text-sm">
+                    {formatPrice(getFeeAmount(fee))}
+                  </div>
+                  <div className="ml-2">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                      onClick={() => removeFee(index)}
+                      title={__('Remove fee', 'wepos')}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Tax */}
+              {totalTax > 0 && (
+                <div className="flex items-center justify-between border-b border-border p-4">
+                  <div className="text-sm font-medium text-gray-700">
+                    {settings.woo_tax?.wc_tax_display_cart === 'incl'
+                      ? __('Fee Tax', 'wepos')
+                      : __('Tax', 'wepos')}
+                  </div>
+                  <div className="text-sm font-bold text-gray-800">
+                    {formatPrice(totalTax)}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="border-b border-border p-4">
+                <div className="flex flex-wrap gap-2">
+                  <FeeKeypad
+                    ref={discountRef}
+                    name={__('Discount', 'wepos')}
+                    onInputFee={handleDiscountInput}
+                    isDiscount={true}
+                  />
+                  <FeeKeypad
+                    ref={feeRef}
+                    name={__('Fee', 'wepos')}
+                    onInputFee={handleFeeInput}
+                    isDiscount={false}
+                  />
+                  {!customerNote && (
+                    <CustomerNote ref={noteRef} onAddNote={handleAddNote} />
                   )}
+                </div>
+              </div>
 
-                  <tr>
-                    <td className="border-b border-gray-100 p-4 last:border-b-0">
-                      <div className="text-lg font-bold text-gray-800">
-                        {__('Total', 'wepos')}
-                      </div>
-                    </td>
-                    <td className="text-wepos-primary border-b border-gray-100 p-4 text-right text-xl font-bold last:border-b-0">
-                      {formatPrice(total)}
-                    </td>
-                    <td className="border-b border-gray-100 last:border-b-0"></td>
-                  </tr>
-                </tbody>
-              </table>
+              {/* Customer Note */}
+              {customerNote && (
+                <div className="flex items-center border-b border-border p-4">
+                  <div className="flex-1 text-sm text-gray-600">
+                    <span className="font-medium">
+                      {__('Note:', 'wepos')}{' '}
+                    </span>
+                    {customerNote}
+                  </div>
+                  <div className="ml-2">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                      onClick={removeCustomerNote}
+                      title={__('Remove note', 'wepos')}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Total */}
+              <div className="flex items-center justify-between p-4">
+                <div className="text-lg font-bold text-gray-800">
+                  {__('Total', 'wepos')}
+                </div>
+                <div className="text-primary text-xl font-bold">
+                  {formatPrice(total)}
+                </div>
+              </div>
             </div>
 
             <Button
-              className="w-full h-14 rounded-none text-lg font-bold"
+              className="h-14 w-full text-lg font-bold"
               onClick={onInitPayment}
             >
-              {__('Checkout', 'wepos')} • {formatPrice(total)}
+              {__('Checkout', 'wepos')} {formatPrice(total)}
             </Button>
           </div>
         </div>
       )}
     </div>
   );
-};
+});
 
 export default Cart;
