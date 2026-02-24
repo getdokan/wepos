@@ -97,6 +97,21 @@ class ReactAssets
             true
         );
 
+        $accounting_script = array(
+            'wepos-accounting' => array(
+                'src'  => WC()->plugin_url() . '/assets/js/accounting/accounting.min.js',
+                'deps' => array( 'jquery' )
+            ),
+        );
+
+        wp_enqueue_script(
+            'wepos-accounting',
+            $accounting_script['wepos-accounting']['src'],
+            $accounting_script['wepos-accounting']['deps'],
+            '1.0.0',
+            true
+        );
+
         // Enqueue styles (check both development and production paths)
         $css_url = $is_dev
             ? 'http://localhost:8887/wepos-react.css'
