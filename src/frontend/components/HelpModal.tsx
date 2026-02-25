@@ -48,7 +48,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ show, onClose }) => {
       <div className="grid grid-cols-2 gap-x-12 gap-y-5 px-8 py-6">
         {shortcuts.map((item) => (
           <div key={item.key} className="flex items-center gap-4">
-            <code className="text-muted-foreground w-28 shrink-0 font-mono text-sm">
+            <code className="bg-muted relative rounded-md px-[0.3rem] py-[0.2rem] font-mono text-[0.8rem] break-words outline-none w-28 shrink-0 text-center">
               {item.key}
             </code>
             <span className="text-foreground text-sm">

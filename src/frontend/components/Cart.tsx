@@ -145,9 +145,9 @@ const Cart = forwardRef<CartHandle, CartProps>(({
   };
 
   return (
-    <div className="flex h-full flex-none flex-col bg-white">
+    <div className="flex min-h-0 flex-1 flex-col bg-white">
       {settings.wepos_general && (
-        <div className="flex h-full flex-col">
+        <div className="flex min-h-0 flex-1 flex-col">
           {/* Cart Header - Fixed Top */}
           <div className="flex flex-row justify-between gap-2.5 p-2 pt-0">
             <CustomerSearch
@@ -342,7 +342,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
           <div className="shrink-0 border-t border-border">
             <div className="bg-gray-50/50">
               {/* Subtotal */}
-              <div className="flex items-center justify-between border-b border-border p-4">
+              <div className="flex items-center justify-between border-b border-border p-[9px_12px]">
                 <div className="flex-1 text-sm">
                   {__('Subtotal', 'wepos')}
                   {settings.woo_tax?.wc_tax_display_cart === 'incl' &&
@@ -364,7 +364,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               {discountLines.map((discount: any, index: number) => (
                 <div
                   key={`discount-${index}`}
-                  className="flex items-center border-b border-border p-4"
+                  className="flex items-center border-b border-border p-[9px_12px]"
                 >
                   <div className="flex-1 text-sm">
                     {__('Discount', 'wepos')}
@@ -395,7 +395,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               {feeLines.map((fee: any, index: number) => (
                 <div
                   key={`fee-${index}`}
-                  className="flex items-center border-b border-border p-4"
+                  className="flex items-center border-b border-border p-[9px_12px]"
                 >
                   <div className="flex-1 text-sm text-gray-700">
                     {__('Fee', 'wepos')}
@@ -424,7 +424,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
               {/* Tax */}
               {totalTax > 0 && (
-                <div className="flex items-center justify-between border-b border-border p-4">
+                <div className="flex items-center justify-between border-b border-border p-[9px_12px]">
                   <div className="text-sm font-medium text-gray-700">
                     {settings.woo_tax?.wc_tax_display_cart === 'incl'
                       ? __('Fee Tax', 'wepos')
@@ -459,7 +459,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
               {/* Customer Note */}
               {customerNote && (
-                <div className="flex items-center border-b border-border p-4">
+                <div className="flex items-center border-b border-border p-[9px_12px]">
                   <div className="flex-1 text-sm text-gray-600">
                     <span className="font-medium">
                       {__('Note:', 'wepos')}{' '}
