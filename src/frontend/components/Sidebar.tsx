@@ -2,11 +2,7 @@ import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Home,
-  FileText,
-  Users,
   Bolt,
-  Settings,
-  Package,
 } from 'lucide-react';
 import { LayoutMenu, LayoutMenuGroupData } from '@wedevs/plugin-ui';
 import { applyFilters, doAction } from '../hooks/useExtensions';
@@ -44,63 +40,41 @@ const Sidebar: React.FC = () => {
         onClick: () => handleNavigation( '/' ),
         secondaryLabel: 'Dashboard',
       },
-      {
-        id: '/orders',
-        label: 'Orders',
-        icon: <FileText className="size-4" />,
-        onClick: () => handleNavigation( '/orders' ),
-        secondaryLabel: 'Sales history',
-      },
-      {
-        id: '/customers',
-        label: 'Customers',
-        icon: <Users className="size-4" />,
-        onClick: () => handleNavigation( '/customers' ),
-        secondaryLabel: 'Manage clients',
-      },
     ];
 
-    const appItems: WeposSidebarMenuItem[] = [
-      {
-        id: '/settings',
-        label: 'Settings',
-        icon: <Settings className="size-4" />,
-        onClick: () => handleNavigation( '/settings' ),
-        secondaryLabel: 'Configuration',
-      },
-      {
-        id: '/products',
-        label: 'Products',
-        icon: <Package className="size-4" />,
-        onClick: () => handleNavigation( '/products' ),
-        secondaryLabel: 'Inventory',
-      },
-    ];
+    const appItems: WeposSidebarMenuItem[] = [];
 
-    // Allow pro/extensions to modify menu items
+    // Allow pro/extensions to modify menu items (pass navigate so extensions can add clickable items)
     const filteredMainItems = applyFilters< WeposSidebarMenuItem[] >(
       'wepos_react_sidebar_main_items',
       mainItems,
+      navigate,
     );
 
     const filteredAppItems = applyFilters< WeposSidebarMenuItem[] >(
       'wepos_react_sidebar_app_items',
       appItems,
+      navigate,
     );
 
-    return [
+    const groups: LayoutMenuGroupData[] = [
       {
         id: 'main',
         label: 'Main',
         secondaryLabel: 'Primary navigation',
         items: filteredMainItems,
       },
-      {
+    ];
+
+    if ( filteredAppItems.length > 0 ) {
+      groups.push( {
         id: 'settings-group',
         label: 'App',
         items: filteredAppItems,
-      },
-    ];
+      } );
+    }
+
+    return groups;
   }, [ navigate ] );
 
   // Allow pro to render extra content in the sidebar footer (e.g. cashier info)
