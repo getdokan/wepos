@@ -27,6 +27,7 @@
     "@wordpress/element": "^6.40.0",
     "@wordpress/hooks": "^4.24.0",
     "@wordpress/i18n": "^5.24.0",
+    "@wordpress/plugins": "^7.40.0",
     "chart.js": "^2.9.4",
     "dayjs": "^1.11.4",
     "lodash": "^4.17.21",

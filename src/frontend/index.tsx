@@ -4,6 +4,7 @@ import * as ReactRouterDOM from 'react-router-dom';
 import { HashRouter } from 'react-router-dom';
 import * as PluginUI from '@wedevs/plugin-ui';
 import { ThemeProvider, type ThemeTokens } from '@wedevs/plugin-ui';
+import { SlotFillProvider } from '@wordpress/components';
 import App from './App';
 import { weposHooks } from './hooks/useExtensions';
 import './styles/main.css';
@@ -156,9 +157,11 @@ if (!container) {
         tokens={weposTokens}
         darkTokens={weposDarkTokens}
       >
-        <HashRouter>
-          <App />
-        </HashRouter>
+        <SlotFillProvider>
+          <HashRouter>
+            <App />
+          </HashRouter>
+        </SlotFillProvider>
       </ThemeProvider>
     </React.StrictMode>,
   );

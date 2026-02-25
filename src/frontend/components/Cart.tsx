@@ -18,6 +18,8 @@ import {
 import { POSCartItem } from '../types';
 import FeeKeypad, { FeeKeypadHandle } from './FeeKeypad';
 import CustomerNote, { CustomerNoteHandle } from './CustomerNote';
+import { Slot } from '@wordpress/components';
+import { PluginArea } from '@wordpress/plugins';
 import { formatPrice } from '../utils/helpers';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
@@ -164,9 +166,15 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 <DropdownMenuItem onClick={clearCart}>
                   {__('Empty Cart', 'wepos')}
                 </DropdownMenuItem>
+                <Slot name="WeposCartMenuAfterEmptyCart" fillProps={{ DropdownMenuItem }}>
+                  {(fills: React.ReactNode) => <>{fills}</>}
+                </Slot>
                 <DropdownMenuItem onClick={() => setShowHelp(true)}>
                   {__('Help', 'wepos')}
                 </DropdownMenuItem>
+                <Slot name="WeposCartMenuAfterHelp" fillProps={{ DropdownMenuItem }}>
+                  {(fills: React.ReactNode) => <>{fills}</>}
+                </Slot>
                 <DropdownMenuItem
                   variant="destructive"
                   onClick={() =>
@@ -175,6 +183,11 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 >
                   {__('Logout', 'wepos')}
                 </DropdownMenuItem>
+                <Slot name="WeposCartMenuAfterLogout" fillProps={{ DropdownMenuItem }}>
+                  {(fills: React.ReactNode) => <>{fills}</>}
+                </Slot>
+                {/* Mounts registered plugins that render Fills targeting the Slots above */}
+                <PluginArea scope="wepos-cart-menu" />
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
