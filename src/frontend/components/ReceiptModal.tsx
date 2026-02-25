@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal, Button } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { POSPrintData } from '../types';
+import { Check, CircleCheck, Plus, Printer } from 'lucide-react';
 
 interface ReceiptModalProps {
   show: boolean;
@@ -75,133 +76,134 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
 
   return (
     <Modal
-      title={__('Order Receipt', 'wepos')}
       onRequestClose={onClose}
-      className="wepos-receipt-modal"
+      className="wepos-sale-completed-modal pui-root"
       shouldCloseOnClickOutside={true}
       shouldCloseOnEsc={true}
-      size="medium"
+      __experimentalHideHeader
+      style={{
+        backgroundColor: "var(--background)"
+      }}
     >
-      <div className="wepos-receipt-wrapper" id="wepos-print-receipt">
-        <div className="wepos-receipt-content">
-          {/* Store/Business Header for print */}
-          <div className="print-only" style={{ display: 'none' }}>
-            <div style={{ textAlign: 'center', marginBottom: '16px', borderBottom: '1px dashed #000', paddingBottom: '8px' }}>
-              <div style={{ fontWeight: 'bold', fontSize: '14px' }}>WePos Store</div>
-              <div style={{ fontSize: '10px' }}>Point of Sale Receipt</div>
-            </div>
-          </div>
-
-          <div className="wepos-receipt-info mb-6">
-            {printdata.order_id && (
-              <p className="text-sm text-gray-600 mb-2">
-                <strong>{__('Order #:', 'wepos')}</strong> {printdata.order_id}
-              </p>
-            )}
-            {printdata.order_date && (
-              <p className="text-sm text-gray-600 mb-2">
-                <strong>{__('Date:', 'wepos')}</strong> {new Date(printdata.order_date).toLocaleDateString()}
-              </p>
-            )}
-            <p className="text-sm text-gray-600 mb-2">
-              <strong>{__('Payment Method:', 'wepos')}</strong> {printdata.gateway?.title || __('N/A', 'wepos')}
-            </p>
-          </div>
-
-          <div className="wepos-receipt-items mb-6">
-            <h3 className="font-semibold text-gray-800 mb-3">{__('Items', 'wepos')}</h3>
-            {printdata.line_items && printdata.line_items.length > 0 ? (
-              <table className="wepos-receipt-table w-full border-collapse text-sm">
-                <thead>
-                  <tr>
-                    <th className="wepos-receipt-th border-b border-gray-200 p-2 text-left bg-gray-50 font-semibold">{__('Item', 'wepos')}</th>
-                    <th className="wepos-receipt-th border-b border-gray-200 p-2 text-left bg-gray-50 font-semibold">{__('Qty', 'wepos')}</th>
-                    <th className="wepos-receipt-th border-b border-gray-200 p-2 text-left bg-gray-50 font-semibold">{__('Price', 'wepos')}</th>
-                    <th className="wepos-receipt-th border-b border-gray-200 p-2 text-left bg-gray-50 font-semibold">{__('Total', 'wepos')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {printdata.line_items.map((item, index) => (
-                    <tr key={index}>
-                      <td className="wepos-receipt-td border-b border-gray-200 p-2 text-left">{item.name}</td>
-                      <td className="wepos-receipt-td border-b border-gray-200 p-2 text-left">{item.quantity}</td>
-                      <td className="wepos-receipt-td border-b border-gray-200 p-2 text-left">
-                        {item.on_sale ?
-                          formatPrice(item.sale_price) :
-                          formatPrice(item.regular_price)
-                        }
-                      </td>
-                      <td className="wepos-receipt-td border-b border-gray-200 p-2 text-left">
-                        {item.on_sale ?
-                          formatPrice(item.quantity * item.sale_price) :
-                          formatPrice(item.quantity * item.regular_price)
-                        }
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p className="text-gray-500">{__('No items found', 'wepos')}</p>
-            )}
-          </div>
-
-          <div className="wepos-receipt-totals">
-            <div className="total-line flex justify-between py-1 text-sm">
-              <span>{__('Subtotal:', 'wepos')}</span>
-              <span>{formatPrice(printdata.subtotal || 0)}</span>
-            </div>
-
-            {printdata.taxtotal && printdata.taxtotal > 0 && (
-              <div className="total-line flex justify-between py-1 text-sm">
-                <span>{__('Tax:', 'wepos')}</span>
-                <span>{formatPrice(printdata.taxtotal)}</span>
-              </div>
-            )}
-
-            <div className="final-total flex justify-between py-2 text-lg font-bold border-t border-gray-300 mt-2">
-              <span>{__('Total:', 'wepos')}</span>
-              <span>{formatPrice(printdata.ordertotal || 0)}</span>
-            </div>
-
-            {selectedGateway === 'wepos_cash' && (
-              <>
-                <div className="total-line flex justify-between py-1 text-sm">
-                  <span>{__('Cash Received:', 'wepos')}</span>
-                  <span>{formatPrice(printdata.cashamount || 0)}</span>
-                </div>
-                <div className="total-line flex justify-between py-1 text-sm">
-                  <span>{__('Change:', 'wepos')}</span>
-                  <span>{formatPrice(printdata.changeamount || 0)}</span>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Print-only footer */}
-          <div className="print-only" style={{ display: 'none' }}>
-            <div style={{ textAlign: 'center', marginTop: '16px', borderTop: '1px dashed #000', paddingTop: '8px', fontSize: '10px' }}>
-              <div>{__('Thank you for your business!', 'wepos')}</div>
-              <div>{__('Visit us again soon', 'wepos')}</div>
-            </div>
-          </div>
+      {/* Sale Completed visible UI */}
+      <div className="flex flex-col items-center py-8 px-6">
+        {/* Green checkmark circle */}
+        <div
+          className="flex items-center justify-center rounded-full mb-6 w-20 h-20 bg-success"
+        >
+          <Check size={40} className='text-success-foreground' />
         </div>
 
-        <div className="wepos-receipt-footer flex gap-3 pt-4 border-t border-gray-200 mt-6">
-          <Button
-            variant="secondary"
+        {/* Sale Completed text */}
+        <h2
+          className="text-2xl font-semibold mb-8 text-success!"
+        >
+          {__('Sale Completed', 'wepos')}
+        </h2>
+
+        {/* Action buttons */}
+        <div className="flex gap-4">
+          <button
             onClick={handlePrint}
-            className="wepos-btn-print"
+            className="flex items-center gap-2 px-6 py-3 rounded bg-primary text-primary-foreground font-medium cursor-pointer border-none text-sm"
           >
+            <Printer size={18} />
             {__('Print Receipt', 'wepos')}
-          </Button>
-          <Button
-            variant="primary"
+          </button>
+
+          <button
             onClick={handleNewSale}
-            className="wepos-btn-new-sale"
+            className="flex items-center gap-2 px-6 py-3 rounded bg-secondary text-secondary-foreground font-medium cursor-pointer border-none text-sm"
           >
+            <Plus size={18} />
             {__('New Sale', 'wepos')}
-          </Button>
+          </button>
+        </div>
+      </div>
+
+      {/* Hidden receipt content for printing */}
+      <div style={{ display: 'none' }}>
+        <div id="wepos-print-receipt">
+          <div style={{ textAlign: 'center', marginBottom: '16px', borderBottom: '1px dashed #000', paddingBottom: '8px' }}>
+            <div style={{ fontWeight: 'bold', fontSize: '14px' }}>WePos Store</div>
+            <div style={{ fontSize: '10px' }}>Point of Sale Receipt</div>
+          </div>
+
+          {printdata.order_id && (
+            <p style={{ fontSize: '12px', marginBottom: '4px' }}>
+              <strong>{__('Order #:', 'wepos')}</strong> {printdata.order_id}
+            </p>
+          )}
+          {printdata.order_date && (
+            <p style={{ fontSize: '12px', marginBottom: '4px' }}>
+              <strong>{__('Date:', 'wepos')}</strong> {new Date(printdata.order_date).toLocaleDateString()}
+            </p>
+          )}
+          <p style={{ fontSize: '12px', marginBottom: '8px' }}>
+            <strong>{__('Payment Method:', 'wepos')}</strong> {printdata.gateway?.title || __('N/A', 'wepos')}
+          </p>
+
+          {printdata.line_items && printdata.line_items.length > 0 && (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px', marginBottom: '8px' }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: '2px 1px', borderBottom: '1px solid #000', textAlign: 'left' }}>{__('Item', 'wepos')}</th>
+                  <th style={{ padding: '2px 1px', borderBottom: '1px solid #000', textAlign: 'left' }}>{__('Qty', 'wepos')}</th>
+                  <th style={{ padding: '2px 1px', borderBottom: '1px solid #000', textAlign: 'left' }}>{__('Price', 'wepos')}</th>
+                  <th style={{ padding: '2px 1px', borderBottom: '1px solid #000', textAlign: 'left' }}>{__('Total', 'wepos')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {printdata.line_items.map((item, index) => (
+                  <tr key={index}>
+                    <td style={{ padding: '2px 1px', borderBottom: '1px solid #ddd', textAlign: 'left' }}>{item.name}</td>
+                    <td style={{ padding: '2px 1px', borderBottom: '1px solid #ddd', textAlign: 'left' }}>{item.quantity}</td>
+                    <td style={{ padding: '2px 1px', borderBottom: '1px solid #ddd', textAlign: 'left' }}>
+                      {item.on_sale ? formatPrice(item.sale_price) : formatPrice(item.regular_price)}
+                    </td>
+                    <td style={{ padding: '2px 1px', borderBottom: '1px solid #ddd', textAlign: 'left' }}>
+                      {item.on_sale ? formatPrice(item.quantity * item.sale_price) : formatPrice(item.quantity * item.regular_price)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+            <span>{__('Subtotal:', 'wepos')}</span>
+            <span>{formatPrice(printdata.subtotal || 0)}</span>
+          </div>
+
+          {printdata.taxtotal && printdata.taxtotal > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+              <span>{__('Tax:', 'wepos')}</span>
+              <span>{formatPrice(printdata.taxtotal)}</span>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', borderTop: '1px solid #000', paddingTop: '4px', marginTop: '4px' }}>
+            <span>{__('Total:', 'wepos')}</span>
+            <span>{formatPrice(printdata.ordertotal || 0)}</span>
+          </div>
+
+          {selectedGateway === 'wepos_cash' && (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px', marginTop: '4px' }}>
+                <span>{__('Cash Received:', 'wepos')}</span>
+                <span>{formatPrice(printdata.cashamount || 0)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                <span>{__('Change:', 'wepos')}</span>
+                <span>{formatPrice(printdata.changeamount || 0)}</span>
+              </div>
+            </>
+          )}
+
+          <div style={{ textAlign: 'center', marginTop: '16px', borderTop: '1px dashed #000', paddingTop: '8px', fontSize: '10px' }}>
+            <div>{__('Thank you for your business!', 'wepos')}</div>
+            <div>{__('Visit us again soon', 'wepos')}</div>
+          </div>
         </div>
       </div>
     </Modal>

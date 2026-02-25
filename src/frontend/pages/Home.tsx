@@ -85,7 +85,6 @@ const HomePage: React.FC = () => {
   const [printdata, setPrintdata] = useState<POSPrintData>({
     gateway: { id: '', title: '' },
   });
-  const [createprintreceipt, setCreateprintreceipt] = useState(false);
 
   // Order Data State (still needed for payment processing)
   const [orderData, setOrderData] = useState({
@@ -321,7 +320,6 @@ const HomePage: React.FC = () => {
         setPrintdata(enrichedPrintData);
         setShowModal(false);
         setShowPaymentReceipt(true);
-        setCreateprintreceipt(true);
       }
 
       setPaymentProcessing(false);
@@ -467,21 +465,6 @@ const HomePage: React.FC = () => {
     initializeData();
   }, [initializeData]);
 
-  // Auto-trigger print dialog when receipt is shown
-  useEffect(() => {
-    if (showPaymentReceipt && createprintreceipt) {
-      setTimeout(() => {
-        if (
-          window.confirm(
-            'Order successful! Would you like to print the receipt?',
-          )
-        ) {
-          window.print();
-        }
-      }, 500);
-      setCreateprintreceipt(false);
-    }
-  }, [showPaymentReceipt, createprintreceipt]);
 
   return (
     <Layout>
