@@ -19,8 +19,10 @@ module.exports = (env, argv) => {
         ...defaultConfig,
         entry: {
             ...defaultConfig.entry,
-            // React entry point
+            // React entry points
             'wepos-react': path.resolve(__dirname, 'src/frontend/index.tsx'),
+            'wepos-admin-react': path.resolve(__dirname, 'src/admin/index.tsx'),
+            'wepos-admin-switching': path.resolve(__dirname, 'src/admin/panel-switcher/index.tsx'),
 
             // Old Vue/Legacy entry points
             '../assets/js/frontend': './assets/src/frontend/main.js',
@@ -34,7 +36,8 @@ module.exports = (env, argv) => {
             ...defaultConfig.output,
             // Default path is build/
             filename: (pathData) => {
-                if (pathData.chunk.name === 'wepos-react') {
+                const name = pathData.chunk.name;
+                if (name === 'wepos-react' || name === 'wepos-admin-react' || name === 'wepos-admin-switching') {
                     return '[name].js';
                 }
                 // For legacy assets, we use the mode suffix (.min) if in production
@@ -45,8 +48,9 @@ module.exports = (env, argv) => {
             ...defaultConfig.resolve,
             alias: {
                 ...defaultConfig.resolve?.alias,
-                // React Alias
+                // React Aliases
                 '@react': path.resolve(__dirname, 'src/frontend'),
+                '@admin': path.resolve(__dirname, 'src/admin'),
 
                 // Old Vue Aliases
                 '@': path.resolve(__dirname, 'assets/src/'),

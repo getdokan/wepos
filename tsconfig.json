@@ -31,7 +31,8 @@
       "@/types/*": ["src/frontend/types/*"],
       "@/api/*": ["src/frontend/api/*"],
       "@/store/*": ["src/frontend/store/*"],
-      "@/styles/*": ["src/frontend/styles/*"]
+      "@/styles/*": ["src/frontend/styles/*"],
+      "@admin/*": ["src/admin/*"]
     }
   },
   "include": ["src"],
