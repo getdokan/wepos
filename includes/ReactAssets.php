@@ -152,6 +152,7 @@ class ReactAssets
                 'countries' => \WC()->countries->get_countries(),
                 'states' => \WC()->countries->get_states(),
                 'current_user_id' => get_current_user_id(),
+                'current_user' => $this->get_current_user_data(),
                 'home_url' => home_url(),
                 'wp_date_format' => get_option('date_format'),
                 'wp_time_format' => get_option('time_format'),
@@ -166,5 +167,26 @@ class ReactAssets
             'wepos',
             $localize_data
         );
+    }
+
+    /**
+     * Get current user data for the frontend.
+     *
+     * @return array
+     */
+    private function get_current_user_data()
+    {
+        $user = wp_get_current_user();
+
+        if ( ! $user->exists() ) {
+            return [];
+        }
+
+        return [
+            'name'       => $user->display_name,
+            'email'      => $user->user_email,
+            'avatar_url' => get_avatar_url( $user->ID, [ 'size' => 96 ] ),
+            'role'       => ! empty( $user->roles ) ? ucfirst( $user->roles[0] ) : '',
+        ];
     }
 }

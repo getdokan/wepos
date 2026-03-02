@@ -24,6 +24,12 @@ declare global {
       countries: Record<string, string>;
       states: Record<string, Record<string, string>>;
       current_user_id: number;
+      current_user: {
+        name: string;
+        email: string;
+        avatar_url: string;
+        role: string;
+      };
       home_url: string;
       wp_date_format: string;
       wp_time_format: string;

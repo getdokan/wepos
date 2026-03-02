@@ -3,8 +3,26 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Home,
   Bolt,
+  LogOut,
+  ChevronsUpDown,
 } from 'lucide-react';
-import { LayoutMenu, LayoutMenuGroupData } from '@wedevs/plugin-ui';
+import {
+  LayoutMenu,
+  LayoutMenuGroupData,
+  SidebarHeader,
+  SidebarFooter,
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+  useSidebar,
+} from '@wedevs/plugin-ui';
 import { applyFilters, doAction } from '../hooks/useExtensions';
 
 export interface WeposSidebarMenuItem {
@@ -18,6 +36,9 @@ export interface WeposSidebarMenuItem {
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isMobile } = useSidebar();
+
+  const currentUser = window.wepos?.current_user;
 
   const handleNavigation = ( path: string ) => {
     navigate( path );
@@ -83,27 +104,73 @@ const Sidebar: React.FC = () => {
     null,
   );
 
+  const userInitials = currentUser?.name
+    ? currentUser.name.split( ' ' ).map( ( n ) => n[0] ).join( '' ).toUpperCase().slice( 0, 2 )
+    : '?';
+
   return (
-    <div className="bg-sidebar flex h-full flex-col">
-      <div className="border-sidebar-border border-b p-4">
+    <>
+      <SidebarHeader>
         <div className="flex items-center gap-3">
-          <div className="bg-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
+          <div className="bg-primary text-primary-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold">
             <Bolt className="h-5 w-5" />
           </div>
-          <span className="text-lg font-bold">WePos</span>
+          <div className="flex flex-col group-data-[collapsible=icon]:hidden">
+            <span className="text-lg font-bold">WePos</span>
+          </div>
         </div>
-      </div>
+      </SidebarHeader>
 
-      <div className="flex-1 overflow-hidden py-2">
-        <LayoutMenu
-          groups={ menuGroups }
-          activeItemId={ location.pathname }
-          searchable={ true }
-        />
-      </div>
+      <LayoutMenu
+        groups={ menuGroups }
+        activeItemId={ location.pathname }
+        searchable={ false }
+      />
 
-      { sidebarFooter }
-    </div>
+      { sidebarFooter && (
+        <SidebarFooter>
+          { sidebarFooter }
+        </SidebarFooter>
+      ) }
+
+      { currentUser && (
+        <SidebarFooter>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex w-full items-center mb-3 gap-2 py-2 rounded-md text-left text-sm hover:bg-sidebar-accent outline-none cursor-pointer">
+              <Avatar className="h-8 w-8 shrink-0">
+                <AvatarImage src={ currentUser.avatar_url } alt={ currentUser.name } />
+                <AvatarFallback>{ userInitials }</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-1 flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
+                <span className="truncate font-medium">{ currentUser.name }</span>
+                <span className="truncate text-xs text-muted-foreground">{ currentUser.role }</span>
+              </div>
+              <ChevronsUpDown className="ml-auto size-4 shrink-0 text-muted-foreground group-data-[collapsible=icon]:hidden" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="w-56"
+              side={ isMobile ? 'bottom' : 'right' }
+              align="end"
+              sideOffset={ 4 }
+            >
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm font-medium">{ currentUser.name }</p>
+                    <p className="text-xs text-muted-foreground">{ currentUser.email }</p>
+                  </div>
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={ handleLogout }>
+                <LogOut className="mr-2 size-4" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarFooter>
+      ) }
+    </>
   );
 };
 

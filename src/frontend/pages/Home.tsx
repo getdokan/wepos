@@ -1,46 +1,46 @@
+import { useDispatch, useSelect } from '@wordpress/data';
 import React, {
-  useState,
-  useEffect,
-  useRef,
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
+  useState,
 } from 'react';
-import { useSelect, useDispatch } from '@wordpress/data';
 import { posAPI } from '../api';
-import {
-  POSPrintData,
-  POSCategory,
-  ProductViewType,
-  Customer,
-  POSCartItem,
-  POSProduct,
-  POSGateway,
-} from '../types';
-import {
-  formatPrice,
-  hasStock,
-  getProductImage,
-  truncateTitle,
-  parseCurrencyAmount,
-} from '../utils/helpers';
+import { applyFilters } from '../hooks/useExtensions';
 import { usePOSData } from '../hooks/usePOSData';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
-import { applyFilters } from '../hooks/useExtensions';
+import {
+  Customer,
+  POSCartItem,
+  POSCategory,
+  POSGateway,
+  POSPrintData,
+  POSProduct,
+  ProductViewType,
+} from '../types';
+import {
+  formatPrice,
+  getProductImage,
+  hasStock,
+  parseCurrencyAmount,
+  truncateTitle,
+} from '../utils/helpers';
 
 // Import components
 import {
   Separator,
 } from '@wedevs/plugin-ui';
-import Layout from '../components/Layout';
-import ProductGrid from '../components/ProductGrid';
 import Cart, { CartHandle } from '../components/Cart';
-import PaymentModal from '../components/PaymentModal';
-import ReceiptModal from '../components/ReceiptModal';
-import HelpModal from '../components/HelpModal';
-import SearchBar from '../components/SearchBar';
 import CategoryFilter from '../components/CategoryFilter';
+import HelpModal from '../components/HelpModal';
+import Layout from '../components/Layout';
+import PaymentModal from '../components/PaymentModal';
+import ProductGrid from '../components/ProductGrid';
 import ProductViewToggle from '../components/ProductViewToggle';
+import ReceiptModal from '../components/ReceiptModal';
+import SearchBar from '../components/SearchBar';
 
 const HomePage: React.FC = () => {
   // Initialize data using the hook
