@@ -530,6 +530,10 @@ export interface POSGateway {
 
 export interface POSSettings {
   wepos_general: any;
+  wepos_receipts?: {
+    receipt_header: string;
+    receipt_footer: string;
+  };
   woo_tax: {
     wc_tax_display_cart: string;
   };

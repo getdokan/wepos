@@ -61,12 +61,15 @@ const HomePage: React.FC = () => {
     [],
   );
 
-  const { cartItems, total, selectedCustomer } = useSelect((select) => {
+  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines } = useSelect((select) => {
     const cartStore = select(CART_STORE_NAME) as any;
     return {
       cartItems: cartStore.getCartItems(),
       total: cartStore.getTotal(),
+      subtotal: cartStore.getSubtotal(),
       selectedCustomer: cartStore.getCustomer(),
+      feeLines: cartStore.getFeeLines(),
+      discountLines: cartStore.getDiscountLines(),
     };
   }, []);
 
@@ -265,8 +268,15 @@ const HomePage: React.FC = () => {
           product_id: item.product_id,
           quantity: item.quantity,
         })),
-        fee_lines: [],
-        coupon_lines: [],
+        fee_lines: feeLines.map((fee: any) => ({
+          name: fee.name,
+          total: String(fee.total),
+          tax_status: fee.tax_status,
+          tax_class: fee.tax_class,
+        })),
+        coupon_lines: discountLines.map((discount: any) => ({
+          code: discount.code,
+        })),
         customer_id: orderData.customer_id,
         customer_note: orderData.customer_note,
         payment_method: selectedGateway,
@@ -299,9 +309,9 @@ const HomePage: React.FC = () => {
             ...cartItem,
             total_tax: 0,
           })),
-          fee_lines: [],
-          coupon_lines: [],
-          subtotal: total,
+          fee_lines: feeLines,
+          coupon_lines: discountLines,
+          subtotal: subtotal,
           taxtotal: 0,
           ordertotal: total,
           gateway: {
@@ -312,6 +322,7 @@ const HomePage: React.FC = () => {
           order_date: orderResponse.date_created,
           cashamount: cashAmount.toString(),
           changeamount: changeAmount().toString(),
+          customer: selectedCustomer || undefined,
         };
 
         // Allow pro to enrich print data with cashier/outlet/counter info
@@ -336,35 +347,22 @@ const HomePage: React.FC = () => {
     processPaymentRef.current = processPayment;
   });
 
-  // Print receipt helper
+  // Print receipt helper — clones receipt HTML to body-level container, then window.print()
   const printReceipt = useCallback(() => {
-    const receiptElement = document.getElementById('wepos-print-receipt');
-    if (receiptElement) {
-      const printWindow = window.open('', '_blank', 'width=800,height=600');
-      if (printWindow) {
-        printWindow.document.write(`
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>WePos Receipt</title>
-            <style>
-              @page { margin: 0; }
-              body { margin: 0; padding: 8px; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.3; color: black; background: white; }
-              table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 8px; }
-              th, td { padding: 2px 1px; border-bottom: 1px solid #ddd; text-align: left; }
-              th { font-weight: bold; border-bottom: 1px solid #000; }
-              .total-line, .final-total { display: flex; justify-content: space-between; margin-bottom: 2px; }
-              .final-total { font-weight: bold; border-top: 1px solid #000; padding-top: 4px; margin-top: 4px; }
-            </style>
-          </head>
-          <body>${receiptElement.innerHTML}</body>
-          </html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-        printWindow.close();
-      }
+    const receiptEl = document.getElementById('wepos-print-receipt');
+    if (!receiptEl) return;
+
+    let container = document.getElementById('wepos-receipt-print-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'wepos-receipt-print-container';
+      document.body.appendChild(container);
     }
+    container.innerHTML = receiptEl.innerHTML;
+
+    setTimeout(() => {
+      window.print();
+    }, 300);
   }, []);
 
   // Keyboard shortcuts
@@ -544,6 +542,7 @@ const HomePage: React.FC = () => {
         show={showPaymentReceipt}
         printdata={printdata}
         selectedGateway={selectedGateway}
+        settings={settings}
         onClose={createNewSale}
         onNewSale={createNewSale}
         formatPrice={formatPrice}
@@ -551,7 +550,7 @@ const HomePage: React.FC = () => {
 
       {/* Extension slot: pro components like ReceiptContent */}
       {applyFilters<React.ReactNode[]>('wepos_react_after_main_content', []).map(
-        (Component: any, i: number) => <Component key={i} />
+        (Component: any, i: number) => <Component key={i} printdata={printdata} />
       )}
     </Layout>
   );
