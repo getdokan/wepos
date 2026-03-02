@@ -1,10 +1,16 @@
-/* WePos React Admin - Tailwind CSS v4 */
-@import "tailwindcss";
-@import '@wedevs/plugin-ui/styles.css';
+@layer theme, base, components, utilities;
 
+@import "tailwindcss/theme.css" layer(theme);
 /* Source paths for Tailwind to scan */
 @source "../../admin";
 @source "../../../node_modules/@wedevs/plugin-ui/dist";
+
+#wepos-admin-react-app {
+  @import "tailwindcss/preflight.css" layer(base);
+  @import "tailwindcss/utilities.css" layer(utilities) important;
+}
+
+@import '@wedevs/plugin-ui/styles.css';
 
 /**
  * Default theme tokens - applied to all .pui-root containers
