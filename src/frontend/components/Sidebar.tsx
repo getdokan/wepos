@@ -125,6 +125,7 @@ const Sidebar: React.FC = () => {
         groups={ menuGroups }
         activeItemId={ location.pathname }
         searchable={ false }
+        showGroupLabels={ false }
       />
 
       { sidebarFooter && (

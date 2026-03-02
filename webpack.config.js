@@ -87,6 +87,12 @@ module.exports = (env, argv) => {
                 _: '_'
             }),
         ],
+        watchOptions: {
+            ignored: [
+                '**/node_modules/**',
+                path.resolve(__dirname, '../plugin-ui/**'),
+            ],
+        },
         devServer: {
             ...defaultConfig.devServer,
             headers: {
