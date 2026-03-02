@@ -164,9 +164,9 @@ class PanelSwitcher {
         $filtered = [];
 
         foreach ( $submenu['wepos'] as $item ) {
-            // Hide the bare "wepos-dashboard" submenu entry by clearing its title.
-            // We keep the entry in the array so WordPress can still use it for
-            // permission checks (removing it entirely causes "not allowed" errors).
+            // Hide the bare "wepos-dashboard" entry from the menu by nulling its
+            // title. We keep it in $submenu so WordPress permission checks still
+            // pass (remove_submenu_page would break access).
             if ( isset( $item[2] ) && 'wepos-dashboard' === $item[2] ) {
                 $item[0] = '';
                 $filtered[] = $item;
@@ -238,6 +238,10 @@ class PanelSwitcher {
                 $version
             );
         }
+
+        // Hide the blank wepos-dashboard submenu entry via CSS.
+        // We keep the entry in $submenu for permission checks but hide it visually.
+        echo '<style>#toplevel_page_wepos .wp-submenu a[href="admin.php?page=wepos-dashboard"]{display:none}</style>';
 
         // Determine which panel the current page is on.
         $current_panel = 'toplevel_page_wepos' === $screen->id ? 'vue' : 'react';
