@@ -2,6 +2,7 @@ import { useMemo, useEffect } from '@wordpress/element';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { applyFilters } from '@react/hooks/useExtensions';
 import Settings from './pages/Settings';
+import Placeholder from './pages/Placeholder';
 
 export interface WeposAdminRouteConfig {
 	path: string;
@@ -49,39 +50,46 @@ const App = () => {
 		[]
 	);
 
-	const { baseRoutes, extraRoutes } = useMemo( () => {
-		const defaults: Record< string, React.ReactNode > = {
+	// Get switchable page keys from the panel switcher data so we can
+	// render placeholder routes for pages that don't have React components yet.
+	const switchableKeys =
+		( window as any ).weposPanelSwitch?.supported_keys || [];
+
+	const allRoutes = useMemo( () => {
+		const routes: Record< string, React.ReactNode > = {
 			'/settings': <Settings />,
 		};
 
 		// Allow extensions to replace base routes.
 		for ( const route of additionalRoutes ) {
-			if ( route.replace && defaults[ route.path ] !== undefined ) {
-				defaults[ route.path ] = route.element;
+			if ( route.replace && routes[ route.path ] !== undefined ) {
+				routes[ route.path ] = route.element;
 			}
 		}
 
-		// Collect routes that are not replacements and not already in defaults.
-		const extra = additionalRoutes.filter(
-			( r ) =>
-				! r.replace &&
-				! Object.keys( defaults ).includes( r.path )
-		);
+		// Add extra routes from extensions.
+		for ( const route of additionalRoutes ) {
+			if ( ! route.replace && ! routes[ route.path ] ) {
+				routes[ route.path ] = route.element;
+			}
+		}
 
-		return { baseRoutes: defaults, extraRoutes: extra };
-	}, [ additionalRoutes ] );
+		// Add placeholder routes for switchable pages that don't have
+		// a React component registered yet (e.g., pro pages).
+		for ( const key of switchableKeys ) {
+			const path = '/' + key;
+			if ( ! routes[ path ] ) {
+				routes[ path ] = <Placeholder />;
+			}
+		}
+
+		return routes;
+	}, [ additionalRoutes, switchableKeys ] );
 
 	return (
 		<Routes>
-			{ Object.entries( baseRoutes ).map( ( [ path, element ] ) => (
+			{ Object.entries( allRoutes ).map( ( [ path, element ] ) => (
 				<Route key={ path } path={ path } element={ element } />
-			) ) }
-			{ extraRoutes.map( ( route ) => (
-				<Route
-					key={ route.path }
-					path={ route.path }
-					element={ route.element }
-				/>
 			) ) }
 			<Route path="*" element={ <Navigate to="/settings" replace /> } />
 		</Routes>
