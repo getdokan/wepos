@@ -18,38 +18,42 @@ module.exports = (env, argv) => {
     argv.mode === 'production' || process.env.NODE_ENV === 'production';
   const modeSuffix = isProduction ? '.min' : '';
 
-  const config = {
-    ...defaultConfig,
-    entry: {
-      ...defaultConfig.entry,
-      // React entry point
-      'wepos-react': path.resolve(__dirname, 'src/frontend/index.tsx'),
+    const config = {
+        ...defaultConfig,
+        entry: {
+            ...defaultConfig.entry,
+            // React entry points
+            'wepos-react': path.resolve(__dirname, 'src/frontend/index.tsx'),
+            'wepos-admin-react': path.resolve(__dirname, 'src/admin/index.tsx'),
+            'wepos-admin-switching': path.resolve(__dirname, 'src/admin/panel-switcher/index.tsx'),
 
-      // Old Vue/Legacy entry points
-      '../assets/js/frontend': './assets/src/frontend/main.js',
-      '../assets/js/admin': './assets/src/admin/main.js',
-      '../assets/js/vendor': vendorPackages,
-      '../assets/js/bootstrap': './assets/src/utils/Bootstrap.js',
-      '../assets/js/wphook': './assets/vendors/wp-hook/index.js',
-      '../assets/js/style': './assets/less/style.less',
-    },
-    output: {
-      ...defaultConfig.output,
-      // Default path is build/
-      filename: (pathData) => {
-        if (pathData.chunk.name === 'wepos-react') {
-          return '[name].js';
-        }
-        // For legacy assets, we use the mode suffix (.min) if in production
-        return `[name]${modeSuffix}.js`;
-      },
-    },
-    resolve: {
-      ...defaultConfig.resolve,
-      alias: {
-        ...defaultConfig.resolve?.alias,
-        // React Alias
-        '@react': path.resolve(__dirname, 'src/frontend'),
+            // Old Vue/Legacy entry points
+            '../assets/js/frontend': './assets/src/frontend/main.js',
+            '../assets/js/admin': './assets/src/admin/main.js',
+            '../assets/js/vendor': vendorPackages,
+            '../assets/js/bootstrap': './assets/src/utils/Bootstrap.js',
+            '../assets/js/wphook': './assets/vendors/wp-hook/index.js',
+            '../assets/js/style': './assets/less/style.less',
+        },
+        output: {
+            ...defaultConfig.output,
+            // Default path is build/
+            filename: (pathData) => {
+                const name = pathData.chunk.name;
+                if (name === 'wepos-react' || name === 'wepos-admin-react' || name === 'wepos-admin-switching') {
+                    return '[name].js';
+                }
+                // For legacy assets, we use the mode suffix (.min) if in production
+                return `[name]${modeSuffix}.js`;
+            },
+        },
+        resolve: {
+            ...defaultConfig.resolve,
+            alias: {
+                ...defaultConfig.resolve?.alias,
+                // React Aliases
+                '@react': path.resolve(__dirname, 'src/frontend'),
+                '@admin': path.resolve(__dirname, 'src/admin'),
 
         // Old Vue Aliases
         '@': path.resolve(__dirname, 'assets/src/'),
