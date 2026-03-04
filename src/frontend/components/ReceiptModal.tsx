@@ -17,8 +17,12 @@ interface ReceiptModalProps {
 
 /**
  * Print styles injected into the document head.
- * Matches the Vue receiptHtml.vue @media print approach:
- * hides everything on the page, shows only the receipt wrapper.
+ *
+ * The pro receipt template (ReceiptTemplate) uses fully inline styles so it
+ * prints correctly even when cloned via innerHTML.  These rules only need to:
+ *   1. Hide everything on the page during print.
+ *   2. Show the body-level #wepos-receipt-print-container.
+ *   3. Provide fallback class-based styles for the base receipt (no pro).
  */
 const PRINT_STYLES = `
 @media print {
@@ -43,7 +47,7 @@ const PRINT_STYLES = `
     visibility: visible !important;
   }
 
-  /* ─── Receipt layout styles ─── */
+  /* ─── Fallback styles for base (non-pro) receipt ─── */
   .wepos-checkout-print-wrapper {
     box-sizing: border-box;
     font-family: Helvetica, Verdana, Calibri, Arial, sans-serif;
@@ -52,56 +56,17 @@ const PRINT_STYLES = `
     color: #000;
     padding: 10px;
   }
+  .wepos-checkout-print-wrapper h3 { font-size: 1.17em; font-weight: bold; margin: 0; }
   .wepos-checkout-print-wrapper p { margin: 5px 0; }
-
-  /* Header & Footer */
   .wepos-checkout-print-wrapper .header,
   .wepos-checkout-print-wrapper .footer { padding: 5px; text-align: center; }
   .wepos-checkout-print-wrapper .footer { margin-top: 15px; }
-
-  /* Logo */
-  .wepos-checkout-print-wrapper .header .logo { text-align: center; margin-bottom: 8px; }
-
-  /* Outlet info (pro) */
-  .wepos-checkout-print-wrapper .header .outlet-info { margin: 8px 0; text-align: center; }
-  .wepos-checkout-print-wrapper .header .outlet-info h3 { margin: 0 0 10px; }
-  .wepos-checkout-print-wrapper .header .outlet-info p { margin: 3px; padding: 0; }
-  .wepos-checkout-print-wrapper .header .outlet-info p.address { width: 200px; margin: 5px auto; }
-
-  /* Cashier info (pro) */
-  .wepos-checkout-print-wrapper .header .cashier-info { margin: 10px 0; }
-
-  /* Order info (base – no .header parent) */
   .wepos-checkout-print-wrapper > .order-info {
-    margin: 10px 0;
-    border-bottom: 1px dashed #b7b7b7;
-    padding: 10px 5px;
-    display: flex;
-    justify-content: space-between;
+    margin: 10px 0; border-bottom: 1px dashed #b7b7b7; padding: 10px 5px;
+    display: flex; justify-content: space-between;
   }
-
-  /* Order info (pro – inside .header, stacked & centered) */
-  .wepos-checkout-print-wrapper .header .order-info {
-    display: block;
-    border: none;
-    margin: 10px 0;
-    padding: 0;
-  }
-
-  /* Customer info (pro) */
-  .wepos-checkout-print-wrapper .header .customer-info { border: none; margin: 10px 0; }
-  .wepos-checkout-print-wrapper .header .vat-tax-info { margin: 5px 0; }
-  .wepos-checkout-print-wrapper .header .order-note-info { margin: 5px 0; }
-
-  /* Content */
   .wepos-checkout-print-wrapper .content { padding: 10px; }
-
-  /* Sale summary table */
   .wepos-checkout-print-wrapper table.sale-summary { width: 100%; border-collapse: collapse; }
-  .wepos-checkout-print-wrapper table.sale-summary thead tr.item-header { border-bottom: 1px dashed #b7b7b7; }
-  .wepos-checkout-print-wrapper table.sale-summary thead th { padding: 10px 0; }
-  .wepos-checkout-print-wrapper table.sale-summary thead th:first-child { text-align: left; }
-  .wepos-checkout-print-wrapper table.sale-summary thead th:last-child { text-align: right; }
   .wepos-checkout-print-wrapper table.sale-summary td { font-size: 14px; padding: 6px 0; }
   .wepos-checkout-print-wrapper table.sale-summary td.name { width: 45%; text-align: left; }
   .wepos-checkout-print-wrapper table.sale-summary td.name .tax-info { display: block; font-size: 13px; font-weight: 400; }
@@ -111,17 +76,8 @@ const PRINT_STYLES = `
   .wepos-checkout-print-wrapper table.sale-summary td.price .regular-price { font-size: 12px; text-decoration: line-through; color: #9095A5; padding-right: 3px; }
   .wepos-checkout-print-wrapper table.sale-summary .attribute ul { margin: 0; padding: 0; list-style: none; }
   .wepos-checkout-print-wrapper table.sale-summary .attribute li { display: inline-block; margin-right: 5px; font-size: 12px; font-weight: normal; }
-  .wepos-checkout-print-wrapper table.sale-summary .attribute .attr_name { color: #758598; }
-
-  /* Payment detail rows (pro) */
-  .wepos-checkout-print-wrapper tr.payment-details td.name { text-align: left; }
-  .wepos-checkout-print-wrapper tr.payment-details td.price { text-align: right; }
-
-  /* Divider rows */
   .wepos-checkout-print-wrapper tr.divider { border-bottom: 1px dashed #b7b7b7; color: #b5b5b5; }
   .wepos-checkout-print-wrapper tr.divider td { padding: 5px 0; }
-
-  /* Float helpers */
   .wepos-clearfix { clear: both; }
   .wepos-left { float: left; }
   .wepos-right { float: right; }
