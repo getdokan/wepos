@@ -59,6 +59,8 @@ class Dashboard {
      * @return void
      */
     public function enqueue_scripts() {
+        wp_enqueue_media();
+
         $asset_file = WEPOS_PATH . '/build/wepos-admin-react.asset.php';
         $asset_data = file_exists( $asset_file ) ? include $asset_file : [];
 
