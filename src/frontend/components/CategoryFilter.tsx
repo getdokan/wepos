@@ -26,7 +26,9 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
 
   const items = useMemo(() => [
     allCategory,
-    ...categories.map(cat => ({ id: cat.id.toString(), name: cat.name }))
+    ...categories
+      .filter(cat => cat.id !== 0 && cat.name.toLowerCase() !== 'all categories')
+      .map(cat => ({ id: cat.id.toString(), name: cat.name }))
   ], [categories, allCategory]);
 
   const selectedValue = useMemo(() => {

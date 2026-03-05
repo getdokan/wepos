@@ -506,11 +506,6 @@ const HomePage: React.FC = () => {
           <Separator orientation="vertical" className="h-full" />
 
           <div className="flex h-full w-[35%] min-h-0 flex-col">
-            {/* Extension slot: SaveCarts tab bar injected by pro */}
-            {applyFilters<React.ReactNode[]>('wepos_react_before_cart_panel', []).map(
-              (Component: any, i: number) => <Component key={i} />
-            )}
-
             <Cart
               ref={cartRef}
               onInitPayment={initPayment}
@@ -518,6 +513,11 @@ const HomePage: React.FC = () => {
               handleCustomerSelected={handleCustomerSelected}
               setShowHelp={setShowHelp}
             />
+
+            {/* Extension slot: SaveCarts tab bar injected by pro (bottom of cart) */}
+            {applyFilters<React.ReactNode[]>('wepos_react_after_cart_panel', []).map(
+              (Component: any, i: number) => <Component key={i} />
+            )}
           </div>
         </div>
       </div>
