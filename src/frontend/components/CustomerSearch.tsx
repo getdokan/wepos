@@ -208,7 +208,7 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
     <div className={`relative ${className}`}>
       {/* Search Input - Hide when customer is selected */}
       {!selectedCustomer && (
-        <InputGroup className="h-10">
+        <InputGroup className="h-9">
           <InputGroupAddon align="inline-start">
             <Avatar size="xs" shape="circle">
               <AvatarFallback className="bg-primary text-primary-foreground">
@@ -253,7 +253,7 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
 
       {/* Selected Customer Display */}
       {selectedCustomer && (
-        <InputGroup className="h-10">
+        <InputGroup className="h-9">
           <InputGroupAddon align="inline-start">
             <Avatar size="xs" shape="circle">
               <AvatarImage

@@ -159,7 +159,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               className="w-full"
             />
             <DropdownMenu>
-              <DropdownMenuTrigger className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex items-center justify-center rounded-md p-2 transition-colors outline-none border border-border">
+              <DropdownMenuTrigger className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex h-9 w-9 items-center justify-center rounded-md transition-colors outline-none border border-border">
                 <MoreVertical className="h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
