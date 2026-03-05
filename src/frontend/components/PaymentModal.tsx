@@ -9,6 +9,7 @@ import { PRODUCTS_STORE_NAME } from '../store/products';
 import { applyFilters } from '../hooks/useExtensions';
 import {
   Modal,
+  ModalFooter,
   Button,
   Separator,
   InputGroup,
@@ -138,249 +139,244 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       className="wepos-payment-modal !p-0"
       size="full"
     >
-      <div className="relative flex h-[calc(100vh-2rem)]">
-        {/* Processing Overlay */}
-        {processing && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60">
-            <LoaderCircle className="h-12 w-12 animate-spin text-gray-500" />
-          </div>
-        )}
-
-        {/* Left Panel - Sale Summary */}
-        <div
-          className="flex flex-col bg-[#FBFCFE]"
-          style={{ flex: 3 }}
-        >
-          {/* Header */}
-          <div className="border-b border-gray-200 px-6 py-5">
-            <h2 className="text-lg font-bold text-gray-900">
-              {__('Sale Summary', 'wepos')}
-            </h2>
-          </div>
-
-          {/* Cart Items */}
-          <div className="flex-1 overflow-auto px-6 py-2">
-            {cartItems.map((item: POSCartItem, index: number) => (
-              <div
-                key={index}
-                className="flex items-center justify-between py-3"
-              >
-                <div className="min-w-0 flex-1">
-                  <span className="font-semibold text-gray-900">
-                    {item.name}
-                  </span>
-                  {item.attribute && item.attribute.length > 0 && (
-                    <div className="text-sm text-gray-500">
-                      {item.attribute
-                        .map((attr) => `${attr.name}: ${attr.option}`)
-                        .join(', ')}
-                    </div>
-                  )}
-                </div>
-                <span className="mx-6 text-gray-600">{item.quantity}</span>
-                <span className="whitespace-nowrap text-gray-900">
-                  {formatPrice(getItemPrice(item) * item.quantity)}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Summary Footer */}
-          <div className="border-t border-gray-200 px-6 py-4">
-            {/* Subtotal */}
-            <div className="flex justify-between py-1.5">
-              <span className="font-bold text-gray-900">
-                {__('Subtotal', 'wepos')}
-              </span>
-              <span className="font-bold text-gray-900">
-                {formatPrice(subtotal)}
-              </span>
-            </div>
-
-            {/* Discount Lines */}
-            {discountLines.map(
-              (discount: POSDiscountLine, index: number) => (
-                <div
-                  key={`discount-${index}`}
-                  className="flex justify-between py-1.5"
-                >
-                  <span className="text-gray-700">
-                    {__('Discount', 'wepos')}{' '}
-                    <span className="text-sm text-gray-500">
-                      {discount.name} {getDiscountDisplay(discount)}
-                    </span>
-                  </span>
-                  <span className="text-gray-900">
-                    -{formatPrice(getDiscountAmount(discount))}
-                  </span>
-                </div>
-              ),
-            )}
-
-            {/* Fee Lines */}
-            {feeLines.map((fee: POSFeeLine, index: number) => (
-              <div
-                key={`fee-${index}`}
-                className="flex justify-between py-1.5"
-              >
-                <span className="text-gray-700">
-                  {__('Fee', 'wepos')}{' '}
-                  <span className="text-sm text-gray-500">
-                    {fee.name} {formatPrice(parseFloat(fee.value))}
-                  </span>
-                </span>
-                <span className="text-gray-900">
-                  {formatPrice(getFeeAmount(fee))}
-                </span>
-              </div>
-            ))}
-
-            {/* Tax */}
-            {totalTax > 0 && (
-              <div className="flex justify-between py-1.5">
-                <span className="text-gray-700">
-                  {__('Tax', 'wepos')}
-                </span>
-                <span className="text-gray-900">
-                  {formatPrice(totalTax)}
-                </span>
-              </div>
-            )}
-
-            {/* Order Total */}
-            <div className="mt-1 flex justify-between border-t border-gray-200 pt-2">
-              <span className="font-bold text-gray-900">
-                {__('Order Total', 'wepos')}
-              </span>
-              <span className="font-bold text-gray-900">
-                {formatPrice(total)}
-              </span>
-            </div>
-
-            {/* Pay */}
-            <div className="flex justify-between py-1.5">
-              <span className="font-bold text-gray-900">
-                {__('Pay', 'wepos')}
-              </span>
-              <span className="font-bold text-gray-900">
-                {formatPrice(total)}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <Separator orientation="vertical" className="h-full" />
-
-        {/* Right Panel - Payment */}
-        <div className="flex flex-1 flex-col" style={{ flex: 6 }}>
-          {/* Header */}
-          <div className="flex items-center justify-between px-12 py-8 pb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
-              {__('Pay', 'wepos')}
-            </h2>
-            <span className="rounded-md border border-teal-300 bg-teal-50 px-5 py-2 text-lg font-semibold text-teal-600">
-              {formatPrice(total)}
-            </span>
-          </div>
-
-          {/* Payment Gateways */}
-          <div className="flex flex-wrap gap-4 px-12">
-            {availableGateways.map((gateway: POSGateway) => (
-              <label
-                key={gateway.id}
-                className={`flex h-[100px] cursor-pointer items-center justify-center rounded border transition-all ${
-                  selectedGateway === gateway.id
-                    ? 'border-[rgba(26,188,156,0.7)] bg-[rgba(26,188,156,0.1)]'
-                    : 'border-[rgba(26,188,156,0.1)] bg-[rgba(26,188,156,0.1)] hover:border-[rgba(26,188,156,0.4)]'
-                }`}
-                style={{ flex: '1 0 21%' }}
-              >
-                <input
-                  type="radio"
-                  name="gateway"
-                  value={gateway.id}
-                  checked={selectedGateway === gateway.id}
-                  onChange={(e) => onGatewayChange(e.target.value)}
-                  className="hidden"
-                />
-                <span className="text-base font-medium text-[#16a085]">
-                  {gateway.title}
-                </span>
-              </label>
-            ))}
-            {/* Empty gateway placeholders to fill 4 columns */}
-            {Array.from({ length: emptyGatewayCount }).map((_, index) => (
-              <div
-                key={`empty-${index}`}
-                className="flex h-[100px] items-center justify-center rounded border border-gray-100"
-                style={{ flex: '1 0 21%' }}
-              />
-            ))}
-          </div>
-
-          {/* Cash Payment Section */}
-          {selectedGateway === 'wepos_cash' && (
-            <div className="mx-12 mt-6 flex flex-col overflow-hidden rounded border border-[#EAEDF0]">
-              {/* Input Area */}
-              <div className="flex flex-1 flex-col items-center justify-center bg-[#FBFCFE] py-10">
-                <p className="mb-4 text-base font-medium text-gray-700">
-                  {__('Cash', 'wepos')}
-                </p>
-                <InputGroup className="h-[50px] w-[350px] rounded-[3px] border-[#EAEDF0]">
-                  <InputGroupAddon className="w-[50px] justify-center border-r border-[#EAEDF0] text-base text-gray-600">
-                    {currencySymbol}
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    ref={cashAmountRef}
-                    id="input-cash-amount"
-                    type="text"
-                    value={cashAmount}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      onCashAmountChange(e.target.value)
-                    }
-                    className="h-full text-base"
-                  />
-                </InputGroup>
-              </div>
-
-              {/* Change Money */}
-              <div className="flex items-center justify-center border-t border-[#EAEDF0] bg-white py-6">
-                <p className="text-[15px] font-medium text-[#9013FE]">
-                  {__('Change money', 'wepos')}: {formatPrice(changeAmount)}
-                </p>
-              </div>
+      <div className="flex h-[calc(100vh-2rem)] flex-col">
+        {/* Main content area */}
+        <div className="flex min-h-0 flex-1">
+          {/* Processing Overlay */}
+          {processing && (
+            <div className="absolute inset-0 z-[60] flex items-center justify-center bg-white/60">
+              <LoaderCircle className="h-12 w-12 animate-spin text-gray-500" />
             </div>
           )}
 
-          {/* Extension slot: pro card gateway form */}
-          {applyFilters<React.ReactNode[]>('wepos_react_gateway_content', [], {
-            selectedGateway,
-            availableGateways,
-          }).map((Component: any, i: number) => (
-            <Component key={i} selectedGateway={selectedGateway} availableGateways={availableGateways} />
-          ))}
+          {/* Left Panel - Sale Summary (30% width) */}
+          <div className="flex w-[30%] shrink-0 flex-col bg-[#FBFCFE]">
+            {/* Header */}
+            <div className="border-b border-gray-200 px-6 py-5">
+              <h2 className="text-lg font-bold text-gray-900">
+                {__('Sale Summary', 'wepos')}
+              </h2>
+            </div>
 
-          {/* Spacer */}
-          <div className="flex-1" />
+            {/* Cart Items */}
+            <div className="flex-1 overflow-auto px-6 py-2">
+              {cartItems.map((item: POSCartItem, index: number) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between py-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <span className="font-semibold text-gray-900">
+                      {item.name}
+                    </span>
+                    {item.attribute && item.attribute.length > 0 && (
+                      <div className="text-sm text-gray-500">
+                        {item.attribute
+                          .map((attr) => `${attr.name}: ${attr.option}`)
+                          .join(', ')}
+                      </div>
+                    )}
+                  </div>
+                  <span className="mx-6 text-gray-600">{item.quantity}</span>
+                  <span className="whitespace-nowrap text-gray-900">
+                    {formatPrice(getItemPrice(item) * item.quantity)}
+                  </span>
+                </div>
+              ))}
+            </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between px-12 py-6">
-            <Button
-              variant="outline"
-              onClick={onBackToSale}
-              className="rounded-[3px] px-6 py-3"
-            >
-              {__('Back to Sale', 'wepos')}
-            </Button>
-            <Button
-              onClick={onProcessPayment}
-              disabled={!ableToProcess}
-              className="bg-primary text-primary-foreground disabled:cursor-not-allowed"
-            >
-              {__('Process Payment', 'wepos')}
-            </Button>
+            {/* Summary Footer */}
+            <div className="border-t border-gray-200 px-6 py-4">
+              {/* Subtotal */}
+              <div className="flex justify-between py-1.5">
+                <span className="font-bold text-gray-900">
+                  {__('Subtotal', 'wepos')}
+                </span>
+                <span className="font-bold text-gray-900">
+                  {formatPrice(subtotal)}
+                </span>
+              </div>
+
+              {/* Discount Lines */}
+              {discountLines.map(
+                (discount: POSDiscountLine, index: number) => (
+                  <div
+                    key={`discount-${index}`}
+                    className="flex justify-between py-1.5"
+                  >
+                    <span className="text-gray-700">
+                      {__('Discount', 'wepos')}{' '}
+                      <span className="text-sm text-gray-500">
+                        {discount.name} {getDiscountDisplay(discount)}
+                      </span>
+                    </span>
+                    <span className="text-gray-900">
+                      -{formatPrice(getDiscountAmount(discount))}
+                    </span>
+                  </div>
+                ),
+              )}
+
+              {/* Fee Lines */}
+              {feeLines.map((fee: POSFeeLine, index: number) => (
+                <div
+                  key={`fee-${index}`}
+                  className="flex justify-between py-1.5"
+                >
+                  <span className="text-gray-700">
+                    {__('Fee', 'wepos')}{' '}
+                    <span className="text-sm text-gray-500">
+                      {fee.name} {formatPrice(parseFloat(fee.value))}
+                    </span>
+                  </span>
+                  <span className="text-gray-900">
+                    {formatPrice(getFeeAmount(fee))}
+                  </span>
+                </div>
+              ))}
+
+              {/* Tax */}
+              {totalTax > 0 && (
+                <div className="flex justify-between py-1.5">
+                  <span className="text-gray-700">
+                    {__('Tax', 'wepos')}
+                  </span>
+                  <span className="text-gray-900">
+                    {formatPrice(totalTax)}
+                  </span>
+                </div>
+              )}
+
+              {/* Order Total */}
+              <div className="mt-1 flex justify-between border-t border-gray-200 pt-2">
+                <span className="font-bold text-gray-900">
+                  {__('Order Total', 'wepos')}
+                </span>
+                <span className="font-bold text-gray-900">
+                  {formatPrice(total)}
+                </span>
+              </div>
+
+              {/* Pay */}
+              <div className="flex justify-between py-1.5">
+                <span className="font-bold text-gray-900">
+                  {__('Pay', 'wepos')}
+                </span>
+                <span className="font-bold text-gray-900">
+                  {formatPrice(total)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <Separator orientation="vertical" />
+
+          {/* Right Panel - Payment (fills remaining 70%) */}
+          <div className="flex min-w-0 flex-1 flex-col overflow-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between px-12 pb-6 pt-8">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {__('Pay', 'wepos')}
+              </h2>
+              <span className="rounded-md border border-teal-300 bg-teal-50 px-5 py-2 text-lg font-semibold text-teal-600">
+                {formatPrice(total)}
+              </span>
+            </div>
+
+            {/* Payment Gateways */}
+            <div className="flex flex-wrap gap-4 px-12">
+              {availableGateways.map((gateway: POSGateway) => (
+                <label
+                  key={gateway.id}
+                  className={`flex h-[100px] w-[calc(25%-12px)] cursor-pointer items-center justify-center rounded border transition-all ${
+                    selectedGateway === gateway.id
+                      ? 'border-[rgba(26,188,156,0.7)] bg-[rgba(26,188,156,0.1)]'
+                      : 'border-[rgba(26,188,156,0.1)] bg-[rgba(26,188,156,0.1)] hover:border-[rgba(26,188,156,0.4)]'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="gateway"
+                    value={gateway.id}
+                    checked={selectedGateway === gateway.id}
+                    onChange={(e) => onGatewayChange(e.target.value)}
+                    className="hidden"
+                  />
+                  <span className="text-base font-medium text-[#16a085]">
+                    {gateway.title}
+                  </span>
+                </label>
+              ))}
+              {/* Empty gateway placeholders to fill 4 columns */}
+              {Array.from({ length: emptyGatewayCount }).map((_, index) => (
+                <div
+                  key={`empty-${index}`}
+                  className="flex h-[100px] w-[calc(25%-12px)] items-center justify-center rounded border border-gray-100"
+                />
+              ))}
+            </div>
+
+            {/* Cash Payment Section */}
+            {selectedGateway === 'wepos_cash' && (
+              <div className="mx-12 mt-6 flex flex-col overflow-hidden rounded border border-[#EAEDF0]">
+                {/* Input Area */}
+                <div className="flex flex-col items-center justify-center bg-[#FBFCFE] py-10">
+                  <p className="mb-4 text-base font-medium text-gray-700">
+                    {__('Cash', 'wepos')}
+                  </p>
+                  <InputGroup className="h-[50px] w-[350px] rounded-[3px] border-[#EAEDF0]">
+                    <InputGroupAddon className="w-[50px] justify-center border-r border-[#EAEDF0] text-base text-gray-600">
+                      {currencySymbol}
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      ref={cashAmountRef}
+                      id="input-cash-amount"
+                      type="text"
+                      value={cashAmount}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        onCashAmountChange(e.target.value)
+                      }
+                      className="h-full text-base"
+                    />
+                  </InputGroup>
+                </div>
+
+                {/* Change Money */}
+                <div className="flex items-center justify-center border-t border-[#EAEDF0] bg-white py-6">
+                  <p className="text-[15px] font-medium text-[#9013FE]">
+                    {__('Change money', 'wepos')}: {formatPrice(changeAmount)}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Extension slot: pro card gateway form */}
+            {applyFilters<React.ReactNode[]>('wepos_react_gateway_content', [], {
+              selectedGateway,
+              availableGateways,
+            }).map((Component: any, i: number) => (
+              <Component key={i} selectedGateway={selectedGateway} availableGateways={availableGateways} />
+            ))}
           </div>
         </div>
+
+        {/* Full-width Footer */}
+        <ModalFooter className="shrink-0 justify-between px-12">
+          <Button
+            variant="outline"
+            onClick={onBackToSale}
+            className="rounded-[3px] px-6 py-3"
+          >
+            {__('Back to Sale', 'wepos')}
+          </Button>
+          <Button
+            onClick={onProcessPayment}
+            disabled={!ableToProcess}
+            className="bg-primary text-primary-foreground disabled:cursor-not-allowed"
+          >
+            {__('Process Payment', 'wepos')}
+          </Button>
+        </ModalFooter>
       </div>
     </Modal>
   );

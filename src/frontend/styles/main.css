@@ -1,11 +1,20 @@
-/* WePos React App - Tailwind CSS v4 */
-@import "tailwindcss";
-@import '@wedevs/plugin-ui/styles.css';
+@layer theme, base, components, utilities;
 
+@import "tailwindcss/theme.css" layer(theme);
+/* Source paths for Tailwind to scan */
+@source "../../frontend";
+@source "../../../node_modules/@wedevs/plugin-ui/dist";
+
+.pui-root,
+.components-modal__screen-overlay {
+  @import "tailwindcss/preflight.css" layer(base);
+  @import "tailwindcss/utilities.css" layer(utilities) important;
+}
+
+@import '@wedevs/plugin-ui/styles.css';
 
 /**
  * Default theme tokens - applied to all .pui-root containers
- * Plugins can override these via ThemeProvider's tokens prop
  */
 .pui-root {
     --background: oklch(1 0 0);
@@ -225,12 +234,6 @@ body {
     padding: 0;
     overflow: hidden;
 }
-
-/* Source paths for Tailwind to scan */
-@source "../../frontend";
-
-/* Source paths for Tailwind to scan */
-@source "../../../node_modules/@wedevs/plugin-ui/dist";
 
 /* Essential Component Styles - Only what can't be done with Tailwind */
 @layer components {
