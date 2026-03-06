@@ -97,6 +97,17 @@ export const delay = (ms: number): Promise<void> => {
 };
 
 /**
+ * Decode HTML entities in a string (e.g. &amp; → &, &lt; → <)
+ * Uses a textarea element so all named and numeric entities are handled.
+ */
+export const decodeHtmlEntities = (text: string): string => {
+  if (!text) return text;
+  const el = document.createElement('textarea');
+  el.innerHTML = text;
+  return el.value;
+};
+
+/**
  * Safe localStorage getter with error handling
  */
 export const getFromLocalStorage = <T>(key: string, defaultValue: T): T => {
