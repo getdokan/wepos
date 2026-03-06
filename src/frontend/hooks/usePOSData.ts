@@ -48,6 +48,7 @@ export const usePOSData = () => {
   // Dispatch actions for products store
   const {
     setProducts,
+    appendProducts,
     setGateways,
     setSettings,
     setCategories,
@@ -83,14 +84,24 @@ export const usePOSData = () => {
   const fetchProducts = useCallback(async () => {
     if (productLoading) return;
     setProductsLoading(true);
+    // Clear existing products before loading fresh
+    setProducts([]);
+    let isFirstPage = true;
     try {
-      const products = await posAPI.products.getAllPOSProducts();
-      setProducts(products);
+      await posAPI.products.fetchProductsPageByPage((pageProducts) => {
+        appendProducts(pageProducts);
+        // Hide loading spinner after first page arrives (matches Vue behavior)
+        if (isFirstPage) {
+          setProductsLoading(false);
+          isFirstPage = false;
+        }
+      });
     } catch (error) {
       console.error('Error fetching products:', error);
+    } finally {
       setProductsLoading(false);
     }
-  }, [productLoading, setProductsLoading, setProducts]);
+  }, [productLoading, setProductsLoading, setProducts, appendProducts]);
 
   const fetchGateways = useCallback(async () => {
     setGatewaysLoading(true);

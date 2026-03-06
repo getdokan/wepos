@@ -24,6 +24,12 @@ declare global {
       countries: Record<string, string>;
       states: Record<string, Record<string, string>>;
       current_user_id: number;
+      current_user: {
+        name: string;
+        email: string;
+        avatar_url: string;
+        role: string;
+      };
       home_url: string;
       wp_date_format: string;
       wp_time_format: string;
@@ -530,6 +536,10 @@ export interface POSGateway {
 
 export interface POSSettings {
   wepos_general: any;
+  wepos_receipts?: {
+    receipt_header: string;
+    receipt_footer: string;
+  };
   woo_tax: {
     wc_tax_display_cart: string;
   };

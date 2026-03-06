@@ -17,6 +17,7 @@ export interface ProductsState {
 // Action types
 export type ProductsAction =
   | { type: 'SET_PRODUCTS'; products: POSProduct[] }
+  | { type: 'APPEND_PRODUCTS'; products: POSProduct[] }
   | { type: 'SET_CATEGORIES'; categories: POSCategory[] }
   | { type: 'SET_GATEWAYS'; gateways: POSGateway[] }
   | { type: 'SET_SETTINGS'; settings: POSSettings }

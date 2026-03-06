@@ -74,12 +74,41 @@ class ReactAssets
             $dependencies[] = 'wepos-react-runtime';
         }
 
+        // Create shared instances BEFORE any bundles load.
+        // wepos-pro-react loads as a dependency of wepos-react (so pro hooks
+        // register first), which means these globals must exist before pro loads.
+        // The empty objects for router/plugin-ui are populated via Object.assign
+        // when the base bundle loads, keeping the same object reference.
+        wp_enqueue_script('wp-hooks');
+        wp_add_inline_script(
+            'wp-hooks',
+            'if ( typeof window.__weposReactHooks === "undefined" ) { window.__weposReactHooks = wp.hooks.createHooks(); }' .
+            ' window.__weposReactRouterDOM = window.__weposReactRouterDOM || {};' .
+            ' window.__weposPluginUI = window.__weposPluginUI || {};',
+            'after'
+        );
+
         // Enqueue main React application
         wp_enqueue_script(
             'wepos-react',
             $script_url,
             $dependencies,
             $version,
+            true
+        );
+
+        $accounting_script = array(
+            'wepos-accounting' => array(
+                'src'  => WC()->plugin_url() . '/assets/js/accounting/accounting.min.js',
+                'deps' => array( 'jquery' )
+            ),
+        );
+
+        wp_enqueue_script(
+            'wepos-accounting',
+            $accounting_script['wepos-accounting']['src'],
+            $accounting_script['wepos-accounting']['deps'],
+            '1.0.0',
             true
         );
 
@@ -96,9 +125,8 @@ class ReactAssets
         );
 
         // Localize script data
-        wp_localize_script(
-            'wepos-react',
-            'wepos',
+        $localize_data = apply_filters(
+            'wepos_localize_data',
             [
                 'rest' => [
                     'root' => esc_url_raw(get_rest_url()),
@@ -124,6 +152,7 @@ class ReactAssets
                 'countries' => \WC()->countries->get_countries(),
                 'states' => \WC()->countries->get_states(),
                 'current_user_id' => get_current_user_id(),
+                'current_user' => $this->get_current_user_data(),
                 'home_url' => home_url(),
                 'wp_date_format' => get_option('date_format'),
                 'wp_time_format' => get_option('time_format'),
@@ -132,5 +161,32 @@ class ReactAssets
                 'dev_mode' => $is_dev,
             ]
         );
+
+        wp_localize_script(
+            'wepos-react',
+            'wepos',
+            $localize_data
+        );
+    }
+
+    /**
+     * Get current user data for the frontend.
+     *
+     * @return array
+     */
+    private function get_current_user_data()
+    {
+        $user = wp_get_current_user();
+
+        if ( ! $user->exists() ) {
+            return [];
+        }
+
+        return [
+            'name'       => $user->display_name,
+            'email'      => $user->user_email,
+            'avatar_url' => get_avatar_url( $user->ID, [ 'size' => 96 ] ),
+            'role'       => ! empty( $user->roles ) ? ucfirst( $user->roles[0] ) : '',
+        ];
     }
 }

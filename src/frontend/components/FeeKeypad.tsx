@@ -1,6 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Popover } from '@wordpress/components';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { __ } from '@wordpress/i18n';
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  Button,
+  Input,
+} from '@wedevs/plugin-ui';
+import { Delete } from 'lucide-react';
 
 interface FeeKeypadProps {
   name: string;
@@ -9,16 +16,24 @@ interface FeeKeypadProps {
   isDiscount?: boolean;
 }
 
-const FeeKeypad: React.FC<FeeKeypadProps> = ({
+export interface FeeKeypadHandle {
+  open: () => void;
+}
+
+const FeeKeypad = forwardRef<FeeKeypadHandle, FeeKeypadProps>(({
   name,
   onInputFee,
   className,
   isDiscount = false,
-}) => {
+}, ref) => {
   const [isVisible, setIsVisible] = useState(false);
   const [displayValue, setDisplayValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    open: () => setIsVisible(true),
+  }));
 
   // Focus input when popover opens
   useEffect(() => {
@@ -88,106 +103,93 @@ const FeeKeypad: React.FC<FeeKeypadProps> = ({
 
   return (
     <div className={`inline-block ${className || ''}`}>
-      <button
-        ref={buttonRef}
-        type="button"
-        className="focus:ring-opacity-20 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 focus:ring-2 focus:ring-blue-500"
-        onClick={() => setIsVisible(!isVisible)}
-      >
-        {__('Add', 'wepos')} {name}
-      </button>
+      <Popover open={isVisible} onOpenChange={setIsVisible}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className="border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700"
+          >
+            {__('Add', 'wepos')} {name}
+          </Button>
+        </PopoverTrigger>
 
-      {isVisible && (
-        <Popover
-          anchor={buttonRef.current}
-          placement="top"
-          onClose={() => setIsVisible(false)}
-          className="wepos-fee-keypad-popover"
-        >
-          <div className="w-64 rounded-lg border border-gray-200 bg-white p-4 shadow-lg">
+        <PopoverContent className="w-64 p-4" align="start">
+          <div className="flex flex-col gap-4">
             {/* Input Display */}
-            <div className="mb-4">
-              <input
+            <div>
+              <Input
                 ref={inputRef}
                 type="text"
                 value={displayValue}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyPress}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-center text-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                className="text-center text-xl"
                 placeholder="0"
               />
             </div>
 
             {/* Keypad */}
-            <div className="mb-4 grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {/* Numbers 1-9 */}
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                <button
+                <Button
                   key={num}
-                  type="button"
-                  className="h-12 rounded-lg bg-gray-100 text-lg font-medium transition-colors hover:bg-gray-200"
+                  variant="secondary"
+                  className="h-12 text-lg font-medium"
                   onClick={() => handleNumberClick(num.toString())}
                 >
                   {num}
-                </button>
+                </Button>
               ))}
 
               {/* Bottom row: Clear, 0, Decimal */}
-              <button
-                type="button"
-                className="h-12 rounded-lg bg-red-100 text-sm font-medium text-red-700 transition-colors hover:bg-red-200"
+              <Button
+                variant="outline"
+                className="h-12 text-red-600 hover:bg-red-50 hover:text-red-700"
                 onClick={handleClear}
               >
-                ⌫
-              </button>
-              <button
-                type="button"
-                className="h-12 rounded-lg bg-gray-100 text-lg font-medium transition-colors hover:bg-gray-200"
+                <Delete size={20} />
+              </Button>
+              <Button
+                variant="secondary"
+                className="h-12 text-lg font-medium"
                 onClick={() => handleNumberClick('0')}
               >
                 0
-              </button>
-              <button
-                type="button"
-                className="h-12 rounded-lg bg-gray-100 text-lg font-medium transition-colors hover:bg-gray-200"
+              </Button>
+              <Button
+                variant="secondary"
+                className="h-12 text-lg font-medium"
                 onClick={handleDecimalClick}
               >
                 .
-              </button>
+              </Button>
             </div>
 
             {/* Action Buttons */}
             <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                  isDiscount
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-blue-600 hover:bg-blue-700'
-                }`}
+              <Button
+                variant={isDiscount ? 'success' : 'default'}
+                className="w-full"
                 onClick={handlePercentClick}
                 disabled={!displayValue || parseFloat(displayValue) <= 0}
               >
                 % {name}
-              </button>
-              <button
-                type="button"
-                className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                  isDiscount
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-blue-600 hover:bg-blue-700'
-                }`}
+              </Button>
+              <Button
+                variant={isDiscount ? 'success' : 'default'}
+                className="w-full"
                 onClick={handleFixedClick}
                 disabled={!displayValue || parseFloat(displayValue) <= 0}
               >
                 {window.wepos?.currency_format_symbol} {name}
-              </button>
+              </Button>
             </div>
           </div>
-        </Popover>
-      )}
+        </PopoverContent>
+      </Popover>
     </div>
   );
-};
+});
 
 export default FeeKeypad;

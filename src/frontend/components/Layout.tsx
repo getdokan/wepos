@@ -1,53 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useRef } from 'react';
+import {
+  Layout as PUILayout,
+  LayoutBody,
+  LayoutSidebar,
+  LayoutMain,
+  LayoutHeader,
+  useSidebar,
+} from '@wedevs/plugin-ui';
 import Sidebar from './Sidebar';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-const SIDEBAR_STORAGE_KEY = 'wepos-sidebar-collapsed';
+const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
+  const { showSidebar, hideSidebar } = useSidebar();
+  const sidebarRef = useRef<HTMLElement>( null );
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
-  // Initialize state from localStorage or default to collapsed
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    try {
-      const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
-      return stored !== null ? JSON.parse(stored) : true;
-    } catch (error) {
-      console.warn('Failed to load sidebar state from localStorage:', error);
-      return true; // Default to collapsed if localStorage fails
+  const handleMouseLeave = useCallback( () => {
+    // Don't collapse if a dropdown/popover is open inside the sidebar
+    const hasOpenPopover = sidebarRef.current?.querySelector( '[data-state="open"]' );
+    if ( hasOpenPopover ) {
+      return;
     }
-  });
-
-  // Save to localStorage whenever state changes
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        SIDEBAR_STORAGE_KEY,
-        JSON.stringify(sidebarCollapsed),
-      );
-    } catch (error) {
-      console.warn('Failed to save sidebar state to localStorage:', error);
-    }
-  }, [sidebarCollapsed]);
-
-  const toggleSidebar = () => {
-    setSidebarCollapsed((prev: boolean) => !prev);
-  };
+    hideSidebar();
+  }, [ hideSidebar ] );
 
   return (
-    <div
-      id="wepos-main"
-      className="flex min-h-screen flex-col bg-gray-100 md:flex-row"
-    >
-      <Sidebar
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={toggleSidebar}
-      />
-
-      <div className="flex flex-1 flex-col md:flex-row">{children}</div>
-    </div>
+    <LayoutBody className="h-full overflow-hidden">
+      <LayoutSidebar
+        ref={ sidebarRef }
+        collapsible="icon"
+        variant="sidebar"
+        onMouseEnter={ showSidebar }
+        onMouseLeave={ handleMouseLeave }
+      >
+        <Sidebar />
+      </LayoutSidebar>
+      <LayoutMain className="h-full overflow-hidden flex flex-col">
+        {/* <LayoutHeader className="shrink-0 flex items-center gap-2 px-4" /> */}
+        <div className="flex-1 min-h-0 overflow-hidden p-2">
+          {children}
+        </div>
+      </LayoutMain>
+    </LayoutBody>
   );
 };
 
+const Layout: React.FC<LayoutProps> = ({ children }) => {
+  return (
+    <PUILayout
+      className="bg-background h-screen fixed inset-0 overflow-hidden"
+      defaultSidebarOpen={false}
+      namespace='wepos'
+    >
+      <LayoutContent>{children}</LayoutContent>
+    </PUILayout>
+  );
+};
 export default Layout;

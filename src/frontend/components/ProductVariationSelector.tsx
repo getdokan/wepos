@@ -1,5 +1,17 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Button, Popover } from '@wordpress/components';
+// import { Button, Popover } from '@wordpress/components';
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  Button,
+  PopoverClose,
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from '@wedevs/plugin-ui';
 import { __ } from '@wordpress/i18n';
 import { POSProduct, ProductVariation, CartItem } from '../types';
 
@@ -17,7 +29,6 @@ interface SelectedAttributes {
 export const ProductVariationSelector: React.FC<
   ProductVariationSelectorProps
 > = ({ product, onAddToCart, children }) => {
-  const [isVisible, setIsVisible] = useState(false);
   const [selectedAttributes, setSelectedAttributes] =
     useState<SelectedAttributes>({});
   const [popoverAnchor, setPopoverAnchor] = useState<HTMLElement | null>(null);
@@ -90,41 +101,22 @@ export const ProductVariationSelector: React.FC<
     };
 
     onAddToCart(cartItem);
-    setIsVisible(false);
     setSelectedAttributes({});
   }, [matchingVariation, selectedAttributes, product, onAddToCart]);
 
-  // Handle opening the popover
-  const handleClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
-    event.preventDefault();
-    setPopoverAnchor(event.currentTarget);
-    setIsVisible(true);
-  }, []);
-
-  // Handle closing the popover
-  const handleClose = useCallback(() => {
-    setIsVisible(false);
-    setSelectedAttributes({});
-  }, []);
 
   return (
     <>
-      <div onClick={handleClick} style={{ cursor: 'pointer' }}>
-        {children}
-      </div>
-
-      {isVisible && (
-        <Popover
-          position="bottom center"
-          onClose={() => setIsVisible(false)}
-          className="min-w-96"
-        >
-          <div className="rounded-lg border bg-white p-4 shadow-lg">
+      <Popover>
+        <PopoverTrigger asChild>
+          {children}
+        </PopoverTrigger>
+        <PopoverContent>
+          <div className="rounded-lg bg-white">
             <div className="mb-4">
               <h3 className="mb-2 text-lg font-semibold text-gray-800">
                 {__('Select Variations', 'wepos')}
               </h3>
-              <p className="text-sm text-gray-600">{product.name}</p>
             </div>
 
             {product.attributes
@@ -134,24 +126,21 @@ export const ProductVariationSelector: React.FC<
                   <label className="mb-2 block text-sm font-medium text-gray-700">
                     {attribute.name}:
                   </label>
-                  <div className="space-y-2">
-                    {attribute.options.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() =>
-                          handleAttributeChange(attribute.name, option)
-                        }
-                        className={`rounded-md border px-3 py-2 text-left transition-colors ${
-                          selectedAttributes[attribute.name] === option
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50'
-                        }`}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
+                  <Select
+                    value={selectedAttributes[attribute.name] ?? ''}
+                    onValueChange={(value) => handleAttributeChange(attribute.name, value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={`Select ${attribute.name}...`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {attribute.options.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               ))}
 
@@ -183,26 +172,19 @@ export const ProductVariationSelector: React.FC<
               )
             )}
 
-            <div className="flex gap-2 pt-2">
-              <Button
-                variant="secondary"
-                onClick={() => setIsVisible(false)}
-                className="flex-1"
-              >
-                {__('Cancel', 'wepos')}
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleAddVariation}
-                disabled={!isAllAttributesSelected}
-                className="flex-1"
-              >
-                {__('Add Product', 'wepos')}
-              </Button>
-            </div>
+              <PopoverClose className='w-full'>
+                <Button
+                  variant="success"
+                  onClick={handleAddVariation}
+                  disabled={!isAllAttributesSelected}
+                  className="flex-1 w-full"
+                  >
+                    {__('Add Product', 'wepos')}
+                </Button>
+              </PopoverClose>
           </div>
-        </Popover>
-      )}
+        </PopoverContent>
+      </Popover>
     </>
   );
 };

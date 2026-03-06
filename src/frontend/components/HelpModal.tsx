@@ -1,56 +1,61 @@
 import React from 'react';
-import { Modal } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+import { Modal, Separator } from '@wedevs/plugin-ui';
 
 interface HelpModalProps {
   show: boolean;
   onClose: () => void;
 }
 
+const shortcuts = [
+  { key: 'f1', label: 'Search Product' },
+  { key: 'f2', label: 'Scan Product' },
+  { key: 'f3', label: 'Toggle Product View' },
+  { key: 'f4', label: 'Add Fee in cart' },
+  { key: 'f5', label: 'Add Discount in cart' },
+  { key: 'f6', label: 'Add Customer note' },
+  { key: 'f7', label: 'Customer Search' },
+  { key: 'shift+f7', label: 'Add new Customer' },
+  { key: 'f8', label: 'Create New Sale' },
+  { key: 'shift+f8', label: 'Empty your cart' },
+  { key: 'f9', label: 'Go to payment receipt' },
+  { key: 'f10', label: 'Process Payment' },
+  { key: 'ctrl/cmd+p', label: 'Print Receipt' },
+  { key: 'ctrl/cmd+?', label: 'Show/Close(Toggle) Help' },
+  { key: 'esc', label: 'Close anything' },
+];
+
 const HelpModal: React.FC<HelpModalProps> = ({ show, onClose }) => {
   if (!show) return null;
 
   return (
     <Modal
-      title={__('Keyboard Shortcuts', 'wepos')}
-      onRequestClose={onClose}
-      className="wepos-help-modal"
-      shouldCloseOnClickOutside={true}
-      shouldCloseOnEsc={true}
+      open={show}
+      onClose={onClose}
+      showCloseButton={true}
+      closeOnOverlayClick={true}
+      closeOnEscape={true}
+      className="wepos-help-modal max-w-200 p-0!"
     >
-      <div className="wepos-help-wrapper">
-        <ul className="space-y-3">
-          <li className="text-gray-700 flex items-center gap-4 py-2">
-            <span className="code">F3</span>
-            <span>{__('Toggle between grid and list view', 'wepos')}</span>
-          </li>
-          <li className="text-gray-700 flex items-center gap-4 py-2">
-            <span className="code">F8</span>
-            <span>{__('Create new sale', 'wepos')}</span>
-          </li>
-          <li className="text-gray-700 flex items-center gap-4 py-2">
-            <span className="code">Shift + F8</span>
-            <span>{__('Empty current cart', 'wepos')}</span>
-          </li>
-          <li className="text-gray-700 flex items-center gap-4 py-2">
-            <span className="code">F9</span>
-            <span>{__('Proceed to payment', 'wepos')}</span>
-          </li>
-          <li className="text-gray-700 flex items-center gap-4 py-2">
-            <span className="code">ESC</span>
-            <span>{__('Close modal or go back', 'wepos')}</span>
-          </li>
-          <li className="text-gray-700 flex items-center gap-4 py-2">
-            <span className="code">Ctrl + ?</span>
-            <span>{__('Show/hide this help', 'wepos')}</span>
-          </li>
-        </ul>
+      <div className="px-8 pt-6 pb-2">
+        <h2 className="text-muted-foreground text-2xl font-light">
+          {__('Shortcut Keys', 'wepos')}
+        </h2>
+      </div>
 
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <p className="text-sm text-gray-600">
-            {__('These shortcuts work from anywhere in the POS interface to help speed up your workflow.', 'wepos')}
-          </p>
-        </div>
+      <Separator />
+
+      <div className="grid grid-cols-2 gap-x-12 gap-y-5 px-8 py-6">
+        {shortcuts.map((item) => (
+          <div key={item.key} className="flex items-center gap-4">
+            <code className="bg-muted relative rounded-md px-[0.3rem] py-[0.2rem] font-mono text-[0.8rem] break-words outline-none w-28 shrink-0 text-center">
+              {item.key}
+            </code>
+            <span className="text-foreground text-sm">
+              {__(item.label, 'wepos')}
+            </span>
+          </div>
+        ))}
       </div>
     </Modal>
   );

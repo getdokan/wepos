@@ -3,12 +3,46 @@ import { POSProduct } from '../types';
 /**
  * Format a price amount for display
  */
-export const formatPrice = (amount: number | string | undefined | null): string => {
-  const numericAmount = typeof amount === 'number' ? amount : parseFloat(String(amount || 0));
-  if (isNaN(numericAmount)) {
-    return '$0.00';
-  }
-  return `$${numericAmount.toFixed(2)}`;
+export const formatPrice = (
+    price: number | string = '',
+    currencySymbol = '',
+    precision = null,
+    thousand = '',
+    decimal = '',
+    format = ''
+): string | number => {
+    if ( ! window.accounting ) {
+        console.warn( 'Woocommerce Accounting Library Not Found' );
+        return price;
+    }
+    if ( ! currencySymbol ) {
+        currencySymbol = window?.wepos?.currency_format_symbol
+    }
+
+    if ( ! precision ) {
+        precision = window?.wepos?.currency_format_num_decimals
+    }
+
+    if ( ! thousand ) {
+        thousand = window?.wepos?.currency_format_thousand_sep
+    }
+
+    if ( ! decimal ) {
+        decimal = window?.wepos?.currency_format_decimal_sep
+    }
+
+    if ( ! format ) {
+        format = window?.wepos?.currency_format
+    }
+
+    return window.accounting.formatMoney(
+        price,
+        currencySymbol,
+        precision,
+        thousand,
+        decimal,
+        format
+    );
 };
 
 /**
@@ -16,6 +50,8 @@ export const formatPrice = (amount: number | string | undefined | null): string 
  * Matches the Vue.js implementation logic
  */
 export const hasStock = (product: POSProduct, productCartQty: number = 0): boolean => {
+  if (!product) return false;
+
   if (!product.manage_stock) {
     return product.stock_status !== 'outofstock';
   }
@@ -24,22 +60,25 @@ export const hasStock = (product: POSProduct, productCartQty: number = 0): boole
     return true;
   }
 
-  return product.stock_quantity > productCartQty;
+  return (product.stock_quantity || 0) > productCartQty;
 };
 
 /**
  * Get the primary image URL for a product
  */
 export const getProductImage = (product: POSProduct): string => {
-  return product.images.length > 0
-    ? product.images[0].woocommerce_thumbnail
-    : (window as any).wepos?.placeholder_image || '';
+  if (!product || !product.images || product.images.length === 0) {
+    return (window as any).wepos?.placeholder_image || '';
+  }
+
+  return product.images[0].woocommerce_thumbnail || (window as any).wepos?.placeholder_image || '';
 };
 
 /**
  * Truncate text to a specified length with ellipsis
  */
-export const truncateTitle = (text: string, length: number): string => {
+export const truncateTitle = (text: string | undefined | null, length: number): string => {
+  if (!text) return '';
   return text.length > length ? text.substring(0, length) + '...' : text;
 };
 
@@ -55,6 +94,17 @@ export const parseCurrencyAmount = (amount: string): number => {
  */
 export const delay = (ms: number): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms));
+};
+
+/**
+ * Decode HTML entities in a string (e.g. &amp; → &, &lt; → <)
+ * Uses a textarea element so all named and numeric entities are handled.
+ */
+export const decodeHtmlEntities = (text: string): string => {
+  if (!text) return text;
+  const el = document.createElement('textarea');
+  el.innerHTML = text;
+  return el.value;
 };
 
 /**

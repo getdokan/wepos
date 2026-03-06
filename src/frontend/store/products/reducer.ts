@@ -27,6 +27,12 @@ export const reducer = (
         loading: { ...state.loading, products: false },
       };
 
+    case 'APPEND_PRODUCTS':
+      return {
+        ...state,
+        products: [...state.products, ...action.products],
+      };
+
     case 'SET_CATEGORIES':
       return {
         ...state,

@@ -49,56 +49,8 @@ const productsAPI = {
     return response as PaginatedResponse<Product>;
   },
 
-  // Get all POS products with parallel fetching
-  getAllPOSProducts: async (): Promise<POSProduct[]> => {
-    // First, fetch page 1 to get total pages count
-    const firstResponse = (await apiFetch({
-      path: `${API_BASE.WEPOS}/products?status=publish&per_page=30&page=1`,
-      parse: false,
-    })) as Response;
-
-    if (!firstResponse.ok) {
-      throw new Error(`HTTP error! status: ${firstResponse.status}`);
-    }
-
-    const firstPageProducts = (await firstResponse.json()) as POSProduct[];
-
-    // Get total pages from header
-    const totalPagesHeader = firstResponse.headers.get('X-WP-TotalPages');
-    const totalPages = totalPagesHeader ? parseInt(totalPagesHeader) : 1;
-
-    console.log(`📊 Total pages to fetch: ${totalPages}`);
-
-    // If there's only one page, we're done
-    if (totalPages === 1) {
-      return firstPageProducts;
-    }
-
-    // Fetch all remaining pages in parallel
-    const fetchPromises = [];
-    for (let pageNum = 2; pageNum <= totalPages; pageNum++) {
-      fetchPromises.push(
-        apiFetch({
-          path: `${API_BASE.WEPOS}/products?status=publish&per_page=30&page=${pageNum}`,
-        }) as Promise<POSProduct[]>,
-      );
-    }
-
-    console.log(
-      `🚀 Fetching ${fetchPromises.length} additional pages in parallel...`,
-    );
-
-    // Wait for all pages to complete
-    const allPagesResults = await Promise.all(fetchPromises);
-
-    // Combine first page + all other pages
-    const allProducts = [...firstPageProducts, ...allPagesResults.flat()];
-
-    console.log(
-      `✅ Loaded ${allProducts.length} total products from ${totalPages} pages`,
-    );
-
-    // Filter out disabled variable products
+  // Filter out variable products with all variations disabled
+  filterValidProducts: (products: POSProduct[]): POSProduct[] => {
     const isAllVariationsDisabled = (product: POSProduct): boolean => {
       let isDisabled = true;
       if (product.attributes) {
@@ -111,24 +63,44 @@ const productsAPI = {
       return isDisabled;
     };
 
-    const validProducts = allProducts.filter((product) => {
+    return products.filter((product) => {
       if ('variable' === product.type && isAllVariationsDisabled(product)) {
         return false;
       }
       return true;
     });
+  },
 
-    // Remove any potential duplicates based on product ID
-    const uniqueProducts = validProducts.filter(
-      (product, index, self) =>
-        index === self.findIndex((p) => p.id === product.id),
-    );
+  // Fetch products page by page sequentially, pushing each page to the store
+  // via the onPageLoaded callback (matches the Vue loading pattern)
+  fetchProductsPageByPage: async (
+    onPageLoaded: (products: POSProduct[]) => void,
+  ): Promise<void> => {
+    let page = 1;
+    let totalPages = 1;
 
-    console.log(
-      `🔧 Final product count after filtering: ${uniqueProducts.length}`,
-    );
+    do {
+      const response = (await apiFetch({
+        path: `${API_BASE.WEPOS}/products?status=publish&per_page=30&page=${page}`,
+        parse: false,
+      })) as Response;
 
-    return uniqueProducts;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const products = (await response.json()) as POSProduct[];
+
+      // Get total pages from header on each request
+      const totalPagesHeader = response.headers.get('X-WP-TotalPages');
+      totalPages = totalPagesHeader ? parseInt(totalPagesHeader) : 1;
+
+      // Filter and push this page's products to the store immediately
+      const validProducts = productsAPI.filterValidProducts(products);
+      onPageLoaded(validProducts);
+
+      page += 1;
+    } while (page <= totalPages);
   },
 
   getProduct: async (id: number): Promise<Product> => {

@@ -1,49 +1,56 @@
+import { useDispatch, useSelect } from '@wordpress/data';
+import { __ } from '@wordpress/i18n';
 import React, {
-  useState,
-  useEffect,
-  useRef,
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
+  useState,
 } from 'react';
-import { useSelect, useDispatch } from '@wordpress/data';
 import { posAPI } from '../api';
-import {
-  POSPrintData,
-  POSCategory,
-  ProductViewType,
-  Customer,
-  POSCartItem,
-  POSProduct,
-  POSGateway,
-} from '../types';
-import {
-  formatPrice,
-  hasStock,
-  getProductImage,
-  truncateTitle,
-  parseCurrencyAmount,
-} from '../utils/helpers';
+import { applyFilters } from '../hooks/useExtensions';
 import { usePOSData } from '../hooks/usePOSData';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
+import {
+  Customer,
+  POSCartItem,
+  POSCategory,
+  POSGateway,
+  POSPrintData,
+  POSProduct,
+  ProductViewType,
+} from '../types';
+import {
+  formatPrice,
+  getProductImage,
+  hasStock,
+  parseCurrencyAmount,
+  truncateTitle,
+} from '../utils/helpers';
 
 // Import components
-import Layout from '../components/Layout';
-import ProductGrid from '../components/ProductGrid';
-import Cart from '../components/Cart';
-import PaymentModal from '../components/PaymentModal';
-import ReceiptModal from '../components/ReceiptModal';
-import HelpModal from '../components/HelpModal';
-import SearchBar from '../components/SearchBar';
+import {
+  Button,
+  Separator,
+} from '@wedevs/plugin-ui';
+import { ShoppingCart, X } from 'lucide-react';
+import Cart, { CartHandle } from '../components/Cart';
 import CategoryFilter from '../components/CategoryFilter';
+import HelpModal from '../components/HelpModal';
+import Layout from '../components/Layout';
+import PaymentModal from '../components/PaymentModal';
+import ProductGrid from '../components/ProductGrid';
 import ProductViewToggle from '../components/ProductViewToggle';
+import ReceiptModal from '../components/ReceiptModal';
+import SearchBar from '../components/SearchBar';
 
 const HomePage: React.FC = () => {
   // Initialize data using the hook
   const { initializeData } = usePOSData();
 
   // Get data from stores
-  const { products, categories, availableGateways, productLoading } = useSelect(
+  const { products, categories, availableGateways, productLoading, settings } = useSelect(
     (select) => {
       const productsStore = select(PRODUCTS_STORE_NAME) as any;
       return {
@@ -51,24 +58,28 @@ const HomePage: React.FC = () => {
         categories: productsStore.getCategories(),
         availableGateways: productsStore.getGateways(),
         productLoading: productsStore.getProductsLoading(),
+        settings: productsStore.getSettings(),
       };
     },
     [],
   );
 
-  const { cartItems, total } = useSelect((select) => {
+  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines } = useSelect((select) => {
     const cartStore = select(CART_STORE_NAME) as any;
     return {
       cartItems: cartStore.getCartItems(),
       total: cartStore.getTotal(),
+      subtotal: cartStore.getSubtotal(),
+      selectedCustomer: cartStore.getCustomer(),
+      feeLines: cartStore.getFeeLines(),
+      discountLines: cartStore.getDiscountLines(),
     };
   }, []);
 
-  const { addToCart, clearCart } = useDispatch(CART_STORE_NAME) as any;
+  const { addToCart, clearCart, setCustomer } = useDispatch(CART_STORE_NAME) as any;
 
   // UI State
   const [showHelp, setShowHelp] = useState(false);
-  const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [productView, setProductView] = useState<ProductViewType>('grid');
   const [showModal, setShowModal] = useState(false);
   const [showPaymentReceipt, setShowPaymentReceipt] = useState(false);
@@ -80,12 +91,7 @@ const HomePage: React.FC = () => {
   const [printdata, setPrintdata] = useState<POSPrintData>({
     gateway: { id: '', title: '' },
   });
-  const [createprintreceipt, setCreateprintreceipt] = useState(false);
-
-  // Customer State
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
-    null,
-  );
+  const [mobileCartOpen, setMobileCartOpen] = useState(false);
 
   // Order Data State (still needed for payment processing)
   const [orderData, setOrderData] = useState({
@@ -100,6 +106,7 @@ const HomePage: React.FC = () => {
   // Refs
   const itemsWrapperRef = useRef<HTMLDivElement>(null);
   const cashAmountRef = useRef<HTMLInputElement>(null);
+  const cartRef = useRef<CartHandle>(null);
 
   // Cart functions for ProductGrid
   const handleAddToCart = useCallback(
@@ -147,7 +154,7 @@ const HomePage: React.FC = () => {
 
     // Filter by selected category (only if one is selected and it's not "All Categories")
     if (selectedCategory && selectedCategory.id > 0) {
-      filteredProducts = products.filter((product: POSProduct) =>
+      filteredProducts = filteredProducts.filter((product: POSProduct) =>
         product.categories.some(
           (cat: { id: number; name: string }) => cat.id === selectedCategory.id,
         ),
@@ -178,7 +185,6 @@ const HomePage: React.FC = () => {
 
   const createNewSale = useCallback(() => {
     clearCart();
-    setSelectedCustomer(null);
     setOrderData({
       customer_id: 0,
       customer_note: '',
@@ -189,13 +195,12 @@ const HomePage: React.FC = () => {
     });
     setShowPaymentReceipt(false);
     setCashAmount('');
-    setShowQuickMenu(false);
     window.history.pushState({}, '', window.location.pathname);
   }, [clearCart]);
 
   // Customer selection handler
   const handleCustomerSelected = useCallback((customer: Customer | null) => {
-    setSelectedCustomer(customer);
+    setCustomer(customer);
     if (customer) {
       setOrderData((prev) => ({
         ...prev,
@@ -211,7 +216,7 @@ const HomePage: React.FC = () => {
         shipping: {},
       }));
     }
-  }, []);
+  }, [setCustomer]);
 
   const initPayment = useCallback(() => {
     if (cartItems.length <= 0) {
@@ -251,29 +256,31 @@ const HomePage: React.FC = () => {
     return canProcess;
   }, [cartItems.length, selectedGateway, cashAmount, total]);
 
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
+
   const processPayment = async () => {
     if (!ableToProcess()) return;
 
     try {
-      // Show loading state
-      const contentWrap = document.querySelector(
-        '.wepos-checkout-wrapper',
-      ) as HTMLElement;
-      if (contentWrap) {
-        contentWrap.style.opacity = '0.6';
-        contentWrap.style.pointerEvents = 'none';
-      }
+      setPaymentProcessing(true);
 
       // Prepare order payload
-      const orderPayload = {
+      let orderPayload: any = {
         billing: orderData.billing,
         shipping: orderData.shipping,
         line_items: cartItems.map((item: POSCartItem) => ({
           product_id: item.product_id,
           quantity: item.quantity,
         })),
-        fee_lines: [],
-        coupon_lines: [],
+        fee_lines: feeLines.map((fee: any) => ({
+          name: fee.name,
+          total: String(fee.total),
+          tax_status: fee.tax_status,
+          tax_class: fee.tax_class,
+        })),
+        coupon_lines: discountLines.map((discount: any) => ({
+          code: discount.code,
+        })),
         customer_id: orderData.customer_id,
         customer_note: orderData.customer_note,
         payment_method: selectedGateway,
@@ -290,6 +297,9 @@ const HomePage: React.FC = () => {
         ],
       };
 
+      // Allow pro to add cashier/outlet/counter/card metadata
+      orderPayload = applyFilters('wepos_react_order_form_data', orderPayload, orderData);
+
       // Create order
       const orderResponse = await posAPI.orders.createOrder(orderPayload);
 
@@ -303,9 +313,9 @@ const HomePage: React.FC = () => {
             ...cartItem,
             total_tax: 0,
           })),
-          fee_lines: [],
-          coupon_lines: [],
-          subtotal: total,
+          fee_lines: feeLines,
+          coupon_lines: discountLines,
+          subtotal: subtotal,
           taxtotal: 0,
           ordertotal: total,
           gateway: {
@@ -316,40 +326,103 @@ const HomePage: React.FC = () => {
           order_date: orderResponse.date_created,
           cashamount: cashAmount.toString(),
           changeamount: changeAmount().toString(),
+          customer: selectedCustomer || undefined,
         };
 
-        setPrintdata(printDataToSet);
+        // Allow pro to enrich print data with cashier/outlet/counter info
+        const enrichedPrintData = applyFilters('wepos_react_print_data', printDataToSet, orderResponse);
+
+        setPrintdata(enrichedPrintData);
         setShowModal(false);
         setShowPaymentReceipt(true);
-        setCreateprintreceipt(true);
       }
 
-      // Remove loading state
-      if (contentWrap) {
-        contentWrap.style.opacity = '1';
-        contentWrap.style.pointerEvents = 'auto';
-      }
+      setPaymentProcessing(false);
     } catch (error: any) {
-      // Handle error and remove loading state
-      const contentWrap = document.querySelector(
-        '.wepos-checkout-wrapper',
-      ) as HTMLElement;
-      if (contentWrap) {
-        contentWrap.style.opacity = '1';
-        contentWrap.style.pointerEvents = 'auto';
-      }
+      setPaymentProcessing(false);
       alert(error?.message || 'Payment processing failed');
       console.error('Payment processing error:', error);
     }
   };
 
+  // Keep a ref to processPayment so the keyboard handler always has the latest version
+  const processPaymentRef = useRef(processPayment);
+  useEffect(() => {
+    processPaymentRef.current = processPayment;
+  });
+
+  // Print receipt helper — clones receipt HTML to body-level container, then window.print()
+  const printReceipt = useCallback(() => {
+    const receiptEl = document.getElementById('wepos-print-receipt');
+    if (!receiptEl) return;
+
+    let container = document.getElementById('wepos-receipt-print-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'wepos-receipt-print-container';
+      document.body.appendChild(container);
+    }
+    container.innerHTML = receiptEl.innerHTML;
+
+    setTimeout(() => {
+      window.print();
+    }, 300);
+  }, []);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // When payment modal is open, only handle payment-related shortcuts
+      if (showModal) {
+        if (e.key === 'F10') {
+          e.preventDefault();
+          processPaymentRef.current();
+        }
+        return;
+      }
+
+      // When receipt is showing, handle receipt shortcuts
+      if (showPaymentReceipt) {
+        if (e.key === 'p' && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          printReceipt();
+        }
+        return;
+      }
+
+      // Main sale view shortcuts
       switch (e.key) {
+        case 'F1':
+          e.preventDefault();
+          document.getElementById('product-search')?.focus();
+          break;
+        case 'F2':
+          e.preventDefault();
+          document.getElementById('product-search')?.focus();
+          break;
         case 'F3':
           e.preventDefault();
           toggleProductView();
+          break;
+        case 'F4':
+          e.preventDefault();
+          cartRef.current?.openFee();
+          break;
+        case 'F5':
+          e.preventDefault();
+          cartRef.current?.openDiscount();
+          break;
+        case 'F6':
+          e.preventDefault();
+          cartRef.current?.openNote();
+          break;
+        case 'F7':
+          e.preventDefault();
+          if (e.shiftKey) {
+            cartRef.current?.openNewCustomer();
+          } else {
+            cartRef.current?.focusCustomerSearch();
+          }
           break;
         case 'F8':
           e.preventDefault();
@@ -363,6 +436,10 @@ const HomePage: React.FC = () => {
           e.preventDefault();
           initPayment();
           break;
+        case 'F10':
+          e.preventDefault();
+          initPayment();
+          break;
         case 'Escape':
           e.preventDefault();
           backToSale();
@@ -373,75 +450,132 @@ const HomePage: React.FC = () => {
             setShowHelp((prev) => !prev);
           }
           break;
+        case 'p':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+          }
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleProductView, clearCart, createNewSale, initPayment, backToSale]);
+  }, [showModal, showPaymentReceipt, toggleProductView, clearCart, createNewSale, initPayment, backToSale, printReceipt]);
 
   // Initialize data only once
   useEffect(() => {
     initializeData();
   }, [initializeData]);
 
-  // Auto-trigger print dialog when receipt is shown
-  useEffect(() => {
-    if (showPaymentReceipt && createprintreceipt) {
-      setTimeout(() => {
-        if (
-          window.confirm(
-            'Order successful! Would you like to print the receipt?',
-          )
-        ) {
-          window.print();
-        }
-      }, 500);
-      setCreateprintreceipt(false);
-    }
-  }, [showPaymentReceipt, createprintreceipt]);
 
   return (
     <Layout>
-      <div className="flex-1 bg-white p-6">
-        <div className="mb-6 flex flex-col items-center gap-4 space-y-4 md:flex-row md:space-y-0">
-          <SearchBar />
+      <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+        {/* Main Content + Cart Area */}
+        <div className="flex h-full min-h-0 flex-1 flex-col md:flex-row overflow-hidden">
+          {/* Product Area */}
+          <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+            {/* Search / Filter / View Toggle Row */}
+            <div className="flex flex-col gap-2 overflow-visible mb-2 sm:flex-row sm:items-center sm:gap-3">
+              <div className="w-full sm:w-[56%]">
+                <SearchBar products={products} settings={settings} onProductAdded={handleAddToCart} />
+              </div>
+              <div className="flex flex-row items-center gap-2 sm:contents">
+                <div className="flex-1 sm:w-[26%] sm:flex-none">
+                  <CategoryFilter
+                    categories={categories}
+                    selectedCategory={selectedCategory}
+                    onCategoryChange={setSelectedCategory}
+                  />
+                </div>
+                <div className="shrink-0 sm:w-[14%]">
+                  <ProductViewToggle
+                    productView={productView}
+                    onToggle={toggleProductView}
+                  />
+                </div>
+              </div>
+            </div>
 
-          <CategoryFilter
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-          />
+            <ProductGrid
+              products={getFilteredProduct}
+              productView={productView}
+              productLoading={productLoading}
+              onAddToCart={handleAddToCart}
+              onAddToCartItem={handleAddToCartItem}
+              formatPrice={formatPrice}
+              hasStock={hasStock}
+              getProductImage={getProductImage}
+              truncateTitle={truncateTitle}
+              itemsWrapperRef={itemsWrapperRef}
+            />
+          </div>
 
-          <ProductViewToggle
-            productView={productView}
-            onToggle={toggleProductView}
-          />
+          {/* Separator - desktop only */}
+          <Separator orientation="vertical" className="hidden h-full md:block" />
+
+          {/* Cart Panel - desktop: side panel, mobile: slide-over drawer */}
+          <div className="hidden md:flex h-full w-[35%] min-h-0 flex-col">
+            <Cart
+              ref={cartRef}
+              onInitPayment={initPayment}
+              selectedCustomer={selectedCustomer}
+              handleCustomerSelected={handleCustomerSelected}
+              setShowHelp={setShowHelp}
+            />
+          </div>
+
+          {/* Mobile Cart Drawer */}
+          {mobileCartOpen && (
+            <div className="fixed inset-0 z-50 md:hidden" onClick={() => setMobileCartOpen(false)}>
+              <div className="absolute inset-0 bg-black/40" />
+              <div
+                className="absolute top-0 right-0 bottom-0 w-[85%] max-w-md bg-white shadow-xl flex flex-col animate-in slide-in-from-right duration-200"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between border-b border-border px-3 py-2">
+                  <span className="text-sm font-semibold">{__('Cart', 'wepos')}</span>
+                  <Button variant="ghost" size="icon-sm" onClick={() => setMobileCartOpen(false)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <Cart
+                    ref={cartRef}
+                    onInitPayment={() => { setMobileCartOpen(false); initPayment(); }}
+                    selectedCustomer={selectedCustomer}
+                    handleCustomerSelected={handleCustomerSelected}
+                    setShowHelp={setShowHelp}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        <ProductGrid
-          products={getFilteredProduct}
-          productView={productView}
-          productLoading={productLoading}
-          onAddToCart={handleAddToCart}
-          onAddToCartItem={handleAddToCartItem}
-          formatPrice={formatPrice}
-          hasStock={hasStock}
-          getProductImage={getProductImage}
-          truncateTitle={truncateTitle}
-          itemsWrapperRef={itemsWrapperRef}
-        />
-      </div>
+        {/* Mobile cart button — only on small screens */}
+        <div className="md:hidden shrink-0 border-t border-border bg-white p-2">
+          <Button
+            className="w-full h-12 text-base font-semibold gap-2"
+            onClick={() => setMobileCartOpen(true)}
+          >
+            <ShoppingCart className="h-5 w-5" />
+            {__('Cart', 'wepos')} {formatPrice(total)}
+            {cartItems.length > 0 && (
+              <span className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs">
+                {cartItems.length}
+              </span>
+            )}
+          </Button>
+        </div>
 
-      <Cart
-        showQuickMenu={showQuickMenu}
-        selectedCustomer={selectedCustomer}
-        onCustomerSelected={handleCustomerSelected}
-        onShowQuickMenuToggle={setShowQuickMenu}
-        onEmptyCart={clearCart}
-        onShowHelp={() => setShowHelp(true)}
-        onInitPayment={initPayment}
-      />
+        {/* Extension slot: SaveCarts tab bar — single instance, CSS-aligned to cart column on desktop */}
+        <div className="shrink-0 md:ml-auto md:w-[35%]">
+          {applyFilters<React.ReactNode[]>('wepos_react_after_cart_panel', []).map(
+            (Component: any, i: number) => <Component key={i} />
+          )}
+        </div>
+      </div>
 
       <HelpModal show={showHelp} onClose={() => setShowHelp(false)} />
 
@@ -450,6 +584,7 @@ const HomePage: React.FC = () => {
         selectedGateway={selectedGateway}
         cashAmount={cashAmount}
         ableToProcess={ableToProcess()}
+        processing={paymentProcessing}
         onGatewayChange={setSelectedGateway}
         onCashAmountChange={setCashAmount}
         onBackToSale={backToSale}
@@ -462,10 +597,16 @@ const HomePage: React.FC = () => {
         show={showPaymentReceipt}
         printdata={printdata}
         selectedGateway={selectedGateway}
-        onClose={() => setShowPaymentReceipt(false)}
+        settings={settings}
+        onClose={createNewSale}
         onNewSale={createNewSale}
         formatPrice={formatPrice}
       />
+
+      {/* Extension slot: pro components like ReceiptContent */}
+      {applyFilters<React.ReactNode[]>('wepos_react_after_main_content', []).map(
+        (Component: any, i: number) => <Component key={i} printdata={printdata} />
+      )}
     </Layout>
   );
 };

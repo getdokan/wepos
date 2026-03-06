@@ -9,9 +9,10 @@
 </head>
 <body>
     <!-- React app mount point -->
-    <div id="wepos-react-app"></div>
+    <div id="wepos-react-app" class="pui-root"></div>
+
     <!-- Vue.js mount point (for switching back if needed) -->
-    <!-- <div id="vue-frontend-app"></div> -->
+    <div id="vue-frontend-app"></div>
 
     <?php wepos_footer(); ?>
 </body>

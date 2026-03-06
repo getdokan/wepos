@@ -60,6 +60,25 @@ class Assets {
     }
 
     /**
+     * Get script asset info
+     *
+     * @param string $path
+     * @return array
+     */
+    protected function get_script_asset_info( $path ) {
+        $asset_path = str_replace( '.js', '.asset.php', $path );
+
+        if ( file_exists( $asset_path ) ) {
+            return include $asset_path;
+        }
+
+        return [
+            'dependencies' => [],
+            'version'      => WEPOS_VERSION,
+        ];
+    }
+
+    /**
      * Get all registered scripts
      *
      * @return array
@@ -78,6 +97,12 @@ class Assets {
             $dependency[] = 'wepos-wp-hook';
         }
 
+        $vendor_asset = $this->get_script_asset_info( WEPOS_PATH . '/assets/js/vendor'. $prefix .'.js' );
+        $bootstrap_asset = $this->get_script_asset_info( WEPOS_PATH . '/assets/js/bootstrap'. $prefix .'.js' );
+        $frontend_asset = $this->get_script_asset_info( WEPOS_PATH . '/assets/js/frontend'. $prefix .'.js' );
+        $admin_asset = $this->get_script_asset_info( WEPOS_PATH . '/assets/js/admin'. $prefix .'.js' );
+        $wphook_asset = $this->get_script_asset_info( WEPOS_PATH . '/assets/js/wphook'. $prefix .'.js' );
+
         $scripts = [
             'wepos-tinymce' => array(
                 'src'       => site_url( '/wp-includes/js/tinymce/tinymce.min.js' ),
@@ -89,8 +114,8 @@ class Assets {
                 'version' => time()
             ),
             'wepos-i18n-jed' => array(
-                'src'       => WEPOS_ASSETS . '/js/jed.js',
-                'version'   => filemtime( WEPOS_PATH . '/assets/js/jed.js' ),
+                'src'       => WEPOS_ASSETS . '/vendors/jed.js',
+                'version'   => filemtime( WEPOS_PATH . '/assets/vendors/jed.js' ),
                 'in_footer' => false
             ),
             'wepos-blockui' => [
@@ -104,34 +129,37 @@ class Assets {
             ),
             'wepos-vendor' => [
                 'src'       => WEPOS_ASSETS . '/js/vendor'. $prefix .'.js',
-                'version'   => filemtime( WEPOS_PATH . '/assets/js/vendor'. $prefix .'.js' ),
+                'deps'      => $vendor_asset['dependencies'],
+                'version'   => $vendor_asset['version'],
                 'in_footer' => true
             ],
             'wepos-select2' => [
-                'src'       => WEPOS_ASSETS . '/js/select2.min.js',
-                'version'   => filemtime( WEPOS_PATH . '/assets/js/select2.min.js' ),
+                'src'       => WEPOS_ASSETS . '/vendors/select2.min.js',
+                'version'   => filemtime( WEPOS_PATH . '/assets/vendors/select2.min.js' ),
                 'in_footer' => true
             ],
             'wepos-bootstrap' => [
                 'src'       => WEPOS_ASSETS . '/js/bootstrap'. $prefix .'.js',
-                'deps'      => $dependency,
-                'version'   => filemtime( WEPOS_PATH . '/assets/js/bootstrap'. $prefix .'.js' ),
+                'deps'      => array_merge( $dependency, $bootstrap_asset['dependencies'] ),
+                'version'   => $bootstrap_asset['version'],
                 'in_footer' => true
             ],
             'wepos-frontend' => [
                 'src'       => WEPOS_ASSETS . '/js/frontend'. $prefix .'.js',
-                'version'   => filemtime( WEPOS_PATH . '/assets/js/frontend'. $prefix .'.js' ),
+                'deps'      => array_merge( [ 'wepos-vendor', 'wepos-bootstrap' ], $frontend_asset['dependencies'] ),
+                'version'   => $frontend_asset['version'],
                 'in_footer' => true
             ],
             'wepos-admin' => [
                 'src'       => WEPOS_ASSETS . '/js/admin'. $prefix .'.js',
-                'version'   => filemtime( WEPOS_PATH . '/assets/js/admin'. $prefix .'.js' ),
+                'deps'      => array_merge( [ 'wepos-vendor', 'wepos-bootstrap' ], $admin_asset['dependencies'] ),
+                'version'   => $admin_asset['version'],
                 'in_footer' => true
             ],
             'wepos-wp-hook' => array(
                 'src'       => WEPOS_ASSETS . '/js/wphook'. $prefix .'.js',
-                'deps'      => array( 'jquery' ),
-                'version'   => filemtime( WEPOS_PATH . '/assets/js/wphook'. $prefix .'.js' ),
+                'deps'      => array_merge( array( 'jquery' ), $wphook_asset['dependencies'] ),
+                'version'   => $wphook_asset['version'],
             )
         ];
 
@@ -148,10 +176,10 @@ class Assets {
 
         $styles = [
             'wepos-flaticon' => [
-                'src' =>  WEPOS_ASSETS . '/css/flaticon.css'
+                'src' =>  WEPOS_ASSETS . '/vendors/flaticon.css'
             ],
             'wepos-font' => [
-                'src' =>  WEPOS_ASSETS . '/css/fonts.css'
+                'src' =>  WEPOS_ASSETS . '/vendors/fonts.css'
             ],
             'wepos-style' => [
                 'src' =>  WEPOS_ASSETS . '/css/style' . $prefix . '.css'
@@ -171,7 +199,7 @@ class Assets {
                 'version' => time()
             ],
             'wepos-select2' => [
-                'src' =>  WEPOS_ASSETS . '/css/select2.min.css'
+                'src' =>  WEPOS_ASSETS . '/vendors/select2.min.css'
             ],
         ];
 
