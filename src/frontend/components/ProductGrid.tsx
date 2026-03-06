@@ -178,7 +178,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                       </div>
                     )}
                     {inStock && (
-                      <div className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                      <div className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center opacity-100 sm:opacity-0 transition-opacity duration-200 sm:group-hover:opacity-100">
                         {product.type === 'variable' ? (
                           <ProductVariationSelector
                             product={product}
