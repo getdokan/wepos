@@ -550,29 +550,32 @@ const HomePage: React.FC = () => {
                     handleCustomerSelected={handleCustomerSelected}
                     setShowHelp={setShowHelp}
                   />
-                  {applyFilters<React.ReactNode[]>('wepos_react_after_cart_panel', []).map(
-                    (Component: any, i: number) => <Component key={i} />
-                  )}
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Mobile Floating Cart Button */}
-        <div className="md:hidden shrink-0 border-t border-border bg-white p-2">
-          <Button
-            className="w-full h-12 text-base font-semibold gap-2"
-            onClick={() => setMobileCartOpen(true)}
-          >
-            <ShoppingCart className="h-5 w-5" />
-            {__('Cart', 'wepos')} {formatPrice(total)}
-            {cartItems.length > 0 && (
-              <span className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs">
-                {cartItems.length}
-              </span>
-            )}
-          </Button>
+        {/* Mobile bottom bar: Cart button + SaveCarts tabs */}
+        <div className="md:hidden shrink-0 bg-white">
+          <div className="border-t border-border p-2">
+            <Button
+              className="w-full h-12 text-base font-semibold gap-2"
+              onClick={() => setMobileCartOpen(true)}
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {__('Cart', 'wepos')} {formatPrice(total)}
+              {cartItems.length > 0 && (
+                <span className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs">
+                  {cartItems.length}
+                </span>
+              )}
+            </Button>
+          </div>
+          {/* Extension slot: SaveCarts tab bar (multi-cart) */}
+          {applyFilters<React.ReactNode[]>('wepos_react_after_cart_panel', []).map(
+            (Component: any, i: number) => <Component key={i} />
+          )}
         </div>
       </div>
 
