@@ -16,6 +16,8 @@
                         :placeholder="__( 'Select a category', 'wepos' )"
                         @select="handleCategorySelect"
                         @remove="handleCategoryRemove"
+                        label="name"
+                        track-by="name"
                     >
                         <template slot="singleLabel" slot-scope="props">
                             {{props.option.name}}
@@ -62,7 +64,11 @@
                                     <img :src="getProductImage(product)" :alt="getProductImageName( product )">
                                 </div>
                                 <div class="title" v-if="productView === 'grid'">
-                                    {{ truncateTitle( product.name, 20 ) }}
+                                    <div class="product-name">{{ truncateTitle( product.name, 20 ) }}</div>
+                                    <div class="meta">
+                                        <span class="label">{{ __( 'Price :', 'wepos' ) }}</span>
+                                        <span class="value" v-html="product.price_html"></span>
+                                    </div>
                                 </div>
                                 <div class="title" v-else>
                                     <div class="product-name">{{ product.name }}</div>
@@ -89,7 +95,11 @@
                                         <img :src="getProductImage(product)" :alt="getProductImageName( product )">
                                     </div>
                                     <div class="title" v-if="productView === 'grid'">
-                                        {{ truncateTitle( product.name, 20 ) }}
+                                        <div class="product-name">{{ truncateTitle( product.name, 20 ) }}</div>
+                                        <div class="meta">
+                                            <span class="label">{{ __( 'Price :', 'wepos' ) }}</span>
+                                            <span class="value" v-html="product.price_html"></span>
+                                        </div>
                                     </div>
                                     <div class="title" v-else>
                                         <div class="product-name">{{ product.name }}</div>
@@ -563,6 +573,13 @@
                                             <p>{{ __( 'Change money', 'wepos' ) }}: {{ formatPrice( changeAmount ) }}</p>
                                         </div>
                                     </div>
+                                    <component
+                                        v-for="(value, key ) in afterPaymentContents"
+                                        :key="key"
+                                        :is="value"
+                                        :selectedGateway="selectedGateway"
+                                        :cashAmount="cashAmount"
+                                    />
                                 </div>
                             </template>
 
@@ -577,6 +594,13 @@
                         <div class="footer wepos-clearfix">
                             <a href="#" class="back-btn wepos-left" @click.prevent="backToSale()">{{ __( 'Back to Sale', 'wepos' ) }}</a>
                             <button class="process-checkout-btn wepos-right" @click.prevent="processPayment" :disabled="! $store.getters['Order/getCanProcessPayment']">{{ __( 'Process Payment', 'wepos' ) }}</button>
+                            <component
+                                v-for="(afterPaymentButton, key ) in afterPaymentButtons"
+                                :key="key"
+                                :is="afterPaymentButton"
+                                :selectedGateway="selectedGateway"
+                                :cashAmount="cashAmount"
+                            />
                         </div>
                     </div>
                 </div>
@@ -666,6 +690,8 @@ export default {
             availableGatewayContent: wepos.hooks.applyFilters( 'wepos_avaialable_gateway_content', [] ),
             afterMainContents: wepos.hooks.applyFilters( 'wepos_after_main_content', [] ),
             beforCartPanels: wepos.hooks.applyFilters( 'wepos_before_cart_panel', [] ),
+            afterPaymentContents: wepos.hooks.applyFilters( 'wepos_after_payment_content', [] ),
+            afterPaymentButtons: wepos.hooks.applyFilters( 'wepos_after_payment_buttons', [] ),
             couponData: {},
         }
     },
@@ -913,11 +939,13 @@ export default {
                     }
                 }).fail( data => {
                     $contentWrap.unblock();
-                    alert( data.responseJSON.message );
+                    const errorMessage = data?.responseJSON?.message ? data.responseJSON.message : this.__( 'Failed to process the payment.', 'wepos' );
+                    alert( errorMessage );
                 });
             }).fail( response => {
                 $contentWrap.unblock();
-                alert( response.responseJSON.message );
+                const errorMessage = response?.responseJSON?.message ? response.responseJSON.message : this.__( 'Failed to process the order.', 'wepos' );
+                alert( errorMessage );
             } );
         },
 
@@ -1092,6 +1120,10 @@ export default {
         },
 
         selectCustomer( customer ) {
+            if ( customer.email && ! customer.billing.email ) {
+                customer.billing.email = customer.email;
+            }
+
             this.$store.dispatch( 'Order/setCustomerAction', customer );
         },
         selectVariationProduct( product ) {
@@ -1630,6 +1662,17 @@ export default {
                             color: #212121;
                             font-size: 13px;
                             border-top: 1px solid #E9EDF0;
+
+                            .product-name {
+                                margin-bottom: 5px;
+                                font-weight: 600;
+                            }
+
+                            .meta {
+                                .label {
+                                    color: #758598;
+                                }
+                            }
                         }
                         .add-product-icon {
                             position: absolute;

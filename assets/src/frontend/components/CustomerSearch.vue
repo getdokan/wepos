@@ -68,11 +68,11 @@
                 <div class="wepos-new-customer-form">
                     <form action="" class="wepos-form" autocomplete="off">
                         <div class="form-row col-2">
-                            <input type="text" :placeholder="__( 'First Name', 'wepos' )" v-model="customer.first_name">
+                            <input type="text" :placeholder="__( 'First Name*', 'wepos' )" v-model="customer.first_name">
                             <input type="text" :placeholder="__( 'Last Name', 'wepos' )" v-model="customer.last_name">
                         </div>
                         <div class="form-row">
-                            <input type="email" :placeholder="__( 'Email', 'wepos' )" v-model="customer.email">
+                            <input type="email" :placeholder="__( 'Email*', 'wepos' )" v-model="customer.email">
                         </div>
                         <div class="form-row col-2">
                             <input type="text" :placeholder="__( 'Address 1', 'wepos' )" v-model="customer.address_1">
@@ -216,8 +216,7 @@ export default {
                 this.isDisabled = true;
                 if (
                     val.first_name !== undefined && val.first_name.trim() != ''
-                    && val.last_name !== undefined && val.last_name.trim() != ''
-                    && val.email !== undefined && val.email.trim() != ''
+                    && val.email !== undefined && val.email.trim() != '' && this.isValidEmail( val.email )
                 ) {
                     this.isDisabled = false;
                 }
@@ -323,8 +322,14 @@ export default {
                     $contentWrap.unblock();
                     this.closeNewCustomerModal();
                 }).fail( response => {
+                    let errorMessage = response?.responseJSON?.message;
+
+                    if ( 'rest_invalid_email' === response?.responseJSON?.data?.details?.billing.code ) {
+                        errorMessage = response.responseJSON.data.details.billing.message;
+                    }
+
                     $contentWrap.unblock();
-                    alert( response.responseJSON.message );
+                    alert( errorMessage );
                 } );
             } else {
                 alert( this.__( 'Please enter an email address for customer', 'wepos' ) );
