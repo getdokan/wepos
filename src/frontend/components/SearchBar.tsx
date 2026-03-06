@@ -243,10 +243,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
     }
   }, [mode]);
 
-  // Focus the input on mount
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+  // Focus the input only when user presses a keyboard shortcut (F1/F2), not on mount
 
   return (
     <div ref={wrapperRef} className="relative flex-1 min-w-0">
@@ -267,7 +264,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
           id="product-search"
           name="search"
           placeholder={placeholder}
-          className="h-10 w-full pl-10 pr-40 bg-transparent border-gray-200 shadow-none focus-visible:ring-1 focus-visible:ring-blue-300"
+          className="h-9 w-full pl-10 pr-40 bg-transparent border-gray-200 shadow-none focus-visible:ring-1 focus-visible:ring-blue-300"
           value={searchInput}
           onChange={handleInputChange}
           onFocus={() => {

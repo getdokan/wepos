@@ -5,7 +5,7 @@ import {
 	Button,
 	type SettingsElement,
 } from '@wedevs/plugin-ui';
-import { Save } from 'lucide-react';
+import { LoaderCircle, Save } from 'lucide-react';
 import { applyFilters } from '@react/hooks/useExtensions';
 
 /**
@@ -336,10 +336,14 @@ const Settings = () => {
 				hookPrefix="wepos"
 				renderSaveButton={ ( { dirty, onSave: save } ) => (
 					<Button onClick={ save } disabled={ ! dirty || saving }>
-						<Save className="size-4 mr-2" />
-						{ saving
-							? __( 'Saving…', 'wepos' )
-							: __( 'Save Changes', 'wepos' ) }
+						{
+							saving ? (
+								<LoaderCircle className="size-4 mr-2 animate-spin" />
+							) : (
+								<Save className="size-4 mr-2" />
+							)
+						}
+						{ __( 'Save Changes', 'wepos' ) }
 					</Button>
 				) }
 			/>
