@@ -24,6 +24,7 @@ import {
   useSidebar,
 } from '@wedevs/plugin-ui';
 import { applyFilters, doAction } from '../hooks/useExtensions';
+import { __ } from '@wordpress/i18n';
 
 export interface WeposSidebarMenuItem {
 	id: string;
@@ -56,10 +57,9 @@ const Sidebar: React.FC = () => {
     const mainItems: WeposSidebarMenuItem[] = [
       {
         id: '/',
-        label: 'Home',
+        label: __( 'Home', 'wepos' ),
         icon: <Home className="size-4" />,
         onClick: () => handleNavigation( '/' ),
-        secondaryLabel: 'Dashboard',
       },
     ];
 
@@ -81,8 +81,8 @@ const Sidebar: React.FC = () => {
     const groups: LayoutMenuGroupData[] = [
       {
         id: 'main',
-        label: 'Main',
-        secondaryLabel: 'Primary navigation',
+        label: __( 'Main', 'wepos' ),
+        secondaryLabel: __( 'Primary navigation', 'wepos' ),
         items: filteredMainItems,
       },
     ];
@@ -90,7 +90,7 @@ const Sidebar: React.FC = () => {
     if ( filteredAppItems.length > 0 ) {
       groups.push( {
         id: 'settings-group',
-        label: 'App',
+        label: __( 'App', 'wepos' ),
         items: filteredAppItems,
       } );
     }

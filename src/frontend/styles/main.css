@@ -323,6 +323,16 @@ body {
     }
 }
 
+/* Mobile cart drawer slide-in animation */
+@keyframes wepos-slide-in-right {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+.animate-in.slide-in-from-right {
+    animation: wepos-slide-in-right 0.2s ease-out;
+}
+
 /* Print Styles for Thermal Receipt Printers - Complex print-specific styling */
 @media print {
 

@@ -1,4 +1,5 @@
 import { useDispatch, useSelect } from '@wordpress/data';
+import { __ } from '@wordpress/i18n';
 import React, {
   useCallback,
   useEffect,
@@ -30,8 +31,10 @@ import {
 
 // Import components
 import {
+  Button,
   Separator,
 } from '@wedevs/plugin-ui';
+import { ShoppingCart, X } from 'lucide-react';
 import Cart, { CartHandle } from '../components/Cart';
 import CategoryFilter from '../components/CategoryFilter';
 import HelpModal from '../components/HelpModal';
@@ -88,6 +91,7 @@ const HomePage: React.FC = () => {
   const [printdata, setPrintdata] = useState<POSPrintData>({
     gateway: { id: '', title: '' },
   });
+  const [mobileCartOpen, setMobileCartOpen] = useState(false);
 
   // Order Data State (still needed for payment processing)
   const [orderData, setOrderData] = useState({
@@ -468,27 +472,31 @@ const HomePage: React.FC = () => {
     <Layout>
       <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
         {/* Main Content + Cart Area */}
-        <div className="flex h-full min-h-0 flex-1 flex-row overflow-hidden">
-          <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidde">
+        <div className="flex h-full min-h-0 flex-1 flex-col md:flex-row overflow-hidden">
+          {/* Product Area */}
+          <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+            {/* Search / Filter / View Toggle Row */}
+            <div className="flex flex-col gap-2 overflow-visible mb-2 sm:flex-row sm:items-center sm:gap-3">
+              <div className="w-full sm:w-[56%]">
+                <SearchBar products={products} settings={settings} onProductAdded={handleAddToCart} />
+              </div>
+              <div className="flex flex-row items-center gap-2 sm:contents">
+                <div className="flex-1 sm:w-[26%] sm:flex-none">
+                  <CategoryFilter
+                    categories={categories}
+                    selectedCategory={selectedCategory}
+                    onCategoryChange={setSelectedCategory}
+                  />
+                </div>
+                <div className="shrink-0 sm:w-[14%]">
+                  <ProductViewToggle
+                    productView={productView}
+                    onToggle={toggleProductView}
+                  />
+                </div>
+              </div>
+            </div>
 
-         <div className="flex flex-row items-center gap-3 overflow-visible mb-4">
-            <div className="w-[56%]">
-              <SearchBar products={products} settings={settings} onProductAdded={handleAddToCart} />
-            </div>
-            <div className="w-[26%]">
-              <CategoryFilter
-              categories={categories}
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-            />
-            </div>
-            <div className='w-[14%]'>
-              <ProductViewToggle
-                productView={productView}
-                onToggle={toggleProductView}
-              />
-            </div>
-         </div>
             <ProductGrid
               products={getFilteredProduct}
               productView={productView}
@@ -503,14 +511,11 @@ const HomePage: React.FC = () => {
             />
           </div>
 
-          <Separator orientation="vertical" className="h-full" />
+          {/* Separator - desktop only */}
+          <Separator orientation="vertical" className="hidden h-full md:block" />
 
-          <div className="flex h-full w-[35%] min-h-0 flex-col">
-            {/* Extension slot: SaveCarts tab bar injected by pro */}
-            {applyFilters<React.ReactNode[]>('wepos_react_before_cart_panel', []).map(
-              (Component: any, i: number) => <Component key={i} />
-            )}
-
+          {/* Cart Panel - desktop: side panel, mobile: slide-over drawer */}
+          <div className="hidden md:flex h-full w-[35%] min-h-0 flex-col">
             <Cart
               ref={cartRef}
               onInitPayment={initPayment}
@@ -519,6 +524,56 @@ const HomePage: React.FC = () => {
               setShowHelp={setShowHelp}
             />
           </div>
+
+          {/* Mobile Cart Drawer */}
+          {mobileCartOpen && (
+            <div className="fixed inset-0 z-50 md:hidden" onClick={() => setMobileCartOpen(false)}>
+              <div className="absolute inset-0 bg-black/40" />
+              <div
+                className="absolute top-0 right-0 bottom-0 w-[85%] max-w-md bg-white shadow-xl flex flex-col animate-in slide-in-from-right duration-200"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between border-b border-border px-3 py-2">
+                  <span className="text-sm font-semibold">{__('Cart', 'wepos')}</span>
+                  <Button variant="ghost" size="icon-sm" onClick={() => setMobileCartOpen(false)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <Cart
+                    ref={cartRef}
+                    onInitPayment={() => { setMobileCartOpen(false); initPayment(); }}
+                    selectedCustomer={selectedCustomer}
+                    handleCustomerSelected={handleCustomerSelected}
+                    setShowHelp={setShowHelp}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile cart button — only on small screens */}
+        <div className="md:hidden shrink-0 border-t border-border bg-white p-2">
+          <Button
+            className="w-full h-12 text-base font-semibold gap-2"
+            onClick={() => setMobileCartOpen(true)}
+          >
+            <ShoppingCart className="h-5 w-5" />
+            {__('Cart', 'wepos')} {formatPrice(total)}
+            {cartItems.length > 0 && (
+              <span className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-xs">
+                {cartItems.length}
+              </span>
+            )}
+          </Button>
+        </div>
+
+        {/* Extension slot: SaveCarts tab bar — single instance, CSS-aligned to cart column on desktop */}
+        <div className="shrink-0 md:ml-auto md:w-[35%]">
+          {applyFilters<React.ReactNode[]>('wepos_react_after_cart_panel', []).map(
+            (Component: any, i: number) => <Component key={i} />
+          )}
         </div>
       </div>
 
