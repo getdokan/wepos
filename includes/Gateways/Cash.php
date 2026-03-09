@@ -1,10 +1,16 @@
 <?php
 namespace WeDevs\WePOS\Gateways;
 
+use Automattic\WooCommerce\Enums\OrderInternalStatus;
+
 /**
 * Cash gateway payment for POS
 */
 class Cash extends \WC_Payment_Gateway {
+
+    protected $instructions;
+    protected $enable_for_methods;
+    protected $enable_for_virtual;
 
     /**
      * Constructor for the gateway.
@@ -36,6 +42,9 @@ class Cash extends \WC_Payment_Gateway {
         $this->method_title       = __( 'Cash', 'wepos' );
         $this->method_description = __( 'Have your customers pay with cash', 'wepos' );
         $this->has_fields         = false;
+        $this->supports           = array(
+            'refunds'
+        );
     }
 
     /**
@@ -82,7 +91,7 @@ class Cash extends \WC_Payment_Gateway {
             return true;
         }
 
-        return parent::is_available();
+        return parent::is_available() && wepos_is_frontend();
     }
 
     /**
@@ -118,4 +127,32 @@ class Cash extends \WC_Payment_Gateway {
         );
     }
 
+    /**
+     * Process refund.
+     *
+     * If the gateway declares 'refunds' support, this will allow it to refund.
+     * a passed in amount.
+     *
+     * @param  int        $order_id Order ID.
+     * @param  float|null $amount Refund amount.
+     * @param  string     $reason Refund reason.
+     * @return bool|\WP_Error True or false based on success, or a WP_Error object.
+     */
+    public function process_refund( $order_id, $amount = null, $reason = '' ) {
+        $order = wc_get_order( $order_id );
+
+        if ( ! $this->can_refund_order( $order ) ) {
+            return new \WP_Error( 'error', __( 'Refund failed.', 'wepos' ) );
+        }
+
+        $order->add_order_note(
+        /* translators: 1: Refund amount, 2: Refund reason */
+            sprintf( __( 'Refunded %1$s - Reason: %2$s', 'wepos' ), $amount, $reason ) // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+        );
+
+        $order->update_status(OrderInternalStatus::REFUNDED );
+        $order->save();
+
+        return true;
+    }
  }

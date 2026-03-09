@@ -237,22 +237,25 @@ export default {
             this.serachInput = '';
         },
 
-        searchProduct(e) {
-            if ( this.serachInput ) {
-                if ( this.mode == 'product' ) {
-                    this.searchableProduct = this.products.filter( (product) => {
-                        if ( product.id.toString().indexOf( this.serachInput ) != -1 ) {
-                            return true;
-                        } else if ( product.name.toString().toLowerCase().indexOf( this.serachInput.toLowerCase() ) != -1 ) {
-                            return true
-                        } else if ( product.sku.indexOf( this.serachInput ) != -1 ) {
-                            return true
-                        } else {
-                            return false;
-                        }
-                    } );
-                }
+        searchProduct() {
+            if ( ! this.serachInput ) {
+                return;
             }
+
+            if ( this.mode !== 'product' ) {
+                return;
+            }
+
+            this.searchableProduct = this.products
+                .filter( ( product ) => {
+                    const input = this.serachInput.toLowerCase();
+                    return (
+                        product.id.toString().includes( this.serachInput ) ||
+                        product.name.toLowerCase().includes( input ) ||
+                        product.sku.includes( this.serachInput )
+                    );
+                } )
+                .sort( ( a, b ) => a.name.localeCompare( b.name ) ); // Ascending by name
         },
 
         selectVariation( product ) {

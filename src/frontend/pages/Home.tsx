@@ -179,8 +179,12 @@ const HomePage: React.FC = () => {
   }, [products, selectedCategory]);
 
   // UI Actions
-  const toggleProductView = useCallback(() => {
-    setProductView((prev) => (prev === 'grid' ? 'list' : 'grid'));
+  const toggleProductView = useCallback((view?: ProductViewType) => {
+    if (view) {
+      setProductView(view);
+    } else {
+      setProductView((prev) => (prev === 'grid' ? 'list' : 'grid'));
+    }
   }, []);
 
   const createNewSale = useCallback(() => {

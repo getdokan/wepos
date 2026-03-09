@@ -1,6 +1,6 @@
 import React from 'react';
 import { __ } from '@wordpress/i18n';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronDown } from 'lucide-react';
 import {
   Button,
   Card,
@@ -78,7 +78,7 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
           {product.type === 'variable' ? (
             <ProductVariationSelector product={product} onAddToCart={onAddToCartItem}>
               <Button variant="default" size="icon-sm" className="h-8 w-8 rounded-full shadow-md">
-                <Plus className="h-5 w-5" />
+                <ChevronDown className="h-5 w-5" />
               </Button>
             </ProductVariationSelector>
           ) : (
@@ -157,14 +157,23 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
 
       <div className="mt-auto flex items-end justify-between border-t border-gray-50 pt-3">
         <div className="flex flex-col">
-          {product.on_sale && product.regular_price && (
-            <span className="mb-0.5 text-xs text-gray-400 line-through">
-              {formatPrice(product.regular_price)}
-            </span>
+          {product.type === 'variable' ? (
+            <span
+              className="text-sm font-bold text-gray-900"
+              dangerouslySetInnerHTML={{ __html: product.price_html }}
+            />
+          ) : (
+            <>
+              {product.on_sale && product.regular_price && (
+                <span className="mb-0.5 text-xs text-gray-400 line-through">
+                  {formatPrice(product.regular_price)}
+                </span>
+              )}
+              <span className="text-sm font-bold text-gray-900">
+                {formatPrice(product.on_sale ? product.sale_price : product.regular_price)}
+              </span>
+            </>
           )}
-          <span className="text-sm font-bold text-gray-900">
-            {formatPrice(product.on_sale ? product.sale_price : product.regular_price)}
-          </span>
         </div>
       </div>
     </CardContent>

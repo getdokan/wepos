@@ -182,7 +182,7 @@
 
             this.currentTab = 'wepos_general';
             if ( typeof(localStorage) != 'undefined' ) {
-                this.currentTab = localStorage.getItem("activetab") ? localStorage.getItem("activetab") : 'wepos_general';
+                this.currentTab = localStorage.getItem("activetab") && wepos.settings_sections.length > 1 ? localStorage.getItem("activetab") : 'wepos_general';
             }
 
             this.settingSections = wepos.settings_sections;

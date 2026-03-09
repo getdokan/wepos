@@ -152,29 +152,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
             ))}
           </div>
         )}
-
-        {/* Mobile meta — type · stock · price, hidden on md+ where dedicated columns show */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 md:hidden mt-1">
-          <span className="text-xs text-gray-500 capitalize">
-            {product.type === 'variable' ? __('Variable', 'wepos') : __('Simple', 'wepos')}
-          </span>
-          {product.manage_stock && (
-            <>
-              <span className="text-gray-300">·</span>
-              <span className={`text-xs font-medium ${(product.stock_quantity ?? 0) === 0 ? 'text-red-500' : 'text-gray-500'}`}>
-                {__('Stock', 'wepos')}: {product.stock_quantity ?? 0}
-              </span>
-            </>
-          )}
-          <span className="text-gray-300">·</span>
-          <span className="text-xs font-bold text-gray-900">
-            {product.type === 'variable'
-              ? getVariablePriceRange(product, formatPrice)
-              : (formatPrice(product.on_sale ? product.sale_price : product.regular_price) as string)}
-          </span>
-        </div>
-
-</div>
+      </div>
     </div>
   );
 };

@@ -8,6 +8,16 @@
         </div>
         <div class="content">
             <table class="sale-summary">
+                <thead>
+                    <tr class="item-header">
+                        <th class="name">{{ __( 'Product', 'wepos' ) }}</th>
+                        <th class="quantity">{{ __( 'Quantity', 'wepos' ) }}</th>
+                        <th class="price">{{ __( 'Total', 'wepos' ) }}</th>
+                    </tr>
+                    <tr class="divider">
+                        <td colspan="3"></td>
+                    </tr>
+                </thead>
                 <tbody>
                     <tr v-for="item in printdata.line_items">
                         <td class="name">
@@ -32,6 +42,9 @@
                             </template>
                         </td>
                     </tr>
+                    <tr class="divider">
+                        <td colspan="3"></td>
+                    </tr>
                     <tr class="cart-meta-data">
                         <td colspan="2" class="name">
                             {{ __( 'Subtotal', 'wepos' ) }}
@@ -50,15 +63,15 @@
                         <td class="price">{{ formatPrice( Math.abs( fee.total ) ) }}</td>
                     </tr>
                     <tr v-if="printdata.taxtotal">
-                        <td colspan="2" class="name">{{ settings.woo_tax.wc_tax_display_cart === 'incl' && settings.wepos_general.enable_fee_tax === 'yes' ? __( 'Fee Tax', 'wepos' ) : __( 'Tax', 'wepos' ) }}</td>
+                        <td colspan="2" class="name">{{ settings.woo_tax.wc_tax_display_cart === 'incl' && settings.wepos_general.enable_fee_tax === 'yes' ? __( 'Fee Tax', 'wepos' ) : __( 'Tax Total', 'wepos' ) }}</td>
                         <td class="price">{{ formatPrice(printdata.taxtotal) }}</td>
+                    </tr>
+                    <tr class="divider">
+                        <td colspan="3"></td>
                     </tr>
                     <tr>
                         <td colspan="2" class="name">{{ __( 'Order Total', 'wepos' ) }}</td>
                         <td class="price">{{ formatPrice(printdata.ordertotal) }}</td>
-                    </tr>
-                    <tr class="divider">
-                        <td colspan="3"></td>
                     </tr>
                     <tr>
                         <td colspan="2">{{ __( 'Payment method', 'wepos' ) }}</td>
@@ -74,6 +87,9 @@
                             <td class="price">{{ formatPrice( printdata.changeamount ) }}</td>
                         </tr>
                     </template>
+                    <tr class="divider">
+                        <td colspan="3"></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -159,6 +175,34 @@ export default {
             table.sale-summary {
                 width: 100%;
                 border-collapse: collapse;
+
+                thead {
+                    tr {
+                        th {
+                            padding: 0 10px 8px;
+
+                            &.name {
+                                width: 60%;
+                                text-align: left;
+                            }
+
+                            &.quantity {
+                                width: 12%;
+                                text-align: center;
+                            }
+
+                            &.price {
+                                text-align: right;
+                            }
+                        }
+
+                        &.divider {
+                            border-bottom: 1px dashed #b7b7b7;
+                            color: #b5b5b5;
+                        }
+                    }
+                }
+
                 tbody {
                     tr {
                         td {
@@ -166,7 +210,6 @@ export default {
                             padding: 8px 10px;
                             &.name {
                                 width: 60%;
-                                font-weight: bold;
                                 .tax-info {
                                     display: block;
                                     font-size: 13px;
