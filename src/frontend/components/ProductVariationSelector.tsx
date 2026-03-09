@@ -174,7 +174,7 @@ export const ProductVariationSelector: React.FC<
 
               <PopoverClose className='w-full'>
                 <Button
-                  variant="success"
+                  variant="default"
                   onClick={handleAddVariation}
                   disabled={!isAllAttributesSelected}
                   className="flex-1 w-full"

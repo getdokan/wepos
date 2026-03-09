@@ -56,7 +56,7 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
   getProductImage,
   truncateTitle,
 }) => (
-  <Card className="group cursor-pointer border-gray-200 p-0 transition-all duration-200 hover:shadow-lg">
+  <Card className="group cursor-pointer border-gray-200 p-0 transition-all duration-200 hover:shadow-lg focus-within:shadow-lg outline-none" tabIndex={0}>
     {/* Image */}
     <div className="relative w-full overflow-hidden rounded-t-xl bg-gray-100 pb-[100%]">
       <Thumbnail
@@ -74,7 +74,7 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
       )}
 
       {hasStock && (
-        <div className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        <div className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
           {product.type === 'variable' ? (
             <ProductVariationSelector product={product} onAddToCart={onAddToCartItem}>
               <Button variant="default" size="icon-sm" className="h-8 w-8 rounded-full shadow-md">

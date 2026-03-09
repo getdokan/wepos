@@ -54,7 +54,7 @@ function getVariablePriceRange(
 // ─── Column layout ────────────────────────────────────────────────────────────
 // grid-cols: [product] [type] [stock] [price] [action]
 
-const ROW_GRID = 'grid grid-cols-[1fr_110px_80px_150px_60px] items-center gap-4 px-4';
+const ROW_GRID = 'grid grid-cols-[1fr_48px] md:grid-cols-[2fr_1fr_1fr_1.5fr_48px] items-center gap-3 px-4';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -63,13 +63,13 @@ const ListHeader: React.FC = () => (
     <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
       {__('Product', 'wepos')}
     </span>
-    <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 text-center">
+    <span className="hidden md:block text-[11px] font-semibold uppercase tracking-widest text-gray-400 text-center">
       {__('Type', 'wepos')}
     </span>
-    <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 text-center">
+    <span className="hidden md:block text-[11px] font-semibold uppercase tracking-widest text-gray-400 text-center">
       {__('Stock', 'wepos')}
     </span>
-    <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 text-right">
+    <span className="hidden md:block text-[11px] font-semibold uppercase tracking-widest text-gray-400 text-right">
       {__('Price', 'wepos')}
     </span>
     <span />
@@ -82,7 +82,6 @@ interface ProductInfoProps {
   product: POSProduct;
   getProductImage: (p: POSProduct) => string;
   formatPrice: (amount: number | string | undefined | null) => string;
-  onAddToCartItem: (cartItem: CartItem) => void;
   hasStock: boolean;
 }
 
@@ -90,7 +89,6 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
   product,
   getProductImage,
   formatPrice,
-  onAddToCartItem,
   hasStock,
 }) => {
   const categories = product.categories ?? [];
@@ -108,7 +106,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
 
       <div className="flex flex-col gap-1 min-w-0">
         {/* Name */}
-        <span className="text-sm font-semibold text-gray-800 leading-snug line-clamp-2">
+        <span className="text-sm font-semibold text-gray-800 leading-snug">
           {decodeHtmlEntities(product.name)}
         </span>
 
@@ -155,18 +153,28 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
           </div>
         )}
 
-{/* Variable product: Expand trigger */}
-        {product.type === 'variable' && hasStock && (
-          <ProductVariationSelector
-            product={product}
-            onAddToCart={onAddToCartItem}
-          >
-            <button className="w-fit text-xs font-medium text-primary hover:text-primary/80 transition-colors mt-0.5">
-              {__('Expand', 'wepos')}
-            </button>
-          </ProductVariationSelector>
-        )}
-      </div>
+        {/* Mobile meta — type · stock · price, hidden on md+ where dedicated columns show */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 md:hidden mt-1">
+          <span className="text-xs text-gray-500 capitalize">
+            {product.type === 'variable' ? __('Variable', 'wepos') : __('Simple', 'wepos')}
+          </span>
+          {product.manage_stock && (
+            <>
+              <span className="text-gray-300">·</span>
+              <span className={`text-xs font-medium ${(product.stock_quantity ?? 0) === 0 ? 'text-red-500' : 'text-gray-500'}`}>
+                {__('Stock', 'wepos')}: {product.stock_quantity ?? 0}
+              </span>
+            </>
+          )}
+          <span className="text-gray-300">·</span>
+          <span className="text-xs font-bold text-gray-900">
+            {product.type === 'variable'
+              ? getVariablePriceRange(product, formatPrice)
+              : (formatPrice(product.on_sale ? product.sale_price : product.regular_price) as string)}
+          </span>
+        </div>
+
+</div>
     </div>
   );
 };
@@ -240,7 +248,6 @@ const ActionButton: React.FC<ActionButtonProps> = ({
           size="icon"
           className="h-10 w-10 rounded-full shadow-sm"
           aria-label={__('Select variation', 'wepos')}
-          onClick={(e) => e.stopPropagation()}
         >
           <ChevronRight className="h-5 w-5" />
         </Button>
@@ -293,19 +300,18 @@ const ProductListRow: React.FC<ProductListRowProps> = ({
       product={product}
       getProductImage={getProductImage}
       formatPrice={formatPrice}
-      onAddToCartItem={onAddToCartItem}
       hasStock={hasStock}
     />
 
     {/* Type */}
-    <div className="text-center">
+    <div className="hidden md:block text-center">
       <span className="text-sm text-gray-600 capitalize">
         {product.type === 'variable' ? __('Variable', 'wepos') : __('Simple', 'wepos')}
       </span>
     </div>
 
     {/* Stock */}
-    <div className="text-center">
+    <div className="hidden md:block text-center">
       <span
         className={`text-sm font-medium ${
           (product.stock_quantity ?? 0) === 0 && product.manage_stock
@@ -318,7 +324,9 @@ const ProductListRow: React.FC<ProductListRowProps> = ({
     </div>
 
     {/* Price */}
-    <PriceCell product={product} formatPrice={formatPrice} />
+    <div className="hidden md:flex">
+      <PriceCell product={product} formatPrice={formatPrice} />
+    </div>
 
     {/* Action */}
     <div className="flex justify-end">
