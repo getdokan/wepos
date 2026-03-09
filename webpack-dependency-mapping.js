@@ -26,10 +26,9 @@ function camelCaseDash( string ) {
 const requestToExternal = ( request ) => {
     if ( request.startsWith( WEPOS_NAMESPACE ) ) {
         const packageName = request.substring( WEPOS_NAMESPACE.length );
-        const externalName =
-            packageName === 'hooks' ? 'reactHooks' : camelCaseDash( packageName );
+        const handleName = packageName === 'utils' ? 'components' : packageName;
 
-        return [ 'wepos', 'wepos-' + packageName ];
+        return [ 'wepos', 'wepos-' + handleName ];
     }
 };
 
@@ -43,8 +42,11 @@ const requestToExternal = ( request ) => {
 const requestToHandle = ( request ) => {
     if ( request.startsWith( WEPOS_NAMESPACE ) ) {
         const packageName = request.substring( WEPOS_NAMESPACE.length );
-        const handleName =
-            packageName === 'components' ? 'react-components' : packageName;
+        const mapping = {
+            components: 'react-components',
+            utils: 'react-components',
+        };
+        const handleName = mapping[ packageName ] || packageName;
         return `wepos-${ handleName }`;
     }
 };
