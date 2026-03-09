@@ -40,7 +40,9 @@ class Assets {
             $in_footer = isset( $script['in_footer'] ) ? $script['in_footer'] : false;
             $version   = isset( $script['version'] ) ? $script['version'] : WEPOS_VERSION;
 
-            wp_register_script( $handle, $script['src'], $deps, $version, $in_footer );
+            if ( ! empty( $script['src'] ) && ( strpos( $script['src'], 'http' ) === 0 || file_exists( $this->get_file_path_from_url( $script['src'] ) ) ) ) {
+                wp_register_script( $handle, $script['src'], $deps, $version, $in_footer );
+            }
         }
     }
 
@@ -55,8 +57,24 @@ class Assets {
         foreach ( $styles as $handle => $style ) {
             $deps = isset( $style['deps'] ) ? $style['deps'] : false;
 
-            wp_register_style( $handle, $style['src'], $deps, WEPOS_VERSION );
+            if ( ! empty( $style['src'] ) && ( strpos( $style['src'], 'http' ) === 0 || file_exists( $this->get_file_path_from_url( $style['src'] ) ) ) ) {
+                wp_register_style( $handle, $style['src'], $deps, WEPOS_VERSION );
+            }
         }
+    }
+
+    /**
+     * Get file path from URL
+     *
+     * @param string $url
+     * @return string
+     */
+    private function get_file_path_from_url( $url ) {
+        if ( strpos( $url, WEPOS_ASSETS ) !== false ) {
+            return str_replace( WEPOS_ASSETS, WEPOS_PATH . '/assets', $url );
+        }
+
+        return $url;
     }
 
     /**
