@@ -3,18 +3,21 @@ import { createRoot } from 'react-dom/client';
 import * as ReactRouterDOM from 'react-router-dom';
 import { HashRouter } from 'react-router-dom';
 import * as PluginUI from '@wedevs/plugin-ui';
-import { ThemeProvider, type ThemeTokens } from '@wedevs/plugin-ui';
+import { ThemeProvider, Toaster, type ThemeTokens, toast } from '@wedevs/plugin-ui';
 import { SlotFillProvider } from '@wordpress/components';
 import App from './App';
 import { weposHooks } from './hooks/useExtensions';
 import './styles/main.css';
 import './store'; // Import to register all stores
+import domReady from '@wordpress/dom-ready';
 
-// Populate the pre-declared global objects (created by PHP inline script before
+domReady( function () {
+	// Populate the pre-declared global objects (created by PHP inline script before
 // any bundles load) with the real module exports. Using Object.assign keeps the
 // same object reference that wepos-pro already captured via webpack externals.
 Object.assign( ( window as any ).__weposReactRouterDOM, ReactRouterDOM );
 Object.assign( ( window as any ).__weposPluginUI, PluginUI );
+Object.assign( ( window as any ).__weposToast, toast );
 
 // Get the root element
 const container = document.getElementById('wepos-react-app');
@@ -157,6 +160,7 @@ if (!container) {
         tokens={weposTokens}
         darkTokens={weposDarkTokens}
       >
+        <Toaster />
         <SlotFillProvider>
           <HashRouter>
             <App />
@@ -166,3 +170,4 @@ if (!container) {
     </React.StrictMode>,
   );
 }
+} );

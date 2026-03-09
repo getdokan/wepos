@@ -84,7 +84,8 @@ class ReactAssets
             'wp-hooks',
             'if ( typeof window.__weposReactHooks === "undefined" ) { window.__weposReactHooks = wp.hooks.createHooks(); }' .
             ' window.__weposReactRouterDOM = window.__weposReactRouterDOM || {};' .
-            ' window.__weposPluginUI = window.__weposPluginUI || {};',
+            ' window.__weposPluginUI = window.__weposPluginUI || {};' .
+            ' window.__weposToast = window.__weposToast || {};',
             'after'
         );
 
