@@ -13,6 +13,9 @@ const vendorPackages = Object.keys(packageJson.dependencies || {}).filter(
   (pkg) => pkg !== 'lodash',
 );
 
+const DependencyExtractionWebpackPlugin = require('@wordpress/dependency-extraction-webpack-plugin');
+const { requestToExternal, requestToHandle } = require('./webpack-dependency-mapping');
+
 module.exports = (env, argv) => {
   const isProduction =
     argv.mode === 'production' || process.env.NODE_ENV === 'production';
@@ -26,6 +29,7 @@ module.exports = (env, argv) => {
             'wepos-react': path.resolve(__dirname, 'src/frontend/index.tsx'),
             'wepos-admin-react': path.resolve(__dirname, 'src/admin/index.tsx'),
             'wepos-admin-switching': path.resolve(__dirname, 'src/admin/panel-switcher/index.tsx'),
+            'wepos-components': path.resolve(__dirname, 'src/index.ts'),
 
             // Old Vue/Legacy entry points
             '../assets/js/frontend': './assets/src/frontend/main.js',
@@ -40,11 +44,15 @@ module.exports = (env, argv) => {
             // Default path is build/
             filename: (pathData) => {
                 const name = pathData.chunk.name;
-                if (name === 'wepos-react' || name === 'wepos-admin-react' || name === 'wepos-admin-switching') {
+                if (name === 'wepos-react' || name === 'wepos-admin-react' || name === 'wepos-admin-switching' || name === 'wepos-components') {
                     return '[name].js';
                 }
                 // For legacy assets, we use the mode suffix (.min) if in production
                 return `[name]${modeSuffix}.js`;
+            },
+            library: {
+                name: ['wepos', '[name]'],
+                type: 'window',
             },
         },
         resolve: {
@@ -54,6 +62,7 @@ module.exports = (env, argv) => {
                 // React Aliases
                 '@react': path.resolve(__dirname, 'src/frontend'),
                 '@admin': path.resolve(__dirname, 'src/admin'),
+                '@wepos/components': path.resolve(__dirname, 'src/index.ts'),
 
         // Old Vue Aliases
         '@': path.resolve(__dirname, 'assets/src/'),
@@ -89,7 +98,13 @@ module.exports = (env, argv) => {
       ],
     },
     plugins: [
-      ...defaultConfig.plugins,
+      ...defaultConfig.plugins.filter(
+        (plugin) => plugin.constructor.name !== 'DependencyExtractionWebpackPlugin'
+      ),
+      new DependencyExtractionWebpackPlugin({
+        requestToExternal,
+        requestToHandle,
+      }),
       new VueLoaderPlugin(),
       new webpack.ProvidePlugin({
         _: '_',

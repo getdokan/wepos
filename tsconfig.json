@@ -32,7 +32,8 @@
       "@/api/*": ["src/frontend/api/*"],
       "@/store/*": ["src/frontend/store/*"],
       "@/styles/*": ["src/frontend/styles/*"],
-      "@admin/*": ["src/admin/*"]
+      "@admin/*": ["src/admin/*"],
+      "@wepos/components": ["src/index.ts"]
     }
   },
   "include": ["src"],

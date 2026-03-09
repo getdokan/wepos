@@ -48,6 +48,20 @@ class ReactAssets
     public function enqueue_frontend_scripts()
     {
         $is_dev = $this->is_dev_mode();
+        $version = WEPOS_VERSION;
+
+        // Enqueue Shared Components first
+        $comp_asset_file = WEPOS_PATH . '/build/wepos-components.asset.php';
+        $comp_asset_data = file_exists($comp_asset_file) ? include $comp_asset_file : ['dependencies' => [], 'version' => $version];
+
+        wp_enqueue_script(
+            'wepos-react-components',
+            $is_dev ? 'http://localhost:8887/wepos-components.js' : WEPOS_URL . '/build/wepos-components.js',
+            $comp_asset_data['dependencies'],
+            $comp_asset_data['version'],
+            true
+        );
+
         $asset_file = WEPOS_PATH . '/build/wepos-react.asset.php';
         $asset_data = file_exists($asset_file) ? include $asset_file : [];
 
@@ -85,7 +99,8 @@ class ReactAssets
             'if ( typeof window.__weposReactHooks === "undefined" ) { window.__weposReactHooks = wp.hooks.createHooks(); }' .
             ' window.__weposReactRouterDOM = window.__weposReactRouterDOM || {};' .
             ' window.__weposPluginUI = window.__weposPluginUI || {};' .
-            ' window.__weposToast = window.__weposToast || {};',
+            ' window.__weposToast = window.__weposToast || {};' .
+            ' window.wepos = window.wepos || {};',
             'after'
         );
 
