@@ -154,18 +154,6 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
             ))}
           </div>
         )}
-
-{/* Variable product: Expand trigger */}
-        {product.type === 'variable' && hasStock && (
-          <ProductVariationSelector
-            product={product}
-            onAddToCart={onAddToCartItem}
-          >
-            <button className="w-fit text-xs font-medium text-primary hover:text-primary/80 transition-colors mt-0.5">
-              {__('Expand', 'wepos')}
-            </button>
-          </ProductVariationSelector>
-        )}
       </div>
     </div>
   );
@@ -240,7 +228,6 @@ const ActionButton: React.FC<ActionButtonProps> = ({
           size="icon"
           className="h-10 w-10 rounded-full shadow-sm"
           aria-label={__('Select variation', 'wepos')}
-          onClick={(e) => e.stopPropagation()}
         >
           <ChevronRight className="h-5 w-5" />
         </Button>

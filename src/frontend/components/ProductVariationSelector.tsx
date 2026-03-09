@@ -114,7 +114,7 @@ export const ProductVariationSelector: React.FC<
         <PopoverContent>
           <div className="rounded-lg bg-white">
             <div className="mb-4">
-              <h3 className="mb-2 text-lg font-semibold text-gray-800">
+              <h3 className="mb-2 text-lg font-semibold text-primary">
                 {__('Select Variations', 'wepos')}
               </h3>
             </div>
@@ -145,17 +145,17 @@ export const ProductVariationSelector: React.FC<
               ))}
 
             {matchingVariation ? (
-              <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3">
-                <p className="text-sm text-green-700">
+              <div className="mb-4 rounded-md border border-primary/20 bg-primary/5 p-3">
+                <p className="text-sm text-primary font-medium">
                   {__('Price:', 'wepos')}{' '}
-                  <span className="font-semibold">
+                  <span className="font-bold">
                     $
                     {matchingVariation?.price ||
                       matchingVariation?.regular_price}
                   </span>
                 </p>
                 {matchingVariation?.stock_status && (
-                  <p className="mt-1 text-xs text-green-600">
+                  <p className="mt-1 text-xs text-primary/80">
                     {matchingVariation?.stock_status === 'instock'
                       ? __('In stock', 'wepos')
                       : __('Out of stock', 'wepos')}
@@ -174,10 +174,10 @@ export const ProductVariationSelector: React.FC<
 
               <PopoverClose className='w-full'>
                 <Button
-                  variant="success"
+                  variant="default"
                   onClick={handleAddVariation}
                   disabled={!isAllAttributesSelected}
-                  className="flex-1 w-full"
+                  className="flex-1 w-full bg-primary hover:bg-primary/90"
                   >
                     {__('Add Product', 'wepos')}
                 </Button>
