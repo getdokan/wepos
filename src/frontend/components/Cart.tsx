@@ -42,7 +42,6 @@ const Cart = forwardRef<CartHandle, CartProps>(({
   onInitPayment,
   selectedCustomer,
   handleCustomerSelected,
-  setShowHelp,
 }, ref) => {
   // Refs for child components
   const discountRef = useRef<FeeKeypadHandle>(null);
@@ -169,24 +168,6 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 <Slot name="WeposCartMenuAfterEmptyCart" fillProps={{ DropdownMenuItem }}>
                   {(fills: React.ReactNode) => <>{fills}</>}
                 </Slot>
-                <DropdownMenuItem onClick={() => setShowHelp(true)}>
-                  {__('Help', 'wepos')}
-                </DropdownMenuItem>
-                <Slot name="WeposCartMenuAfterHelp" fillProps={{ DropdownMenuItem }}>
-                  {(fills: React.ReactNode) => <>{fills}</>}
-                </Slot>
-                <DropdownMenuItem
-                  variant="destructive"
-                  onClick={() =>
-                    (window.location.href = (window as any).wepos?.logout_url)
-                  }
-                >
-                  {__('Logout', 'wepos')}
-                </DropdownMenuItem>
-                <Slot name="WeposCartMenuAfterLogout" fillProps={{ DropdownMenuItem }}>
-                  {(fills: React.ReactNode) => <>{fills}</>}
-                </Slot>
-                {/* Mounts registered plugins that render Fills targeting the Slots above */}
                 <PluginArea scope="wepos-cart-menu" />
               </DropdownMenuContent>
             </DropdownMenu>

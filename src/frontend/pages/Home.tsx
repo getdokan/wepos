@@ -31,10 +31,19 @@ import {
 
 // Import components
 import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
   Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   Separator,
 } from '@wedevs/plugin-ui';
-import { ShoppingCart, X } from 'lucide-react';
+import { Slot } from '@wordpress/components';
+import { PluginArea } from '@wordpress/plugins';
+import { ChevronDown, LogOut, ShoppingCart, X } from 'lucide-react';
 import Cart, { CartHandle } from '../components/Cart';
 import CategoryFilter from '../components/CategoryFilter';
 import HelpModal from '../components/HelpModal';
@@ -479,27 +488,72 @@ const HomePage: React.FC = () => {
         <div className="flex h-full min-h-0 flex-1 flex-col md:flex-row overflow-hidden">
           {/* Product Area */}
           <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-            {/* Search / Filter / View Toggle Row */}
-            <div className="flex flex-col gap-2 overflow-visible mb-2 sm:flex-row sm:items-center sm:gap-3">
-              <div className="w-full sm:w-[56%]">
-                <SearchBar products={products} settings={settings} onProductAdded={handleAddToCart} />
+            <div className="flex flex-col px-5 py-3">
+              {/* Header: Outlet Name + User Info */}
+              <div className="flex items-center justify-between">
+                <h1 className="text-lg font-semibold truncate max-w-[200px] sm:max-w-md">
+                  {(window as any).wepos?.outlet_name || __('POS', 'wepos')}
+                </h1>
+
+                {window.wepos?.current_user && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="flex items-center gap-2 hover:bg-accent p-1.5 rounded-md transition-colors outline-none group">
+                      <Avatar size="sm">
+                        <AvatarImage src={window.wepos.current_user.avatar_url} alt={window.wepos.current_user.name} />
+                        <AvatarFallback>{window.wepos.current_user.name?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="hidden sm:flex flex-col items-start leading-none">
+                        <span className="text-sm font-medium">{window.wepos.current_user.name}</span>
+                      </div>
+                      <ChevronDown className="size-4 text-muted-foreground" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem onClick={() => setShowHelp(true)}>
+                        {__('Help', 'wepos')}
+                      </DropdownMenuItem>
+                      <Slot name="WeposUserMenuAfterHelp" fillProps={{ DropdownMenuItem }}>
+                        {(fills: React.ReactNode) => <>{fills}</>}
+                      </Slot>
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() =>
+                          (window.location.href = (window as any).wepos?.logout_url)
+                        }
+                      >
+                        {__('Logout', 'wepos')}
+                      </DropdownMenuItem>
+                      <Slot name="WeposUserMenuAfterLogout" fillProps={{ DropdownMenuItem }}>
+                        {(fills: React.ReactNode) => <>{fills}</>}
+                      </Slot>
+                      <PluginArea scope="wepos-user-menu" />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
-              <div className="flex flex-row items-center gap-2 sm:contents">
-                <div className="flex-1 sm:w-[26%] sm:flex-none">
-                  <CategoryFilter
-                    categories={categories}
-                    selectedCategory={selectedCategory}
-                    onCategoryChange={setSelectedCategory}
-                  />
+              {/* Search / Filter / View Toggle Row */}
+              <div className="flex flex-col gap-2 overflow-visible mb-2 sm:flex-row sm:items-center sm:gap-3">
+                <div className="w-full sm:w-[56%]">
+                  <SearchBar products={products} settings={settings} onProductAdded={handleAddToCart} />
                 </div>
-                <div className="shrink-0 sm:w-[14%]">
-                  <ProductViewToggle
-                    productView={productView}
-                    onToggle={toggleProductView}
-                  />
+                <div className="flex flex-row items-center gap-2 sm:contents">
+                  <div className="flex-1 sm:w-[26%] sm:flex-none">
+                    <CategoryFilter
+                      categories={categories}
+                      selectedCategory={selectedCategory}
+                      onCategoryChange={setSelectedCategory}
+                    />
+                  </div>
+                  <div className="shrink-0 sm:w-[14%]">
+                    <ProductViewToggle
+                      productView={productView}
+                      onToggle={toggleProductView}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
+
+            <Separator orientation="horizontal" className="hidden w-full md:block" />
 
             <ProductGrid
               products={getFilteredProduct}
@@ -525,7 +579,6 @@ const HomePage: React.FC = () => {
               onInitPayment={initPayment}
               selectedCustomer={selectedCustomer}
               handleCustomerSelected={handleCustomerSelected}
-              setShowHelp={setShowHelp}
             />
           </div>
 
@@ -549,7 +602,6 @@ const HomePage: React.FC = () => {
                     onInitPayment={() => { setMobileCartOpen(false); initPayment(); }}
                     selectedCustomer={selectedCustomer}
                     handleCustomerSelected={handleCustomerSelected}
-                    setShowHelp={setShowHelp}
                   />
                 </div>
               </div>

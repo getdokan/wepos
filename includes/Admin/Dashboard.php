@@ -67,6 +67,22 @@ class Dashboard {
         $dependencies = isset( $asset_data['dependencies'] ) ? $asset_data['dependencies'] : [];
         $version      = isset( $asset_data['version'] ) ? $asset_data['version'] : WEPOS_VERSION;
 
+        // Shared components
+        $comp_asset_file = WEPOS_PATH . '/build/wepos-components.asset.php';
+        $comp_asset_data = file_exists( $comp_asset_file ) ? include $comp_asset_file : [ 'dependencies' => [], 'version' => $version ];
+        $comp_script_url = WEPOS_URL . '/build/wepos-components.js';
+        $comp_script_file = WEPOS_PATH . '/build/wepos-components.js';
+
+        if ( file_exists( $comp_script_file ) ) {
+            wp_enqueue_script(
+                'wepos-react-components',
+                $comp_script_url,
+                $comp_asset_data['dependencies'],
+                $comp_asset_data['version'],
+                true
+            );
+        }
+
         // Set up shared hooks instance (same pattern as ReactAssets.php).
         wp_enqueue_script( 'wp-hooks' );
         wp_add_inline_script(
@@ -98,6 +114,17 @@ class Dashboard {
             );
         }
 
+        // Enqueue accounting.js
+        if ( function_exists( 'WC' ) ) {
+            wp_enqueue_script(
+                'wepos-accounting',
+                WC()->plugin_url() . '/assets/js/accounting/accounting.min.js',
+                [ 'jquery' ],
+                '0.4.2',
+                true
+            );
+        }
+
         // Build settings fields in the same format Vue uses.
         $settings_fields = [];
 
@@ -121,6 +148,11 @@ class Dashboard {
             'current_user_id'    => get_current_user_id(),
             'settings_sections'  => wepos_get_settings_sections(),
             'settings_fields'    => $settings_fields,
+            'currency_format_symbol'    => function_exists( 'html_entity_decode' ) && function_exists( 'get_woocommerce_currency_symbol' ) ? html_entity_decode( get_woocommerce_currency_symbol() ) : ( function_exists( 'get_woocommerce_currency_symbol' ) ? get_woocommerce_currency_symbol() : '' ),
+            'currency_format_num_decimals' => function_exists( 'wc_get_price_decimals' ) ? wc_get_price_decimals() : 2,
+            'currency_format_thousand_sep' => function_exists( 'wc_get_thousand_separator' ) ? wc_get_thousand_separator() : ',',
+            'currency_format_decimal_sep'  => function_exists( 'wc_get_decimal_separator' ) ? wc_get_decimal_separator() : '.',
+            'currency_format'              => function_exists( 'get_woocommerce_price_format' ) ? get_woocommerce_price_format() : '%s%v',
         ] );
 
         wp_localize_script( 'wepos-admin-react', 'weposAdmin', $localize_data );

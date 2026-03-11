@@ -38,8 +38,7 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
         <Sidebar />
       </LayoutSidebar>
       <LayoutMain className="h-full overflow-hidden flex flex-col">
-        {/* <LayoutHeader className="shrink-0 flex items-center gap-2 px-4" /> */}
-        <div className="flex-1 min-h-0 overflow-hidden p-2">
+        <div className="flex-1 min-h-0 overflow-hidden">
           {children}
         </div>
       </LayoutMain>

@@ -9,30 +9,33 @@ export const formatPrice = (
     precision = null,
     thousand = '',
     decimal = '',
-    format = ''
+    format = '',
+    isAdmin = false
 ): string | number => {
     if ( ! window.accounting ) {
         console.warn( 'Woocommerce Accounting Library Not Found' );
         return price;
     }
+    const settings = isAdmin ? window?.weposAdmin || {} :  window?.wepos || {};
+
     if ( ! currencySymbol ) {
-        currencySymbol = window?.wepos?.currency_format_symbol
+        currencySymbol = settings?.currency_format_symbol
     }
 
     if ( ! precision ) {
-        precision = window?.wepos?.currency_format_num_decimals
+        precision = settings?.currency_format_num_decimals
     }
 
     if ( ! thousand ) {
-        thousand = window?.wepos?.currency_format_thousand_sep
+        thousand = settings?.currency_format_thousand_sep
     }
 
     if ( ! decimal ) {
-        decimal = window?.wepos?.currency_format_decimal_sep
+        decimal = settings?.currency_format_decimal_sep
     }
 
     if ( ! format ) {
-        format = window?.wepos?.currency_format
+        format = settings?.currency_format
     }
 
     return window.accounting.formatMoney(
