@@ -150,27 +150,13 @@ const Cart = forwardRef<CartHandle, CartProps>(({
       {settings.wepos_general && (
         <div className="flex min-h-0 flex-1 flex-col">
           {/* Cart Header - Fixed Top */}
-          <div className="flex flex-row justify-between gap-2.5 p-2 pt-0">
+          <div className="flex p-2 pt-0">
             <CustomerSearch
               ref={customerSearchRef}
               selectedCustomer={selectedCustomer}
               onCustomerSelected={handleCustomerSelected}
               className="w-full"
             />
-            <DropdownMenu>
-              <DropdownMenuTrigger className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex h-9 w-9 items-center justify-center rounded-md transition-colors outline-none border border-border">
-                <MoreVertical className="h-4 w-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={clearCart}>
-                  {__('Empty Cart', 'wepos')}
-                </DropdownMenuItem>
-                <Slot name="WeposCartMenuAfterEmptyCart" fillProps={{ DropdownMenuItem }}>
-                  {(fills: React.ReactNode) => <>{fills}</>}
-                </Slot>
-                <PluginArea scope="wepos-cart-menu" />
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
 
           {/* Cart Content - Scrollable Middle */}
@@ -485,12 +471,22 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               </div>
             </div>
 
-            <Button
-              className="h-14 w-full text-lg font-bold"
-              onClick={onInitPayment}
-            >
-              {__('Checkout', 'wepos')} {formatPrice(total)}
-            </Button>
+            <div className="flex w-full">
+              <Button
+                variant="destructive"
+                className="h-14 w-[30%] text-lg font-bold"
+                onClick={clearCart}
+              >
+                {__('Void', 'wepos')}
+              </Button>
+              <Button
+                className="h-14 w-[70%] text-lg font-bold"
+                variant="success"
+                onClick={onInitPayment}
+              >
+                {__('Checkout', 'wepos')} {formatPrice(total)}
+              </Button>
+            </div>
           </div>
         </div>
       )}
