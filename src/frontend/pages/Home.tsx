@@ -497,15 +497,15 @@ const HomePage: React.FC = () => {
 
                 {window.wepos?.current_user && (
                   <DropdownMenu>
-                    <DropdownMenuTrigger className="flex items-center gap-2 hover:bg-accent p-1.5 rounded-md transition-colors outline-none group">
+                    <DropdownMenuTrigger className="flex items-center gap-2 cursor-pointer outline-none group">
                       <Avatar size="sm">
                         <AvatarImage src={window.wepos.current_user.avatar_url} alt={window.wepos.current_user.name} />
                         <AvatarFallback>{window.wepos.current_user.name?.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <div className="hidden sm:flex flex-col items-start leading-none">
+                      <div className="hidden sm:flex flex-col items-start leading-none group-hover:text-primary">
                         <span className="text-sm font-medium">{window.wepos.current_user.name}</span>
                       </div>
-                      <ChevronDown className="size-4 text-muted-foreground" />
+                      <ChevronDown className="size-4 text-muted-foreground group-hover:text-primary" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem onClick={() => setShowHelp(true)}>
@@ -531,22 +531,20 @@ const HomePage: React.FC = () => {
                 )}
               </div>
               {/* Search / Filter / View Toggle Row */}
-              <div className="flex flex-col gap-2 overflow-visible mb-2 sm:flex-row sm:items-center sm:gap-3">
-                <div className="w-full sm:w-[56%]">
+              <div className="flex flex-col gap-2 mt-3">
+                <div className="flex flex-row items-center gap-2 sm:gap-4">
                   <SearchBar products={products} settings={settings} onProductAdded={handleAddToCart} />
+                  <ProductViewToggle
+                      productView={productView}
+                      onToggle={toggleProductView}
+                    />
                 </div>
                 <div className="flex flex-row items-center gap-2 sm:contents">
-                  <div className="flex-1 sm:w-[26%] sm:flex-none">
+                  <div className='w-[150px] shrink-0'>
                     <CategoryFilter
                       categories={categories}
                       selectedCategory={selectedCategory}
                       onCategoryChange={setSelectedCategory}
-                    />
-                  </div>
-                  <div className="shrink-0 sm:w-[14%]">
-                    <ProductViewToggle
-                      productView={productView}
-                      onToggle={toggleProductView}
                     />
                   </div>
                 </div>

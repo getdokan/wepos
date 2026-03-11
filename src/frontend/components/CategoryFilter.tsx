@@ -7,6 +7,7 @@ import {
   ComboboxList,
   ComboboxItem,
   ComboboxEmpty,
+  cn,
 } from '@wedevs/plugin-ui';
 import { POSCategory } from '../types';
 import { RawHTML } from '@wordpress/element';
@@ -54,7 +55,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
       itemToStringLabel={(item: any) => decodeHtmlEntities(item?.name || '')}
       itemToStringValue={(item: any) => item?.id}
     >
-      <ComboboxInput placeholder={__('Select a category', 'wepos')} />
+      <ComboboxInput placeholder={__('Select a category', 'wepos')} className={ cn( 'h-[30px]! bg-primary/10 border-none! text-primary cursor-pointer' ) } />
       <ComboboxContent>
         <ComboboxList>
           {items.map((item) => (

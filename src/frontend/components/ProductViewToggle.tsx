@@ -24,13 +24,13 @@ const ProductViewToggle: React.FC<ProductViewToggleProps> = ({
           <TabsTrigger value="grid" className="p-1.5">
             <Grid2x2
               size={16}
-              className={cn(productView === 'grid' ? "text-primary" : "text-gray-500")}
+              className={cn(productView === 'grid' ? "text-primary" : "text-muted-foreground")}
             />
           </TabsTrigger>
           <TabsTrigger value="list" className="p-1.5">
             <LayoutList
               size={16}
-              className={cn(productView === 'list' ? "text-primary" : "text-gray-500")}
+              className={cn(productView === 'list' ? "text-primary" : "text-muted-foreground")}
             />
           </TabsTrigger>
         </TabsList>

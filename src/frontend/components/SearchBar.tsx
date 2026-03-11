@@ -21,7 +21,7 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdded }) => {
-  const [mode, setMode] = useState<SearchMode>('scan');
+  const [mode, setMode] = useState<SearchMode>('product');
   const [searchInput, setSearchInput] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -253,7 +253,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
           {mode === 'product' ? (
             <Search className="h-5 w-5 text-gray-400" />
           ) : (
-            <ScanBarcode className="h-5 w-5 text-blue-500" />
+            <ScanBarcode className="h-5 w-5 text-primary" />
           )}
         </div>
 
@@ -264,7 +264,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
           id="product-search"
           name="search"
           placeholder={placeholder}
-          className="h-9 w-full pl-10 pr-40 bg-transparent border-gray-200 shadow-none focus-visible:ring-1 focus-visible:ring-blue-300"
+          className="w-full pl-10 pr-40"
           value={searchInput}
           onChange={handleInputChange}
           onFocus={() => {
@@ -307,7 +307,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
                   ref={(el) => { resultItemsRef.current[index] = el; }}
                   className={`cursor-pointer px-3 py-2.5 ${
                     index === selectedIndex
-                      ? 'bg-blue-50 text-blue-700'
+                      ? 'bg-primary/10 text-primary'
                       : 'hover:bg-gray-50'
                   }`}
                 >
@@ -323,7 +323,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
                       }
                     }}
                   >
-                    <span className={index === selectedIndex ? 'font-medium text-blue-700' : 'text-gray-800'}>{product.name}</span>
+                    <span className={index === selectedIndex ? 'font-medium text-primary' : 'text-foreground'}>{product.name}</span>
                     <span className="flex items-center gap-3 shrink-0 ml-3">
                       <span className="font-medium text-gray-900">{formatPrice(product.regular_price)}</span>
                       {product.sku && <span className="max-w-45 truncate text-xs text-gray-400">{product.sku}</span>}
@@ -382,7 +382,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
                     <div
                       className={`rounded border px-3 py-1.5 text-sm ${
                         chosenAttribute[attribute.name] === option
-                          ? 'border-blue-500 bg-blue-500 text-white'
+                          ? 'border-primary bg-primary text-white'
                           : 'border-gray-200 text-gray-700 hover:border-gray-300'
                       }`}
                     >
