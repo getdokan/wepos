@@ -532,7 +532,7 @@ const HomePage: React.FC = () => {
               </div>
               {/* Search / Filter / View Toggle Row */}
               <div className="flex flex-col gap-2 mt-3">
-                <div className="flex flex-row items-center gap-2 sm:gap-4">
+                <div className="flex flex-row items-center gap-2 sm:gap-3">
                   <SearchBar products={products} settings={settings} onProductAdded={handleAddToCart} />
                   <ProductViewToggle
                       productView={productView}
