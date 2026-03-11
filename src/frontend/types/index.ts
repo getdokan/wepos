@@ -170,6 +170,7 @@ export interface POSCartItem {
   product_id: number;
   variation_id?: number;
   name: string;
+  sku?: string;
   quantity: number;
   type: string;
   on_sale: boolean;

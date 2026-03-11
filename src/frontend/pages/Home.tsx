@@ -53,10 +53,14 @@ import ProductGrid from '../components/ProductGrid';
 import ProductViewToggle from '../components/ProductViewToggle';
 import ReceiptModal from '../components/ReceiptModal';
 import SearchBar from '../components/SearchBar';
+import { useResizablePanel } from '../hooks/useResizablePanel';
 
 const HomePage: React.FC = () => {
   // Initialize data using the hook
   const { initializeData } = usePOSData();
+
+  // Resizable panel
+  const { containerRef, cartWidthPercent, handleMouseDown } = useResizablePanel();
 
   // Get data from stores
   const { products, categories, availableGateways, productLoading, settings } = useSelect(
@@ -130,6 +134,7 @@ const HomePage: React.FC = () => {
         product_id: product.id,
         variation_id: 0,
         name: product.name,
+        sku: product.sku || '',
         quantity: 1,
         regular_price:
           typeof product.regular_price === 'string'
@@ -485,9 +490,9 @@ const HomePage: React.FC = () => {
     <Layout>
       <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
         {/* Main Content + Cart Area */}
-        <div className="flex h-full min-h-0 flex-1 flex-col md:flex-row overflow-hidden">
+        <div ref={containerRef} className="flex h-full min-h-0 flex-1 flex-col md:flex-row overflow-hidden">
           {/* Product Area */}
-          <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden" style={{ minWidth: 400 }}>
             <div className="flex flex-col px-5 py-3">
               {/* Header: Outlet Name + User Info */}
               <div className="flex items-center justify-between">
@@ -567,11 +572,23 @@ const HomePage: React.FC = () => {
             />
           </div>
 
-          {/* Separator - desktop only */}
-          <Separator orientation="vertical" className="hidden h-full md:block" />
+          {/* Resizable Divider - desktop only */}
+          <div
+            className="group relative hidden md:flex h-full w-px shrink-0 cursor-col-resize items-center justify-center bg-border"
+            onMouseDown={handleMouseDown}
+            title="Drag to resize"
+          >
+            {/* Invisible wide hit area for easy grabbing */}
+            <div className="absolute inset-y-0 -left-1.5 -right-1.5 z-10" />
+            {/* Hover highlight overlay */}
+            <div className="absolute inset-y-0 -left-px -right-px bg-primary/30 opacity-0 group-hover:opacity-100 group-active:bg-primary/40 transition-opacity" />
+          </div>
 
           {/* Cart Panel - desktop: side panel, mobile: slide-over drawer */}
-          <div className="hidden md:flex h-full w-[35%] min-h-0 flex-col">
+          <div
+            className="hidden md:flex h-full min-h-0 flex-col"
+            style={{ width: `${cartWidthPercent}%`, minWidth: 320 }}
+          >
             <Cart
               ref={cartRef}
               onInitPayment={initPayment}
@@ -624,7 +641,7 @@ const HomePage: React.FC = () => {
         </div>
 
         {/* Extension slot: SaveCarts tab bar — single instance, CSS-aligned to cart column on desktop */}
-        <div className="shrink-0 md:ml-auto md:w-[35%]">
+        <div className="shrink-0 md:ml-auto" style={{ width: `${cartWidthPercent}%` }}>
           {applyFilters<React.ReactNode[]>('wepos_react_after_cart_panel', []).map(
             (Component: any, i: number) => <Component key={i} />
           )}

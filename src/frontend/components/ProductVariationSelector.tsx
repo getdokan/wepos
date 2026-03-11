@@ -83,6 +83,7 @@ export const ProductVariationSelector: React.FC<
       product_id: product.id,
       variation_id: matchingVariation.id,
       name: product.name,
+      sku: matchingVariation.sku || product.sku || '',
       quantity: 1,
       regular_price: parseFloat(matchingVariation.regular_price) || 0,
       sale_price:

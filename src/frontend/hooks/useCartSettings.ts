@@ -2,31 +2,74 @@ import { useState, useEffect, useCallback } from 'react';
 
 const STORAGE_KEY = 'wepos_cart_settings';
 
+export interface ColumnSubOption {
+  key: string;
+  label: string;
+  enabled: boolean;
+}
+
 export interface CartColumnConfig {
   key: string;
   label: string;
   enabled: boolean;
-  hasDisplayOptions?: boolean;
-  displayOption?: 'buttons' | 'input';
+  subOptions?: ColumnSubOption[];
 }
 
 export interface CartSettings {
   autoShowReceipt: boolean;
   autoPrintReceipt: boolean;
+  quickDiscounts: string;
   columns: CartColumnConfig[];
 }
 
 const DEFAULT_SETTINGS: CartSettings = {
   autoShowReceipt: true,
   autoPrintReceipt: true,
+  quickDiscounts: '5,10,15,20',
   columns: [
-    { key: 'qty', label: 'Qty', enabled: true, hasDisplayOptions: true, displayOption: 'buttons' },
-    { key: 'name', label: 'Name', enabled: true, hasDisplayOptions: true, displayOption: 'buttons' },
+    {
+      key: 'qty',
+      label: 'Qty',
+      enabled: true,
+      subOptions: [
+        { key: 'split', label: 'Split', enabled: false },
+      ],
+    },
+    {
+      key: 'name',
+      label: 'Name',
+      enabled: true,
+      subOptions: [
+        { key: 'sku', label: 'SKU', enabled: true },
+      ],
+    },
     { key: 'sku', label: 'SKU', enabled: false },
-    { key: 'price', label: 'Price', enabled: true, hasDisplayOptions: true, displayOption: 'buttons' },
+    {
+      key: 'price',
+      label: 'Price',
+      enabled: true,
+      subOptions: [
+        { key: 'on_sale', label: 'On Sale', enabled: true },
+      ],
+    },
     { key: 'regular_price', label: 'Regular Price', enabled: false },
-    { key: 'subtotal', label: 'Subtotal', enabled: false, hasDisplayOptions: true, displayOption: 'buttons' },
-    { key: 'total', label: 'Total', enabled: true, hasDisplayOptions: true, displayOption: 'buttons' },
+    {
+      key: 'subtotal',
+      label: 'Subtotal',
+      enabled: false,
+      subOptions: [
+        { key: 'tax', label: 'Tax', enabled: false },
+      ],
+    },
+    {
+      key: 'total',
+      label: 'Total',
+      enabled: true,
+      subOptions: [
+        { key: 'tax', label: 'Tax', enabled: false },
+        { key: 'on_sale', label: 'On Sale', enabled: true },
+      ],
+    },
     { key: 'actions', label: 'Actions', enabled: true },
   ],
 };
@@ -36,13 +79,20 @@ function loadSettings(): CartSettings {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      // Merge with defaults to handle new keys added in future updates
       return {
         ...DEFAULT_SETTINGS,
         ...parsed,
         columns: DEFAULT_SETTINGS.columns.map((defaultCol) => {
           const savedCol = parsed.columns?.find((c: CartColumnConfig) => c.key === defaultCol.key);
-          return savedCol ? { ...defaultCol, ...savedCol } : defaultCol;
+          if (!savedCol) return defaultCol;
+          return {
+            ...defaultCol,
+            ...savedCol,
+            subOptions: defaultCol.subOptions?.map((defaultSub) => {
+              const savedSub = savedCol.subOptions?.find((s: ColumnSubOption) => s.key === defaultSub.key);
+              return savedSub ? { ...defaultSub, ...savedSub } : defaultSub;
+            }),
+          };
         }),
       };
     }
@@ -80,11 +130,18 @@ export function useCartSettings() {
     }));
   }, []);
 
-  const setColumnDisplayOption = useCallback((key: string, option: 'buttons' | 'input') => {
+  const toggleSubOption = useCallback((columnKey: string, subKey: string) => {
     setSettings((prev) => ({
       ...prev,
       columns: prev.columns.map((col) =>
-        col.key === key ? { ...col, displayOption: option } : col,
+        col.key === columnKey
+          ? {
+              ...col,
+              subOptions: col.subOptions?.map((sub) =>
+                sub.key === subKey ? { ...sub, enabled: !sub.enabled } : sub,
+              ),
+            }
+          : col,
       ),
     }));
   }, []);
@@ -98,12 +155,21 @@ export function useCartSettings() {
     [settings.columns],
   );
 
+  const isSubOptionEnabled = useCallback(
+    (columnKey: string, subKey: string) => {
+      const col = settings.columns.find((c) => c.key === columnKey);
+      return col?.subOptions?.find((s) => s.key === subKey)?.enabled ?? false;
+    },
+    [settings.columns],
+  );
+
   return {
     settings,
     updateSettings,
     toggleColumn,
-    setColumnDisplayOption,
+    toggleSubOption,
     restoreDefaults,
     isColumnEnabled,
+    isSubOptionEnabled,
   };
 }

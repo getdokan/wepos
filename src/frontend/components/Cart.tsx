@@ -53,9 +53,10 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     settings: cartSettings,
     updateSettings: updateCartSettings,
     toggleColumn,
-    setColumnDisplayOption,
+    toggleSubOption,
     restoreDefaults,
     isColumnEnabled,
+    isSubOptionEnabled,
   } = useCartSettings();
 
   // Refs for child components
@@ -160,6 +161,11 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     }
   };
 
+  const isTaxInclusive = settings?.woo_tax?.wc_tax_display_cart === 'incl';
+
+  // Count visible columns for colSpan
+  const visibleColumnCount = cartSettings.columns.filter((c) => c.enabled).length || 1;
+
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
       {settings.wepos_general && (
@@ -247,144 +253,167 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 </thead>
                 <tbody>
                   {cartItems.length > 0 ? (
-                    cartItems.map((item: POSCartItem, index: number) => (
-                      <React.Fragment key={item.id}>
-                        <tr className="border-b border-gray-100 transition-colors hover:bg-gray-50">
-                          {/* QTY Column */}
-                          {isColumnEnabled('qty') && (
-                            <td className="p-3 text-sm">
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="icon-sm"
-                                  className="h-5 w-5 rounded border-none bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                  onClick={() => removeQuantity(item, index)}
-                                >
-                                  <Minus className="h-4 w-4" />
-                                </Button>
-                                <span className="w-8 text-center font-sm">
-                                  {item.quantity}
-                                </span>
-                                <Button
-                                  variant="outline"
-                                  size="icon-sm"
-                                  className="h-5 w-5 rounded border-none bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                  onClick={() => addQuantity(item, index)}
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </td>
-                          )}
+                    cartItems.map((item: POSCartItem, index: number) => {
+                      const itemTotal = item.quantity * (item.on_sale ? item.sale_price : item.regular_price);
+                      const itemSubtotal = item.quantity * item.regular_price;
 
-                          {/* NAME Column */}
-                          {isColumnEnabled('name') && (
-                            <td className="p-3 text-sm">
-                              <div className="font-sm text-gray-800">
-                                {item.name}
-                              </div>
-                              {item.attribute &&
-                                item.attribute.length > 0 &&
-                                item.type === 'variable' && (
-                                  <div className="mt-1 text-xs text-muted-foreground">
-                                    {item.attribute.map(
-                                      (attr: any, attrIndex: number) => (
-                                        <span
-                                          key={attrIndex}
-                                          className="mr-2 inline-block"
-                                        >
-                                          <span className="font-medium">
-                                            {attr.name}:
-                                          </span>
-                                          <span className="ml-1">
-                                            {attr.option}
-                                          </span>
-                                          {attrIndex <
-                                            item.attribute.length - 1 && (
-                                            <span className="mx-1">•</span>
-                                          )}
-                                        </span>
-                                      ),
-                                    )}
+                      return (
+                        <React.Fragment key={item.id}>
+                          <tr className="border-b border-gray-100 transition-colors hover:bg-gray-50">
+                            {/* QTY Column */}
+                            {isColumnEnabled('qty') && (
+                              <td className="p-3 text-sm">
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="icon-sm"
+                                    className="h-5 w-5 rounded border-none bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                    onClick={() => removeQuantity(item, index)}
+                                  >
+                                    <Minus className="h-4 w-4" />
+                                  </Button>
+                                  <span className="w-8 text-center font-sm">
+                                    {item.quantity}
+                                  </span>
+                                  <Button
+                                    variant="outline"
+                                    size="icon-sm"
+                                    className="h-5 w-5 rounded border-none bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                    onClick={() => addQuantity(item, index)}
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </td>
+                            )}
+
+                            {/* NAME Column */}
+                            {isColumnEnabled('name') && (
+                              <td className="p-3 text-sm">
+                                <div className="font-sm text-gray-800">
+                                  {item.name}
+                                </div>
+                                {/* Show SKU under name if sub-option enabled */}
+                                {isSubOptionEnabled('name', 'sku') && item.sku && (
+                                  <div className="mt-0.5 text-xs text-muted-foreground">
+                                    {item.sku}
                                   </div>
                                 )}
-                            </td>
-                          )}
+                                {item.attribute &&
+                                  item.attribute.length > 0 &&
+                                  item.type === 'variable' && (
+                                    <div className="mt-1 text-xs text-muted-foreground">
+                                      {item.attribute.map(
+                                        (attr: any, attrIndex: number) => (
+                                          <span
+                                            key={attrIndex}
+                                            className="mr-2 inline-block"
+                                          >
+                                            <span className="font-medium">
+                                              {attr.name}:
+                                            </span>
+                                            <span className="ml-1">
+                                              {attr.option}
+                                            </span>
+                                            {attrIndex <
+                                              item.attribute.length - 1 && (
+                                              <span className="mx-1">•</span>
+                                            )}
+                                          </span>
+                                        ),
+                                      )}
+                                    </div>
+                                  )}
+                              </td>
+                            )}
 
-                          {/* SKU Column */}
-                          {isColumnEnabled('sku') && (
-                            <td className="p-3 text-sm text-gray-600">
-                              {(item as any).sku || '—'}
-                            </td>
-                          )}
+                            {/* SKU Column (standalone) */}
+                            {isColumnEnabled('sku') && (
+                              <td className="p-3 text-sm text-gray-600">
+                                {item.sku || '—'}
+                              </td>
+                            )}
 
-                          {/* PRICE Column */}
-                          {isColumnEnabled('price') && (
-                            <td className="p-3 text-sm text-gray-600">
-                              {item.on_sale ? (
-                                <div className="flex flex-col">
-                                  <span className="font-medium text-red-600">
-                                    {formatPrice(item.sale_price)}
-                                  </span>
-                                  <span className="text-xs text-gray-400 line-through">
-                                    {formatPrice(item.regular_price)}
-                                  </span>
-                                </div>
-                              ) : (
-                                <span>{formatPrice(item.regular_price)}</span>
-                              )}
-                            </td>
-                          )}
+                            {/* PRICE Column */}
+                            {isColumnEnabled('price') && (
+                              <td className="p-3 text-sm text-gray-600">
+                                {item.on_sale && isSubOptionEnabled('price', 'on_sale') ? (
+                                  <div className="flex flex-col">
+                                    <span className="text-xs text-gray-400 line-through">
+                                      {formatPrice(item.regular_price)}
+                                    </span>
+                                    <span className="font-medium text-red-600">
+                                      {formatPrice(item.sale_price)}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span>{formatPrice(item.regular_price)}</span>
+                                )}
+                              </td>
+                            )}
 
-                          {/* REGULAR PRICE Column */}
-                          {isColumnEnabled('regular_price') && (
-                            <td className="p-3 text-sm text-gray-600">
-                              {formatPrice(item.regular_price)}
-                            </td>
-                          )}
+                            {/* REGULAR PRICE Column */}
+                            {isColumnEnabled('regular_price') && (
+                              <td className="p-3 text-sm text-gray-600">
+                                {formatPrice(item.regular_price)}
+                              </td>
+                            )}
 
-                          {/* SUBTOTAL Column */}
-                          {isColumnEnabled('subtotal') && (
-                            <td className="p-3 text-sm">
-                              {formatPrice(
-                                item.quantity * item.regular_price,
-                              )}
-                            </td>
-                          )}
+                            {/* SUBTOTAL Column */}
+                            {isColumnEnabled('subtotal') && (
+                              <td className="p-3 text-sm">
+                                <div>{formatPrice(itemSubtotal)}</div>
+                                {isSubOptionEnabled('subtotal', 'tax') && (
+                                  <div className="text-xs text-muted-foreground">
+                                    {isTaxInclusive
+                                      ? __('incl. tax', 'wepos')
+                                      : __('excl. tax', 'wepos')}
+                                  </div>
+                                )}
+                              </td>
+                            )}
 
-                          {/* TOTAL Column */}
-                          {isColumnEnabled('total') && (
-                            <td className="p-3 text-sm">
-                              {formatPrice(
-                                item.quantity *
-                                  (item.on_sale
-                                    ? item.sale_price
-                                    : item.regular_price),
-                              )}
-                            </td>
-                          )}
+                            {/* TOTAL Column */}
+                            {isColumnEnabled('total') && (
+                              <td className="p-3 text-sm">
+                                <div>{formatPrice(itemTotal)}</div>
+                                {isSubOptionEnabled('total', 'tax') && (
+                                  <div className="text-xs text-muted-foreground">
+                                    {isTaxInclusive
+                                      ? __('incl. tax', 'wepos')
+                                      : __('excl. tax', 'wepos')}
+                                  </div>
+                                )}
+                                {item.on_sale && isSubOptionEnabled('total', 'on_sale') && (
+                                  <div className="mt-0.5 text-xs text-gray-400 line-through">
+                                    {formatPrice(itemSubtotal)}
+                                  </div>
+                                )}
+                              </td>
+                            )}
 
-                          {/* Actions Column */}
-                          {isColumnEnabled('actions') && (
-                            <td className="p-3 text-right text-sm">
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                className="flex h-6 w-6 items-center justify-center rounded-full border-none bg-destructive p-0 text-destructive-foreground hover:bg-destructive/90 hover:text-destructive-foreground"
-                                onClick={() => handleRemoveItem(index)}
-                                title={__('Remove item', 'wepos')}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </td>
-                          )}
-                        </tr>
-                      </React.Fragment>
-                    ))
+                            {/* Actions Column */}
+                            {isColumnEnabled('actions') && (
+                              <td className="p-3 text-right text-sm">
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  className="flex h-6 w-6 items-center justify-center rounded-full border-none bg-destructive p-0 text-destructive-foreground hover:bg-destructive/90 hover:text-destructive-foreground"
+                                  onClick={() => handleRemoveItem(index)}
+                                  title={__('Remove item', 'wepos')}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </td>
+                            )}
+                          </tr>
+                        </React.Fragment>
+                      );
+                    })
                   ) : (
                     <tr>
                       <td
-                        colSpan={cartSettings.columns.filter((c) => c.enabled).length || 1}
+                        colSpan={visibleColumnCount}
                         className="px-5 py-16 text-center text-gray-400"
                       >
                         <div className="flex flex-col items-center">
@@ -408,12 +437,11 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               <div className="flex items-center justify-between border-b border-border p-[9px_12px]">
                 <div className="flex-1 text-sm">
                   {__('Subtotal', 'wepos')}
-                  {settings.woo_tax?.wc_tax_display_cart === 'incl' &&
-                    totalTax > 0 && (
-                      <span className="block text-xs font-normal text-muted-foreground">
-                        {__('Including Tax', 'wepos')}
-                      </span>
-                    )}
+                  {isTaxInclusive && totalTax > 0 && (
+                    <span className="block text-xs font-normal text-muted-foreground">
+                      {__('Including Tax', 'wepos')}
+                    </span>
+                  )}
                 </div>
                 <div className="text-sm">
                   {formatPrice(subtotal)}
@@ -489,7 +517,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               {totalTax > 0 && (
                 <div className="flex items-center justify-between border-b border-border p-[9px_12px]">
                   <div className="text-sm font-medium text-gray-700">
-                    {settings.woo_tax?.wc_tax_display_cart === 'incl'
+                    {isTaxInclusive
                       ? __('Fee Tax', 'wepos')
                       : __('Tax', 'wepos')}
                   </div>
@@ -579,8 +607,8 @@ const Cart = forwardRef<CartHandle, CartProps>(({
         onClose={() => setShowSettingsModal(false)}
         settings={cartSettings}
         onToggleColumn={toggleColumn}
+        onToggleSubOption={toggleSubOption}
         onUpdateSettings={updateCartSettings}
-        onSetColumnDisplayOption={setColumnDisplayOption}
         onRestoreDefaults={restoreDefaults}
       />
     </div>

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { __ } from '@wordpress/i18n';
-import { ChevronDown } from 'lucide-react';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 import {
   Modal,
   ModalHeader,
@@ -9,10 +9,6 @@ import {
   Button,
   Switch,
   Separator,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
 } from '@wedevs/plugin-ui';
 import type { CartSettings, CartColumnConfig } from '../hooks/useCartSettings';
 
@@ -21,8 +17,8 @@ interface CartSettingsModalProps {
   onClose: () => void;
   settings: CartSettings;
   onToggleColumn: (key: string) => void;
+  onToggleSubOption: (columnKey: string, subKey: string) => void;
   onUpdateSettings: (updates: Partial<CartSettings>) => void;
-  onSetColumnDisplayOption: (key: string, option: 'buttons' | 'input') => void;
   onRestoreDefaults: () => void;
 }
 
@@ -31,10 +27,16 @@ const CartSettingsModal: React.FC<CartSettingsModalProps> = ({
   onClose,
   settings,
   onToggleColumn,
+  onToggleSubOption,
   onUpdateSettings,
-  onSetColumnDisplayOption,
   onRestoreDefaults,
 }) => {
+  const [expandedColumns, setExpandedColumns] = useState<Record<string, boolean>>({});
+
+  const toggleExpanded = (key: string) => {
+    setExpandedColumns((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   return (
     <Modal
       open={isOpen}
@@ -47,75 +49,94 @@ const CartSettingsModal: React.FC<CartSettingsModalProps> = ({
         <ModalTitle>{__('Cart Settings', 'wepos')}</ModalTitle>
       </ModalHeader>
 
-      <div className="space-y-5 p-6">
-        {/* Receipt toggles */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Switch
-              checked={settings.autoShowReceipt}
-              onCheckedChange={(checked: boolean) =>
-                onUpdateSettings({ autoShowReceipt: checked })
-              }
-            />
-            <span className="ml-3 flex-1 text-sm">
-              {__('Automatically show receipt after checkout', 'wepos')}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <Switch
-              checked={settings.autoPrintReceipt}
-              onCheckedChange={(checked: boolean) =>
-                onUpdateSettings({ autoPrintReceipt: checked })
-              }
-            />
-            <span className="ml-3 flex-1 text-sm">
-              {__('Automatically print receipt after checkout', 'wepos')}
-            </span>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Columns */}
-        <div className="space-y-3">
-          <h4 className="text-sm font-semibold">
-            {__('Columns', 'wepos')}
-          </h4>
-          {settings.columns.map((col: CartColumnConfig) => (
-            <div key={col.key} className="flex items-center gap-3">
+      <div className="max-h-[70vh] overflow-y-auto">
+        <div className="space-y-5 p-6">
+          {/* Receipt toggles */}
+          <div className="space-y-3">
+            <div className="flex items-center">
               <Switch
-                checked={col.enabled}
-                onCheckedChange={() => onToggleColumn(col.key)}
+                checked={settings.autoShowReceipt}
+                onCheckedChange={(checked: boolean) =>
+                  onUpdateSettings({ autoShowReceipt: checked })
+                }
               />
-              <span className="text-sm">{__(col.label, 'wepos')}</span>
-              {col.hasDisplayOptions && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    className="text-muted-foreground hover:text-foreground inline-flex h-auto items-center gap-1 px-1 py-0.5 text-xs"
-                  >
-                    {__('Display Options', 'wepos')}
-                    <ChevronDown className="h-3 w-3" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    <DropdownMenuItem
-                      onClick={() => onSetColumnDisplayOption(col.key, 'buttons')}
-                    >
-                      <span className={col.displayOption === 'buttons' ? 'font-semibold' : ''}>
-                        {__('Buttons', 'wepos')}
-                      </span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => onSetColumnDisplayOption(col.key, 'input')}
-                    >
-                      <span className={col.displayOption === 'input' ? 'font-semibold' : ''}>
-                        {__('Input Field', 'wepos')}
-                      </span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+              <span className="ml-3 flex-1 text-sm">
+                {__('Automatically show receipt after checkout', 'wepos')}
+              </span>
             </div>
-          ))}
+            <div className="flex items-center">
+              <Switch
+                checked={settings.autoPrintReceipt}
+                onCheckedChange={(checked: boolean) =>
+                  onUpdateSettings({ autoPrintReceipt: checked })
+                }
+              />
+              <span className="ml-3 flex-1 text-sm">
+                {__('Automatically print receipt after checkout', 'wepos')}
+              </span>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Columns */}
+          <div className="space-y-1">
+            <h4 className="mb-2 text-sm font-semibold">
+              {__('Columns', 'wepos')}
+            </h4>
+            {settings.columns.map((col: CartColumnConfig) => {
+              const hasSubOptions = col.subOptions && col.subOptions.length > 0;
+              const isExpanded = expandedColumns[col.key];
+
+              return (
+                <div key={col.key}>
+                  <div className="flex items-center gap-3 py-1.5">
+                    <Switch
+                      checked={col.enabled}
+                      onCheckedChange={() => onToggleColumn(col.key)}
+                    />
+                    <span className="text-sm font-medium">
+                      {__(col.label, 'wepos')}
+                    </span>
+                    {hasSubOptions && (
+                      <button
+                        type="button"
+                        onClick={() => toggleExpanded(col.key)}
+                        className="text-muted-foreground hover:text-foreground inline-flex cursor-pointer items-center gap-1 border-none bg-transparent px-1 py-0.5 text-xs"
+                      >
+                        {__('Display Options', 'wepos')}
+                        {isExpanded ? (
+                          <ChevronUp className="h-3 w-3" />
+                        ) : (
+                          <ChevronDown className="h-3 w-3" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Sub-options */}
+                  {hasSubOptions && isExpanded && (
+                    <div className="ml-10 space-y-1.5 pb-1.5">
+                      {col.subOptions!.map((sub) => (
+                        <div key={sub.key} className="flex items-center gap-3">
+                          <Switch
+                            size="sm"
+                            checked={sub.enabled}
+                            onCheckedChange={() =>
+                              onToggleSubOption(col.key, sub.key)
+                            }
+                          />
+                          <span className="text-muted-foreground text-sm">
+                            {__(sub.label, 'wepos')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
