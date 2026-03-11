@@ -1,19 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { __ } from '@wordpress/i18n';
-import { Plus, CornerDownLeft, Edit3, Users } from 'lucide-react';
+import { CornerDownLeft, Pencil, User, X } from 'lucide-react';
 import {
   Button,
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-  InputGroupButton,
   Avatar,
   AvatarImage,
   AvatarFallback,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
   ScrollArea,
   Spinner,
 } from '@wedevs/plugin-ui';
@@ -184,12 +179,6 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
     handleCustomerSelect(updatedCustomer);
   };
 
-  // Open new customer modal
-  const handleOpenNewCustomerModal = () => {
-    setEditingCustomer(null);
-    setShowCustomerModal(true);
-  };
-
   // Open edit customer modal
   const handleEditCustomer = () => {
     if (selectedCustomer) {
@@ -211,8 +200,8 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
         <InputGroup className="h-9">
           <InputGroupAddon align="inline-start">
             <Avatar size="xs" shape="circle">
-              <AvatarFallback className="bg-primary text-primary-foreground">
-                <Users className="size-3" />
+              <AvatarFallback className="bg-muted text-muted-foreground">
+                <User className="size-3" />
               </AvatarFallback>
             </Avatar>
           </InputGroupAddon>
@@ -230,23 +219,6 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
 
           <InputGroupAddon align="inline-end">
             {isSearching && <Spinner className="text-primary mr-1" />}
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InputGroupButton
-                    onClick={handleOpenNewCustomerModal}
-                    size="icon-xs"
-                    className="text-primary hover:text-primary-hover mr-1"
-                  >
-                    <Plus className="size-4" />
-                  </InputGroupButton>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {__('Add New Customer', 'wepos')}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </InputGroupAddon>
         </InputGroup>
       )}
@@ -260,8 +232,8 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
                 src={selectedCustomer.avatar_url}
                 alt={`${selectedCustomer.first_name} ${selectedCustomer.last_name}`}
               />
-              <AvatarFallback className="bg-primary text-primary-foreground">
-                <Users className="size-3" />
+              <AvatarFallback className="bg-muted text-muted-foreground">
+                <User className="size-3" />
               </AvatarFallback>
             </Avatar>
           </InputGroupAddon>
@@ -270,7 +242,7 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
             {selectedCustomer.first_name} {selectedCustomer.last_name}
           </div>
 
-          <InputGroupAddon align="inline-end" className="gap-1">
+          <div className="flex flex-row gap-0!">
             <Button
               variant="ghost"
               size="sm"
@@ -278,8 +250,7 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
               className="text-primary hover:text-primary-hover hover:bg-primary/5 flex h-7 items-center gap-1 px-2 text-xs font-medium"
               title={__('Edit Customer', 'wepos')}
             >
-              <Edit3 className="size-3" />
-              {__('Edit', 'wepos')}
+              <Pencil className="size-3" />
             </Button>
             <Button
               variant="ghost"
@@ -288,9 +259,9 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
               className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2 text-xs font-medium"
               title={__('Clear Customer', 'wepos')}
             >
-              {__('Clear', 'wepos')}
+              <X className="size-3" />
             </Button>
-          </InputGroupAddon>
+          </div>
         </InputGroup>
       )}
 
@@ -317,7 +288,7 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
                           alt={`${customer.first_name} ${customer.last_name}`}
                         />
                         <AvatarFallback>
-                          <Users className="size-4" />
+                          <User className="size-4" />
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">

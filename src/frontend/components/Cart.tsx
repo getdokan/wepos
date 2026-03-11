@@ -5,7 +5,9 @@ import {
   Plus,
   X,
   ShoppingCart,
-  Minus, MoreVertical,
+  Minus,
+  UserRound,
+  SlidersHorizontal,
 } from 'lucide-react';
 import {
   Button,
@@ -150,7 +152,31 @@ const Cart = forwardRef<CartHandle, CartProps>(({
       {settings.wepos_general && (
         <div className="flex min-h-0 flex-1 flex-col">
           {/* Cart Header - Fixed Top */}
-          <div className="flex p-3">
+          <div className="border-b border-border p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium">
+                {__('Customer:', 'wepos')}
+              </span>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="h-7 w-7 text-muted-foreground hover:text-primary"
+                  onClick={() => customerSearchRef.current?.openNewCustomer()}
+                  title={__('Add New Customer', 'wepos')}
+                >
+                  <UserRound className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="h-7 w-7 text-muted-foreground hover:text-primary"
+                  title={__('Customer Options', 'wepos')}
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
             <CustomerSearch
               ref={customerSearchRef}
               selectedCustomer={selectedCustomer}
@@ -166,31 +192,31 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 <thead className="sticky top-0 bg-white">
                   <tr>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                       style={{ width: '20%' }}
                     >
                       {__('Qty', 'wepos')}
                     </th>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                       style={{ width: '40%' }}
                     >
                       {__('Name', 'wepos')}
                     </th>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                       style={{ width: '15%' }}
                     >
                       {__('Price', 'wepos')}
                     </th>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                       style={{ width: '15%' }}
                     >
                       {__('Total', 'wepos')}
                     </th>
                     <th
-                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase"
+                      className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase"
                       style={{ width: '10%' }}
                     ></th>
                   </tr>
@@ -233,7 +259,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                             {item.attribute &&
                               item.attribute.length > 0 &&
                               item.type === 'variable' && (
-                                <div className="mt-1 text-xs text-gray-500">
+                                <div className="mt-1 text-xs text-muted-foreground">
                                   {item.attribute.map(
                                     (attr: any, attrIndex: number) => (
                                       <span
@@ -306,7 +332,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       >
                         <div className="flex flex-col items-center">
                           <ShoppingCart className="mb-4 h-16 w-16 text-gray-300" />
-                          <p className="text-gray-500">
+                          <p className="text-muted-foreground">
                             {__('Empty Cart', 'wepos')}
                           </p>
                         </div>
@@ -327,7 +353,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                   {__('Subtotal', 'wepos')}
                   {settings.woo_tax?.wc_tax_display_cart === 'incl' &&
                     totalTax > 0 && (
-                      <span className="block text-xs font-normal text-gray-500">
+                      <span className="block text-xs font-normal text-muted-foreground">
                         {__('Including Tax', 'wepos')}
                       </span>
                     )}
@@ -348,7 +374,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 >
                   <div className="flex-1 text-sm">
                     {__('Discount', 'wepos')}
-                    <span className="ml-2 text-xs text-gray-500">
+                    <span className="ml-2 text-xs text-muted-foreground">
                       {discount.discount_type === 'percent'
                         ? `${discount.value}%`
                         : formatPrice(discount.value)}
@@ -379,7 +405,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 >
                   <div className="flex-1 text-sm text-gray-700">
                     {__('Fee', 'wepos')}
-                    <span className="ml-2 text-xs text-gray-500">
+                    <span className="ml-2 text-xs text-muted-foreground">
                       {fee.fee_type === 'percent'
                         ? `${fee.value}%`
                         : formatPrice(fee.value)}
