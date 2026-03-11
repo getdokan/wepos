@@ -571,15 +571,6 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 </div>
               )}
 
-              {/* Total */}
-              <div className="flex items-center justify-between p-4">
-                <div className="text-lg font-bold text-gray-800">
-                  {__('Total', 'wepos')}
-                </div>
-                <div className="text-primary text-xl font-bold">
-                  {formatPrice(total)}
-                </div>
-              </div>
             </div>
 
             <div className="flex w-full">
