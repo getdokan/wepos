@@ -53,6 +53,7 @@ const TaxonomyFilter: React.FC<TaxonomyFilterProps> = ({
   }, [selectedItem, comboboxItems, allOption]);
 
   return (
+    <div className="w-fit">
     <Combobox
       items={comboboxItems}
       value={selectedValue}
@@ -72,7 +73,8 @@ const TaxonomyFilter: React.FC<TaxonomyFilterProps> = ({
       <ComboboxInput
         placeholder={placeholder}
         className={cn(
-          'h-[30px]! bg-primary/10 border-none! text-primary cursor-pointer',
+          'h-[30px]! max-w-[130px] border-none! cursor-pointer text-sm!',
+          selectedItem ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground',
         )}
       />
       <ComboboxContent>
@@ -88,6 +90,7 @@ const TaxonomyFilter: React.FC<TaxonomyFilterProps> = ({
         </ComboboxEmpty>
       </ComboboxContent>
     </Combobox>
+    </div>
   );
 };
 

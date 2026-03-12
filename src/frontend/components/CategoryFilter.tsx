@@ -24,7 +24,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   selectedCategory,
   onCategoryChange,
 }) => {
-  const allCategory = useMemo(() => ({ id: 'all', name: __('All Categories', 'wepos') }), []);
+  const allCategory = useMemo(() => ({ id: 'all', name: __('Category', 'wepos') }), []);
 
   const items = useMemo(() => [
     allCategory,
@@ -39,6 +39,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   }, [selectedCategory, items, allCategory]);
 
   return (
+    <div className="w-fit">
     <Combobox
       items={items}
       value={selectedValue}
@@ -55,7 +56,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
       itemToStringLabel={(item: any) => decodeHtmlEntities(item?.name || '')}
       itemToStringValue={(item: any) => item?.id}
     >
-      <ComboboxInput placeholder={__('Select a category', 'wepos')} className={ cn( 'h-[30px]! bg-primary/10 border-none! text-primary cursor-pointer' ) } />
+      <ComboboxInput placeholder={__('Select a category', 'wepos')} className={ cn( 'h-[30px]! max-w-[130px] border-none! cursor-pointer text-sm!', selectedCategory ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground' ) } />
       <ComboboxContent>
         <ComboboxList>
           {items.map((item) => (
@@ -67,6 +68,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
         <ComboboxEmpty>{__('No category found.', 'wepos')}</ComboboxEmpty>
       </ComboboxContent>
     </Combobox>
+    </div>
   );
 };
 

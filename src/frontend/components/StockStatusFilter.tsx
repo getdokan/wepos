@@ -42,6 +42,7 @@ const StockStatusFilter: React.FC<StockStatusFilterProps> = ({
   }, [selectedStatus, items]);
 
   return (
+    <div className="w-fit">
     <Combobox
       items={items}
       value={selectedValue}
@@ -58,7 +59,8 @@ const StockStatusFilter: React.FC<StockStatusFilterProps> = ({
       <ComboboxInput
         placeholder={__('Stock Status', 'wepos')}
         className={cn(
-          'h-[30px]! bg-primary/10 border-none! text-primary cursor-pointer',
+          'h-[30px]! max-w-[130px] border-none! cursor-pointer text-sm!',
+          selectedStatus ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground',
         )}
       />
       <ComboboxContent>
@@ -72,6 +74,7 @@ const StockStatusFilter: React.FC<StockStatusFilterProps> = ({
         <ComboboxEmpty>{__('No option found.', 'wepos')}</ComboboxEmpty>
       </ComboboxContent>
     </Combobox>
+    </div>
   );
 };
 

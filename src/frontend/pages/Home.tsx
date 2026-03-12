@@ -591,40 +591,32 @@ const HomePage: React.FC = () => {
                       onToggle={toggleProductView}
                     />
                 </div>
-                <div className="flex flex-row items-center gap-2 sm:contents">
-                  <div className='w-[150px] shrink-0'>
-                    <CategoryFilter
-                      categories={categories}
-                      selectedCategory={selectedCategory}
-                      onCategoryChange={setSelectedCategory}
-                    />
-                  </div>
-                  <div className='w-[150px] shrink-0'>
-                    <StockStatusFilter
-                      selectedStatus={selectedStockStatus}
-                      onStatusChange={setSelectedStockStatus}
-                    />
-                  </div>
-                  <div className='w-[150px] shrink-0'>
-                    <TaxonomyFilter
-                      items={tags}
-                      selectedItem={selectedTag}
-                      onItemChange={setSelectedTag}
-                      placeholder={__('Select a tag', 'wepos')}
-                      allLabel={__('All Tags', 'wepos')}
-                      emptyLabel={__('No tag found.', 'wepos')}
-                    />
-                  </div>
-                  <div className='w-[150px] shrink-0'>
-                    <TaxonomyFilter
-                      items={brands}
-                      selectedItem={selectedBrand}
-                      onItemChange={setSelectedBrand}
-                      placeholder={__('Select a brand', 'wepos')}
-                      allLabel={__('All Brands', 'wepos')}
-                      emptyLabel={__('No brand found.', 'wepos')}
-                    />
-                  </div>
+                <div className="flex flex-row flex-wrap items-center gap-2">
+                  <CategoryFilter
+                    categories={categories}
+                    selectedCategory={selectedCategory}
+                    onCategoryChange={setSelectedCategory}
+                  />
+                  <StockStatusFilter
+                    selectedStatus={selectedStockStatus}
+                    onStatusChange={setSelectedStockStatus}
+                  />
+                  <TaxonomyFilter
+                    items={tags}
+                    selectedItem={selectedTag}
+                    onItemChange={setSelectedTag}
+                    placeholder={__('Select a tag', 'wepos')}
+                    allLabel={__('Tag', 'wepos')}
+                    emptyLabel={__('No tag found.', 'wepos')}
+                  />
+                  <TaxonomyFilter
+                    items={brands}
+                    selectedItem={selectedBrand}
+                    onItemChange={setSelectedBrand}
+                    placeholder={__('Select a brand', 'wepos')}
+                    allLabel={__('Brand', 'wepos')}
+                    emptyLabel={__('No brand found.', 'wepos')}
+                  />
                   <ToggleFilter
                     label={__('Featured', 'wepos')}
                     active={filterFeatured}

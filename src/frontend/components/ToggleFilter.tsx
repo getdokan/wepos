@@ -17,10 +17,10 @@ const ToggleFilter: React.FC<ToggleFilterProps> = ({
       type="button"
       onClick={onToggle}
       className={cn(
-        'h-[30px] px-3 rounded-md text-sm font-medium cursor-pointer transition-colors border shrink-0',
+        'h-[30px] px-2.5 rounded-md text-sm font-medium cursor-pointer transition-colors border shrink-0',
         active
-          ? 'bg-primary text-primary-foreground border-primary'
-          : 'bg-primary/10 text-muted-foreground border-transparent hover:text-primary',
+          ? 'bg-primary/10 text-primary border-primary/20'
+          : 'bg-muted text-muted-foreground border-transparent hover:text-foreground',
       )}
     >
       {label}
