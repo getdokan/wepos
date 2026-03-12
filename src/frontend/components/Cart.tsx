@@ -9,7 +9,6 @@ import {
   UserRound,
   SlidersHorizontal,
   Truck,
-  FileText,
 } from 'lucide-react';
 import {
   Button,
@@ -751,29 +750,6 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 </div>
               )}
 
-              {/* Order Meta indicator */}
-              {metaData.length > 0 && (
-                <div className="flex items-center border-b border-border p-[9px_12px]">
-                  <div className="flex-1 text-sm text-gray-600">
-                    <FileText className="mr-1 inline h-3.5 w-3.5" />
-                    <span className="font-medium">
-                      {__('Order Meta:', 'wepos')}{' '}
-                    </span>
-                    {metaData.length} {metaData.length === 1 ? __('item', 'wepos') : __('items', 'wepos')}
-                  </div>
-                  <div className="ml-2">
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      className="text-primary hover:bg-primary/10"
-                      onClick={() => setShowOrderMetaModal(true)}
-                      title={__('Edit order meta', 'wepos')}
-                    >
-                      <FileText className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
 
             </div>
 
