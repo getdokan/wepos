@@ -13,6 +13,8 @@ interface ReceiptModalProps {
   onClose: () => void;
   onNewSale: () => void;
   formatPrice: (amount: number | string | undefined | null) => string;
+  autoPrint?: boolean;
+  autoShow?: boolean;
 }
 
 /**
@@ -95,6 +97,8 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
   onClose,
   onNewSale,
   formatPrice,
+  autoPrint = false,
+  autoShow = true,
 }) => {
   // Inject print styles into document head (once, cleaned up on unmount)
   useEffect(() => {
@@ -110,6 +114,41 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
       if (el) el.remove();
     };
   }, []);
+
+  // Auto-print: trigger printing automatically when the modal is shown
+  const autoPrintTriggeredRef = React.useRef(false);
+  useEffect(() => {
+    if (show && autoPrint && !autoPrintTriggeredRef.current) {
+      autoPrintTriggeredRef.current = true;
+      // Delay to ensure the hidden receipt content is rendered in the DOM
+      const timer = setTimeout(() => {
+        const receiptEl = document.getElementById('wepos-print-receipt');
+        if (!receiptEl) return;
+
+        let container = document.getElementById('wepos-receipt-print-container');
+        if (!container) {
+          container = document.createElement('div');
+          container.id = 'wepos-receipt-print-container';
+          document.body.appendChild(container);
+        }
+        container.innerHTML = receiptEl.innerHTML;
+
+        setTimeout(() => {
+          window.print();
+          // If auto-show is off, dismiss the modal after printing
+          if (!autoShow) {
+            onNewSale();
+            onClose();
+          }
+        }, 300);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+    if (!show) {
+      autoPrintTriggeredRef.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show, autoPrint, autoShow]);
 
   if (!show) return null;
 

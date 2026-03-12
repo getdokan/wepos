@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { posAPI } from '../api';
 import { applyFilters } from '../hooks/useExtensions';
+import { useCartSettings } from '../hooks/useCartSettings';
 import { usePOSData } from '../hooks/usePOSData';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
@@ -63,6 +64,9 @@ import { useResizablePanel } from '../hooks/useResizablePanel';
 const HomePage: React.FC = () => {
   // Initialize data using the hook
   const { initializeData } = usePOSData();
+
+  // Cart settings (localStorage-based: auto show/print receipt, columns, etc.)
+  const { settings: cartSettings } = useCartSettings();
 
   // Resizable panel
   const { containerRef, cartWidthPercent, handleMouseDown } = useResizablePanel();
@@ -399,7 +403,19 @@ const HomePage: React.FC = () => {
 
         setPrintdata(enrichedPrintData);
         setShowModal(false);
-        setShowPaymentReceipt(true);
+
+        const autoShow = cartSettings.autoShowReceipt;
+        const autoPrint = cartSettings.autoPrintReceipt;
+
+        if (autoShow || autoPrint) {
+          // Show receipt modal (needed for auto-print even if auto-show is off conceptually,
+          // since the hidden receipt content must be in the DOM to clone for printing)
+          setShowPaymentReceipt(true);
+        } else {
+          // Neither auto-show nor auto-print: go straight to new sale
+          clearCart();
+          setCashAmount('');
+        }
       }
 
       setPaymentProcessing(false);
@@ -747,6 +763,8 @@ const HomePage: React.FC = () => {
         onClose={createNewSale}
         onNewSale={createNewSale}
         formatPrice={formatPrice}
+        autoPrint={cartSettings.autoPrintReceipt}
+        autoShow={cartSettings.autoShowReceipt}
       />
 
       {/* Extension slot: pro components like ReceiptContent */}
