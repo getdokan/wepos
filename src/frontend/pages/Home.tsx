@@ -501,7 +501,7 @@ const HomePage: React.FC = () => {
       return items;
     };
 
-    // --- fee_lines ---
+    // --- fee_lines (includes POS discounts as negative fees) ---
     const buildFeeLines = () => {
       const items: any[] = [];
       const matchedServerIds = new Set<number>();
@@ -519,6 +519,30 @@ const HomePage: React.FC = () => {
         if (isUpdate && serverOrder && serverOrder.fee_lines[index]) {
           feeItem.id = serverOrder.fee_lines[index].id;
           matchedServerIds.add(serverOrder.fee_lines[index].id);
+        }
+        items.push(feeItem);
+      });
+
+      // Add POS discounts as negative fee lines
+      discountLines.forEach((discount: any) => {
+        const discountTotal = discount.discount_type === 'percent'
+          ? (subtotal * discount.value) / 100
+          : discount.value;
+        const feeItem: any = {
+          name: discount.name || __('Discount', 'wepos'),
+          total: (-Math.abs(discountTotal)).toFixed(2),
+          tax_status: discount.tax_status || 'none',
+          tax_class: discount.tax_class || '',
+        };
+        // Match discount fee lines on server by negative total and name
+        if (isUpdate && serverOrder) {
+          const match = serverOrder.fee_lines.find(
+            (sf: any) => !matchedServerIds.has(sf.id) && parseFloat(sf.total) < 0
+          );
+          if (match) {
+            feeItem.id = match.id;
+            matchedServerIds.add(match.id);
+          }
         }
         items.push(feeItem);
       });
@@ -574,9 +598,7 @@ const HomePage: React.FC = () => {
       line_items: buildLineItems(),
       fee_lines: buildFeeLines(),
       shipping_lines: buildShippingLines(),
-      coupon_lines: discountLines.map((discount: any) => ({
-        code: discount.code,
-      })),
+      coupon_lines: [],
       customer_id: orderData.customer_id,
       customer_note: orderData.customer_note,
       meta_data: [
