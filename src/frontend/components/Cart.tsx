@@ -589,6 +589,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 {__('Checkout', 'wepos')} {formatPrice(total)}
               </Button>
             </div>
+
           </div>
         </div>
       )}

@@ -543,6 +543,7 @@ export interface POSSettings {
   };
   woo_tax: {
     wc_tax_display_cart: string;
+    wc_tax_based_on?: string;
   };
 }
 

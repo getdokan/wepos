@@ -74,9 +74,11 @@ class SettingController extends \WP_REST_Controller {
 
 		$tax_display_on_shop = get_option( 'woocommerce_tax_display_shop', 'excl' );
 		$tax_display_on_cart = get_option( 'woocommerce_tax_display_cart', 'excl' );
+		$tax_based_on = get_option( 'woocommerce_tax_based_on', 'shipping' );
 		$settings['woo_tax'] = [
 			'wc_tax_display_shop' => $tax_display_on_shop,
 			'wc_tax_display_cart' => $tax_display_on_cart,
+			'wc_tax_based_on'    => $tax_based_on,
 		];
 
 		return rest_ensure_response( $settings );
