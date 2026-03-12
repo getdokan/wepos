@@ -38,6 +38,7 @@ import { useCartSettings } from '../hooks/useCartSettings';
 interface CartProps {
   onInitPayment: () => void;
   onSaveToServer?: () => void;
+  onVoidCart?: () => void;
   [name: string]: any;
 }
 
@@ -52,6 +53,7 @@ export interface CartHandle {
 const Cart = forwardRef<CartHandle, CartProps>(({
   onInitPayment,
   onSaveToServer,
+  onVoidCart,
   selectedCustomer,
   handleCustomerSelected,
 }, ref) => {
@@ -100,6 +102,8 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     totalShipping,
     totalTax,
     total,
+    serverOrder,
+    isServerOrderDirty,
   } = useSelect((select) => {
     const store = select(CART_STORE_NAME) as any;
     return {
@@ -115,6 +119,8 @@ const Cart = forwardRef<CartHandle, CartProps>(({
       totalShipping: store.getTotalShipping(),
       totalTax: store.getTotalTax(),
       total: store.getTotal(),
+      serverOrder: store.getServerOrder(),
+      isServerOrderDirty: store.isServerOrderDirty(),
     };
   }, []);
 
@@ -312,6 +318,14 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       const itemTotal = item.quantity * (item.on_sale ? item.sale_price : item.regular_price);
                       const itemSubtotal = item.quantity * item.regular_price;
 
+                      // Get server-calculated tax for this line item if available and not stale
+                      const serverLineItem = serverOrder && !isServerOrderDirty
+                        ? serverOrder.line_items?.find(
+                            (li: any) => li.product_id === item.product_id && li.variation_id === (item.variation_id || 0)
+                          )
+                        : null;
+                      const lineItemTax = serverLineItem ? parseFloat(serverLineItem.total_tax) || 0 : 0;
+
                       return (
                         <React.Fragment key={item.id}>
                           <tr className="border-b border-gray-100 transition-colors hover:bg-gray-50">
@@ -439,9 +453,11 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                                 <div>{formatPrice(itemTotal)}</div>
                                 {isSubOptionEnabled('total', 'tax') && (
                                   <div className="text-xs text-muted-foreground">
-                                    {isTaxInclusive
-                                      ? __('incl. tax', 'wepos')
-                                      : __('excl. tax', 'wepos')}
+                                    {lineItemTax > 0
+                                      ? `${isTaxInclusive ? __('incl.', 'wepos') : '+'} ${__('tax', 'wepos')} ${formatPrice(lineItemTax)}`
+                                      : isTaxInclusive
+                                        ? __('incl. tax', 'wepos')
+                                        : __('excl. tax', 'wepos')}
                                   </div>
                                 )}
                                 {item.on_sale && isSubOptionEnabled('total', 'on_sale') && (
@@ -610,8 +626,35 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 </div>
               ))}
 
-              {/* Tax */}
-              {totalTax > 0 && (
+              {/* Tax Lines (from server, only when not stale) */}
+              {serverOrder && !isServerOrderDirty && serverOrder.tax_lines.length > 0 && (
+                <>
+                  {serverOrder.tax_lines.map((taxLine: any) => (
+                    <div
+                      key={`tax-${taxLine.id}`}
+                      className="flex items-center justify-between border-b border-border p-[9px_12px]"
+                    >
+                      <div className="flex-1 text-sm text-gray-700">
+                        {taxLine.label}
+                        {parseFloat(taxLine.shipping_tax_total) > 0 && (
+                          <span className="ml-1 text-xs text-muted-foreground">
+                            ({__('incl. shipping tax', 'wepos')} {formatPrice(taxLine.shipping_tax_total)})
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm">
+                        {formatPrice(parseFloat(taxLine.tax_total) + parseFloat(taxLine.shipping_tax_total))}
+                      </div>
+                      <div className="ml-2 h-4 w-4">
+                        &nbsp;
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {/* Total Tax (fallback when no detailed tax lines) */}
+              {totalTax > 0 && (!serverOrder || isServerOrderDirty || serverOrder.tax_lines.length === 0) && (
                 <div className="flex items-center justify-between border-b border-border p-[9px_12px]">
                   <div className="text-sm font-medium text-gray-700">
                     {isTaxInclusive
@@ -677,7 +720,9 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       onClick={onSaveToServer}
                       disabled={cartItems.length === 0}
                     >
-                      {__('Save to Server', 'wepos')}
+                      {serverOrder
+                        ? __('Update Order', 'wepos')
+                        : __('Save to Server', 'wepos')}
                     </Button>
                   )}
                 </div>
@@ -736,7 +781,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               <Button
                 variant="destructive"
                 className="h-14 w-[30%] text-lg font-bold"
-                onClick={clearCart}
+                onClick={onVoidCart || clearCart}
               >
                 {__('Void', 'wepos')}
               </Button>

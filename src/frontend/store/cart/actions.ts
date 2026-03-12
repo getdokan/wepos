@@ -1,4 +1,5 @@
 import { POSCartItem, POSFeeLine, POSShippingLine, POSOrderMetaItem, Customer } from '../../types';
+import { ServerOrderData } from './types';
 
 export const actions = {
   addToCart(item: POSCartItem) {
@@ -104,6 +105,19 @@ export const actions = {
     return {
       type: 'SET_META_DATA' as const,
       meta_data,
+    };
+  },
+
+  setServerOrder(server_order: ServerOrderData) {
+    return {
+      type: 'SET_SERVER_ORDER' as const,
+      server_order,
+    };
+  },
+
+  clearServerOrder() {
+    return {
+      type: 'CLEAR_SERVER_ORDER' as const,
     };
   },
 };

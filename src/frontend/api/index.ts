@@ -260,6 +260,15 @@ const ordersAPI = {
 
     return response as Order;
   },
+
+  deleteOrder: async (id: number, force: boolean = true): Promise<any> => {
+    const response = await apiFetch({
+      path: `${API_BASE.WC}/orders/${id}?force=${force}`,
+      method: 'DELETE',
+    });
+
+    return response;
+  },
 };
 
 // Cart API

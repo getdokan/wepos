@@ -87,7 +87,7 @@ const HomePage: React.FC = () => {
     [],
   );
 
-  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines, shippingLines, metaData, totalShipping } = useSelect((select) => {
+  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines, shippingLines, metaData, totalShipping, totalTax, serverOrder } = useSelect((select) => {
     const cartStore = select(CART_STORE_NAME) as any;
     return {
       cartItems: cartStore.getCartItems(),
@@ -99,10 +99,12 @@ const HomePage: React.FC = () => {
       shippingLines: cartStore.getShippingLines(),
       metaData: cartStore.getMetaData(),
       totalShipping: cartStore.getTotalShipping(),
+      totalTax: cartStore.getTotalTax(),
+      serverOrder: cartStore.getServerOrder(),
     };
   }, []);
 
-  const { addToCart, clearCart, setCustomer } = useDispatch(CART_STORE_NAME) as any;
+  const { addToCart, clearCart, setCustomer, setServerOrder, clearServerOrder } = useDispatch(CART_STORE_NAME) as any;
 
   // UI State
   const [showHelp, setShowHelp] = useState(false);
@@ -254,8 +256,24 @@ const HomePage: React.FC = () => {
     }
   }, []);
 
-  const createNewSale = useCallback(() => {
+  // Void: clear cart and delete the pos-open order from server if it exists
+  const [voiding, setVoiding] = useState(false);
+  const voidCart = useCallback(async () => {
+    if (serverOrder?.order_id) {
+      try {
+        setVoiding(true);
+        await posAPI.orders.deleteOrder(serverOrder.order_id, true);
+      } catch (error: any) {
+        console.error('Failed to delete server order:', error);
+      } finally {
+        setVoiding(false);
+      }
+    }
     clearCart();
+  }, [serverOrder, clearCart]);
+
+  const createNewSale = useCallback(() => {
+    clearCart(); // clearCart resets entire state including server_order
     setOrderData({
       customer_id: 0,
       customer_note: '',
@@ -335,47 +353,7 @@ const HomePage: React.FC = () => {
     try {
       setPaymentProcessing(true);
 
-      // Prepare order payload
-      let orderPayload: any = {
-        billing: orderData.billing,
-        shipping: orderData.shipping,
-        line_items: cartItems.map((item: POSCartItem) => {
-          const lineItem: any = {
-            product_id: item.product_id,
-            quantity: item.quantity,
-          };
-          // Miscellaneous products (product_id=0) need name and price sent explicitly
-          if (item.product_id === 0) {
-            lineItem.name = item.name;
-            lineItem.price = item.regular_price;
-            lineItem.total = (item.regular_price * item.quantity).toFixed(2);
-            lineItem.subtotal = (item.regular_price * item.quantity).toFixed(2);
-            if (item.sku) {
-              lineItem.meta_data = [{ key: '_sku', value: item.sku }];
-            }
-          }
-          return lineItem;
-        }),
-        fee_lines: feeLines.map((fee: any) => ({
-          name: fee.name,
-          total: fee.fee_type === 'percent'
-            ? ((subtotal * parseFloat(fee.value)) / 100).toFixed(2)
-            : parseFloat(fee.value).toFixed(2),
-          tax_status: fee.tax_status,
-          tax_class: fee.tax_class,
-        })),
-        shipping_lines: shippingLines.map((shipping: any) => ({
-          method_title: shipping.method_title,
-          method_id: shipping.method_id || 'flat_rate',
-          total: shipping.total,
-          tax_status: shipping.tax_status,
-          tax_class: shipping.tax_class,
-        })),
-        coupon_lines: discountLines.map((discount: any) => ({
-          code: discount.code,
-        })),
-        customer_id: orderData.customer_id,
-        customer_note: orderData.customer_note,
+      const paymentFields = {
         payment_method: selectedGateway,
         payment_method_title:
           availableGateways.find((g: POSGateway) => g.id === selectedGateway)
@@ -387,7 +365,6 @@ const HomePage: React.FC = () => {
             key: '_wepos_cash_change_amount',
             value: changeAmount().toString(),
           },
-          // Include user-defined order meta
           ...metaData.filter((m: any) => m.key.trim() !== '').map((m: any) => ({
             key: m.key,
             value: m.value,
@@ -395,11 +372,17 @@ const HomePage: React.FC = () => {
         ],
       };
 
-      // Allow pro to add cashier/outlet/counter/card metadata
-      orderPayload = applyFilters('wepos_react_order_form_data', orderPayload, orderData);
+      let orderResponse: any;
 
-      // Create order
-      const orderResponse = await posAPI.orders.createOrder(orderPayload);
+      if (serverOrder?.order_id) {
+        // Update the existing pos-open order with payment info
+        const payload = buildOrderPayload(paymentFields);
+        orderResponse = await posAPI.orders.updateOrder(serverOrder.order_id, payload);
+      } else {
+        // Create a new order with payment info
+        const payload = buildOrderPayload(paymentFields);
+        orderResponse = await posAPI.orders.createOrder(payload);
+      }
 
       // Process payment
       const paymentResponse =
@@ -415,9 +398,9 @@ const HomePage: React.FC = () => {
           coupon_lines: discountLines,
           shipping_lines: shippingLines,
           subtotal: subtotal,
-          taxtotal: 0,
+          taxtotal: parseFloat(orderResponse.total_tax) || 0,
           shippingtotal: totalShipping,
-          ordertotal: total,
+          ordertotal: parseFloat(orderResponse.total) || total,
           gateway: {
             id: orderResponse.payment_method,
             title: orderResponse.payment_method_title,
@@ -439,11 +422,8 @@ const HomePage: React.FC = () => {
         const autoPrint = cartSettings.autoPrintReceipt;
 
         if (autoShow || autoPrint) {
-          // Show receipt modal (needed for auto-print even if auto-show is off conceptually,
-          // since the hidden receipt content must be in the DOM to clone for printing)
           setShowPaymentReceipt(true);
         } else {
-          // Neither auto-show nor auto-print: go straight to new sale
           clearCart();
           setCashAmount('');
         }
@@ -457,7 +437,193 @@ const HomePage: React.FC = () => {
     }
   };
 
-  // Save to Server: creates a draft/pending order without processing payment
+  // Helper to build the order payload from current cart state.
+  // When updating an existing order (serverOrder exists), we must:
+  //   - Include the server-side `id` on each line item so WC updates it in place
+  //   - Mark removed server line items with `id` + `quantity: 0` so WC deletes them
+  const buildOrderPayload = (extraFields: Record<string, any> = {}) => {
+    const isUpdate = !!serverOrder;
+
+    // --- line_items ---
+    const buildLineItems = () => {
+      const items: any[] = [];
+      // Track which server line item ids we've matched
+      const matchedServerIds = new Set<number>();
+
+      cartItems.forEach((item: POSCartItem) => {
+        const lineItem: any = {
+          product_id: item.product_id,
+          quantity: item.quantity,
+        };
+        if (item.product_id === 0) {
+          lineItem.name = item.name;
+          lineItem.price = item.regular_price;
+          lineItem.total = (item.regular_price * item.quantity).toFixed(2);
+          lineItem.subtotal = (item.regular_price * item.quantity).toFixed(2);
+          if (item.sku) {
+            lineItem.meta_data = [{ key: '_sku', value: item.sku }];
+          }
+        }
+        // Match to existing server line item by product_id + variation_id
+        if (isUpdate && serverOrder) {
+          const match = serverOrder.line_items.find(
+            (sl: any) => !matchedServerIds.has(sl.id) &&
+              sl.product_id === item.product_id &&
+              sl.variation_id === (item.variation_id || 0)
+          );
+          if (match) {
+            lineItem.id = match.id;
+            matchedServerIds.add(match.id);
+          }
+        }
+        items.push(lineItem);
+      });
+
+      // Delete server line items that no longer exist in cart
+      if (isUpdate && serverOrder) {
+        serverOrder.line_items.forEach((sl: any) => {
+          if (!matchedServerIds.has(sl.id)) {
+            items.push({ id: sl.id, quantity: 0 });
+          }
+        });
+      }
+
+      return items;
+    };
+
+    // --- fee_lines ---
+    const buildFeeLines = () => {
+      const items: any[] = [];
+      const matchedServerIds = new Set<number>();
+
+      feeLines.forEach((fee: any, index: number) => {
+        const feeItem: any = {
+          name: fee.name,
+          total: fee.fee_type === 'percent'
+            ? ((subtotal * parseFloat(fee.value)) / 100).toFixed(2)
+            : parseFloat(fee.value).toFixed(2),
+          tax_status: fee.tax_status,
+          tax_class: fee.tax_class,
+        };
+        // Match by index position to server fee lines
+        if (isUpdate && serverOrder && serverOrder.fee_lines[index]) {
+          feeItem.id = serverOrder.fee_lines[index].id;
+          matchedServerIds.add(serverOrder.fee_lines[index].id);
+        }
+        items.push(feeItem);
+      });
+
+      // Delete removed fee lines
+      if (isUpdate && serverOrder) {
+        serverOrder.fee_lines.forEach((sf: any) => {
+          if (!matchedServerIds.has(sf.id)) {
+            items.push({ id: sf.id, name: null });
+          }
+        });
+      }
+
+      return items;
+    };
+
+    // --- shipping_lines ---
+    const buildShippingLines = () => {
+      const items: any[] = [];
+      const matchedServerIds = new Set<number>();
+
+      shippingLines.forEach((shipping: any, index: number) => {
+        const shipItem: any = {
+          method_title: shipping.method_title,
+          method_id: shipping.method_id || 'flat_rate',
+          total: shipping.total,
+          tax_status: shipping.tax_status,
+          tax_class: shipping.tax_class,
+        };
+        // Match by index position to server shipping lines
+        if (isUpdate && serverOrder && serverOrder.shipping_lines[index]) {
+          shipItem.id = serverOrder.shipping_lines[index].id;
+          matchedServerIds.add(serverOrder.shipping_lines[index].id);
+        }
+        items.push(shipItem);
+      });
+
+      // Delete removed shipping lines
+      if (isUpdate && serverOrder) {
+        serverOrder.shipping_lines.forEach((ss: any) => {
+          if (!matchedServerIds.has(ss.id)) {
+            items.push({ id: ss.id, method_title: null });
+          }
+        });
+      }
+
+      return items;
+    };
+
+    let orderPayload: any = {
+      billing: orderData.billing,
+      shipping: orderData.shipping,
+      line_items: buildLineItems(),
+      fee_lines: buildFeeLines(),
+      shipping_lines: buildShippingLines(),
+      coupon_lines: discountLines.map((discount: any) => ({
+        code: discount.code,
+      })),
+      customer_id: orderData.customer_id,
+      customer_note: orderData.customer_note,
+      meta_data: [
+        { key: '_wepos_is_pos_order', value: true },
+        ...metaData.filter((m: any) => m.key.trim() !== '').map((m: any) => ({
+          key: m.key,
+          value: m.value,
+        })),
+      ],
+      ...extraFields,
+    };
+
+    orderPayload = applyFilters('wepos_react_order_form_data', orderPayload, orderData);
+    return orderPayload;
+  };
+
+  // Extract server order data from WC API response
+  const extractServerOrderData = (response: any) => ({
+    order_id: response.id,
+    order_number: response.number,
+    total: response.total,
+    total_tax: response.total_tax,
+    line_items: (response.line_items || []).map((li: any) => ({
+      id: li.id,
+      product_id: li.product_id,
+      variation_id: li.variation_id,
+      total: li.total,
+      total_tax: li.total_tax,
+      subtotal: li.subtotal,
+      subtotal_tax: li.subtotal_tax,
+      taxes: li.taxes || [],
+    })),
+    fee_lines: (response.fee_lines || []).map((fl: any) => ({
+      id: fl.id,
+      total: fl.total,
+      total_tax: fl.total_tax,
+      taxes: fl.taxes || [],
+    })),
+    shipping_lines: (response.shipping_lines || []).map((sl: any) => ({
+      id: sl.id,
+      total: sl.total,
+      total_tax: sl.total_tax,
+      taxes: sl.taxes || [],
+    })),
+    tax_lines: (response.tax_lines || []).map((tl: any) => ({
+      id: tl.id,
+      rate_code: tl.rate_code,
+      rate_id: tl.rate_id,
+      label: tl.label,
+      compound: tl.compound,
+      tax_total: tl.tax_total,
+      shipping_tax_total: tl.shipping_tax_total,
+    })),
+  });
+
+  // Save to Server: creates/updates a pos-open order without processing payment.
+  // The order stays in the cart so the cashier can continue editing or proceed to checkout.
   const [savingToServer, setSavingToServer] = useState(false);
   const saveToServer = async () => {
     if (cartItems.length === 0) return;
@@ -465,63 +631,21 @@ const HomePage: React.FC = () => {
     try {
       setSavingToServer(true);
 
-      let orderPayload: any = {
-        status: 'pending',
-        billing: orderData.billing,
-        shipping: orderData.shipping,
-        line_items: cartItems.map((item: POSCartItem) => {
-          const lineItem: any = {
-            product_id: item.product_id,
-            quantity: item.quantity,
-          };
-          if (item.product_id === 0) {
-            lineItem.name = item.name;
-            lineItem.price = item.regular_price;
-            lineItem.total = (item.regular_price * item.quantity).toFixed(2);
-            lineItem.subtotal = (item.regular_price * item.quantity).toFixed(2);
-            if (item.sku) {
-              lineItem.meta_data = [{ key: '_sku', value: item.sku }];
-            }
-          }
-          return lineItem;
-        }),
-        fee_lines: feeLines.map((fee: any) => ({
-          name: fee.name,
-          total: fee.fee_type === 'percent'
-            ? ((subtotal * parseFloat(fee.value)) / 100).toFixed(2)
-            : parseFloat(fee.value).toFixed(2),
-          tax_status: fee.tax_status,
-          tax_class: fee.tax_class,
-        })),
-        shipping_lines: shippingLines.map((shipping: any) => ({
-          method_title: shipping.method_title,
-          method_id: shipping.method_id || 'flat_rate',
-          total: shipping.total,
-          tax_status: shipping.tax_status,
-          tax_class: shipping.tax_class,
-        })),
-        coupon_lines: discountLines.map((discount: any) => ({
-          code: discount.code,
-        })),
-        customer_id: orderData.customer_id,
-        customer_note: orderData.customer_note,
-        meta_data: [
-          { key: '_wepos_is_pos_order', value: true },
-          ...metaData.filter((m: any) => m.key.trim() !== '').map((m: any) => ({
-            key: m.key,
-            value: m.value,
-          })),
-        ],
-      };
+      let orderResponse: any;
 
-      orderPayload = applyFilters('wepos_react_order_form_data', orderPayload, orderData);
-
-      const orderResponse = await posAPI.orders.createOrder(orderPayload);
+      if (serverOrder?.order_id) {
+        // Update the existing pos-open order
+        const payload = buildOrderPayload({ status: 'pos-open' });
+        orderResponse = await posAPI.orders.updateOrder(serverOrder.order_id, payload);
+      } else {
+        // Create a new pos-open order
+        const payload = buildOrderPayload({ status: 'pos-open' });
+        orderResponse = await posAPI.orders.createOrder(payload);
+      }
 
       if (orderResponse?.id) {
-        alert(__('Order saved to server successfully! Order #', 'wepos') + orderResponse.number);
-        clearCart();
-        setCashAmount('');
+        // Sync server-calculated data (taxes, totals) back to cart store
+        setServerOrder(extractServerOrderData(orderResponse));
       }
 
       setSavingToServer(false);
@@ -809,6 +933,7 @@ const HomePage: React.FC = () => {
               ref={cartRef}
               onInitPayment={initPayment}
               onSaveToServer={saveToServer}
+              onVoidCart={voidCart}
               selectedCustomer={selectedCustomer}
               handleCustomerSelected={handleCustomerSelected}
             />
@@ -826,6 +951,7 @@ const HomePage: React.FC = () => {
               ref={cartRef}
               onInitPayment={initPayment}
               onSaveToServer={saveToServer}
+              onVoidCart={voidCart}
               selectedCustomer={selectedCustomer}
               handleCustomerSelected={handleCustomerSelected}
             />
