@@ -321,6 +321,8 @@ const ProductListRow: React.FC<ProductListRowProps> = ({
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
+export const ProductListHeader: React.FC = () => <ListHeader />;
+
 export const ProductListView: React.FC<ProductListViewProps> = ({
   products,
   onAddToCart,
@@ -329,8 +331,7 @@ export const ProductListView: React.FC<ProductListViewProps> = ({
   hasStock,
   getProductImage,
 }) => (
-  <div className="overflow-hidden border-b border-gray-200 bg-white">
-    <ListHeader />
+  <div className="bg-white">
     <div className="divide-y divide-gray-100">
       {products.map((product) => (
         <ProductListRow
