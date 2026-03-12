@@ -247,7 +247,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
 
   return (
     <div ref={wrapperRef} className="relative flex-1 min-w-0">
-      <form autoComplete="off" onSubmit={handleProductScan} className="relative flex items-center">
+      <form autoComplete="off" onSubmit={handleProductScan} className="relative flex items-center bg-muted text-muted-foreground">
         {/* Search/Scan icon */}
         <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 z-10">
           {mode === 'product' ? (
