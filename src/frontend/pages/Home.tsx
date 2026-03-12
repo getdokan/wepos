@@ -46,7 +46,7 @@ import {
 } from '@wedevs/plugin-ui';
 import { Slot } from '@wordpress/components';
 import { PluginArea } from '@wordpress/plugins';
-import { ChevronDown, LayoutGrid, ShoppingCart, Sun, Moon } from 'lucide-react';
+import { ChevronDown, CircleHelp, LayoutGrid, LogOut, ShoppingCart, Sun, Moon } from 'lucide-react';
 import Cart, { CartHandle } from '../components/Cart';
 import CategoryFilter from '../components/CategoryFilter';
 import StockStatusFilter, { StockStatus } from '../components/StockStatusFilter';
@@ -873,6 +873,7 @@ const HomePage: React.FC = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem onClick={() => setShowHelp(true)}>
+                        <CircleHelp className="mr-1 size-4" />
                         {__('Help', 'wepos')}
                       </DropdownMenuItem>
                       <Slot name="WeposUserMenuAfterHelp" fillProps={{ DropdownMenuItem }}>
@@ -880,8 +881,8 @@ const HomePage: React.FC = () => {
                       </Slot>
                       <DropdownMenuItem onClick={() => setMode(resolvedMode === 'dark' ? 'light' : 'dark')}>
                         {resolvedMode === 'dark'
-                          ? <Sun className="mr-2 size-4" />
-                          : <Moon className="mr-2 size-4" />
+                          ? <Sun className="mr-1 size-4" />
+                          : <Moon className="mr-1 size-4" />
                         }
                         {resolvedMode === 'dark' ? __('Light Mode', 'wepos') : __('Dark Mode', 'wepos')}
                       </DropdownMenuItem>
@@ -891,6 +892,7 @@ const HomePage: React.FC = () => {
                           (window.location.href = (window as any).wepos?.logout_url)
                         }
                       >
+                        <LogOut className="mr-1 size-4" />
                         {__('Logout', 'wepos')}
                       </DropdownMenuItem>
                       <Slot name="WeposUserMenuAfterLogout" fillProps={{ DropdownMenuItem }}>
