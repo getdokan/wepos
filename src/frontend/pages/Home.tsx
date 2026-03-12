@@ -15,10 +15,12 @@ import { PRODUCTS_STORE_NAME } from '../store/products';
 import {
   Customer,
   POSCartItem,
+  POSBrand,
   POSCategory,
   POSGateway,
   POSPrintData,
   POSProduct,
+  POSTag,
   ProductViewType,
 } from '../types';
 import {
@@ -46,6 +48,9 @@ import { PluginArea } from '@wordpress/plugins';
 import { ChevronDown, LogOut, ShoppingCart, X } from 'lucide-react';
 import Cart, { CartHandle } from '../components/Cart';
 import CategoryFilter from '../components/CategoryFilter';
+import StockStatusFilter, { StockStatus } from '../components/StockStatusFilter';
+import TaxonomyFilter from '../components/TaxonomyFilter';
+import ToggleFilter from '../components/ToggleFilter';
 import HelpModal from '../components/HelpModal';
 import Layout from '../components/Layout';
 import PaymentModal from '../components/PaymentModal';
@@ -63,12 +68,14 @@ const HomePage: React.FC = () => {
   const { containerRef, cartWidthPercent, handleMouseDown } = useResizablePanel();
 
   // Get data from stores
-  const { products, categories, availableGateways, productLoading, settings } = useSelect(
+  const { products, categories, tags, brands, availableGateways, productLoading, settings } = useSelect(
     (select) => {
       const productsStore = select(PRODUCTS_STORE_NAME) as any;
       return {
         products: productsStore.getProducts(),
         categories: productsStore.getCategories(),
+        tags: productsStore.getTags(),
+        brands: productsStore.getBrands(),
         availableGateways: productsStore.getGateways(),
         productLoading: productsStore.getProductsLoading(),
         settings: productsStore.getSettings(),
@@ -99,6 +106,11 @@ const HomePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<POSCategory | null>(
     null,
   );
+  const [selectedStockStatus, setSelectedStockStatus] = useState<StockStatus | null>(null);
+  const [selectedTag, setSelectedTag] = useState<POSTag | null>(null);
+  const [selectedBrand, setSelectedBrand] = useState<POSBrand | null>(null);
+  const [filterFeatured, setFilterFeatured] = useState(false);
+  const [filterOnSale, setFilterOnSale] = useState(false);
   const [selectedGateway, setSelectedGateway] = useState('');
   const [cashAmount, setCashAmount] = useState('');
   const [printdata, setPrintdata] = useState<POSPrintData>({
@@ -175,6 +187,41 @@ const HomePage: React.FC = () => {
       );
     }
 
+    // Filter by stock status
+    if (selectedStockStatus) {
+      filteredProducts = filteredProducts.filter(
+        (product: POSProduct) => product.stock_status === selectedStockStatus,
+      );
+    }
+
+    // Filter by tag
+    if (selectedTag) {
+      filteredProducts = filteredProducts.filter((product: POSProduct) =>
+        product.tags?.some((tag) => tag.id === selectedTag.id),
+      );
+    }
+
+    // Filter by brand
+    if (selectedBrand) {
+      filteredProducts = filteredProducts.filter((product: POSProduct) =>
+        product.brands?.some((brand) => brand.id === selectedBrand.id),
+      );
+    }
+
+    // Filter by featured
+    if (filterFeatured) {
+      filteredProducts = filteredProducts.filter(
+        (product: POSProduct) => product.featured,
+      );
+    }
+
+    // Filter by on sale
+    if (filterOnSale) {
+      filteredProducts = filteredProducts.filter(
+        (product: POSProduct) => product.on_sale,
+      );
+    }
+
     // Additional URL parameter filtering
     const urlParams = new URLSearchParams(window.location.search);
     const categoryParam = urlParams.get('category');
@@ -190,7 +237,7 @@ const HomePage: React.FC = () => {
     }
 
     return filteredProducts;
-  }, [products, selectedCategory]);
+  }, [products, selectedCategory, selectedStockStatus, selectedTag, selectedBrand, filterFeatured, filterOnSale]);
 
   // UI Actions
   const toggleProductView = useCallback((view?: ProductViewType) => {
@@ -552,6 +599,42 @@ const HomePage: React.FC = () => {
                       onCategoryChange={setSelectedCategory}
                     />
                   </div>
+                  <div className='w-[150px] shrink-0'>
+                    <StockStatusFilter
+                      selectedStatus={selectedStockStatus}
+                      onStatusChange={setSelectedStockStatus}
+                    />
+                  </div>
+                  <div className='w-[150px] shrink-0'>
+                    <TaxonomyFilter
+                      items={tags}
+                      selectedItem={selectedTag}
+                      onItemChange={setSelectedTag}
+                      placeholder={__('Select a tag', 'wepos')}
+                      allLabel={__('All Tags', 'wepos')}
+                      emptyLabel={__('No tag found.', 'wepos')}
+                    />
+                  </div>
+                  <div className='w-[150px] shrink-0'>
+                    <TaxonomyFilter
+                      items={brands}
+                      selectedItem={selectedBrand}
+                      onItemChange={setSelectedBrand}
+                      placeholder={__('Select a brand', 'wepos')}
+                      allLabel={__('All Brands', 'wepos')}
+                      emptyLabel={__('No brand found.', 'wepos')}
+                    />
+                  </div>
+                  <ToggleFilter
+                    label={__('Featured', 'wepos')}
+                    active={filterFeatured}
+                    onToggle={() => setFilterFeatured((prev) => !prev)}
+                  />
+                  <ToggleFilter
+                    label={__('On Sale', 'wepos')}
+                    active={filterOnSale}
+                    onToggle={() => setFilterOnSale((prev) => !prev)}
+                  />
                 </div>
               </div>
             </div>

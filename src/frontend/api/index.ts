@@ -12,6 +12,8 @@ import {
   POSGateway,
   POSSettings,
   POSCategory,
+  POSTag,
+  POSBrand,
 } from '../types';
 
 // Configure api-fetch with WePOS endpoints
@@ -169,6 +171,33 @@ const productsAPI = {
     };
 
     return [allCategoriesOption, ...sortedCategories];
+  },
+
+  // Get product tags for POS
+  getTags: async (): Promise<POSTag[]> => {
+    const response = (await apiFetch({
+      path: `${API_BASE.WC}/products/tags?hide_empty=true&_fields=id,name&per_page=100`,
+    })) as POSTag[];
+
+    response.sort((a: POSTag, b: POSTag) => a.name.localeCompare(b.name));
+
+    return response;
+  },
+
+  // Get product brands for POS
+  getBrands: async (): Promise<POSBrand[]> => {
+    try {
+      const response = (await apiFetch({
+        path: `${API_BASE.WC}/products/brands?hide_empty=true&_fields=id,name&per_page=100`,
+      })) as POSBrand[];
+
+      response.sort((a: POSBrand, b: POSBrand) => a.name.localeCompare(b.name));
+
+      return response;
+    } catch {
+      // Brands endpoint may not exist if WooCommerce Brands plugin is not active
+      return [];
+    }
   },
 };
 

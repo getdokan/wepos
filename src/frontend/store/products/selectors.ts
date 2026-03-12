@@ -3,10 +3,14 @@ import { ProductsState } from './types';
 export const selectors = {
   getProducts: (state: ProductsState) => state.products,
   getCategories: (state: ProductsState) => state.categories,
+  getTags: (state: ProductsState) => state.tags,
+  getBrands: (state: ProductsState) => state.brands,
   getGateways: (state: ProductsState) => state.gateways,
   getSettings: (state: ProductsState) => state.settings,
   getProductsLoading: (state: ProductsState) => state.loading.products,
   getCategoriesLoading: (state: ProductsState) => state.loading.categories,
+  getTagsLoading: (state: ProductsState) => state.loading.tags,
+  getBrandsLoading: (state: ProductsState) => state.loading.brands,
   getGatewaysLoading: (state: ProductsState) => state.loading.gateways,
   getSettingsLoading: (state: ProductsState) => state.loading.settings,
 

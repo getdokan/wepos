@@ -570,6 +570,16 @@ export interface POSCategory {
   level: number;
 }
 
+export interface POSTag {
+  id: number;
+  name: string;
+}
+
+export interface POSBrand {
+  id: number;
+  name: string;
+}
+
 // UI State Types
 export type ProductViewType = 'grid' | 'list';
 
@@ -579,8 +589,11 @@ export interface POSProduct {
   type: string;
   images: Array<{ woocommerce_thumbnail: string; name: string }>;
   categories: Array<{ id: number; name: string }>;
+  tags: Array<{ id: number; name: string }>;
+  brands: Array<{ id: number; name: string }>;
   sku?: string;
   price_html: string;
+  featured: boolean;
   on_sale: boolean;
   sale_price: number | string;
   regular_price: number | string;

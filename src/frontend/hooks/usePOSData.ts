@@ -33,7 +33,7 @@ export const usePOSData = () => {
   const isInitializing = useRef(false);
 
   // Get data from products store
-  const { products, availableGateways, settings, categories, productLoading } =
+  const { products, availableGateways, settings, categories, tags, brands, productLoading } =
     useSelect((select) => {
       const store = select(PRODUCTS_STORE_NAME) as any;
       return {
@@ -41,6 +41,8 @@ export const usePOSData = () => {
         availableGateways: store.getGateways(),
         settings: store.getSettings(),
         categories: store.getCategories(),
+        tags: store.getTags(),
+        brands: store.getBrands(),
         productLoading: store.getProductsLoading(),
       };
     }, []);
@@ -52,10 +54,14 @@ export const usePOSData = () => {
     setGateways,
     setSettings,
     setCategories,
+    setTags,
+    setBrands,
     setProductsLoading,
     setGatewaysLoading,
     setSettingsLoading,
     setCategoriesLoading,
+    setTagsLoading,
+    setBrandsLoading,
   } = useDispatch(PRODUCTS_STORE_NAME) as any;
 
   // ===== STORED DATA STATE (for local storage data not in stores) =====
@@ -136,6 +142,28 @@ export const usePOSData = () => {
     }
   }, [setCategoriesLoading, setCategories]);
 
+  const fetchTags = useCallback(async () => {
+    setTagsLoading(true);
+    try {
+      const tags = await posAPI.products.getTags();
+      setTags(tags);
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+      setTagsLoading(false);
+    }
+  }, [setTagsLoading, setTags]);
+
+  const fetchBrands = useCallback(async () => {
+    setBrandsLoading(true);
+    try {
+      const brands = await posAPI.products.getBrands();
+      setBrands(brands);
+    } catch (error) {
+      console.error('Error fetching brands:', error);
+      setBrandsLoading(false);
+    }
+  }, [setBrandsLoading, setBrands]);
+
   // ===== INITIALIZATION =====
   const initializeData = useCallback(async () => {
     if (initializeRef.current || isInitializing.current) {
@@ -153,6 +181,8 @@ export const usePOSData = () => {
         fetchProducts(),
         fetchGateways(),
         fetchCategories(),
+        fetchTags(),
+        fetchBrands(),
       ]);
       console.log('✅ POS data initialization complete');
     } catch (error) {
@@ -161,7 +191,7 @@ export const usePOSData = () => {
     } finally {
       isInitializing.current = false;
     }
-  }, [fetchSettings, fetchProducts, fetchGateways, fetchCategories]);
+  }, [fetchSettings, fetchProducts, fetchGateways, fetchCategories, fetchTags, fetchBrands]);
 
   // ===== LOCALSTORAGE PERSISTENCE =====
   useEffect(() => {
@@ -178,6 +208,8 @@ export const usePOSData = () => {
     availableGateways,
     settings,
     categories,
+    tags,
+    brands,
     productLoading,
 
     // Stored Data (local storage)
