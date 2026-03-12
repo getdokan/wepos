@@ -8,6 +8,8 @@ import {
   Minus,
   UserRound,
   SlidersHorizontal,
+  Truck,
+  FileText,
 } from 'lucide-react';
 import {
   Button,
@@ -17,9 +19,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@wedevs/plugin-ui';
-import { POSCartItem } from '../types';
+import { POSCartItem, POSFeeLine, POSShippingLine, POSOrderMetaItem } from '../types';
 import FeeKeypad, { FeeKeypadHandle } from './FeeKeypad';
 import CustomerNote, { CustomerNoteHandle } from './CustomerNote';
+import AddMiscProductModal from './AddMiscProductModal';
+import AddShippingModal from './AddShippingModal';
+import AddFeeModal from './AddFeeModal';
+import OrderMetaModal from './OrderMetaModal';
 import { Slot } from '@wordpress/components';
 import { PluginArea } from '@wordpress/plugins';
 import { formatPrice } from '../utils/helpers';
@@ -31,6 +37,7 @@ import { useCartSettings } from '../hooks/useCartSettings';
 
 interface CartProps {
   onInitPayment: () => void;
+  onSaveToServer?: () => void;
   [name: string]: any;
 }
 
@@ -44,6 +51,7 @@ export interface CartHandle {
 
 const Cart = forwardRef<CartHandle, CartProps>(({
   onInitPayment,
+  onSaveToServer,
   selectedCustomer,
   handleCustomerSelected,
 }, ref) => {
@@ -59,15 +67,20 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     isSubOptionEnabled,
   } = useCartSettings();
 
+  // Modal states
+  const [showMiscProductModal, setShowMiscProductModal] = useState(false);
+  const [showShippingModal, setShowShippingModal] = useState(false);
+  const [showFeeModal, setShowFeeModal] = useState(false);
+  const [showOrderMetaModal, setShowOrderMetaModal] = useState(false);
+
   // Refs for child components
   const discountRef = useRef<FeeKeypadHandle>(null);
-  const feeRef = useRef<FeeKeypadHandle>(null);
   const noteRef = useRef<CustomerNoteHandle>(null);
   const customerSearchRef = useRef<CustomerSearchHandle>(null);
 
   useImperativeHandle(ref, () => ({
     openDiscount: () => discountRef.current?.open(),
-    openFee: () => feeRef.current?.open(),
+    openFee: () => setShowFeeModal(true),
     openNote: () => noteRef.current?.open(),
     focusCustomerSearch: () => customerSearchRef.current?.focus(),
     openNewCustomer: () => customerSearchRef.current?.openNewCustomer(),
@@ -78,10 +91,13 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     cartItems,
     discountLines,
     feeLines,
+    shippingLines,
+    metaData,
     customerNote,
     subtotal,
     totalDiscount,
     totalFee,
+    totalShipping,
     totalTax,
     total,
   } = useSelect((select) => {
@@ -90,10 +106,13 @@ const Cart = forwardRef<CartHandle, CartProps>(({
       cartItems: store.getCartItems(),
       discountLines: store.getDiscountLines(),
       feeLines: store.getFeeLines(),
+      shippingLines: store.getShippingLines(),
+      metaData: store.getMetaData(),
       customerNote: store.getCustomerNote(),
       subtotal: store.getSubtotal(),
       totalDiscount: store.getTotalDiscount(),
       totalFee: store.getTotalFee(),
+      totalShipping: store.getTotalShipping(),
       totalTax: store.getTotalTax(),
       total: store.getTotal(),
     };
@@ -111,12 +130,16 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     updateCartItem,
     removeFromCart,
     clearCart,
+    addToCart,
     addDiscount,
-    addFee,
+    addFeeLine,
     removeDiscount,
     removeFee,
     addCustomerNote,
     removeCustomerNote,
+    addShippingLine,
+    removeShippingLine,
+    setMetaData,
   } = useDispatch(CART_STORE_NAME) as any;
 
   const addQuantity = (item: POSCartItem, index: number) => {
@@ -137,12 +160,44 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     addDiscount(value, type === 'percent' ? 'percent' : 'fixed_cart');
   };
 
-  const handleFeeInput = (value: number, type: 'percent' | 'fixed') => {
-    addFee(value, type);
-  };
-
   const handleAddNote = (note: string) => {
     addCustomerNote(note);
+  };
+
+  const handleAddMiscProduct = (product: {
+    name: string;
+    sku: string;
+    price: number;
+    tax_class: string;
+    tax_status: 'taxable' | 'none';
+  }) => {
+    const cartItem: POSCartItem = {
+      id: Date.now(),
+      product_id: 0,
+      variation_id: 0,
+      name: product.name,
+      sku: product.sku,
+      quantity: 1,
+      regular_price: product.price,
+      sale_price: product.price,
+      on_sale: false,
+      type: 'simple',
+      attribute: [],
+      tax_amount: 0,
+    };
+    addToCart(cartItem);
+  };
+
+  const handleAddShipping = (shipping: POSShippingLine) => {
+    addShippingLine(shipping);
+  };
+
+  const handleAddFee = (fee: POSFeeLine) => {
+    addFeeLine(fee);
+  };
+
+  const handleSaveOrderMeta = (meta: POSOrderMetaItem[]) => {
+    setMetaData(meta);
   };
 
   const getDiscountAmount = (discount: any) => {
@@ -292,6 +347,11 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                               <td className="p-3 text-sm">
                                 <div className="font-sm text-gray-800">
                                   {item.name}
+                                  {item.product_id === 0 && (
+                                    <span className="ml-1 text-xs text-muted-foreground">
+                                      ({__('Misc', 'wepos')})
+                                    </span>
+                                  )}
                                 </div>
                                 {/* Show SKU under name if sub-option enabled */}
                                 {isSubOptionEnabled('name', 'sku') && item.sku && (
@@ -489,12 +549,17 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                   className="flex items-center border-b border-border p-[9px_12px]"
                 >
                   <div className="flex-1 text-sm text-gray-700">
-                    {__('Fee', 'wepos')}
+                    {fee.name || __('Fee', 'wepos')}
                     <span className="ml-2 text-xs text-muted-foreground">
                       {fee.fee_type === 'percent'
                         ? `${fee.value}%`
                         : formatPrice(fee.value)}
                     </span>
+                    {fee.tax_status === 'taxable' && (
+                      <span className="ml-1 text-xs text-muted-foreground">
+                        ({__('taxable', 'wepos')})
+                      </span>
+                    )}
                   </div>
                   <div className="text-sm">
                     {formatPrice(getFeeAmount(fee))}
@@ -506,6 +571,38 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       className="text-red-500 hover:bg-red-50 hover:text-red-700"
                       onClick={() => removeFee(index)}
                       title={__('Remove fee', 'wepos')}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Shipping Lines */}
+              {shippingLines.map((shipping: POSShippingLine, index: number) => (
+                <div
+                  key={`shipping-${index}`}
+                  className="flex items-center border-b border-border p-[9px_12px]"
+                >
+                  <div className="flex-1 text-sm text-gray-700">
+                    <Truck className="mr-1 inline h-3.5 w-3.5" />
+                    {shipping.method_title}
+                    {shipping.tax_status === 'taxable' && (
+                      <span className="ml-1 text-xs text-muted-foreground">
+                        ({__('taxable', 'wepos')})
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm">
+                    {formatPrice(shipping.total)}
+                  </div>
+                  <div className="ml-2">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                      onClick={() => removeShippingLine(index)}
+                      title={__('Remove shipping', 'wepos')}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -536,14 +633,52 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     onInputFee={handleDiscountInput}
                     isDiscount={true}
                   />
-                  <FeeKeypad
-                    ref={feeRef}
-                    name={__('Fee', 'wepos')}
-                    onInputFee={handleFeeInput}
-                    isDiscount={false}
-                  />
                   {!customerNote && (
                     <CustomerNote ref={noteRef} onAddNote={handleAddNote} />
+                  )}
+
+                  {/* New action buttons */}
+                  <Button
+                    variant="outline"
+                    className="border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
+                    onClick={() => setShowMiscProductModal(true)}
+                  >
+                    {__('Misc Product', 'wepos')}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
+                    onClick={() => setShowFeeModal(true)}
+                  >
+                    {__('Add Fee', 'wepos')}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
+                    onClick={() => setShowShippingModal(true)}
+                  >
+                    {__('Shipping', 'wepos')}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
+                    onClick={() => setShowOrderMetaModal(true)}
+                  >
+                    {__('Order Meta', 'wepos')}
+                  </Button>
+
+                  {onSaveToServer && (
+                    <Button
+                      variant="outline"
+                      className="border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
+                      onClick={onSaveToServer}
+                      disabled={cartItems.length === 0}
+                    >
+                      {__('Save to Server', 'wepos')}
+                    </Button>
                   )}
                 </div>
               </div>
@@ -566,6 +701,30 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       title={__('Remove note', 'wepos')}
                     >
                       <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Order Meta indicator */}
+              {metaData.length > 0 && (
+                <div className="flex items-center border-b border-border p-[9px_12px]">
+                  <div className="flex-1 text-sm text-gray-600">
+                    <FileText className="mr-1 inline h-3.5 w-3.5" />
+                    <span className="font-medium">
+                      {__('Order Meta:', 'wepos')}{' '}
+                    </span>
+                    {metaData.length} {metaData.length === 1 ? __('item', 'wepos') : __('items', 'wepos')}
+                  </div>
+                  <div className="ml-2">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-primary hover:bg-primary/10"
+                      onClick={() => setShowOrderMetaModal(true)}
+                      title={__('Edit order meta', 'wepos')}
+                    >
+                      <FileText className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -602,6 +761,32 @@ const Cart = forwardRef<CartHandle, CartProps>(({
         onToggleSubOption={toggleSubOption}
         onUpdateSettings={updateCartSettings}
         onRestoreDefaults={restoreDefaults}
+      />
+
+      {/* Modal Components */}
+      <AddMiscProductModal
+        isOpen={showMiscProductModal}
+        onClose={() => setShowMiscProductModal(false)}
+        onAddProduct={handleAddMiscProduct}
+      />
+
+      <AddShippingModal
+        isOpen={showShippingModal}
+        onClose={() => setShowShippingModal(false)}
+        onAddShipping={handleAddShipping}
+      />
+
+      <AddFeeModal
+        isOpen={showFeeModal}
+        onClose={() => setShowFeeModal(false)}
+        onAddFee={handleAddFee}
+      />
+
+      <OrderMetaModal
+        isOpen={showOrderMetaModal}
+        onClose={() => setShowOrderMetaModal(false)}
+        onSave={handleSaveOrderMeta}
+        initialMetaData={metaData}
       />
     </div>
   );

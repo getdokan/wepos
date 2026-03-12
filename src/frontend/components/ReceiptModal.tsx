@@ -334,12 +334,22 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
                     {(printdata.fee_lines || []).map((fee: any, idx: number) => (
                       <tr key={`fee-${idx}`} className="cart-meta-data">
                         <td colSpan={2} className="name">
-                          {__('Fee', 'wepos')}{' '}
+                          {fee.name || __('Fee', 'wepos')}{' '}
                           <span className="metadata">
                             {fee.fee_type === 'percent' ? `${fee.value}%` : formatPrice(fee.value)}
                           </span>
                         </td>
                         <td className="price">{formatPrice(Math.abs(fee.total))}</td>
+                      </tr>
+                    ))}
+
+                    {/* Shipping lines */}
+                    {(printdata.shipping_lines || []).map((shipping: any, idx: number) => (
+                      <tr key={`ship-${idx}`} className="cart-meta-data">
+                        <td colSpan={2} className="name">
+                          {shipping.method_title || __('Shipping', 'wepos')}
+                        </td>
+                        <td className="price">{formatPrice(shipping.total)}</td>
                       </tr>
                     ))}
 

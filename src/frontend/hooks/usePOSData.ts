@@ -70,6 +70,8 @@ export const usePOSData = () => {
       line_items: [],
       fee_lines: [],
       coupon_lines: [],
+      shipping_lines: [],
+      meta_data: [],
     };
     const storedCartData = getFromLocalStorage('cartdata', defaultCartData);
     return sanitizeCartData(storedCartData);

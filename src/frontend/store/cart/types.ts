@@ -1,10 +1,12 @@
-import { POSCartItem, POSDiscountLine, POSFeeLine, Customer } from '../../types';
+import { POSCartItem, POSDiscountLine, POSFeeLine, POSShippingLine, POSOrderMetaItem, Customer } from '../../types';
 
 // Cart state interface
 export interface CartState {
   line_items: POSCartItem[];
   coupon_lines: POSDiscountLine[];
   fee_lines: POSFeeLine[];
+  shipping_lines: POSShippingLine[];
+  meta_data: POSOrderMetaItem[];
   customer_note: string;
   customer: Customer | null;
 }
@@ -21,8 +23,13 @@ export type CartAction =
       discountType: 'percent' | 'fixed_cart';
     }
   | { type: 'ADD_FEE'; value: number; feeType: 'percent' | 'fixed' }
+  | { type: 'ADD_FEE_LINE'; fee: POSFeeLine }
   | { type: 'REMOVE_DISCOUNT'; index: number }
   | { type: 'REMOVE_FEE'; index: number }
   | { type: 'ADD_CUSTOMER_NOTE'; note: string }
   | { type: 'REMOVE_CUSTOMER_NOTE' }
-  | { type: 'SET_CUSTOMER'; customer: Customer | null };
+  | { type: 'SET_CUSTOMER'; customer: Customer | null }
+  | { type: 'ADD_SHIPPING_LINE'; shipping: POSShippingLine }
+  | { type: 'REMOVE_SHIPPING_LINE'; index: number }
+  | { type: 'SET_META_DATA'; meta_data: POSOrderMetaItem[] }
+  | { type: 'SET_ORDER_CURRENCY'; currency: string };

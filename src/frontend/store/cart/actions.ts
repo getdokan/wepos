@@ -1,4 +1,4 @@
-import { POSCartItem, Customer } from '../../types';
+import { POSCartItem, POSFeeLine, POSShippingLine, POSOrderMetaItem, Customer } from '../../types';
 
 export const actions = {
   addToCart(item: POSCartItem) {
@@ -45,6 +45,13 @@ export const actions = {
     };
   },
 
+  addFeeLine(fee: POSFeeLine) {
+    return {
+      type: 'ADD_FEE_LINE' as const,
+      fee,
+    };
+  },
+
   removeDiscount(index: number) {
     return {
       type: 'REMOVE_DISCOUNT' as const,
@@ -76,6 +83,27 @@ export const actions = {
     return {
       type: 'SET_CUSTOMER' as const,
       customer,
+    };
+  },
+
+  addShippingLine(shipping: POSShippingLine) {
+    return {
+      type: 'ADD_SHIPPING_LINE' as const,
+      shipping,
+    };
+  },
+
+  removeShippingLine(index: number) {
+    return {
+      type: 'REMOVE_SHIPPING_LINE' as const,
+      index,
+    };
+  },
+
+  setMetaData(meta_data: POSOrderMetaItem[]) {
+    return {
+      type: 'SET_META_DATA' as const,
+      meta_data,
     };
   },
 };

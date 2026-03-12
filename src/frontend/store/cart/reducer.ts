@@ -6,6 +6,8 @@ export const initialState: CartState = {
   line_items: [],
   coupon_lines: [],
   fee_lines: [],
+  shipping_lines: [],
+  meta_data: [],
   customer_note: '',
   customer: null,
 };
@@ -96,6 +98,13 @@ export const reducer = (
       };
     }
 
+    case 'ADD_FEE_LINE': {
+      return {
+        ...state,
+        fee_lines: [...state.fee_lines, { ...action.fee, id: Date.now() }],
+      };
+    }
+
     case 'REMOVE_DISCOUNT':
       return {
         ...state,
@@ -126,6 +135,24 @@ export const reducer = (
       return {
         ...state,
         customer: action.customer,
+      };
+
+    case 'ADD_SHIPPING_LINE':
+      return {
+        ...state,
+        shipping_lines: [...state.shipping_lines, { ...action.shipping, id: Date.now() }],
+      };
+
+    case 'REMOVE_SHIPPING_LINE':
+      return {
+        ...state,
+        shipping_lines: state.shipping_lines.filter((_, index) => index !== action.index),
+      };
+
+    case 'SET_META_DATA':
+      return {
+        ...state,
+        meta_data: action.meta_data,
       };
 
     default:

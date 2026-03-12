@@ -216,11 +216,29 @@ export interface POSFeeLine {
   total: number;
 }
 
+export interface POSShippingLine {
+  id?: number;
+  method_title: string;
+  method_id: string;
+  total: string;
+  tax_status: 'taxable' | 'none';
+  tax_class: string;
+  amount_includes_tax: boolean;
+}
+
+export interface POSOrderMetaItem {
+  id?: number;
+  key: string;
+  value: string;
+}
+
 // Enhanced cart data structure for POS
 export interface POSCartData {
   line_items: POSCartItem[];
   fee_lines: POSFeeLine[];
   coupon_lines: POSDiscountLine[];
+  shipping_lines: POSShippingLine[];
+  meta_data: POSOrderMetaItem[];
   customer_note?: string;
 }
 
@@ -551,8 +569,10 @@ export interface POSPrintData {
   line_items?: POSCartItem[];
   fee_lines?: any[];
   coupon_lines?: any[];
+  shipping_lines?: POSShippingLine[];
   subtotal?: number;
   taxtotal?: number;
+  shippingtotal?: number;
   ordertotal?: number;
   gateway: {
     id: string;

@@ -87,7 +87,7 @@ const HomePage: React.FC = () => {
     [],
   );
 
-  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines } = useSelect((select) => {
+  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines, shippingLines, metaData, totalShipping } = useSelect((select) => {
     const cartStore = select(CART_STORE_NAME) as any;
     return {
       cartItems: cartStore.getCartItems(),
@@ -96,6 +96,9 @@ const HomePage: React.FC = () => {
       selectedCustomer: cartStore.getCustomer(),
       feeLines: cartStore.getFeeLines(),
       discountLines: cartStore.getDiscountLines(),
+      shippingLines: cartStore.getShippingLines(),
+      metaData: cartStore.getMetaData(),
+      totalShipping: cartStore.getTotalShipping(),
     };
   }, []);
 
@@ -336,15 +339,37 @@ const HomePage: React.FC = () => {
       let orderPayload: any = {
         billing: orderData.billing,
         shipping: orderData.shipping,
-        line_items: cartItems.map((item: POSCartItem) => ({
-          product_id: item.product_id,
-          quantity: item.quantity,
-        })),
+        line_items: cartItems.map((item: POSCartItem) => {
+          const lineItem: any = {
+            product_id: item.product_id,
+            quantity: item.quantity,
+          };
+          // Miscellaneous products (product_id=0) need name and price sent explicitly
+          if (item.product_id === 0) {
+            lineItem.name = item.name;
+            lineItem.price = item.regular_price;
+            lineItem.total = (item.regular_price * item.quantity).toFixed(2);
+            lineItem.subtotal = (item.regular_price * item.quantity).toFixed(2);
+            if (item.sku) {
+              lineItem.meta_data = [{ key: '_sku', value: item.sku }];
+            }
+          }
+          return lineItem;
+        }),
         fee_lines: feeLines.map((fee: any) => ({
           name: fee.name,
-          total: String(fee.total),
+          total: fee.fee_type === 'percent'
+            ? ((subtotal * parseFloat(fee.value)) / 100).toFixed(2)
+            : parseFloat(fee.value).toFixed(2),
           tax_status: fee.tax_status,
           tax_class: fee.tax_class,
+        })),
+        shipping_lines: shippingLines.map((shipping: any) => ({
+          method_title: shipping.method_title,
+          method_id: shipping.method_id || 'flat_rate',
+          total: shipping.total,
+          tax_status: shipping.tax_status,
+          tax_class: shipping.tax_class,
         })),
         coupon_lines: discountLines.map((discount: any) => ({
           code: discount.code,
@@ -362,6 +387,11 @@ const HomePage: React.FC = () => {
             key: '_wepos_cash_change_amount',
             value: changeAmount().toString(),
           },
+          // Include user-defined order meta
+          ...metaData.filter((m: any) => m.key.trim() !== '').map((m: any) => ({
+            key: m.key,
+            value: m.value,
+          })),
         ],
       };
 
@@ -383,8 +413,10 @@ const HomePage: React.FC = () => {
           })),
           fee_lines: feeLines,
           coupon_lines: discountLines,
+          shipping_lines: shippingLines,
           subtotal: subtotal,
           taxtotal: 0,
+          shippingtotal: totalShipping,
           ordertotal: total,
           gateway: {
             id: orderResponse.payment_method,
@@ -422,6 +454,81 @@ const HomePage: React.FC = () => {
       setPaymentProcessing(false);
       alert(error?.message || 'Payment processing failed');
       console.error('Payment processing error:', error);
+    }
+  };
+
+  // Save to Server: creates a draft/pending order without processing payment
+  const [savingToServer, setSavingToServer] = useState(false);
+  const saveToServer = async () => {
+    if (cartItems.length === 0) return;
+
+    try {
+      setSavingToServer(true);
+
+      let orderPayload: any = {
+        status: 'pending',
+        billing: orderData.billing,
+        shipping: orderData.shipping,
+        line_items: cartItems.map((item: POSCartItem) => {
+          const lineItem: any = {
+            product_id: item.product_id,
+            quantity: item.quantity,
+          };
+          if (item.product_id === 0) {
+            lineItem.name = item.name;
+            lineItem.price = item.regular_price;
+            lineItem.total = (item.regular_price * item.quantity).toFixed(2);
+            lineItem.subtotal = (item.regular_price * item.quantity).toFixed(2);
+            if (item.sku) {
+              lineItem.meta_data = [{ key: '_sku', value: item.sku }];
+            }
+          }
+          return lineItem;
+        }),
+        fee_lines: feeLines.map((fee: any) => ({
+          name: fee.name,
+          total: fee.fee_type === 'percent'
+            ? ((subtotal * parseFloat(fee.value)) / 100).toFixed(2)
+            : parseFloat(fee.value).toFixed(2),
+          tax_status: fee.tax_status,
+          tax_class: fee.tax_class,
+        })),
+        shipping_lines: shippingLines.map((shipping: any) => ({
+          method_title: shipping.method_title,
+          method_id: shipping.method_id || 'flat_rate',
+          total: shipping.total,
+          tax_status: shipping.tax_status,
+          tax_class: shipping.tax_class,
+        })),
+        coupon_lines: discountLines.map((discount: any) => ({
+          code: discount.code,
+        })),
+        customer_id: orderData.customer_id,
+        customer_note: orderData.customer_note,
+        meta_data: [
+          { key: '_wepos_is_pos_order', value: true },
+          ...metaData.filter((m: any) => m.key.trim() !== '').map((m: any) => ({
+            key: m.key,
+            value: m.value,
+          })),
+        ],
+      };
+
+      orderPayload = applyFilters('wepos_react_order_form_data', orderPayload, orderData);
+
+      const orderResponse = await posAPI.orders.createOrder(orderPayload);
+
+      if (orderResponse?.id) {
+        alert(__('Order saved to server successfully! Order #', 'wepos') + orderResponse.number);
+        clearCart();
+        setCashAmount('');
+      }
+
+      setSavingToServer(false);
+    } catch (error: any) {
+      setSavingToServer(false);
+      alert(error?.message || __('Failed to save order to server', 'wepos'));
+      console.error('Save to server error:', error);
     }
   };
 
@@ -701,6 +808,7 @@ const HomePage: React.FC = () => {
             <Cart
               ref={cartRef}
               onInitPayment={initPayment}
+              onSaveToServer={saveToServer}
               selectedCustomer={selectedCustomer}
               handleCustomerSelected={handleCustomerSelected}
             />
@@ -717,6 +825,7 @@ const HomePage: React.FC = () => {
             <Cart
               ref={cartRef}
               onInitPayment={initPayment}
+              onSaveToServer={saveToServer}
               selectedCustomer={selectedCustomer}
               handleCustomerSelected={handleCustomerSelected}
             />

@@ -1,11 +1,13 @@
 import { CartState } from './types';
-import { POSCartItem, POSDiscountLine, POSFeeLine, Customer } from '../../types';
+import { POSCartItem, POSDiscountLine, POSFeeLine, POSShippingLine, POSOrderMetaItem, Customer } from '../../types';
 
 export const selectors = {
   getCartItems: (state: CartState): POSCartItem[] => state.line_items,
   getCustomer: (state: CartState): Customer | null => state.customer,
   getDiscountLines: (state: CartState): POSDiscountLine[] => state.coupon_lines,
   getFeeLines: (state: CartState): POSFeeLine[] => state.fee_lines,
+  getShippingLines: (state: CartState): POSShippingLine[] => state.shipping_lines,
+  getMetaData: (state: CartState): POSOrderMetaItem[] => state.meta_data,
   getCustomerNote: (state: CartState): string => state.customer_note,
 
   getSubtotal: (state: CartState): number => {
@@ -40,6 +42,12 @@ export const selectors = {
     }, 0);
   },
 
+  getTotalShipping: (state: CartState): number => {
+    return state.shipping_lines.reduce((total: number, shipping: POSShippingLine) => {
+      return total + parseFloat(shipping.total || '0');
+    }, 0);
+  },
+
   getTotalTax: (state: CartState): number => {
     // Tax calculation logic would go here
     // For now, returning 0 as placeholder
@@ -50,9 +58,10 @@ export const selectors = {
     const subtotal = selectors.getSubtotal(state);
     const totalDiscount = selectors.getTotalDiscount(state);
     const totalFee = selectors.getTotalFee(state);
+    const totalShipping = selectors.getTotalShipping(state);
     const totalTax = selectors.getTotalTax(state);
 
-    return Math.max(0, subtotal - totalDiscount + totalFee + totalTax);
+    return Math.max(0, subtotal - totalDiscount + totalFee + totalShipping + totalTax);
   },
 
   getDiscountAmount: (state: CartState, discount: POSDiscountLine): number => {

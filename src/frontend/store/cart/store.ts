@@ -57,6 +57,8 @@ subscribe(() => {
     line_items: storeSelect.getCartItems(),
     coupon_lines: storeSelect.getDiscountLines(),
     fee_lines: storeSelect.getFeeLines(),
+    shipping_lines: storeSelect.getShippingLines(),
+    meta_data: storeSelect.getMetaData(),
     customer_note: storeSelect.getCustomerNote(),
     customer: storeSelect.getCustomer(),
   };
