@@ -107,7 +107,7 @@ const FeeKeypad = forwardRef<FeeKeypadHandle, FeeKeypadProps>(({
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className="border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700"
+            className="border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
           >
             {__('Add', 'wepos')} {name}
           </Button>
