@@ -71,6 +71,9 @@ export const selectors = {
     return Math.max(0, subtotal - totalDiscount + totalFee + totalShipping + totalTax);
   },
 
+  getOrderCurrency: (state: CartState): string => state.currency,
+  getOrderCurrencySymbol: (state: CartState): string => state.currency_symbol,
+
   getServerOrder: (state: CartState): ServerOrderData | null => state.server_order,
   isServerOrderDirty: (state: CartState): boolean => state.server_order_dirty,
 

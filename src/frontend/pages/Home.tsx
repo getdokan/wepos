@@ -89,7 +89,7 @@ const HomePage: React.FC = () => {
     [],
   );
 
-  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines, shippingLines, metaData, totalShipping, totalTax, serverOrder } = useSelect((select) => {
+  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines, shippingLines, metaData, totalShipping, totalTax, serverOrder, orderCurrency, orderCurrencySymbol } = useSelect((select) => {
     const cartStore = select(CART_STORE_NAME) as any;
     return {
       cartItems: cartStore.getCartItems(),
@@ -103,6 +103,8 @@ const HomePage: React.FC = () => {
       totalShipping: cartStore.getTotalShipping(),
       totalTax: cartStore.getTotalTax(),
       serverOrder: cartStore.getServerOrder(),
+      orderCurrency: cartStore.getOrderCurrency(),
+      orderCurrencySymbol: cartStore.getOrderCurrencySymbol(),
     };
   }, []);
 
@@ -595,6 +597,8 @@ const HomePage: React.FC = () => {
           value: m.value,
         })),
       ],
+      // Set order currency if changed from default
+      ...(orderCurrency ? { currency: orderCurrency } : {}),
       ...extraFields,
     };
 

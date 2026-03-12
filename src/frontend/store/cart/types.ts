@@ -51,6 +51,8 @@ export interface CartState {
   customer: Customer | null;
   server_order: ServerOrderData | null;
   server_order_dirty: boolean;
+  currency: string;
+  currency_symbol: string;
 }
 
 // Action types
@@ -74,6 +76,6 @@ export type CartAction =
   | { type: 'ADD_SHIPPING_LINE'; shipping: POSShippingLine }
   | { type: 'REMOVE_SHIPPING_LINE'; index: number }
   | { type: 'SET_META_DATA'; meta_data: POSOrderMetaItem[] }
-  | { type: 'SET_ORDER_CURRENCY'; currency: string }
+  | { type: 'SET_ORDER_CURRENCY'; currency: string; currency_symbol: string }
   | { type: 'SET_SERVER_ORDER'; server_order: ServerOrderData }
   | { type: 'CLEAR_SERVER_ORDER' };

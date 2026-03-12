@@ -99,6 +99,8 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     feeLines,
     shippingLines,
     metaData,
+    orderCurrency,
+    orderCurrencySymbol,
     customerNote,
     subtotal,
     totalDiscount,
@@ -116,6 +118,8 @@ const Cart = forwardRef<CartHandle, CartProps>(({
       feeLines: store.getFeeLines(),
       shippingLines: store.getShippingLines(),
       metaData: store.getMetaData(),
+      orderCurrency: store.getOrderCurrency(),
+      orderCurrencySymbol: store.getOrderCurrencySymbol(),
       customerNote: store.getCustomerNote(),
       subtotal: store.getSubtotal(),
       totalDiscount: store.getTotalDiscount(),
@@ -150,6 +154,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     addShippingLine,
     removeShippingLine,
     setMetaData,
+    setOrderCurrency,
   } = useDispatch(CART_STORE_NAME) as any;
 
   const addQuantity = (item: POSCartItem, index: number) => {
@@ -206,8 +211,11 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     addFeeLine(fee);
   };
 
-  const handleSaveOrderMeta = (meta: POSOrderMetaItem[]) => {
+  const handleSaveOrderMeta = (meta: POSOrderMetaItem[], currency?: string, currencySymbol?: string) => {
     setMetaData(meta);
+    if (currency) {
+      setOrderCurrency(currency, currencySymbol || '');
+    }
   };
 
   const getDiscountAmount = (discount: any) => {
@@ -225,6 +233,10 @@ const Cart = forwardRef<CartHandle, CartProps>(({
       return parseFloat(fee.value);
     }
   };
+
+  // Use cart-specific currency symbol for formatting when a custom currency is set
+  const cartFormatPrice = (price: number | string): string | number =>
+    formatPrice(price, orderCurrencySymbol || '');
 
   const isTaxInclusive = settings?.woo_tax?.wc_tax_display_cart === 'incl';
 
@@ -418,14 +430,14 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                                 {item.on_sale && isSubOptionEnabled('price', 'on_sale') ? (
                                   <div className="flex flex-col">
                                     <span className="text-xs text-gray-400 line-through">
-                                      {formatPrice(item.regular_price)}
+                                      {cartFormatPrice(item.regular_price)}
                                     </span>
                                     <span className="font-medium text-red-600">
-                                      {formatPrice(item.sale_price)}
+                                      {cartFormatPrice(item.sale_price)}
                                     </span>
                                   </div>
                                 ) : (
-                                  <span>{formatPrice(item.regular_price)}</span>
+                                  <span>{cartFormatPrice(item.regular_price)}</span>
                                 )}
                               </td>
                             )}
@@ -433,14 +445,14 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                             {/* REGULAR PRICE Column */}
                             {isColumnEnabled('regular_price') && (
                               <td className="p-3 text-sm text-gray-600">
-                                {formatPrice(item.regular_price)}
+                                {cartFormatPrice(item.regular_price)}
                               </td>
                             )}
 
                             {/* SUBTOTAL Column */}
                             {isColumnEnabled('subtotal') && (
                               <td className="p-3 text-sm">
-                                <div>{formatPrice(itemSubtotal)}</div>
+                                <div>{cartFormatPrice(itemSubtotal)}</div>
                                 {isSubOptionEnabled('subtotal', 'tax') && (
                                   <div className="text-xs text-muted-foreground">
                                     {isTaxInclusive
@@ -454,11 +466,11 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                             {/* TOTAL Column */}
                             {isColumnEnabled('total') && (
                               <td className="p-3 text-sm">
-                                <div>{formatPrice(itemTotal)}</div>
+                                <div>{cartFormatPrice(itemTotal)}</div>
                                 {isSubOptionEnabled('total', 'tax') && (
                                   <div className="text-xs text-muted-foreground">
                                     {lineItemTax > 0
-                                      ? `${isTaxInclusive ? __('incl.', 'wepos') : '+'} ${__('tax', 'wepos')} ${formatPrice(lineItemTax)}`
+                                      ? `${isTaxInclusive ? __('incl.', 'wepos') : '+'} ${__('tax', 'wepos')} ${cartFormatPrice(lineItemTax)}`
                                       : isTaxInclusive
                                         ? __('incl. tax', 'wepos')
                                         : __('excl. tax', 'wepos')}
@@ -466,7 +478,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                                 )}
                                 {item.on_sale && isSubOptionEnabled('total', 'on_sale') && (
                                   <div className="mt-0.5 text-xs text-gray-400 line-through">
-                                    {formatPrice(itemSubtotal)}
+                                    {cartFormatPrice(itemSubtotal)}
                                   </div>
                                 )}
                               </td>
@@ -524,7 +536,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                   )}
                 </div>
                 <div className="text-sm">
-                  {formatPrice(subtotal)}
+                  {cartFormatPrice(subtotal)}
                 </div>
                 <div className="ml-2 h-4 w-4">
                   &nbsp;
@@ -542,11 +554,11 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     <span className="ml-2 text-xs text-muted-foreground">
                       {discount.discount_type === 'percent'
                         ? `${discount.value}%`
-                        : formatPrice(discount.value)}
+                        : cartFormatPrice(discount.value)}
                     </span>
                   </div>
                   <div className="text-sm">
-                    −{formatPrice(getDiscountAmount(discount))}
+                    −{cartFormatPrice(getDiscountAmount(discount))}
                   </div>
                   <div className="ml-2">
                     <Button
@@ -573,7 +585,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     <span className="ml-2 text-xs text-muted-foreground">
                       {fee.fee_type === 'percent'
                         ? `${fee.value}%`
-                        : formatPrice(fee.value)}
+                        : cartFormatPrice(fee.value)}
                     </span>
                     {fee.tax_status === 'taxable' && (
                       <span className="ml-1 text-xs text-muted-foreground">
@@ -582,7 +594,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     )}
                   </div>
                   <div className="text-sm">
-                    {formatPrice(getFeeAmount(fee))}
+                    {cartFormatPrice(getFeeAmount(fee))}
                   </div>
                   <div className="ml-2">
                     <Button
@@ -614,7 +626,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     )}
                   </div>
                   <div className="text-sm">
-                    {formatPrice(shipping.total)}
+                    {cartFormatPrice(shipping.total)}
                   </div>
                   <div className="ml-2">
                     <Button
@@ -642,12 +654,12 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                         {taxLine.label}
                         {parseFloat(taxLine.shipping_tax_total) > 0 && (
                           <span className="ml-1 text-xs text-muted-foreground">
-                            ({__('incl. shipping tax', 'wepos')} {formatPrice(taxLine.shipping_tax_total)})
+                            ({__('incl. shipping tax', 'wepos')} {cartFormatPrice(taxLine.shipping_tax_total)})
                           </span>
                         )}
                       </div>
                       <div className="text-sm">
-                        {formatPrice(parseFloat(taxLine.tax_total) + parseFloat(taxLine.shipping_tax_total))}
+                        {cartFormatPrice(parseFloat(taxLine.tax_total) + parseFloat(taxLine.shipping_tax_total))}
                       </div>
                       <div className="ml-2 h-4 w-4">
                         &nbsp;
@@ -666,7 +678,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       : __('Tax', 'wepos')}
                   </div>
                   <div className="text-sm font-bold text-gray-800">
-                    {formatPrice(totalTax)}
+                    {cartFormatPrice(totalTax)}
                   </div>
                 </div>
               )}
@@ -774,7 +786,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 variant="success"
                 onClick={onInitPayment}
               >
-                {__('Checkout', 'wepos')} {formatPrice(total)}
+                {__('Checkout', 'wepos')} {cartFormatPrice(total)}
               </Button>
             </div>
 
@@ -816,6 +828,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
         onClose={() => setShowOrderMetaModal(false)}
         onSave={handleSaveOrderMeta}
         initialMetaData={metaData}
+        initialCurrency={orderCurrency}
       />
     </div>
   );

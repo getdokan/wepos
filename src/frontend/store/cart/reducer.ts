@@ -12,6 +12,8 @@ export const initialState: CartState = {
   customer: null,
   server_order: null,
   server_order_dirty: false,
+  currency: '',
+  currency_symbol: '',
 };
 
 // Factory to create a reducer with a custom initial state (for localStorage persistence)
@@ -164,6 +166,13 @@ export const createReducer = (preloadedState: CartState = initialState) => (
       return {
         ...state,
         meta_data: action.meta_data,
+      };
+
+    case 'SET_ORDER_CURRENCY':
+      return {
+        ...state,
+        currency: action.currency,
+        currency_symbol: action.currency_symbol,
       };
 
     case 'SET_SERVER_ORDER':

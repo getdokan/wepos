@@ -108,6 +108,14 @@ export const actions = {
     };
   },
 
+  setOrderCurrency(currency: string, currency_symbol: string) {
+    return {
+      type: 'SET_ORDER_CURRENCY' as const,
+      currency,
+      currency_symbol,
+    };
+  },
+
   setServerOrder(server_order: ServerOrderData) {
     return {
       type: 'SET_SERVER_ORDER' as const,

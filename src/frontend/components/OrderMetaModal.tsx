@@ -23,13 +23,15 @@ import apiFetch from '@wordpress/api-fetch';
 interface CurrencyOption {
   value: string;
   label: string;
+  symbol: string;
 }
 
 interface OrderMetaModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (metaData: POSOrderMetaItem[], currency?: string, transactionId?: string) => void;
+  onSave: (metaData: POSOrderMetaItem[], currency?: string, currencySymbol?: string, transactionId?: string) => void;
   initialMetaData: POSOrderMetaItem[];
+  initialCurrency?: string;
 }
 
 /**
@@ -46,8 +48,9 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
   onClose,
   onSave,
   initialMetaData,
+  initialCurrency = '',
 }) => {
-  const [currency, setCurrency] = useState('');
+  const [currency, setCurrency] = useState(initialCurrency);
   const [currencySearch, setCurrencySearch] = useState('');
   const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
   const [transactionId, setTransactionId] = useState('');
@@ -68,12 +71,13 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
         const options = response.map((c) => ({
           value: c.code,
           label: decodeHTMLEntities(`${c.name} (${c.symbol})`),
+          symbol: decodeHTMLEntities(c.symbol),
         }));
         setCurrencies(options);
       } catch {
         // Fallback: use current store currency
         const symbol = window.wepos?.currency_format_symbol || '$';
-        setCurrencies([{ value: 'default', label: `${__('Default currency', 'wepos')} (${symbol})` }]);
+        setCurrencies([{ value: 'default', label: `${__('Default currency', 'wepos')} (${symbol})`, symbol }]);
       }
     };
 
@@ -86,8 +90,9 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
         ? initialMetaData
         : [{ key: '', value: '' }];
       setMetaItems(items);
+      setCurrency(initialCurrency);
     }
-  }, [isOpen, initialMetaData]);
+  }, [isOpen, initialMetaData, initialCurrency]);
 
   const selectedCurrencyItem = useMemo(
     () => currencies.find((c) => c.value === currency) || null,
@@ -116,7 +121,8 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
 
   const handleSave = () => {
     const finalMeta = metaItems.filter((item) => item.key.trim() !== '');
-    onSave(finalMeta, currency || undefined, transactionId || undefined);
+    const selectedSymbol = currencies.find((c) => c.value === currency);
+    onSave(finalMeta, currency || undefined, selectedSymbol?.symbol || undefined, transactionId || undefined);
     onClose();
   };
 
