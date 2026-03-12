@@ -53,7 +53,7 @@ const TaxonomyFilter: React.FC<TaxonomyFilterProps> = ({
   }, [selectedItem, comboboxItems, allOption]);
 
   return (
-    <div className="w-fit">
+    <div className="w-fit shrink-0">
     <Combobox
       items={comboboxItems}
       value={selectedValue}

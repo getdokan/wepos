@@ -39,7 +39,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   }, [selectedCategory, items, allCategory]);
 
   return (
-    <div className="w-fit">
+    <div className="w-fit shrink-0">
     <Combobox
       items={items}
       value={selectedValue}

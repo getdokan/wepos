@@ -566,11 +566,11 @@ const HomePage: React.FC = () => {
         {/* Main Content + Cart Area */}
         <div ref={containerRef} className="flex h-full min-h-0 flex-1 flex-col md:flex-row overflow-hidden">
           {/* Product Area — always visible on desktop, toggled via tab on mobile */}
-          <div className={`flex h-full min-h-0 flex-1 flex-col overflow-hidden ${mobileActiveTab !== 'products' ? 'hidden md:flex' : ''}`} style={{ minWidth: 400 }}>
-            <div className="flex flex-col px-5 py-3">
+          <div className={`flex h-full min-h-0 flex-1 flex-col overflow-hidden ${mobileActiveTab !== 'products' ? 'hidden md:flex' : ''}`} style={{ minWidth: 0 }}>
+            <div className="flex flex-col px-3 py-2 md:px-5 md:py-3">
               {/* Header: Outlet Name + User Info */}
-              <div className="flex items-center justify-between">
-                <h1 className="text-xl font-semibold truncate max-w-[200px] sm:max-w-md">
+              <div className="flex items-center justify-between gap-2">
+                <h1 className="min-w-0 truncate text-lg font-semibold md:text-xl">
                   {(window as any).wepos?.outlet_name || __('POS', 'wepos')}
                 </h1>
 
@@ -611,14 +611,14 @@ const HomePage: React.FC = () => {
               </div>
               {/* Search / Filter / View Toggle Row */}
               <div className="flex flex-col gap-2 mt-3">
-                <div className="flex flex-row items-center gap-2 sm:gap-3">
+                <div className="flex flex-row items-center gap-2">
                   <SearchBar products={products} settings={settings} onProductAdded={handleAddToCart} />
                   <ProductViewToggle
                       productView={productView}
                       onToggle={toggleProductView}
                     />
                 </div>
-                <div className="flex flex-row flex-wrap items-center gap-2">
+                <div className="flex flex-row items-center gap-2 overflow-x-auto md:flex-wrap">
                   <CategoryFilter
                     categories={categories}
                     selectedCategory={selectedCategory}
@@ -673,15 +673,15 @@ const HomePage: React.FC = () => {
               itemsWrapperRef={itemsWrapperRef}
             />
 
-            {/* Tax Based On — shown below product list */}
+            {/* Tax Based On — bottom of product area, right-aligned */}
             {settings?.woo_tax?.wc_tax_based_on && (
-              <div className="shrink-0 border-t border-border px-3 py-2 text-center text-xs text-muted-foreground">
+              <div className="hidden md:flex shrink-0 items-center justify-end border-t border-border px-6 py-3 text-sm text-muted-foreground">
                 {getTaxBasedOnLabel()}
               </div>
             )}
           </div>
 
-          {/* Resizable Divider - desktop only */}
+          {/* Resizable Divider - desktop only, spans full height */}
           <div
             className="group relative hidden md:flex h-full w-px shrink-0 cursor-col-resize items-center justify-center bg-border"
             onMouseDown={handleMouseDown}
@@ -693,7 +693,7 @@ const HomePage: React.FC = () => {
             <div className="absolute inset-y-0 -left-px -right-px bg-primary/30 opacity-0 group-hover:opacity-100 group-active:bg-primary/40 transition-opacity" />
           </div>
 
-          {/* Cart Panel - desktop: side panel, mobile: slide-over drawer */}
+          {/* Cart Panel - desktop only */}
           <div
             className="hidden md:flex h-full min-h-0 flex-col border-l border-border"
             style={{ width: `${cartWidthPercent}%`, minWidth: 320 }}
@@ -728,6 +728,13 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Mobile Tax Based On — shown on products tab */}
+        {settings?.woo_tax?.wc_tax_based_on && mobileActiveTab === 'products' && (
+          <div className="md:hidden shrink-0 border-t border-border px-3 py-1.5 text-center text-xs text-muted-foreground">
+            {getTaxBasedOnLabel()}
+          </div>
+        )}
 
         {/* Mobile Bottom Tab Bar */}
         <div className="md:hidden shrink-0 border-t border-border bg-white">
