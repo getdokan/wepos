@@ -60,6 +60,7 @@ import ProductViewToggle from '../components/ProductViewToggle';
 import ReceiptModal from '../components/ReceiptModal';
 import SearchBar from '../components/SearchBar';
 import { useResizablePanel } from '../hooks/useResizablePanel';
+import { RawHTML } from '@wordpress/element';
 
 const HomePage: React.FC = () => {
   // Initialize data using the hook
@@ -266,7 +267,9 @@ const HomePage: React.FC = () => {
         await posAPI.orders.deleteOrder(serverOrder.order_id, true);
         toast.success(__('Order voided successfully', 'wepos'));
       } catch (error: any) {
-        toast.error(error?.message || __('Failed to void order', 'wepos'));
+        toast.error(
+          <RawHTML>{error?.message || __('Failed to void order', 'wepos')}</RawHTML>
+        );
         console.error('Failed to delete server order:', error);
       } finally {
         setVoiding(false);
@@ -663,8 +666,9 @@ const HomePage: React.FC = () => {
       setSavingToServer(false);
     } catch (error: any) {
       setSavingToServer(false);
-      toast.error(error?.message || __('Failed to save order to server', 'wepos'));
-      console.error('Save to server error:', error);
+      toast.error(
+        <RawHTML>{error?.message || __('Failed to save order to server', 'wepos')}</RawHTML>
+      );
     }
   };
 

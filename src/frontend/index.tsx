@@ -160,7 +160,7 @@ if (!container) {
         tokens={weposTokens}
         darkTokens={weposDarkTokens}
       >
-        <Toaster />
+        <Toaster position="bottom-center" richColors />
         <SlotFillProvider>
           <HashRouter>
             <App />
