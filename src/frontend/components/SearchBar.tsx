@@ -264,7 +264,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
           id="product-search"
           name="search"
           placeholder={placeholder}
-          className="w-full pl-10 pr-40 bg-muted text-muted-foreground"
+          className="w-full h-[2.59rem] pl-10 pr-40 bg-muted text-muted-foreground"
           value={searchInput}
           onChange={handleInputChange}
           onFocus={() => {

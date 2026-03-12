@@ -543,14 +543,14 @@ const HomePage: React.FC = () => {
             <div className="flex flex-col px-5 py-3">
               {/* Header: Outlet Name + User Info */}
               <div className="flex items-center justify-between">
-                <h1 className="text-lg font-semibold truncate max-w-[200px] sm:max-w-md">
+                <h1 className="text-xl font-semibold truncate max-w-[200px] sm:max-w-md">
                   {(window as any).wepos?.outlet_name || __('POS', 'wepos')}
                 </h1>
 
                 {window.wepos?.current_user && (
                   <DropdownMenu>
                     <DropdownMenuTrigger className="flex items-center gap-2 cursor-pointer outline-none group">
-                      <Avatar size="sm">
+                      <Avatar size="md">
                         <AvatarImage src={window.wepos.current_user.avatar_url} alt={window.wepos.current_user.name} />
                         <AvatarFallback>{window.wepos.current_user.name?.charAt(0)}</AvatarFallback>
                       </Avatar>
