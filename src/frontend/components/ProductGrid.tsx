@@ -3,7 +3,7 @@ import { __ } from '@wordpress/i18n';
 import { PackageX } from 'lucide-react';
 import { Spinner, ScrollArea } from '@wedevs/plugin-ui';
 import { POSProduct, ProductViewType, CartItem } from '../types';
-import ProductListView from './ProductListView';
+import ProductListView, { ProductListHeader } from './ProductListView';
 import ProductGridView from './ProductGridView';
 
 interface ProductGridProps {
@@ -60,12 +60,11 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   };
 
   return (
-    <div className="h-full min-h-0 w-full flex-1 overflow-hidden" ref={itemsWrapperRef}>
-      <ScrollArea className="h-full w-full">
+    <div className="h-full min-h-0 w-full flex-1 overflow-hidden flex flex-col" ref={itemsWrapperRef}>
+      {productView === 'list' && <ProductListHeader />}
+      <ScrollArea className="h-full w-full min-h-0 flex-1">
           {productView === 'list' ? (
-            <div>
-              <ProductListView {...sharedProps} />
-            </div>
+            <ProductListView {...sharedProps} />
           ) : (
             <div className='p-4'>
               <ProductGridView {...sharedProps} truncateTitle={truncateTitle} />
