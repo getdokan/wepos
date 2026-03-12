@@ -313,21 +313,6 @@ const HomePage: React.FC = () => {
     }
   }, [setCustomer]);
 
-  const initPayment = useCallback(() => {
-    if (cartItems.length <= 0) {
-      return;
-    }
-    setShowModal(true);
-    if (availableGateways.length > 0) {
-      setSelectedGateway(availableGateways[0].id);
-      setOrderData((prev) => ({
-        ...prev,
-        payment_method: availableGateways[0].id,
-        payment_method_title: availableGateways[0].title,
-      }));
-    }
-  }, [cartItems.length, availableGateways]);
-
   const backToSale = useCallback(() => {
     setShowModal(false);
     setShowHelp(false);
@@ -659,8 +644,8 @@ const HomePage: React.FC = () => {
   // Save to Server: creates/updates a pos-open order without processing payment.
   // The order stays in the cart so the cashier can continue editing or proceed to checkout.
   const [savingToServer, setSavingToServer] = useState(false);
-  const saveToServer = async () => {
-    if (cartItems.length === 0) return;
+  const saveToServer = async (): Promise<boolean> => {
+    if (cartItems.length === 0) return false;
 
     try {
       setSavingToServer(true);
@@ -688,13 +673,36 @@ const HomePage: React.FC = () => {
       }
 
       setSavingToServer(false);
+      return true;
     } catch (error: any) {
       setSavingToServer(false);
       toast.error(
         <RawHTML>{error?.message || __('Failed to save order to server', 'wepos')}</RawHTML>
       );
+      return false;
     }
   };
+
+  // Save to server first, then open the sales summary / payment modal
+  const initPayment = useCallback(async () => {
+    if (cartItems.length <= 0) {
+      return;
+    }
+
+    // Save/update the order on the server before showing checkout
+    const saved = await saveToServer();
+    if (!saved) return;
+
+    setShowModal(true);
+    if (availableGateways.length > 0) {
+      setSelectedGateway(availableGateways[0].id);
+      setOrderData((prev) => ({
+        ...prev,
+        payment_method: availableGateways[0].id,
+        payment_method_title: availableGateways[0].title,
+      }));
+    }
+  }, [cartItems.length, availableGateways, saveToServer]);
 
   // Keep a ref to processPayment so the keyboard handler always has the latest version
   const processPaymentRef = useRef(processPayment);
