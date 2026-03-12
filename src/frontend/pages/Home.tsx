@@ -451,15 +451,19 @@ const HomePage: React.FC = () => {
       const matchedServerIds = new Set<number>();
 
       cartItems.forEach((item: POSCartItem) => {
+        const unitPrice = item.on_sale ? item.sale_price : item.regular_price;
         const lineItem: any = {
           product_id: item.product_id,
           quantity: item.quantity,
+          subtotal: (unitPrice * item.quantity).toFixed(2),
+          total: (unitPrice * item.quantity).toFixed(2),
         };
+        if (item.variation_id) {
+          lineItem.variation_id = item.variation_id;
+        }
         if (item.product_id === 0) {
           lineItem.name = item.name;
           lineItem.price = item.regular_price;
-          lineItem.total = (item.regular_price * item.quantity).toFixed(2);
-          lineItem.subtotal = (item.regular_price * item.quantity).toFixed(2);
           if (item.sku) {
             lineItem.meta_data = [{ key: '_sku', value: item.sku }];
           }
