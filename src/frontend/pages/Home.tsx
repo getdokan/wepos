@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { toast } from '@wedevs/plugin-ui';
 import { posAPI } from '../api';
 import { applyFilters } from '../hooks/useExtensions';
 import { useCartSettings } from '../hooks/useCartSettings';
@@ -263,7 +264,9 @@ const HomePage: React.FC = () => {
       try {
         setVoiding(true);
         await posAPI.orders.deleteOrder(serverOrder.order_id, true);
+        toast.success(__('Order voided successfully', 'wepos'));
       } catch (error: any) {
+        toast.error(error?.message || __('Failed to void order', 'wepos'));
         console.error('Failed to delete server order:', error);
       } finally {
         setVoiding(false);
@@ -650,12 +653,17 @@ const HomePage: React.FC = () => {
       if (orderResponse?.id) {
         // Sync server-calculated data (taxes, totals) back to cart store
         setServerOrder(extractServerOrderData(orderResponse));
+        toast.success(
+          serverOrder?.order_id
+            ? __('Order updated successfully', 'wepos')
+            : __('Order saved to server', 'wepos')
+        );
       }
 
       setSavingToServer(false);
     } catch (error: any) {
       setSavingToServer(false);
-      alert(error?.message || __('Failed to save order to server', 'wepos'));
+      toast.error(error?.message || __('Failed to save order to server', 'wepos'));
       console.error('Save to server error:', error);
     }
   };
@@ -938,6 +946,8 @@ const HomePage: React.FC = () => {
               onInitPayment={initPayment}
               onSaveToServer={saveToServer}
               onVoidCart={voidCart}
+              savingToServer={savingToServer}
+              voiding={voiding}
               selectedCustomer={selectedCustomer}
               handleCustomerSelected={handleCustomerSelected}
             />
@@ -956,6 +966,8 @@ const HomePage: React.FC = () => {
               onInitPayment={initPayment}
               onSaveToServer={saveToServer}
               onVoidCart={voidCart}
+              savingToServer={savingToServer}
+              voiding={voiding}
               selectedCustomer={selectedCustomer}
               handleCustomerSelected={handleCustomerSelected}
             />

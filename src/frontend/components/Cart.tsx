@@ -9,6 +9,7 @@ import {
   UserRound,
   SlidersHorizontal,
   Truck,
+  Loader2,
 } from 'lucide-react';
 import {
   Button,
@@ -38,6 +39,8 @@ interface CartProps {
   onInitPayment: () => void;
   onSaveToServer?: () => void;
   onVoidCart?: () => void;
+  savingToServer?: boolean;
+  voiding?: boolean;
   [name: string]: any;
 }
 
@@ -53,6 +56,8 @@ const Cart = forwardRef<CartHandle, CartProps>(({
   onInitPayment,
   onSaveToServer,
   onVoidCart,
+  savingToServer,
+  voiding,
   selectedCustomer,
   handleCustomerSelected,
 }, ref) => {
@@ -717,10 +722,11 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       variant="outline"
                       className="border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
                       onClick={onSaveToServer}
-                      disabled={cartItems.length === 0}
+                      disabled={cartItems.length === 0 || savingToServer}
                     >
+                      {savingToServer && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
                       {serverOrder
-                        ? __('Update Order', 'wepos')
+                        ? __('Update to Server', 'wepos')
                         : __('Save to Server', 'wepos')}
                     </Button>
                   )}
@@ -758,7 +764,9 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 variant="destructive"
                 className="h-14 w-[30%] text-lg font-bold"
                 onClick={onVoidCart || clearCart}
+                disabled={voiding}
               >
+                {voiding && <Loader2 className="mr-1 h-5 w-5 animate-spin" />}
                 {__('Void', 'wepos')}
               </Button>
               <Button
