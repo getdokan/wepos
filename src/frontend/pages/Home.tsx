@@ -459,19 +459,21 @@ const HomePage: React.FC = () => {
       cartItems.forEach((item: POSCartItem) => {
         const unitPrice = item.on_sale ? item.sale_price : item.regular_price;
         const lineItem: any = {
-          product_id: item.product_id,
           quantity: item.quantity,
           subtotal: (unitPrice * item.quantity).toFixed(2),
           total: (unitPrice * item.quantity).toFixed(2),
         };
-        if (item.variation_id) {
-          lineItem.variation_id = item.variation_id;
-        }
         if (item.product_id === 0) {
+          // Misc/custom product: send name + price, no product_id
           lineItem.name = item.name;
           lineItem.price = item.regular_price;
           if (item.sku) {
-            lineItem.meta_data = [{ key: '_sku', value: item.sku }];
+            lineItem.sku = item.sku;
+          }
+        } else {
+          lineItem.product_id = item.product_id;
+          if (item.variation_id) {
+            lineItem.variation_id = item.variation_id;
           }
         }
         // Match to existing server line item by product_id + variation_id
