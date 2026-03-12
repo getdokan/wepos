@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { toast } from '@wedevs/plugin-ui';
+import { toast, useTheme } from '@wedevs/plugin-ui';
 import { posAPI } from '../api';
 import { applyFilters } from '../hooks/useExtensions';
 import { useCartSettings } from '../hooks/useCartSettings';
@@ -46,7 +46,7 @@ import {
 } from '@wedevs/plugin-ui';
 import { Slot } from '@wordpress/components';
 import { PluginArea } from '@wordpress/plugins';
-import { ChevronDown, LayoutGrid, ShoppingCart } from 'lucide-react';
+import { ChevronDown, LayoutGrid, ShoppingCart, Sun, Moon } from 'lucide-react';
 import Cart, { CartHandle } from '../components/Cart';
 import CategoryFilter from '../components/CategoryFilter';
 import StockStatusFilter, { StockStatus } from '../components/StockStatusFilter';
@@ -63,6 +63,8 @@ import { useResizablePanel } from '../hooks/useResizablePanel';
 import { RawHTML } from '@wordpress/element';
 
 const HomePage: React.FC = () => {
+  const { resolvedMode, setMode } = useTheme();
+
   // Initialize data using the hook
   const { initializeData } = usePOSData();
 
@@ -876,6 +878,13 @@ const HomePage: React.FC = () => {
                       <Slot name="WeposUserMenuAfterHelp" fillProps={{ DropdownMenuItem }}>
                         {(fills: React.ReactNode) => <>{fills}</>}
                       </Slot>
+                      <DropdownMenuItem onClick={() => setMode(resolvedMode === 'dark' ? 'light' : 'dark')}>
+                        {resolvedMode === 'dark'
+                          ? <Sun className="mr-2 size-4" />
+                          : <Moon className="mr-2 size-4" />
+                        }
+                        {resolvedMode === 'dark' ? __('Light Mode', 'wepos') : __('Dark Mode', 'wepos')}
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         variant="destructive"
                         onClick={() =>
