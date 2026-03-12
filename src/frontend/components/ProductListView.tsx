@@ -59,7 +59,7 @@ const ROW_GRID = 'grid grid-cols-[1fr_110px_80px_150px_60px] items-center gap-4 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const ListHeader: React.FC = () => (
-  <div className={`${ROW_GRID} py-3 border-b border-gray-100 bg-gray-50/80 sticky top-0 z-10`}>
+  <div className={`${ROW_GRID} py-3 border-b border-gray-200 bg-gray-100 sticky top-0 z-10`}>
     <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
       {__('Product', 'wepos')}
     </span>
@@ -329,7 +329,7 @@ export const ProductListView: React.FC<ProductListViewProps> = ({
   hasStock,
   getProductImage,
 }) => (
-  <div className="rounded-xl border border-gray-200 overflow-hidden bg-white">
+  <div className="overflow-hidden border-b border-gray-200 bg-white">
     <ListHeader />
     <div className="divide-y divide-gray-100">
       {products.map((product) => (

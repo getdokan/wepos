@@ -62,13 +62,15 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   return (
     <div className="h-full min-h-0 w-full flex-1 overflow-hidden" ref={itemsWrapperRef}>
       <ScrollArea className="h-full w-full">
-        <div className="p-4">
           {productView === 'list' ? (
-            <ProductListView {...sharedProps} />
+            <div>
+              <ProductListView {...sharedProps} />
+            </div>
           ) : (
-            <ProductGridView {...sharedProps} truncateTitle={truncateTitle} />
+            <div className='p-4'>
+              <ProductGridView {...sharedProps} truncateTitle={truncateTitle} />
+            </div>
           )}
-        </div>
       </ScrollArea>
     </div>
   );
