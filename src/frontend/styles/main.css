@@ -254,7 +254,7 @@ body {
     /* Tooltip for collapsed sidebar - Complex pseudo-element that can't be done with Tailwind */
     .wepos-sidebar.collapsed .nav-item:hover::after {
         content: attr(title);
-        @apply absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap z-10;
+        @apply absolute left-full ml-2 px-2 py-1 bg-foreground text-background text-xs rounded whitespace-nowrap z-10;
         animation: var(--animate-slide-in);
     }
 
@@ -266,7 +266,7 @@ body {
     }
 
     .wepos-help-modal .components-modal__header {
-        @apply border-b border-gray-200 pb-4;
+        @apply border-b border-border pb-4;
     }
 
     .wepos-payment-modal .components-modal__frame {
@@ -279,7 +279,7 @@ body {
 
     /* Specific code styling for help modal */
     .wepos-help-wrapper .code {
-        @apply bg-gray-100 px-3 py-1 rounded-md text-sm font-mono text-gray-800 border border-gray-200 min-w-24 text-center;
+        @apply bg-muted px-3 py-1 rounded-md text-sm font-mono text-foreground border border-border min-w-24 text-center;
     }
 
     /* Color-adjust for printing - Property not available in Tailwind */

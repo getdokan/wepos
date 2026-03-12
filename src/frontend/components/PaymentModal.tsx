@@ -144,16 +144,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         <div className="flex min-h-0 flex-1">
           {/* Processing Overlay */}
           {processing && (
-            <div className="absolute inset-0 z-[60] flex items-center justify-center bg-white/60">
-              <LoaderCircle className="h-12 w-12 animate-spin text-gray-500" />
+            <div className="absolute inset-0 z-[60] flex items-center justify-center bg-background/60">
+              <LoaderCircle className="h-12 w-12 animate-spin text-muted-foreground" />
             </div>
           )}
 
           {/* Left Panel - Sale Summary (30% width) */}
-          <div className="flex w-[30%] shrink-0 flex-col bg-[#FBFCFE]">
+          <div className="flex w-[30%] shrink-0 flex-col bg-muted/30">
             {/* Header */}
-            <div className="border-b border-gray-200 px-6 py-5">
-              <h2 className="text-lg font-bold text-gray-900">
+            <div className="border-b border-border px-6 py-5">
+              <h2 className="text-lg font-bold text-foreground">
                 {__('Sale Summary', 'wepos')}
               </h2>
             </div>
@@ -166,19 +166,19 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                   className="flex items-center justify-between py-3"
                 >
                   <div className="min-w-0 flex-1">
-                    <span className="font-semibold text-gray-900">
+                    <span className="font-semibold text-foreground">
                       {item.name}
                     </span>
                     {item.attribute && item.attribute.length > 0 && (
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-muted-foreground">
                         {item.attribute
                           .map((attr) => `${attr.name}: ${attr.option}`)
                           .join(', ')}
                       </div>
                     )}
                   </div>
-                  <span className="mx-6 text-gray-600">{item.quantity}</span>
-                  <span className="whitespace-nowrap text-gray-900">
+                  <span className="mx-6 text-muted-foreground">{item.quantity}</span>
+                  <span className="whitespace-nowrap text-foreground">
                     {formatPrice(getItemPrice(item) * item.quantity)}
                   </span>
                 </div>
@@ -186,13 +186,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             </div>
 
             {/* Summary Footer */}
-            <div className="border-t border-gray-200 px-6 py-4">
+            <div className="border-t border-border px-6 py-4">
               {/* Subtotal */}
               <div className="flex justify-between py-1.5">
-                <span className="font-bold text-gray-900">
+                <span className="font-bold text-foreground">
                   {__('Subtotal', 'wepos')}
                 </span>
-                <span className="font-bold text-gray-900">
+                <span className="font-bold text-foreground">
                   {formatPrice(subtotal)}
                 </span>
               </div>
@@ -204,13 +204,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     key={`discount-${index}`}
                     className="flex justify-between py-1.5"
                   >
-                    <span className="text-gray-700">
+                    <span className="text-foreground">
                       {__('Discount', 'wepos')}{' '}
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-muted-foreground">
                         {discount.name} {getDiscountDisplay(discount)}
                       </span>
                     </span>
-                    <span className="text-gray-900">
+                    <span className="text-foreground">
                       -{formatPrice(getDiscountAmount(discount))}
                     </span>
                   </div>
@@ -223,13 +223,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                   key={`fee-${index}`}
                   className="flex justify-between py-1.5"
                 >
-                  <span className="text-gray-700">
+                  <span className="text-foreground">
                     {__('Fee', 'wepos')}{' '}
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-muted-foreground">
                       {fee.name} {formatPrice(parseFloat(fee.value))}
                     </span>
                   </span>
-                  <span className="text-gray-900">
+                  <span className="text-foreground">
                     {formatPrice(getFeeAmount(fee))}
                   </span>
                 </div>
@@ -238,31 +238,31 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               {/* Tax */}
               {totalTax > 0 && (
                 <div className="flex justify-between py-1.5">
-                  <span className="text-gray-700">
+                  <span className="text-foreground">
                     {__('Tax', 'wepos')}
                   </span>
-                  <span className="text-gray-900">
+                  <span className="text-foreground">
                     {formatPrice(totalTax)}
                   </span>
                 </div>
               )}
 
               {/* Order Total */}
-              <div className="mt-1 flex justify-between border-t border-gray-200 pt-2">
-                <span className="font-bold text-gray-900">
+              <div className="mt-1 flex justify-between border-t border-border pt-2">
+                <span className="font-bold text-foreground">
                   {__('Order Total', 'wepos')}
                 </span>
-                <span className="font-bold text-gray-900">
+                <span className="font-bold text-foreground">
                   {formatPrice(total)}
                 </span>
               </div>
 
               {/* Pay */}
               <div className="flex justify-between py-1.5">
-                <span className="font-bold text-gray-900">
+                <span className="font-bold text-foreground">
                   {__('Pay', 'wepos')}
                 </span>
-                <span className="font-bold text-gray-900">
+                <span className="font-bold text-foreground">
                   {formatPrice(total)}
                 </span>
               </div>
@@ -275,7 +275,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           <div className="flex min-w-0 flex-1 flex-col overflow-auto">
             {/* Header */}
             <div className="flex items-center justify-between px-12 pb-6 pt-8">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-foreground">
                 {__('Pay', 'wepos')}
               </h2>
               <span className="rounded-md border border-teal-300 bg-teal-50 px-5 py-2 text-lg font-semibold text-teal-600">
@@ -311,7 +311,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               {Array.from({ length: emptyGatewayCount }).map((_, index) => (
                 <div
                   key={`empty-${index}`}
-                  className="flex h-[100px] w-[calc(25%-12px)] items-center justify-center rounded border border-gray-100"
+                  className="flex h-[100px] w-[calc(25%-12px)] items-center justify-center rounded border border-border"
                 />
               ))}
             </div>
@@ -320,12 +320,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             {selectedGateway === 'wepos_cash' && (
               <div className="mx-12 mt-6 flex flex-col overflow-hidden rounded border border-[#EAEDF0]">
                 {/* Input Area */}
-                <div className="flex flex-col items-center justify-center bg-[#FBFCFE] py-10">
-                  <p className="mb-4 text-base font-medium text-gray-700">
+                <div className="flex flex-col items-center justify-center bg-muted/30 py-10">
+                  <p className="mb-4 text-base font-medium text-foreground">
                     {__('Cash', 'wepos')}
                   </p>
                   <InputGroup className="h-[50px] w-[350px] rounded-[3px] border-[#EAEDF0]">
-                    <InputGroupAddon className="w-[50px] justify-center border-r border-[#EAEDF0] text-base text-gray-600">
+                    <InputGroupAddon className="w-[50px] justify-center border-r border-[#EAEDF0] text-base text-muted-foreground">
                       {currencySymbol}
                     </InputGroupAddon>
                     <InputGroupInput
@@ -342,7 +342,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 </div>
 
                 {/* Change Money */}
-                <div className="flex items-center justify-center border-t border-[#EAEDF0] bg-white py-6">
+                <div className="flex items-center justify-center border-t border-[#EAEDF0] bg-background py-6">
                   <p className="text-[15px] font-medium text-[#9013FE]">
                     {__('Change money', 'wepos')}: {formatPrice(changeAmount)}
                   </p>

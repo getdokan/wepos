@@ -42,8 +42,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   if (products.length === 0) {
     return (
       <div className="col-span-full py-20 text-center">
-        <PackageX className="mx-auto mb-4 h-16 w-16 text-gray-300" />
-        <p className="font-medium text-gray-500">
+        <PackageX className="mx-auto mb-4 h-16 w-16 text-muted-foreground/50" />
+        <p className="font-medium text-muted-foreground">
           {__('No Product Found', 'wepos')}
         </p>
       </div>

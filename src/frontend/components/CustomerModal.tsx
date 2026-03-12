@@ -283,7 +283,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
     >
       {/* Header */}
       <ModalHeader className="px-6 py-5">
-        <ModalTitle className="text-lg font-bold text-gray-900">
+        <ModalTitle className="text-lg font-bold text-foreground">
           {isEditMode
             ? __('Edit Customer', 'wepos')
             : __('Add New Customer', 'wepos')}

@@ -1028,7 +1028,7 @@ const HomePage: React.FC = () => {
         )}
 
         {/* Mobile Bottom Tab Bar */}
-        <div className="md:hidden shrink-0 border-t border-border bg-white">
+        <div className="md:hidden shrink-0 border-t border-border bg-background">
           <div className="flex">
             <button
               className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium transition-colors ${

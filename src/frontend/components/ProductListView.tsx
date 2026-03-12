@@ -59,17 +59,17 @@ const ROW_GRID = 'grid grid-cols-[1fr_110px_80px_150px_60px] items-center gap-4 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const ListHeader: React.FC = () => (
-  <div className={`${ROW_GRID} py-3 border-b border-gray-200 bg-gray-100 sticky top-0 z-10`}>
-    <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+  <div className={`${ROW_GRID} py-3 border-b border-border bg-muted sticky top-0 z-10`}>
+    <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
       {__('Product', 'wepos')}
     </span>
-    <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 text-center">
+    <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground text-center">
       {__('Type', 'wepos')}
     </span>
-    <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 text-center">
+    <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground text-center">
       {__('Stock', 'wepos')}
     </span>
-    <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 text-right">
+    <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground text-right">
       {__('Price', 'wepos')}
     </span>
     <span />
@@ -103,12 +103,12 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
         src={getProductImage(product)}
         alt={product.name}
         size={64}
-        className="rounded-lg border border-gray-100 shrink-0"
+        className="rounded-lg border border-border shrink-0"
       />
 
       <div className="flex flex-col gap-1 min-w-0">
         {/* Name */}
-        <span className="text-sm font-semibold text-gray-800 leading-snug line-clamp-2">
+        <span className="text-sm font-semibold text-foreground leading-snug line-clamp-2">
           {decodeHtmlEntities(product.name)}
         </span>
 
@@ -116,7 +116,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
         {firstCategory && (
           <div className="flex flex-wrap items-center gap-1">
             <Badge
-              className="h-auto break-words whitespace-normal rounded-sm bg-gray-100 px-2 py-1 text-[10px] leading-tight font-semibold uppercase tracking-wider text-gray-500"
+              className="h-auto break-words whitespace-normal rounded-sm bg-muted px-2 py-1 text-[10px] leading-tight font-semibold uppercase tracking-wider text-muted-foreground"
               title={decodeHtmlEntities(firstCategory.name)}
             >
               {decodeHtmlEntities(firstCategory.name)}
@@ -125,7 +125,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
             {extraCategories.length > 0 && (
               <Tooltip>
                 <TooltipTrigger>
-                  <span className="inline-flex cursor-default items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-medium text-gray-500 hover:bg-gray-100">
+                  <span className="inline-flex cursor-default items-center rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-accent">
                     +{extraCategories.length}
                   </span>
                 </TooltipTrigger>
@@ -147,8 +147,8 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
         {product.type === 'variable' && variationAttributes.length > 0 && (
           <div className="flex flex-col gap-0.5 mt-0.5">
             {variationAttributes.map((attr) => (
-              <span key={attr.name} className="text-xs text-gray-500 leading-relaxed">
-                <span className="font-medium text-gray-600">{decodeHtmlEntities(attr.name)}:</span>{' '}
+              <span key={attr.name} className="text-xs text-muted-foreground leading-relaxed">
+                <span className="font-medium text-foreground">{decodeHtmlEntities(attr.name)}:</span>{' '}
                 {attr.options.map(decodeHtmlEntities).join(', ')}
               </span>
             ))}
@@ -180,11 +180,11 @@ const PriceCell: React.FC<PriceCellProps> = ({ product, formatPrice }) => {
   return (
     <div className="flex flex-col items-end gap-0.5">
       {hasRegularPrice && (
-        <span className="text-xs text-gray-400 line-through">
+        <span className="text-xs text-muted-foreground line-through">
           {formatPrice(product.regular_price)}
         </span>
       )}
-      <span className="text-sm font-bold text-gray-900 leading-snug">
+      <span className="text-sm font-bold text-foreground leading-snug">
         {currentPrice}
       </span>
     </div>
@@ -271,7 +271,7 @@ const ProductListRow: React.FC<ProductListRowProps> = ({
   getProductImage,
 }) => (
   <div
-    className={`${ROW_GRID} py-4 border-b border-gray-100 transition-colors hover:bg-gray-50/50 ${
+    className={`${ROW_GRID} py-4 border-b border-border transition-colors hover:bg-muted/50 ${
       !hasStock ? 'opacity-60' : ''
     }`}
   >
@@ -286,7 +286,7 @@ const ProductListRow: React.FC<ProductListRowProps> = ({
 
     {/* Type */}
     <div className="text-center">
-      <span className="text-sm text-gray-600 capitalize">
+      <span className="text-sm text-muted-foreground capitalize">
         {product.type === 'variable' ? __('Variable', 'wepos') : __('Simple', 'wepos')}
       </span>
     </div>
@@ -296,8 +296,8 @@ const ProductListRow: React.FC<ProductListRowProps> = ({
       <span
         className={`text-sm font-medium ${
           (product.stock_quantity ?? 0) === 0 && product.manage_stock
-            ? 'text-red-500'
-            : 'text-gray-700'
+            ? 'text-destructive'
+            : 'text-foreground'
         }`}
       >
         {product.manage_stock ? (product.stock_quantity ?? 0) : '-'}
@@ -331,8 +331,8 @@ export const ProductListView: React.FC<ProductListViewProps> = ({
   hasStock,
   getProductImage,
 }) => (
-  <div className="bg-white">
-    <div className="divide-y divide-gray-100">
+  <div className="bg-background">
+    <div className="divide-y divide-border">
       {products.map((product) => (
         <ProductListRow
           key={product.id}

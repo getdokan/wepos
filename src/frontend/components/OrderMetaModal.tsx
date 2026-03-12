@@ -142,7 +142,7 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
       className="max-w-160 p-0!"
     >
       <ModalHeader className="px-6 py-5">
-        <ModalTitle className="text-lg font-bold text-gray-900">
+        <ModalTitle className="text-lg font-bold text-foreground">
           {__('Order Meta', 'wepos')}
         </ModalTitle>
       </ModalHeader>
@@ -198,7 +198,7 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
         <div>
           <button
             type="button"
-            className="flex items-center gap-1 text-sm font-medium text-gray-900 cursor-pointer bg-transparent border-none p-0"
+            className="flex items-center gap-1 text-sm font-medium text-foreground cursor-pointer bg-transparent border-none p-0"
             onClick={() => setMetaExpanded(!metaExpanded)}
           >
             {__('Meta Data', 'wepos')}
@@ -223,7 +223,7 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
                         value={item.id?.toString() || ''}
                         readOnly
                         disabled
-                        className="text-sm bg-gray-50"
+                        className="text-sm bg-muted"
                       />
                     </div>
                     <div className="flex-1">

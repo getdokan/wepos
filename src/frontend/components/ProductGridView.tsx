@@ -56,9 +56,9 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
   getProductImage,
   truncateTitle,
 }) => (
-  <Card className="group cursor-pointer border-gray-200 p-0 transition-all duration-200 hover:shadow-lg">
+  <Card className="group cursor-pointer border-border p-0 transition-all duration-200 hover:shadow-lg">
     {/* Image */}
-    <div className="relative h-48 w-full overflow-hidden rounded-t-xl bg-gray-100">
+    <div className="relative h-48 w-full overflow-hidden rounded-t-xl bg-muted">
       <Thumbnail
         src={getProductImage(product)}
         alt={product.name}
@@ -66,8 +66,8 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
       />
 
       {!hasStock && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-[2px]">
-          <span className="rounded-full border border-red-100 bg-red-50 px-3 py-1 text-center text-xs font-semibold uppercase tracking-wide text-red-600 shadow-sm">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60 backdrop-blur-[2px]">
+          <span className="rounded-full border border-destructive/20 bg-destructive/10 px-3 py-1 text-center text-xs font-semibold uppercase tracking-wide text-destructive shadow-sm">
             {__('Out of Stock', 'wepos')}
           </span>
         </div>
@@ -101,7 +101,7 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
     {/* Content */}
     <CardContent className="flex flex-1 flex-col p-3">
       <h3
-        className="mb-2 min-h-[40px] line-clamp-2 text-sm font-semibold text-gray-900"
+        className="mb-2 min-h-[40px] line-clamp-2 text-sm font-semibold text-foreground"
         title={decodeHtmlEntities(product.name)}
       >
         {truncateTitle(decodeHtmlEntities(product.name), 25)}
@@ -115,7 +115,7 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
             <>
               {first && (
                 <Badge
-                  className="h-auto min-w-0 max-w-[calc(100%-2rem)] break-words whitespace-normal rounded-sm bg-gray-100 px-2 py-1 text-[10px] leading-tight font-semibold uppercase tracking-wider text-gray-500"
+                  className="h-auto min-w-0 max-w-[calc(100%-2rem)] break-words whitespace-normal rounded-sm bg-muted px-2 py-1 text-[10px] leading-tight font-semibold uppercase tracking-wider text-muted-foreground"
                   title={decodeHtmlEntities(first.name)}
                 >
                   {decodeHtmlEntities(first.name)}
@@ -124,7 +124,7 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
               {extra.length > 0 && (
                 <Tooltip>
                   <TooltipTrigger>
-                    <span className="inline-flex shrink-0 cursor-default items-center rounded-sm border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px] font-semibold text-gray-400 hover:bg-gray-100">
+                    <span className="inline-flex shrink-0 cursor-default items-center rounded-sm border border-border bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground hover:bg-accent">
                       +{extra.length}
                     </span>
                   </TooltipTrigger>
@@ -147,7 +147,7 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
         {product.stock_quantity !== null && (
           <span
             className={`text-xs ${
-              !hasStock || product.stock_quantity === 0 ? 'font-medium text-red-600' : 'text-gray-400'
+              !hasStock || product.stock_quantity === 0 ? 'font-medium text-destructive' : 'text-muted-foreground'
             }`}
           >
             {getStockLabel(product.stock_quantity)}
@@ -158,17 +158,17 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
       <div className="mt-auto flex flex-col">
         {product.type === 'variable' ? (
           <span
-            className="text-sm font-bold text-gray-900"
+            className="text-sm font-bold text-foreground"
             dangerouslySetInnerHTML={{ __html: product.price_html }}
           />
         ) : (
           <>
             {product.on_sale && product.regular_price && (
-              <span className="mb-0.5 text-xs text-gray-400 line-through">
+              <span className="mb-0.5 text-xs text-muted-foreground line-through">
                 {formatPrice(product.regular_price)}
               </span>
             )}
-            <span className="text-sm font-bold text-gray-900">
+            <span className="text-sm font-bold text-foreground">
               {formatPrice(product.on_sale ? product.sale_price : product.regular_price)}
             </span>
           </>

@@ -82,7 +82,7 @@ const AddFeeModal: React.FC<AddFeeModalProps> = ({
       className="max-w-135 p-0!"
     >
       <ModalHeader className="px-6 py-5">
-        <ModalTitle className="text-lg font-bold text-gray-900">
+        <ModalTitle className="text-lg font-bold text-foreground">
           {__('Add Fee', 'wepos')}
         </ModalTitle>
       </ModalHeader>

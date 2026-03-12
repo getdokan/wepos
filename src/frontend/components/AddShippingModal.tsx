@@ -88,7 +88,7 @@ const AddShippingModal: React.FC<AddShippingModalProps> = ({
       className="max-w-150 p-0!"
     >
       <ModalHeader className="px-6 py-5">
-        <ModalTitle className="text-lg font-bold text-gray-900">
+        <ModalTitle className="text-lg font-bold text-foreground">
           {__('Add Shipping', 'wepos')}
         </ModalTitle>
       </ModalHeader>

@@ -244,7 +244,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
   const visibleColumnCount = cartSettings.columns.filter((c) => c.enabled).length || 1;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-white">
+    <div className="flex min-h-0 flex-1 flex-col bg-background">
       {settings.wepos_general && (
         <div className="flex min-h-0 flex-1 flex-col">
           {/* Cart Header - Fixed Top */}
@@ -286,45 +286,45 @@ const Cart = forwardRef<CartHandle, CartProps>(({
           <ScrollArea className="min-h-0 flex-1">
             <div className="p-0">
               <table className="w-full border-collapse">
-                <thead className="sticky top-0 bg-white">
+                <thead className="sticky top-0 bg-background">
                   <tr>
                     {isColumnEnabled('qty') && (
-                      <th className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                      <th className="border-b border-border bg-muted p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                         {__('Qty', 'wepos')}
                       </th>
                     )}
                     {isColumnEnabled('name') && (
-                      <th className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                      <th className="border-b border-border bg-muted p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                         {__('Name', 'wepos')}
                       </th>
                     )}
                     {isColumnEnabled('sku') && (
-                      <th className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                      <th className="border-b border-border bg-muted p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                         {__('SKU', 'wepos')}
                       </th>
                     )}
                     {isColumnEnabled('price') && (
-                      <th className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                      <th className="border-b border-border bg-muted p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                         {__('Price', 'wepos')}
                       </th>
                     )}
                     {isColumnEnabled('regular_price') && (
-                      <th className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                      <th className="border-b border-border bg-muted p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                         {__('Regular Price', 'wepos')}
                       </th>
                     )}
                     {isColumnEnabled('subtotal') && (
-                      <th className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                      <th className="border-b border-border bg-muted p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                         {__('Subtotal', 'wepos')}
                       </th>
                     )}
                     {isColumnEnabled('total') && (
-                      <th className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                      <th className="border-b border-border bg-muted p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                         {__('Total', 'wepos')}
                       </th>
                     )}
                     {isColumnEnabled('actions') && (
-                      <th className="border-b border-gray-200 bg-gray-50 p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase"></th>
+                      <th className="border-b border-border bg-muted p-3 text-left text-xs font-semibold tracking-wider text-muted-foreground uppercase"></th>
                     )}
                   </tr>
                 </thead>
@@ -344,7 +344,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
                       return (
                         <React.Fragment key={item.id}>
-                          <tr className="border-b border-gray-100 transition-colors hover:bg-gray-50">
+                          <tr className="border-b border-border transition-colors hover:bg-muted/50">
                             {/* QTY Column */}
                             {isColumnEnabled('qty') && (
                               <td className="p-3 text-sm">
@@ -352,7 +352,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                                   <Button
                                     variant="outline"
                                     size="icon-sm"
-                                    className="h-5 w-5 rounded border-none bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                    className="h-5 w-5 rounded border-none bg-muted text-muted-foreground hover:bg-accent"
                                     onClick={() => removeQuantity(item, index)}
                                   >
                                     <Minus className="h-4 w-4" />
@@ -363,7 +363,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                                   <Button
                                     variant="outline"
                                     size="icon-sm"
-                                    className="h-5 w-5 rounded border-none bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                    className="h-5 w-5 rounded border-none bg-muted text-muted-foreground hover:bg-accent"
                                     onClick={() => addQuantity(item, index)}
                                   >
                                     <Plus className="h-4 w-4" />
@@ -375,7 +375,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                             {/* NAME Column */}
                             {isColumnEnabled('name') && (
                               <td className="p-3 text-sm">
-                                <div className="font-sm text-gray-800">
+                                <div className="font-sm text-foreground">
                                   {item.name}
                                   {item.product_id === 0 && (
                                     <span className="ml-1 text-xs text-muted-foreground">
@@ -419,20 +419,20 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
                             {/* SKU Column (standalone) */}
                             {isColumnEnabled('sku') && (
-                              <td className="p-3 text-sm text-gray-600">
+                              <td className="p-3 text-sm text-muted-foreground">
                                 {item.sku || '—'}
                               </td>
                             )}
 
                             {/* PRICE Column */}
                             {isColumnEnabled('price') && (
-                              <td className="p-3 text-sm text-gray-600">
+                              <td className="p-3 text-sm text-muted-foreground">
                                 {item.on_sale && isSubOptionEnabled('price', 'on_sale') ? (
                                   <div className="flex flex-col">
-                                    <span className="text-xs text-gray-400 line-through">
+                                    <span className="text-xs text-muted-foreground line-through">
                                       {cartFormatPrice(item.regular_price)}
                                     </span>
-                                    <span className="font-medium text-red-600">
+                                    <span className="font-medium text-destructive">
                                       {cartFormatPrice(item.sale_price)}
                                     </span>
                                   </div>
@@ -444,7 +444,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
                             {/* REGULAR PRICE Column */}
                             {isColumnEnabled('regular_price') && (
-                              <td className="p-3 text-sm text-gray-600">
+                              <td className="p-3 text-sm text-muted-foreground">
                                 {cartFormatPrice(item.regular_price)}
                               </td>
                             )}
@@ -477,7 +477,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                                   </div>
                                 )}
                                 {item.on_sale && isSubOptionEnabled('total', 'on_sale') && (
-                                  <div className="mt-0.5 text-xs text-gray-400 line-through">
+                                  <div className="mt-0.5 text-xs text-muted-foreground line-through">
                                     {cartFormatPrice(itemSubtotal)}
                                   </div>
                                 )}
@@ -506,10 +506,10 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     <tr>
                       <td
                         colSpan={visibleColumnCount}
-                        className="px-5 py-16 text-center text-gray-400"
+                        className="px-5 py-16 text-center text-muted-foreground"
                       >
                         <div className="flex flex-col items-center">
-                          <ShoppingCart className="mb-4 h-16 w-16 text-gray-300" />
+                          <ShoppingCart className="mb-4 h-16 w-16 text-muted-foreground/50" />
                           <p className="text-muted-foreground">
                             {__('Empty Cart', 'wepos')}
                           </p>
@@ -524,7 +524,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
           {/* Cart Footer - Fixed Bottom */}
           <div className="shrink-0 border-t border-border">
-            <div className="bg-gray-50/50">
+            <div className="bg-muted/50">
               {/* Subtotal */}
               <div className="flex items-center justify-between border-b border-border p-[9px_12px]">
                 <div className="flex-1 text-sm">
@@ -564,7 +564,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => removeDiscount(index)}
                       title={__('Remove discount', 'wepos')}
                     >
@@ -580,7 +580,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                   key={`fee-${index}`}
                   className="flex items-center border-b border-border p-[9px_12px]"
                 >
-                  <div className="flex-1 text-sm text-gray-700">
+                  <div className="flex-1 text-sm text-foreground">
                     {fee.name || __('Fee', 'wepos')}
                     <span className="ml-2 text-xs text-muted-foreground">
                       {fee.fee_type === 'percent'
@@ -600,7 +600,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => removeFee(index)}
                       title={__('Remove fee', 'wepos')}
                     >
@@ -616,7 +616,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                   key={`shipping-${index}`}
                   className="flex items-center border-b border-border p-[9px_12px]"
                 >
-                  <div className="flex-1 text-sm text-gray-700">
+                  <div className="flex-1 text-sm text-foreground">
                     <Truck className="mr-1 inline h-3.5 w-3.5" />
                     {shipping.method_title}
                     {shipping.tax_status === 'taxable' && (
@@ -632,7 +632,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => removeShippingLine(index)}
                       title={__('Remove shipping', 'wepos')}
                     >
@@ -650,7 +650,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       key={`tax-${taxLine.id}`}
                       className="flex items-center justify-between border-b border-border p-[9px_12px]"
                     >
-                      <div className="flex-1 text-sm text-gray-700">
+                      <div className="flex-1 text-sm text-foreground">
                         {taxLine.label}
                         {parseFloat(taxLine.shipping_tax_total) > 0 && (
                           <span className="ml-1 text-xs text-muted-foreground">
@@ -672,12 +672,12 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               {/* Total Tax (fallback when no detailed tax lines) */}
               {totalTax > 0 && (!serverOrder || isServerOrderDirty || serverOrder.tax_lines.length === 0) && (
                 <div className="flex items-center justify-between border-b border-border p-[9px_12px]">
-                  <div className="text-sm font-medium text-gray-700">
+                  <div className="text-sm font-medium text-foreground">
                     {isTaxInclusive
                       ? __('Fee Tax', 'wepos')
                       : __('Tax', 'wepos')}
                   </div>
-                  <div className="text-sm font-bold text-gray-800">
+                  <div className="text-sm font-bold text-foreground">
                     {cartFormatPrice(totalTax)}
                   </div>
                 </div>
@@ -699,7 +699,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                   {/* New action buttons */}
                   <Button
                     variant="outline"
-                    className="border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
+                    className="border-border bg-muted text-muted-foreground hover:bg-accent"
                     onClick={() => setShowMiscProductModal(true)}
                   >
                     {__('Misc Product', 'wepos')}
@@ -707,7 +707,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
                   <Button
                     variant="outline"
-                    className="border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
+                    className="border-border bg-muted text-muted-foreground hover:bg-accent"
                     onClick={() => setShowFeeModal(true)}
                   >
                     {__('Add Fee', 'wepos')}
@@ -715,7 +715,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
                   <Button
                     variant="outline"
-                    className="border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
+                    className="border-border bg-muted text-muted-foreground hover:bg-accent"
                     onClick={() => setShowShippingModal(true)}
                   >
                     {__('Shipping', 'wepos')}
@@ -723,7 +723,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
                   <Button
                     variant="outline"
-                    className="border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
+                    className="border-border bg-muted text-muted-foreground hover:bg-accent"
                     onClick={() => setShowOrderMetaModal(true)}
                   >
                     {__('Order Meta', 'wepos')}
@@ -732,7 +732,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                   {onSaveToServer && (
                     <Button
                       variant="outline"
-                      className="border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
+                      className="border-border bg-muted text-muted-foreground hover:bg-accent"
                       onClick={onSaveToServer}
                       disabled={cartItems.length === 0 || savingToServer}
                     >
@@ -748,7 +748,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               {/* Customer Note */}
               {customerNote && (
                 <div className="flex items-center border-b border-border p-[9px_12px]">
-                  <div className="flex-1 text-sm text-gray-600">
+                  <div className="flex-1 text-sm text-muted-foreground">
                     <span className="font-medium">
                       {__('Note:', 'wepos')}{' '}
                     </span>
@@ -758,7 +758,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={removeCustomerNote}
                       title={__('Remove note', 'wepos')}
                     >
