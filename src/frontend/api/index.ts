@@ -443,21 +443,27 @@ const paymentAPI = {
 
 // Settings API
 const settingsAPI = {
-  // Get POS settings
-  getSettings: async (): Promise<POSSettings> => {
+  // Get POS settings (optionally for a specific outlet)
+  getSettings: async (outletId?: number): Promise<POSSettings> => {
+    const params = new URLSearchParams();
+    if (outletId) {
+      params.append('outlet_id', outletId.toString());
+    }
+    const query = params.toString();
     const response = await apiFetch({
-      path: `/${API_BASE.WEPOS}/settings`,
+      path: `/${API_BASE.WEPOS}/settings${query ? `?${query}` : ''}`,
       method: 'GET',
     });
 
     return response as POSSettings;
   },
 
-  updateSettings: async (settings: any): Promise<APIResponse<any>> => {
+  updateSettings: async (settings: any, outletId?: number): Promise<APIResponse<any>> => {
+    const data = outletId ? { ...settings, _outlet_id: outletId } : settings;
     const response = await apiFetch({
       path: `${API_BASE.WEPOS}/settings`,
       method: 'POST',
-      data: settings,
+      data,
     });
 
     return response as APIResponse<any>;

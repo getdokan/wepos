@@ -125,7 +125,10 @@ export const usePOSData = () => {
   const fetchSettings = useCallback(async () => {
     setSettingsLoading(true);
     try {
-      const settings = await posAPI.settings.getSettings();
+      // Pass outlet_id if available (set by wepos-pro after cashier login)
+      const outlet = getFromLocalStorage('wepos_outlet', null);
+      const outletId = outlet?.id || 0;
+      const settings = await posAPI.settings.getSettings(outletId || undefined);
       setSettings(settings);
     } catch (error) {
       console.error('Error fetching settings:', error);
