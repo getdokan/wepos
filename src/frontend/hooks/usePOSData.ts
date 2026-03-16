@@ -130,6 +130,34 @@ export const usePOSData = () => {
       const outletId = outlet?.id || 0;
       const settings = await posAPI.settings.getSettings(outletId || undefined);
       setSettings(settings);
+
+      // Sync window.wepos currency format values from outlet-specific settings
+      // so formatPrice() uses the correct outlet currency by default
+      if (settings?.woo_general && (window as any).wepos) {
+        const wg = settings.woo_general;
+        const w = (window as any).wepos;
+        if (wg.currency_symbol) {
+          w.currency_format_symbol = wg.currency_symbol;
+        }
+        if (wg.price_num_decimals !== undefined) {
+          w.currency_format_num_decimals = wg.price_num_decimals;
+        }
+        if (wg.price_decimal_sep !== undefined) {
+          w.currency_format_decimal_sep = wg.price_decimal_sep;
+        }
+        if (wg.price_thousand_sep !== undefined) {
+          w.currency_format_thousand_sep = wg.price_thousand_sep;
+        }
+        if (wg.currency_pos) {
+          const formatMap: Record<string, string> = {
+            left: '%s%v',
+            right: '%v%s',
+            left_space: '%s %v',
+            right_space: '%v %s',
+          };
+          w.currency_format = formatMap[wg.currency_pos] || w.currency_format;
+        }
+      }
     } catch (error) {
       console.error('Error fetching settings:', error);
       setSettingsLoading(false);

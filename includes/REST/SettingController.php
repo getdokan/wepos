@@ -31,6 +31,20 @@ class SettingController extends \WP_REST_Controller {
 	 */
 	private $overridable_sections = [ 'woo_general', 'woo_tax', 'wepos_general' ];
 
+	/**
+	 * Currency-related keys within woo_general that can be restored to WC defaults.
+	 *
+	 * @var string[]
+	 */
+	private $currency_keys = [
+		'currency',
+		'currency_pos',
+		'price_decimal_sep',
+		'price_num_decimals',
+		'price_thousand_sep',
+		'thousands_group_style',
+	];
+
     /**
      * Register all routes related with settings
      *
@@ -113,6 +127,7 @@ class SettingController extends \WP_REST_Controller {
 		];
 
 		// WooCommerce general / store settings
+		$currency = get_option( 'woocommerce_currency', 'USD' );
 		$settings['woo_general'] = [
 			'store_name'           => get_option( 'blogname', '' ),
 			'store_city'           => get_option( 'woocommerce_store_city', '' ),
@@ -120,7 +135,8 @@ class SettingController extends \WP_REST_Controller {
 			'store_address'        => get_option( 'woocommerce_store_address', '' ),
 			'store_address_2'      => get_option( 'woocommerce_store_address_2', '' ),
 			'default_country'      => get_option( 'woocommerce_default_country', 'US:CA' ),
-			'currency'             => get_option( 'woocommerce_currency', 'USD' ),
+			'currency'             => $currency,
+			'currency_symbol'      => html_entity_decode( get_woocommerce_currency_symbol( $currency ) ),
 			'currency_pos'         => get_option( 'woocommerce_currency_pos', 'left' ),
 			'price_decimal_sep'    => get_option( 'woocommerce_price_decimal_sep', '.' ),
 			'price_num_decimals'   => get_option( 'woocommerce_price_num_decimals', '2' ),
@@ -183,6 +199,13 @@ class SettingController extends \WP_REST_Controller {
 			}
 		}
 
+		// Resolve currency_symbol when outlet overrides the currency code
+		if ( ! empty( $overrides['woo_general']['currency'] ) ) {
+			$merged['woo_general']['currency_symbol'] = html_entity_decode(
+				get_woocommerce_currency_symbol( $overrides['woo_general']['currency'] )
+			);
+		}
+
 		return $merged;
 	}
 
@@ -200,7 +223,23 @@ class SettingController extends \WP_REST_Controller {
 
 		if ( $outlet_id ) {
 			$overrides = $this->get_outlet_overrides( $outlet_id );
-			$settings  = $this->merge_outlet_settings( $settings, $overrides );
+
+			// Include WC defaults so frontend can show "default" values and restore
+			$settings['woo_defaults'] = $settings['woo_general'];
+
+			// Check if outlet has currency-specific overrides
+			$has_currency_override = false;
+			if ( ! empty( $overrides['woo_general'] ) ) {
+				foreach ( $this->currency_keys as $key ) {
+					if ( isset( $overrides['woo_general'][ $key ] ) ) {
+						$has_currency_override = true;
+						break;
+					}
+				}
+			}
+			$settings['has_outlet_currency_override'] = $has_currency_override;
+
+			$settings = $this->merge_outlet_settings( $settings, $overrides );
 		}
 
 		return rest_ensure_response( $settings );
@@ -221,11 +260,14 @@ class SettingController extends \WP_REST_Controller {
 	public function update_settings( $request ) {
 		$params    = $request->get_json_params();
 		$outlet_id = isset( $params['_outlet_id'] ) ? absint( $params['_outlet_id'] ) : 0;
+		$restore_currency = ! empty( $params['_restore_currency'] );
 
-		// Remove the meta key so it doesn't get saved as a setting value
-		unset( $params['_outlet_id'] );
+		// Remove meta keys so they don't get saved as setting values
+		unset( $params['_outlet_id'], $params['_restore_currency'] );
 
-		if ( $outlet_id ) {
+		if ( $restore_currency && $outlet_id ) {
+			$this->restore_outlet_currency_defaults( $outlet_id );
+		} elseif ( $outlet_id ) {
 			$this->save_outlet_settings( $outlet_id, $params );
 		} else {
 			$this->save_global_settings( $params );
@@ -257,6 +299,34 @@ class SettingController extends \WP_REST_Controller {
 		}
 
 		update_option( $option_key, $existing );
+	}
+
+	/**
+	 * Remove currency-related keys from outlet-specific overrides,
+	 * restoring WooCommerce defaults for this outlet.
+	 *
+	 * @param int $outlet_id
+	 */
+	private function restore_outlet_currency_defaults( $outlet_id ) {
+		$option_key = "wepos_outlet_settings_{$outlet_id}";
+		$existing   = get_option( $option_key, [] );
+
+		if ( ! empty( $existing['woo_general'] ) ) {
+			foreach ( $this->currency_keys as $key ) {
+				unset( $existing['woo_general'][ $key ] );
+			}
+
+			// Clean up empty section
+			if ( empty( $existing['woo_general'] ) ) {
+				unset( $existing['woo_general'] );
+			}
+		}
+
+		if ( empty( $existing ) ) {
+			delete_option( $option_key );
+		} else {
+			update_option( $option_key, $existing );
+		}
 	}
 
 	/**
