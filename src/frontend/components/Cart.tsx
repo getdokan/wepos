@@ -684,7 +684,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               )}
 
               {/* Action Buttons */}
-              <div className="border-b border-border p-4">
+              <div className="border-b border-border p-2">
                 <div className="flex flex-wrap gap-2">
                   <FeeKeypad
                     ref={discountRef}
@@ -771,7 +771,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
             </div>
 
-            <div className="flex w-full">
+            <div className="flex gap-2 p-2 w-full">
               <Button
                 variant="destructive"
                 className="h-14 w-[30%] text-lg font-bold"
