@@ -598,8 +598,10 @@ const HomePage: React.FC = () => {
           value: m.value,
         })),
       ],
-      // Set order currency if changed from default
-      ...(orderCurrency ? { currency: orderCurrency } : {}),
+      // Set order currency: cart override > outlet settings > WC default (omitted)
+      ...(orderCurrency || settings?.woo_general?.currency
+        ? { currency: orderCurrency || settings.woo_general.currency }
+        : {}),
       ...extraFields,
     };
 
