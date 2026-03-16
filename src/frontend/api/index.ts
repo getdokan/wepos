@@ -373,6 +373,7 @@ const customersAPI = {
     const params = new URLSearchParams();
 
     if (search) params.append('search', search);
+    params.append('role', 'all');
 
     const response = await apiFetch({
       path: `${API_BASE.WC}/customers?${params.toString()}`,
