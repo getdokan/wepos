@@ -154,8 +154,16 @@ class SettingController extends \WP_REST_Controller {
 		}
 		$settings['tax_classes'] = $tax_class_options;
 
-		// Get all currencies
-		$settings['currencies'] = get_woocommerce_currencies();
+		// Get all currencies with symbols
+		$all_currencies = get_woocommerce_currencies();
+		$currencies_with_symbols = [];
+		foreach ( $all_currencies as $code => $name ) {
+			$currencies_with_symbols[ $code ] = [
+				'name'   => $name,
+				'symbol' => html_entity_decode( get_woocommerce_currency_symbol( $code ) ),
+			];
+		}
+		$settings['currencies'] = $currencies_with_symbols;
 
 		return $settings;
 	}
