@@ -15,6 +15,32 @@ import { POSProduct, CartItem } from '../types';
 import { decodeHtmlEntities } from '../utils/helpers';
 import ProductVariationSelector from './ProductVariationSelector';
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getVariablePriceRange(
+  product: POSProduct,
+  formatPrice: (amount: number | string | undefined | null) => string,
+): string {
+  const fallback = formatPrice(
+    product.on_sale ? product.sale_price : product.regular_price,
+  ) as string;
+
+  const variations: any[] = product.variations ?? [];
+  if (variations.length === 0) return fallback;
+
+  const prices = variations
+    .map((v) => parseFloat(v.price || v.regular_price || '0'))
+    .filter((p) => !isNaN(p));
+
+  if (prices.length === 0) return fallback;
+
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  return min === max
+    ? (formatPrice(min) as string)
+    : `${formatPrice(min)} \u2013 ${formatPrice(max)}`;
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ProductGridViewProps {
@@ -157,10 +183,9 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
 
       <div className="mt-auto flex flex-col">
         {product.type === 'variable' ? (
-          <span
-            className="text-sm font-bold text-foreground"
-            dangerouslySetInnerHTML={{ __html: product.price_html }}
-          />
+          <span className="text-sm font-bold text-foreground">
+            {getVariablePriceRange(product, formatPrice)}
+          </span>
         ) : (
           <>
             {product.on_sale && product.regular_price && (
