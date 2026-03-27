@@ -136,6 +136,9 @@ export const usePOSData = () => {
       if (settings?.woo_general && (window as any).wepos) {
         const wg = settings.woo_general;
         const w = (window as any).wepos;
+        if (wg.currency) {
+          w.currency = wg.currency;
+        }
         if (wg.currency_symbol) {
           w.currency_format_symbol = wg.currency_symbol;
         }
