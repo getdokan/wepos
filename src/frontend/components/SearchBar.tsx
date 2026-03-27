@@ -11,6 +11,8 @@ import {
 } from '@wedevs/plugin-ui';
 import { POSProduct } from '../types';
 import { formatPrice } from '../utils/helpers';
+import { useBarcodeSettings } from '../hooks/useBarcodeSettings';
+import { useBarcodeScanner } from '../hooks/useBarcodeScanner';
 
 type SearchMode = 'product' | 'scan';
 
@@ -34,6 +36,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const resultItemsRef = useRef<(HTMLLIElement | null)[]>([]);
+
+  // Barcode scanner auto-detection via keypress timing
+  const { settings: barcodeSettings } = useBarcodeSettings();
 
   const placeholder = mode === 'scan'
     ? __('Scan your product', 'wepos')
@@ -123,22 +128,20 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
     inputRef.current?.focus();
   }, [onProductAdded]);
 
-  // Handle barcode scan (form submit in scan mode)
-  const handleProductScan = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    if (mode === 'product') return;
-    if (!searchInput) return;
+  // Shared barcode lookup logic used by both form submit and auto-detection
+  const lookupBarcode = useCallback((barcode: string) => {
+    if (!barcode) return;
 
     const generalSettings = settings?.wepos_general;
     const field = generalSettings?.barcode_scanner_field === 'custom' ? 'barcode' : (generalSettings?.barcode_scanner_field || 'sku');
 
     const filterProduct = products.filter((product: any) => {
       if (product.type === 'simple') {
-        if (product[field]?.toString() === searchInput) return true;
+        if (product[field]?.toString() === barcode) return true;
       }
       if (product.type === 'variable') {
         if (product.variations?.length > 0) {
-          return product.variations.some((item: any) => item[field]?.toString() === searchInput);
+          return product.variations.some((item: any) => item[field]?.toString() === barcode);
         }
       }
       return false;
@@ -148,7 +151,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
       const found = filterProduct[0] as any;
       if (found.type === 'variable') {
         const variations = found.variations || [];
-        const matchedVariation = variations.find((item: any) => item[field]?.toString() === searchInput);
+        const matchedVariation = variations.find((item: any) => item[field]?.toString() === barcode);
         if (matchedVariation) {
           const variationProduct = {
             ...matchedVariation,
@@ -162,9 +165,22 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
         onProductAdded(found);
       }
     }
+  }, [settings, products, onProductAdded]);
 
+  // Auto-detect barcode scanner input via keypress timing
+  useBarcodeScanner({
+    settings: barcodeSettings,
+    enabled: true,
+    onBarcode: lookupBarcode,
+  });
+
+  // Handle barcode scan (form submit in scan mode)
+  const handleProductScan = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    if (mode === 'product') return;
+    lookupBarcode(searchInput);
     setSearchInput('');
-  }, [mode, searchInput, settings, products, onProductAdded]);
+  }, [mode, searchInput, lookupBarcode]);
 
   // Select variation product (opens modal)
   const selectVariation = useCallback((product: POSProduct) => {

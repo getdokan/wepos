@@ -165,6 +165,7 @@ class ReactAssets
                 'nonce' => wp_create_nonce('wepos_nonce'),
                 'mon_decimal_point' => \wc_get_price_decimal_separator(),
                 'currency_format_num_decimals' => \wc_get_price_decimals(),
+                'currency' => \get_woocommerce_currency(),
                 'currency_format_symbol' => \get_woocommerce_currency_symbol(),
                 'currency_format_decimal_sep' => esc_attr(\wc_get_price_decimal_separator()),
                 'currency_format_thousand_sep' => esc_attr(\wc_get_price_thousand_separator()),

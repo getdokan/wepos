@@ -27,6 +27,7 @@ import {
 } from '../types';
 import {
   formatPrice,
+  getFromLocalStorage,
   getProductImage,
   hasStock,
   parseCurrencyAmount,
@@ -261,6 +262,9 @@ const HomePage: React.FC = () => {
     }
   }, []);
 
+  // Track whether we've loaded the default customer from settings
+  const defaultCustomerLoadedRef = useRef(false);
+
   // Void: clear cart and delete the pos-open order from server if it exists
   const [voiding, setVoiding] = useState(false);
   const voidCart = useCallback(async () => {
@@ -279,6 +283,7 @@ const HomePage: React.FC = () => {
       }
     }
     clearCart();
+    defaultCustomerLoadedRef.current = false; // Re-load default customer
   }, [serverOrder, clearCart]);
 
   const createNewSale = useCallback(() => {
@@ -293,6 +298,7 @@ const HomePage: React.FC = () => {
     });
     setShowPaymentReceipt(false);
     setCashAmount('');
+    defaultCustomerLoadedRef.current = false; // Re-load default customer for next sale
     window.history.pushState({}, '', window.location.pathname);
   }, [clearCart]);
 
@@ -315,6 +321,35 @@ const HomePage: React.FC = () => {
       }));
     }
   }, [setCustomer]);
+
+  // Load default customer from settings when settings become available
+  useEffect(() => {
+    if (!settings?.woo_general || defaultCustomerLoadedRef.current || selectedCustomer) return;
+    defaultCustomerLoadedRef.current = true;
+
+    // Outlet meta (set by wepos-pro) takes priority over global settings
+    const outlet = getFromLocalStorage<any>('wepos_outlet', null);
+    const outletMeta = outlet?.meta || {};
+
+    const isCashier = outletMeta.default_customer_is_cashier ?? settings.woo_general.default_customer_is_cashier;
+    const defaultCustomerId = outletMeta.default_customer ?? settings.woo_general.default_customer;
+
+    if (isCashier === 'yes') {
+      // Set the logged-in cashier as the default customer
+      const currentUserId = window.wepos?.current_user_id;
+      if (currentUserId) {
+        posAPI.customers.getCustomer(currentUserId)
+          .then((customer) => handleCustomerSelected(customer))
+          .catch(() => {});
+      }
+    } else if (defaultCustomerId && Number(defaultCustomerId) > 0) {
+      // Load the configured default customer
+      posAPI.customers.getCustomer(Number(defaultCustomerId))
+        .then((customer) => handleCustomerSelected(customer))
+        .catch(() => {});
+    }
+    // If neither is set, customer remains guest (null)
+  }, [settings, selectedCustomer, handleCustomerSelected]);
 
   const backToSale = useCallback(() => {
     setShowModal(false);

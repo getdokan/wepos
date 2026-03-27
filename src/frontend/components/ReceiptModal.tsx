@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Modal } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+import { useTheme } from '@wedevs/plugin-ui';
 import { POSPrintData, POSSettings } from '../types';
 import { Check, Plus, Printer } from 'lucide-react';
 import { applyFilters } from '../hooks/useExtensions';
@@ -100,6 +101,8 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
   autoPrint = false,
   autoShow = true,
 }) => {
+  const { mode } = useTheme();
+
   // Inject print styles into document head (once, cleaned up on unmount)
   useEffect(() => {
     if (document.getElementById('wepos-receipt-print-styles')) return;
@@ -205,7 +208,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
   return (
     <Modal
       onRequestClose={onClose}
-      className="wepos-sale-completed-modal pui-root"
+      className={`wepos-sale-completed-modal pui-root ${mode === 'dark' ? 'dark' : ''}`}
       shouldCloseOnClickOutside={true}
       shouldCloseOnEsc={true}
       __experimentalHideHeader

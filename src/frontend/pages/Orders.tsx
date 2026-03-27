@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
 import Layout from '../components/Layout';
 
 const OrdersPage: React.FC = () => {
@@ -14,7 +14,7 @@ const OrdersPage: React.FC = () => {
 
           <div className="flex-1 rounded-xl border border-border bg-card p-6 shadow-sm">
             <div className="py-20 text-center">
-              <FileText className="mx-auto mb-4 h-16 w-16 text-muted-foreground/50" />
+              <ShoppingBag className="mx-auto mb-4 h-16 w-16 text-muted-foreground/50" />
               <h3 className="mb-2 text-lg font-medium text-foreground">
                 Orders Management
               </h3>

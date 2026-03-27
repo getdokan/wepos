@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Home,
-  Store,
 } from 'lucide-react';
 import {
   LayoutMenu,
@@ -82,17 +81,6 @@ const Sidebar: React.FC = () => {
 
   return (
     <>
-      <SidebarHeader>
-        <div className="flex items-center gap-3">
-          <div className="bg-primary text-primary-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold">
-            <Store className="h-5 w-5" />
-          </div>
-          <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="text-lg font-bold">{ __( 'WePos', 'wepos' ) }</span>
-          </div>
-        </div>
-      </SidebarHeader>
-
       <LayoutMenu
         groups={ menuGroups }
         activeItemId={ location.pathname }
