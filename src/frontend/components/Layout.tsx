@@ -5,6 +5,7 @@ import {
   LayoutSidebar,
   LayoutMain,
   LayoutHeader,
+  SidebarTrigger,
   useSidebar,
 } from '@wedevs/plugin-ui';
 import Sidebar from './Sidebar';
@@ -38,6 +39,9 @@ const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
         <Sidebar />
       </LayoutSidebar>
       <LayoutMain className="h-full overflow-hidden flex flex-col">
+        <div className="md:hidden flex items-center p-2 border-b border-border">
+          <SidebarTrigger />
+        </div>
         <div className="flex-1 min-h-0 overflow-hidden">
           {children}
         </div>
