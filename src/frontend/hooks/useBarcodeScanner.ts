@@ -82,11 +82,6 @@ export function useBarcodeScanner( {
 		const handleKeyDown = ( e: KeyboardEvent ) => {
 			if ( ! enabledRef.current ) return;
 
-			// Report keypress event for the test area
-			if ( onKeyEventRef.current ) {
-				onKeyEventRef.current( e.key );
-			}
-
 			// Only accumulate printable characters
 			if ( e.key.length !== 1 ) return;
 
@@ -98,6 +93,11 @@ export function useBarcodeScanner( {
 				target.isContentEditable
 			) {
 				return;
+			}
+
+			// Report keypress event for the test area (after input guard)
+			if ( onKeyEventRef.current ) {
+				onKeyEventRef.current( e.key );
 			}
 
 			const now = performance.now();
