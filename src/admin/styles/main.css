@@ -3,6 +3,7 @@
 @import "tailwindcss/theme.css" layer(theme);
 /* Source paths for Tailwind to scan */
 @source "../../admin";
+@source "../../../../wepos-pro/src/admin";
 @source "../../../node_modules/@wedevs/plugin-ui/dist";
 
 #wepos-admin-react-app {
