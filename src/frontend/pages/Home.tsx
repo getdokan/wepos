@@ -389,6 +389,7 @@ const HomePage: React.FC = () => {
             ?.title || '',
         meta_data: [
           { key: '_wepos_is_pos_order', value: true },
+          { key: '_wepos_tax_based_on', value: settings?.woo_tax?.wc_tax_based_on || 'base' },
           { key: '_wepos_cash_tendered_amount', value: cashAmount.toString() },
           {
             key: '_wepos_cash_change_amount',
@@ -628,6 +629,7 @@ const HomePage: React.FC = () => {
       customer_note: orderData.customer_note,
       meta_data: [
         { key: '_wepos_is_pos_order', value: true },
+        { key: '_wepos_tax_based_on', value: settings?.woo_tax?.wc_tax_based_on || 'base' },
         ...metaData.filter((m: any) => m.key.trim() !== '').map((m: any) => ({
           key: m.key,
           value: m.value,
