@@ -82,10 +82,15 @@ export function useBarcodeScanner( {
 		const handleKeyDown = ( e: KeyboardEvent ) => {
 			if ( ! enabledRef.current ) return;
 
-			// Only accumulate printable characters
+			// Report ALL keypress events for the test area (including modifiers)
+			if ( onKeyEventRef.current ) {
+				onKeyEventRef.current( e.key );
+			}
+
+			// Only accumulate printable characters into the buffer
 			if ( e.key.length !== 1 ) return;
 
-			// Skip if user is typing in an input/textarea (except our barcode input)
+			// Skip buffer accumulation if user is typing in an input/textarea
 			const target = e.target as HTMLElement;
 			if (
 				target.tagName === 'INPUT' ||
@@ -93,11 +98,6 @@ export function useBarcodeScanner( {
 				target.isContentEditable
 			) {
 				return;
-			}
-
-			// Report keypress event for the test area (after input guard)
-			if ( onKeyEventRef.current ) {
-				onKeyEventRef.current( e.key );
 			}
 
 			const now = performance.now();
