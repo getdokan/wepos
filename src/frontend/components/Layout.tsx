@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React from 'react';
 import {
   Layout as PUILayout,
   LayoutBody,
@@ -6,7 +6,6 @@ import {
   LayoutMain,
   LayoutHeader,
   SidebarTrigger,
-  useSidebar,
 } from '@wedevs/plugin-ui';
 import Sidebar from './Sidebar';
 
@@ -15,26 +14,11 @@ interface LayoutProps {
 }
 
 const LayoutContent: React.FC<LayoutProps> = ({ children }) => {
-  const { showSidebar, hideSidebar } = useSidebar();
-  const sidebarRef = useRef<HTMLElement>( null );
-
-  const handleMouseLeave = useCallback( () => {
-    // Don't collapse if a dropdown/popover is open inside the sidebar
-    const hasOpenPopover = sidebarRef.current?.querySelector( '[data-state="open"]' );
-    if ( hasOpenPopover ) {
-      return;
-    }
-    hideSidebar();
-  }, [ hideSidebar ] );
-
   return (
     <LayoutBody className="h-full overflow-hidden">
       <LayoutSidebar
-        ref={ sidebarRef }
         collapsible="icon"
         variant="sidebar"
-        onMouseEnter={ showSidebar }
-        onMouseLeave={ handleMouseLeave }
       >
         <Sidebar />
       </LayoutSidebar>
