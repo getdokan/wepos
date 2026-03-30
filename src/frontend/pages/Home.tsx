@@ -1,5 +1,5 @@
 import { useDispatch, useSelect } from '@wordpress/data';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import React, {
   useCallback,
   useEffect,
@@ -177,6 +177,7 @@ const HomePage: React.FC = () => {
       };
 
       addToCart(cartItem);
+      toast.success(sprintf(__('%s added to cart', 'wepos'), product.name));
     },
     [addToCart],
   );
@@ -184,6 +185,7 @@ const HomePage: React.FC = () => {
   const handleAddToCartItem = useCallback(
     (cartItem: POSCartItem) => {
       addToCart(cartItem);
+      toast.success(sprintf(__('%s added to cart', 'wepos'), cartItem.name));
     },
     [addToCart],
   );
@@ -284,6 +286,9 @@ const HomePage: React.FC = () => {
     }
     clearCart();
     defaultCustomerLoadedRef.current = false; // Re-load default customer
+    if (!serverOrder?.order_id) {
+      toast.success(__('Cart voided', 'wepos'));
+    }
   }, [serverOrder, clearCart]);
 
   const createNewSale = useCallback(() => {
@@ -304,6 +309,7 @@ const HomePage: React.FC = () => {
 
   // Customer selection handler
   const handleCustomerSelected = useCallback((customer: Customer | null) => {
+    const hadCustomer = !!selectedCustomer;
     setCustomer(customer);
     if (customer) {
       setOrderData((prev) => ({
@@ -312,6 +318,7 @@ const HomePage: React.FC = () => {
         billing: customer.billing,
         shipping: customer.shipping,
       }));
+      toast.success(sprintf(__('Customer %s selected', 'wepos'), `${customer.first_name} ${customer.last_name}`));
     } else {
       setOrderData((prev) => ({
         ...prev,
@@ -319,8 +326,11 @@ const HomePage: React.FC = () => {
         billing: {},
         shipping: {},
       }));
+      if (hadCustomer) {
+        toast.success(__('Customer removed', 'wepos'));
+      }
     }
-  }, [setCustomer]);
+  }, [setCustomer, selectedCustomer]);
 
   // Load default customer from settings when settings become available
   useEffect(() => {

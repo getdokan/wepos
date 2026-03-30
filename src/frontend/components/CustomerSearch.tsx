@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { CornerDownLeft, Pencil, User, X } from 'lucide-react';
 import {
   Button,
@@ -11,6 +11,7 @@ import {
   AvatarFallback,
   ScrollArea,
   Spinner,
+  toast,
 } from '@wedevs/plugin-ui';
 import { Customer } from '../types';
 import { posAPI } from '../api';
@@ -172,11 +173,13 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
   // Handle new customer creation
   const handleCustomerCreated = (newCustomer: Customer) => {
     handleCustomerSelect(newCustomer);
+    toast.success(sprintf(__('Customer %s created', 'wepos'), `${newCustomer.first_name} ${newCustomer.last_name}`));
   };
 
   // Handle customer update
   const handleCustomerUpdated = (updatedCustomer: Customer) => {
     handleCustomerSelect(updatedCustomer);
+    toast.success(sprintf(__('Customer %s updated', 'wepos'), `${updatedCustomer.first_name} ${updatedCustomer.last_name}`));
   };
 
   // Open edit customer modal
