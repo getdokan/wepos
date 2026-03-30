@@ -461,11 +461,12 @@ const HomePage: React.FC = () => {
         const autoShow = cartSettings.autoShowReceipt;
         const autoPrint = cartSettings.autoPrintReceipt;
 
+        // Always clear cart after successful payment — receipt uses order data (printdata), not cart
+        clearCart();
+        setCashAmount('');
+
         if (autoShow || autoPrint) {
           setShowPaymentReceipt(true);
-        } else {
-          clearCart();
-          setCashAmount('');
         }
       }
 
