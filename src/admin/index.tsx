@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import * as ReactRouterDOM from 'react-router-dom';
 import { HashRouter } from 'react-router-dom';
 import * as PluginUI from '@wedevs/plugin-ui';
-import { ThemeProvider, type ThemeTokens } from '@wedevs/plugin-ui';
+import { ThemeProvider, Toaster, type ThemeTokens } from '@wedevs/plugin-ui';
 import { SlotFillProvider } from '@wordpress/components';
 import App from './App';
 import { weposHooks } from '@react/hooks/useExtensions';
@@ -91,6 +91,7 @@ if ( ! container ) {
 				<SlotFillProvider>
 					<HashRouter>
 						<App />
+						<Toaster position="bottom-center" richColors />
 					</HashRouter>
 				</SlotFillProvider>
 			</ThemeProvider>

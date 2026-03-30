@@ -3,6 +3,7 @@ import { __ } from '@wordpress/i18n';
 import {
 	Settings as SettingsUI,
 	Button,
+	toast,
 	type SettingsElement,
 } from '@wedevs/plugin-ui';
 import { LoaderCircle, Save } from 'lucide-react';
@@ -312,11 +313,19 @@ const Settings = () => {
 
 				const result = await res.json();
 
-				if ( ! result.success ) {
-					console.error( 'wePos: save failed', result );
+				if ( result.success ) {
+					toast.success(
+						__( 'Settings saved successfully.', 'wepos' )
+					);
+				} else {
+					toast.error(
+						__( 'Failed to save settings.', 'wepos' )
+					);
 				}
 			} catch ( err ) {
-				console.error( 'wePos: save error', err );
+				toast.error(
+					__( 'Failed to save settings.', 'wepos' )
+				);
 			} finally {
 				setSaving( false );
 			}
