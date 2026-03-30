@@ -187,3 +187,6 @@ composer.lock
 
 # Test
 /tests/pw/wp-data/db.sql
+
+# Zip files
+*.zip
