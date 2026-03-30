@@ -1,11 +1,13 @@
-import { CartState } from './types';
-import { POSCartItem, POSDiscountLine, POSFeeLine, Customer } from '../../types';
+import { CartState, ServerOrderData } from './types';
+import { POSCartItem, POSDiscountLine, POSFeeLine, POSShippingLine, POSOrderMetaItem, Customer } from '../../types';
 
 export const selectors = {
   getCartItems: (state: CartState): POSCartItem[] => state.line_items,
   getCustomer: (state: CartState): Customer | null => state.customer,
   getDiscountLines: (state: CartState): POSDiscountLine[] => state.coupon_lines,
   getFeeLines: (state: CartState): POSFeeLine[] => state.fee_lines,
+  getShippingLines: (state: CartState): POSShippingLine[] => state.shipping_lines,
+  getMetaData: (state: CartState): POSOrderMetaItem[] => state.meta_data,
   getCustomerNote: (state: CartState): string => state.customer_note,
 
   getSubtotal: (state: CartState): number => {
@@ -40,20 +42,40 @@ export const selectors = {
     }, 0);
   },
 
+  getTotalShipping: (state: CartState): number => {
+    return state.shipping_lines.reduce((total: number, shipping: POSShippingLine) => {
+      return total + parseFloat(shipping.total || '0');
+    }, 0);
+  },
+
   getTotalTax: (state: CartState): number => {
-    // Tax calculation logic would go here
-    // For now, returning 0 as placeholder
+    // Use server-calculated tax only if available and cart hasn't been modified locally
+    if (state.server_order && !state.server_order_dirty) {
+      return parseFloat(state.server_order.total_tax) || 0;
+    }
     return 0;
   },
 
   getTotal: (state: CartState): number => {
+    // Use server-calculated total only if available and cart hasn't been modified locally
+    if (state.server_order && !state.server_order_dirty) {
+      return parseFloat(state.server_order.total) || 0;
+    }
+
     const subtotal = selectors.getSubtotal(state);
     const totalDiscount = selectors.getTotalDiscount(state);
     const totalFee = selectors.getTotalFee(state);
+    const totalShipping = selectors.getTotalShipping(state);
     const totalTax = selectors.getTotalTax(state);
 
-    return Math.max(0, subtotal - totalDiscount + totalFee + totalTax);
+    return Math.max(0, subtotal - totalDiscount + totalFee + totalShipping + totalTax);
   },
+
+  getOrderCurrency: (state: CartState): string => state.currency,
+  getOrderCurrencySymbol: (state: CartState): string => state.currency_symbol,
+
+  getServerOrder: (state: CartState): ServerOrderData | null => state.server_order,
+  isServerOrderDirty: (state: CartState): boolean => state.server_order_dirty,
 
   getDiscountAmount: (state: CartState, discount: POSDiscountLine): number => {
     const subtotal = selectors.getSubtotal(state);

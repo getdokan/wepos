@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Modal } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+import { useTheme } from '@wedevs/plugin-ui';
 import { POSPrintData, POSSettings } from '../types';
 import { Check, Plus, Printer } from 'lucide-react';
 import { applyFilters } from '../hooks/useExtensions';
@@ -13,6 +14,8 @@ interface ReceiptModalProps {
   onClose: () => void;
   onNewSale: () => void;
   formatPrice: (amount: number | string | undefined | null) => string;
+  autoPrint?: boolean;
+  autoShow?: boolean;
 }
 
 /**
@@ -95,7 +98,11 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
   onClose,
   onNewSale,
   formatPrice,
+  autoPrint = false,
+  autoShow = true,
 }) => {
+  const { mode } = useTheme();
+
   // Inject print styles into document head (once, cleaned up on unmount)
   useEffect(() => {
     if (document.getElementById('wepos-receipt-print-styles')) return;
@@ -110,6 +117,41 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
       if (el) el.remove();
     };
   }, []);
+
+  // Auto-print: trigger printing automatically when the modal is shown
+  const autoPrintTriggeredRef = React.useRef(false);
+  useEffect(() => {
+    if (show && autoPrint && !autoPrintTriggeredRef.current) {
+      autoPrintTriggeredRef.current = true;
+      // Delay to ensure the hidden receipt content is rendered in the DOM
+      const timer = setTimeout(() => {
+        const receiptEl = document.getElementById('wepos-print-receipt');
+        if (!receiptEl) return;
+
+        let container = document.getElementById('wepos-receipt-print-container');
+        if (!container) {
+          container = document.createElement('div');
+          container.id = 'wepos-receipt-print-container';
+          document.body.appendChild(container);
+        }
+        container.innerHTML = receiptEl.innerHTML;
+
+        setTimeout(() => {
+          window.print();
+          // If auto-show is off, dismiss the modal after printing
+          if (!autoShow) {
+            onNewSale();
+            onClose();
+          }
+        }, 300);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+    if (!show) {
+      autoPrintTriggeredRef.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show, autoPrint, autoShow]);
 
   if (!show) return null;
 
@@ -166,7 +208,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
   return (
     <Modal
       onRequestClose={onClose}
-      className="wepos-sale-completed-modal pui-root"
+      className={`wepos-sale-completed-modal pui-root ${mode === 'dark' ? 'dark' : ''}`}
       shouldCloseOnClickOutside={true}
       shouldCloseOnEsc={true}
       __experimentalHideHeader
@@ -295,12 +337,22 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
                     {(printdata.fee_lines || []).map((fee: any, idx: number) => (
                       <tr key={`fee-${idx}`} className="cart-meta-data">
                         <td colSpan={2} className="name">
-                          {__('Fee', 'wepos')}{' '}
+                          {fee.name || __('Fee', 'wepos')}{' '}
                           <span className="metadata">
                             {fee.fee_type === 'percent' ? `${fee.value}%` : formatPrice(fee.value)}
                           </span>
                         </td>
                         <td className="price">{formatPrice(Math.abs(fee.total))}</td>
+                      </tr>
+                    ))}
+
+                    {/* Shipping lines */}
+                    {(printdata.shipping_lines || []).map((shipping: any, idx: number) => (
+                      <tr key={`ship-${idx}`} className="cart-meta-data">
+                        <td colSpan={2} className="name">
+                          {shipping.method_title || __('Shipping', 'wepos')}
+                        </td>
+                        <td className="price">{formatPrice(shipping.total)}</td>
                       </tr>
                     ))}
 

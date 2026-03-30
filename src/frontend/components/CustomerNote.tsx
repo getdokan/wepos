@@ -67,7 +67,7 @@ const CustomerNote = forwardRef<CustomerNoteHandle, CustomerNoteProps>(({
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className="border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100"
+            className="border-border bg-muted text-muted-foreground hover:bg-accent"
           >
             {__('Add Note', 'wepos')}
           </Button>
@@ -104,7 +104,7 @@ const CustomerNote = forwardRef<CustomerNoteHandle, CustomerNoteProps>(({
               </Button>
             </div>
 
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-muted-foreground">
               {__('Press Ctrl+Enter to add note', 'wepos')}
             </div>
           </form>

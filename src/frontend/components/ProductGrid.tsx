@@ -3,7 +3,7 @@ import { __ } from '@wordpress/i18n';
 import { PackageX } from 'lucide-react';
 import { Spinner, ScrollArea } from '@wedevs/plugin-ui';
 import { POSProduct, ProductViewType, CartItem } from '../types';
-import ProductListView from './ProductListView';
+import ProductListView, { ProductListHeader } from './ProductListView';
 import ProductGridView from './ProductGridView';
 
 interface ProductGridProps {
@@ -42,8 +42,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   if (products.length === 0) {
     return (
       <div className="col-span-full py-20 text-center">
-        <PackageX className="mx-auto mb-4 h-16 w-16 text-gray-300" />
-        <p className="font-medium text-gray-500">
+        <PackageX className="mx-auto mb-4 h-16 w-16 text-muted-foreground/50" />
+        <p className="font-medium text-muted-foreground">
           {__('No Product Found', 'wepos')}
         </p>
       </div>
@@ -60,15 +60,16 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   };
 
   return (
-    <div className="h-full min-h-0 w-full flex-1 overflow-hidden" ref={itemsWrapperRef}>
-      <ScrollArea className="h-full w-full pr-1.75">
-        <div className="p-1">
+    <div className="h-full min-h-0 w-full flex-1 overflow-hidden flex flex-col" ref={itemsWrapperRef}>
+      {productView === 'list' && <ProductListHeader />}
+      <ScrollArea className="h-full w-full min-h-0 flex-1">
           {productView === 'list' ? (
             <ProductListView {...sharedProps} />
           ) : (
-            <ProductGridView {...sharedProps} truncateTitle={truncateTitle} />
+            <div className='p-4'>
+              <ProductGridView {...sharedProps} truncateTitle={truncateTitle} />
+            </div>
           )}
-        </div>
       </ScrollArea>
     </div>
   );

@@ -12,6 +12,8 @@ import {
   POSGateway,
   POSSettings,
   POSCategory,
+  POSTag,
+  POSBrand,
 } from '../types';
 
 // Configure api-fetch with WePOS endpoints
@@ -170,6 +172,33 @@ const productsAPI = {
 
     return [allCategoriesOption, ...sortedCategories];
   },
+
+  // Get product tags for POS
+  getTags: async (): Promise<POSTag[]> => {
+    const response = (await apiFetch({
+      path: `${API_BASE.WC}/products/tags?hide_empty=true&_fields=id,name&per_page=100`,
+    })) as POSTag[];
+
+    response.sort((a: POSTag, b: POSTag) => a.name.localeCompare(b.name));
+
+    return response;
+  },
+
+  // Get product brands for POS
+  getBrands: async (): Promise<POSBrand[]> => {
+    try {
+      const response = (await apiFetch({
+        path: `${API_BASE.WC}/products/brands?hide_empty=true&_fields=id,name&per_page=100`,
+      })) as POSBrand[];
+
+      response.sort((a: POSBrand, b: POSBrand) => a.name.localeCompare(b.name));
+
+      return response;
+    } catch {
+      // Brands endpoint may not exist if WooCommerce Brands plugin is not active
+      return [];
+    }
+  },
 };
 
 // Orders API
@@ -230,6 +259,15 @@ const ordersAPI = {
     });
 
     return response as Order;
+  },
+
+  deleteOrder: async (id: number, force: boolean = true): Promise<any> => {
+    const response = await apiFetch({
+      path: `${API_BASE.WC}/orders/${id}?force=${force}`,
+      method: 'DELETE',
+    });
+
+    return response;
   },
 };
 
@@ -335,6 +373,7 @@ const customersAPI = {
     const params = new URLSearchParams();
 
     if (search) params.append('search', search);
+    params.append('role', 'all');
 
     const response = await apiFetch({
       path: `${API_BASE.WC}/customers?${params.toString()}`,
@@ -405,21 +444,27 @@ const paymentAPI = {
 
 // Settings API
 const settingsAPI = {
-  // Get POS settings
-  getSettings: async (): Promise<POSSettings> => {
+  // Get POS settings (optionally for a specific outlet)
+  getSettings: async (outletId?: number): Promise<POSSettings> => {
+    const params = new URLSearchParams();
+    if (outletId) {
+      params.append('outlet_id', outletId.toString());
+    }
+    const query = params.toString();
     const response = await apiFetch({
-      path: `/${API_BASE.WEPOS}/settings`,
+      path: `/${API_BASE.WEPOS}/settings${query ? `?${query}` : ''}`,
       method: 'GET',
     });
 
     return response as POSSettings;
   },
 
-  updateSettings: async (settings: any): Promise<APIResponse<any>> => {
+  updateSettings: async (settings: any, outletId?: number): Promise<APIResponse<any>> => {
+    const data = outletId ? { ...settings, _outlet_id: outletId } : settings;
     const response = await apiFetch({
       path: `${API_BASE.WEPOS}/settings`,
       method: 'POST',
-      data: settings,
+      data,
     });
 
     return response as APIResponse<any>;

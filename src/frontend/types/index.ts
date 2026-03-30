@@ -170,6 +170,7 @@ export interface POSCartItem {
   product_id: number;
   variation_id?: number;
   name: string;
+  sku?: string;
   quantity: number;
   type: string;
   on_sale: boolean;
@@ -215,11 +216,29 @@ export interface POSFeeLine {
   total: number;
 }
 
+export interface POSShippingLine {
+  id?: number;
+  method_title: string;
+  method_id: string;
+  total: string;
+  tax_status: 'taxable' | 'none';
+  tax_class: string;
+  amount_includes_tax: boolean;
+}
+
+export interface POSOrderMetaItem {
+  id?: number;
+  key: string;
+  value: string;
+}
+
 // Enhanced cart data structure for POS
 export interface POSCartData {
   line_items: POSCartItem[];
   fee_lines: POSFeeLine[];
   coupon_lines: POSDiscountLine[];
+  shipping_lines: POSShippingLine[];
+  meta_data: POSOrderMetaItem[];
   customer_note?: string;
 }
 
@@ -542,6 +561,7 @@ export interface POSSettings {
   };
   woo_tax: {
     wc_tax_display_cart: string;
+    wc_tax_based_on?: string;
   };
 }
 
@@ -549,8 +569,10 @@ export interface POSPrintData {
   line_items?: POSCartItem[];
   fee_lines?: any[];
   coupon_lines?: any[];
+  shipping_lines?: POSShippingLine[];
   subtotal?: number;
   taxtotal?: number;
+  shippingtotal?: number;
   ordertotal?: number;
   gateway: {
     id: string;
@@ -569,6 +591,16 @@ export interface POSCategory {
   level: number;
 }
 
+export interface POSTag {
+  id: number;
+  name: string;
+}
+
+export interface POSBrand {
+  id: number;
+  name: string;
+}
+
 // UI State Types
 export type ProductViewType = 'grid' | 'list';
 
@@ -578,8 +610,11 @@ export interface POSProduct {
   type: string;
   images: Array<{ woocommerce_thumbnail: string; name: string }>;
   categories: Array<{ id: number; name: string }>;
+  tags: Array<{ id: number; name: string }>;
+  brands: Array<{ id: number; name: string }>;
   sku?: string;
   price_html: string;
+  featured: boolean;
   on_sale: boolean;
   sale_price: number | string;
   regular_price: number | string;

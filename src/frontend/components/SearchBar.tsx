@@ -11,6 +11,8 @@ import {
 } from '@wedevs/plugin-ui';
 import { POSProduct } from '../types';
 import { formatPrice } from '../utils/helpers';
+import { useBarcodeSettings } from '../hooks/useBarcodeSettings';
+import { useBarcodeScanner } from '../hooks/useBarcodeScanner';
 
 type SearchMode = 'product' | 'scan';
 
@@ -21,7 +23,7 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdded }) => {
-  const [mode, setMode] = useState<SearchMode>('scan');
+  const [mode, setMode] = useState<SearchMode>('product');
   const [searchInput, setSearchInput] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -34,6 +36,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const resultItemsRef = useRef<(HTMLLIElement | null)[]>([]);
+
+  // Barcode scanner auto-detection via keypress timing
+  const { settings: barcodeSettings } = useBarcodeSettings();
 
   const placeholder = mode === 'scan'
     ? __('Scan your product', 'wepos')
@@ -123,22 +128,20 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
     inputRef.current?.focus();
   }, [onProductAdded]);
 
-  // Handle barcode scan (form submit in scan mode)
-  const handleProductScan = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    if (mode === 'product') return;
-    if (!searchInput) return;
+  // Shared barcode lookup logic used by both form submit and auto-detection
+  const lookupBarcode = useCallback((barcode: string) => {
+    if (!barcode) return;
 
     const generalSettings = settings?.wepos_general;
     const field = generalSettings?.barcode_scanner_field === 'custom' ? 'barcode' : (generalSettings?.barcode_scanner_field || 'sku');
 
     const filterProduct = products.filter((product: any) => {
       if (product.type === 'simple') {
-        if (product[field]?.toString() === searchInput) return true;
+        if (product[field]?.toString() === barcode) return true;
       }
       if (product.type === 'variable') {
         if (product.variations?.length > 0) {
-          return product.variations.some((item: any) => item[field]?.toString() === searchInput);
+          return product.variations.some((item: any) => item[field]?.toString() === barcode);
         }
       }
       return false;
@@ -148,7 +151,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
       const found = filterProduct[0] as any;
       if (found.type === 'variable') {
         const variations = found.variations || [];
-        const matchedVariation = variations.find((item: any) => item[field]?.toString() === searchInput);
+        const matchedVariation = variations.find((item: any) => item[field]?.toString() === barcode);
         if (matchedVariation) {
           const variationProduct = {
             ...matchedVariation,
@@ -162,9 +165,22 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
         onProductAdded(found);
       }
     }
+  }, [settings, products, onProductAdded]);
 
+  // Auto-detect barcode scanner input via keypress timing
+  useBarcodeScanner({
+    settings: barcodeSettings,
+    enabled: true,
+    onBarcode: lookupBarcode,
+  });
+
+  // Handle barcode scan (form submit in scan mode)
+  const handleProductScan = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    if (mode === 'product') return;
+    lookupBarcode(searchInput);
     setSearchInput('');
-  }, [mode, searchInput, settings, products, onProductAdded]);
+  }, [mode, searchInput, lookupBarcode]);
 
   // Select variation product (opens modal)
   const selectVariation = useCallback((product: POSProduct) => {
@@ -251,9 +267,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
         {/* Search/Scan icon */}
         <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 z-10">
           {mode === 'product' ? (
-            <Search className="h-5 w-5 text-gray-400" />
+            <Search className="h-5 w-5 text-muted-foreground" />
           ) : (
-            <ScanBarcode className="h-5 w-5 text-blue-500" />
+            <ScanBarcode className="h-5 w-5 text-primary" />
           )}
         </div>
 
@@ -264,7 +280,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
           id="product-search"
           name="search"
           placeholder={placeholder}
-          className="h-9 w-full pl-10 pr-40 bg-transparent border-gray-200 shadow-none focus-visible:ring-1 focus-visible:ring-blue-300"
+          className="w-full h-[2.59rem] pl-10 pr-40 bg-muted text-muted-foreground"
           value={searchInput}
           onChange={handleInputChange}
           onFocus={() => {
@@ -279,7 +295,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
             type="button"
             variant={mode === 'product' ? 'default' : 'ghost'}
             size="sm"
-            className={mode === 'product' ? 'h-7 px-3 text-xs font-medium' : 'h-7 px-3 text-xs font-medium text-gray-500'}
+            className={mode === 'product' ? 'h-7 px-3 text-xs font-medium' : 'h-7 px-3 text-xs font-medium text-muted-foreground'}
             onClick={() => changeMode('product')}
           >
             {__('Product', 'wepos')}
@@ -288,7 +304,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
             type="button"
             variant={mode === 'scan' ? 'default' : 'ghost'}
             size="sm"
-            className={mode === 'scan' ? 'h-7 px-3 text-xs font-medium' : 'h-7 px-3 text-xs font-medium text-gray-500'}
+            className={mode === 'scan' ? 'h-7 px-3 text-xs font-medium' : 'h-7 px-3 text-xs font-medium text-muted-foreground'}
             onClick={() => changeMode('scan')}
           >
             {__('Scan', 'wepos')}
@@ -298,7 +314,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
 
       {/* Search results dropdown */}
       {showResults && mode === 'product' && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-auto rounded-md border border-border bg-popover shadow-lg">
           {searchableProducts.length > 0 ? (
             <ul className="py-1">
               {searchableProducts.map((product, index) => (
@@ -307,8 +323,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
                   ref={(el) => { resultItemsRef.current[index] = el; }}
                   className={`cursor-pointer px-3 py-2.5 ${
                     index === selectedIndex
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'hover:bg-gray-50'
+                      ? 'bg-primary/10 text-primary'
+                      : 'hover:bg-muted/50'
                   }`}
                 >
                   <a
@@ -323,23 +339,23 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
                       }
                     }}
                   >
-                    <span className={index === selectedIndex ? 'font-medium text-blue-700' : 'text-gray-800'}>{product.name}</span>
+                    <span className={index === selectedIndex ? 'font-medium text-primary' : 'text-foreground'}>{product.name}</span>
                     <span className="flex items-center gap-3 shrink-0 ml-3">
-                      <span className="font-medium text-gray-900">{formatPrice(product.regular_price)}</span>
-                      {product.sku && <span className="max-w-45 truncate text-xs text-gray-400">{product.sku}</span>}
-                      <CornerDownLeft className="h-3.5 w-3.5 text-gray-300" />
+                      <span className="font-medium text-foreground">{formatPrice(product.regular_price)}</span>
+                      {product.sku && <span className="max-w-45 truncate text-xs text-muted-foreground">{product.sku}</span>}
+                      <CornerDownLeft className="h-3.5 w-3.5 text-muted-foreground/50" />
                     </span>
                   </a>
                 </li>
               ))}
             </ul>
           ) : (
-            <div className="px-3 py-4 text-center text-sm text-gray-500">
+            <div className="px-3 py-4 text-center text-sm text-muted-foreground">
               {__('No product found', 'wepos')}
             </div>
           )}
           {/* Navigation hints */}
-          <div className="sticky bottom-0 flex items-center gap-4 border-t border-gray-100 bg-white px-3 py-2 text-xs text-gray-400">
+          <div className="sticky bottom-0 flex items-center gap-4 border-t border-border bg-popover px-3 py-2 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <ArrowUpDown className="h-3 w-3" /> {__('to navigate', 'wepos')}
             </span>
@@ -347,7 +363,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
               <CornerDownLeft className="h-3 w-3" /> {__('to select', 'wepos')}
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="rounded border border-gray-200 bg-gray-50 px-1 py-0.5 text-[10px] font-semibold leading-none">esc</kbd> {__('to dismiss', 'wepos')}
+              <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-[10px] font-semibold leading-none">esc</kbd> {__('to dismiss', 'wepos')}
             </span>
           </div>
         </div>
@@ -365,7 +381,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
         <div className="p-5">
           {selectedVariationProduct?.attributes?.filter(attr => attr.variation)?.map((attribute) => (
             <div key={attribute.name} className="mb-4">
-              <p className="mb-2 text-sm font-bold text-gray-800">{attribute.name}</p>
+              <p className="mb-2 text-sm font-bold text-foreground">{attribute.name}</p>
               <div className="flex flex-wrap gap-2">
                 {attribute.options.map((option) => (
                   <label key={option} className="cursor-pointer">
@@ -382,8 +398,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
                     <div
                       className={`rounded border px-3 py-1.5 text-sm ${
                         chosenAttribute[attribute.name] === option
-                          ? 'border-blue-500 bg-blue-500 text-white'
-                          : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-border text-foreground hover:border-muted-foreground'
                       }`}
                     >
                       {option}

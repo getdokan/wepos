@@ -420,6 +420,7 @@ export const schemas = {
         woo_tax: z.object({
             wc_tax_display_shop: z.enum(['excl', 'incl']),
             wc_tax_display_cart: z.enum(['excl', 'incl']),
+            wc_tax_based_on: z.enum(['shipping', 'billing', 'base']),
         }),
     }),
 

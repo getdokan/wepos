@@ -1,4 +1,4 @@
-import { POSProduct, POSCategory, POSGateway, POSSettings } from '../../types';
+import { POSProduct, POSCategory, POSTag, POSBrand, POSGateway, POSSettings } from '../../types';
 
 export const actions = {
   setProducts(products: POSProduct[]) {
@@ -19,6 +19,20 @@ export const actions = {
     return {
       type: 'SET_CATEGORIES' as const,
       categories,
+    };
+  },
+
+  setTags(tags: POSTag[]) {
+    return {
+      type: 'SET_TAGS' as const,
+      tags,
+    };
+  },
+
+  setBrands(brands: POSBrand[]) {
+    return {
+      type: 'SET_BRANDS' as const,
+      brands,
     };
   },
 
@@ -46,6 +60,20 @@ export const actions = {
   setCategoriesLoading(loading: boolean) {
     return {
       type: 'SET_CATEGORIES_LOADING' as const,
+      loading,
+    };
+  },
+
+  setTagsLoading(loading: boolean) {
+    return {
+      type: 'SET_TAGS_LOADING' as const,
+      loading,
+    };
+  },
+
+  setBrandsLoading(loading: boolean) {
+    return {
+      type: 'SET_BRANDS_LOADING' as const,
       loading,
     };
   },

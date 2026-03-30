@@ -83,6 +83,7 @@ export const ProductVariationSelector: React.FC<
       product_id: product.id,
       variation_id: matchingVariation.id,
       name: product.name,
+      sku: matchingVariation.sku || product.sku || '',
       quantity: 1,
       regular_price: parseFloat(matchingVariation.regular_price) || 0,
       sale_price:
@@ -112,7 +113,7 @@ export const ProductVariationSelector: React.FC<
           {children}
         </PopoverTrigger>
         <PopoverContent>
-          <div className="rounded-lg bg-white">
+          <div className="rounded-lg bg-popover">
             <div className="mb-4">
               <h3 className="mb-2 text-lg font-semibold text-primary">
                 {__('Select Variations', 'wepos')}
@@ -123,7 +124,7 @@ export const ProductVariationSelector: React.FC<
               ?.filter((attr) => attr.variation)
               .map((attribute) => (
                 <div key={attribute.name} className="mb-4">
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                  <label className="mb-2 block text-sm font-medium text-foreground">
                     {attribute.name}:
                   </label>
                   <Select
@@ -164,8 +165,8 @@ export const ProductVariationSelector: React.FC<
               </div>
             ) : (
               isAllAttributesSelected && (
-                <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3">
-                  <p className="text-sm text-red-700">
+                <div className="mb-4 rounded-md border border-destructive/20 bg-destructive/10 p-3">
+                  <p className="text-sm text-destructive">
                     {__('This variation is not available', 'wepos')}
                   </p>
                 </div>

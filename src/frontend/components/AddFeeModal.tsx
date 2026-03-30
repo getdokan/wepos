@@ -1,0 +1,195 @@
+import React, { useState } from 'react';
+import { __ } from '@wordpress/i18n';
+import {
+  Modal,
+  ModalHeader,
+  ModalTitle,
+  ModalFooter,
+  Button,
+  Input,
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Switch,
+  Separator,
+} from '@wedevs/plugin-ui';
+import { RadioGroup, RadioGroupItem } from '@wedevs/plugin-ui';
+import { POSFeeLine } from '../types';
+
+interface AddFeeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onAddFee: (fee: POSFeeLine) => void;
+}
+
+const TAX_CLASSES = [
+  { value: '', label: 'Standard rate' },
+  { value: 'reduced-rate', label: 'Reduced rate' },
+  { value: 'zero-rate', label: 'Zero rate' },
+];
+
+const AddFeeModal: React.FC<AddFeeModalProps> = ({
+  isOpen,
+  onClose,
+  onAddFee,
+}) => {
+  const [name, setName] = useState('Fee');
+  const [amount, setAmount] = useState('0.00');
+  const [isPercentage, setIsPercentage] = useState(false);
+  const [amountIncludesTax, setAmountIncludesTax] = useState(false);
+  const [taxClass, setTaxClass] = useState('');
+  const [taxStatus, setTaxStatus] = useState<'taxable' | 'none'>('taxable');
+
+  const resetForm = () => {
+    setName('Fee');
+    setAmount('0.00');
+    setIsPercentage(false);
+    setAmountIncludesTax(false);
+    setTaxClass('');
+    setTaxStatus('taxable');
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  const handleSubmit = () => {
+    onAddFee({
+      name: name.trim() || 'Fee',
+      type: 'fee',
+      value: (parseFloat(amount) || 0).toString(),
+      fee_type: isPercentage ? 'percent' : 'fixed',
+      tax_status: taxStatus,
+      tax_class: taxClass === '_standard' ? '' : taxClass,
+      total: 0,
+    });
+    handleClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <Modal
+      open={isOpen}
+      onClose={handleClose}
+      showCloseButton={true}
+      closeOnOverlayClick={false}
+      closeOnEscape={true}
+      className="max-w-135 p-0!"
+    >
+      <ModalHeader className="px-6 py-5">
+        <ModalTitle className="text-lg font-bold text-foreground">
+          {__('Add Fee', 'wepos')}
+        </ModalTitle>
+      </ModalHeader>
+
+      <Separator />
+
+      <div className="space-y-5 px-6 py-6">
+        <div>
+          <Label className="mb-2 block text-sm font-medium">
+            {__('Fee Name', 'wepos')}
+          </Label>
+          <Input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <Label className="mb-2 block text-sm font-medium">
+            {__('Amount', 'wepos')}
+          </Label>
+          <Input
+            type="number"
+            step="0.01"
+            min="0"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={isPercentage}
+              onCheckedChange={setIsPercentage}
+            />
+            <Label className="text-sm">
+              {__('Percentage of Cart Total', 'wepos')}
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={amountIncludesTax}
+              onCheckedChange={setAmountIncludesTax}
+            />
+            <Label className="text-sm">
+              {__('Amount Includes Tax', 'wepos')}
+            </Label>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="mb-2 block text-sm font-medium">
+              {__('Tax Class', 'wepos')}
+            </Label>
+            <Select value={taxClass || '_standard'} onValueChange={(val) => setTaxClass(!val || val === '_standard' ? '' : val)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TAX_CLASSES.map((tc) => (
+                  <SelectItem key={tc.value || '_standard'} value={tc.value || '_standard'}>
+                    {tc.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="mb-2 block text-sm font-medium">
+              {__('Tax Status', 'wepos')}
+            </Label>
+            <RadioGroup
+              value={taxStatus}
+              onValueChange={(val) => setTaxStatus(val as 'taxable' | 'none')}
+              className="mt-2 flex flex-col gap-2"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="taxable" id="fee-tax-taxable" />
+                <Label htmlFor="fee-tax-taxable" className="cursor-pointer text-sm">
+                  {__('Taxable', 'wepos')}
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="none" id="fee-tax-none" />
+                <Label htmlFor="fee-tax-none" className="cursor-pointer text-sm">
+                  {__('None', 'wepos')}
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+        </div>
+      </div>
+
+      <ModalFooter className="flex justify-end gap-2 px-6 py-4">
+        <Button variant="outline" onClick={handleClose}>
+          {__('Cancel', 'wepos')}
+        </Button>
+        <Button onClick={handleSubmit}>
+          {__('Add Fee', 'wepos')}
+        </Button>
+      </ModalFooter>
+    </Modal>
+  );
+};
+
+export default AddFeeModal;

@@ -133,7 +133,9 @@ export const useCart = ({ cartData, setCartData, settings }: UseCartProps) => {
     setCartData({
       line_items: [],
       fee_lines: [],
-      coupon_lines: []
+      coupon_lines: [],
+      shipping_lines: [],
+      meta_data: [],
     });
   }, [setCartData]);
 

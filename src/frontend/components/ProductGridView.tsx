@@ -15,6 +15,32 @@ import { POSProduct, CartItem } from '../types';
 import { decodeHtmlEntities } from '../utils/helpers';
 import ProductVariationSelector from './ProductVariationSelector';
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getVariablePriceRange(
+  product: POSProduct,
+  formatPrice: (amount: number | string | undefined | null) => string,
+): string {
+  const fallback = formatPrice(
+    product.on_sale ? product.sale_price : product.regular_price,
+  ) as string;
+
+  const variations: any[] = product.variations ?? [];
+  if (variations.length === 0) return fallback;
+
+  const prices = variations
+    .map((v) => parseFloat(v.price || v.regular_price || '0'))
+    .filter((p) => !isNaN(p));
+
+  if (prices.length === 0) return fallback;
+
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  return min === max
+    ? (formatPrice(min) as string)
+    : `${formatPrice(min)} \u2013 ${formatPrice(max)}`;
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ProductGridViewProps {
@@ -56,18 +82,18 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
   getProductImage,
   truncateTitle,
 }) => (
-  <Card className="group cursor-pointer border-gray-200 p-0 transition-all duration-200 hover:shadow-lg">
+  <Card className="group cursor-pointer border-border p-0 transition-all duration-200 hover:shadow-lg">
     {/* Image */}
-    <div className="relative w-full overflow-hidden rounded-t-xl bg-gray-100 pb-[100%]">
+    <div className="relative h-48 w-full overflow-hidden rounded-t-xl bg-muted">
       <Thumbnail
         src={getProductImage(product)}
         alt={product.name}
-        className="absolute inset-0 h-full w-full rounded-none transition-transform duration-300"
+        className="h-full w-full rounded-none object-cover transition-transform duration-300"
       />
 
       {!hasStock && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-[2px]">
-          <span className="rounded-full border border-red-100 bg-red-50 px-3 py-1 text-center text-xs font-semibold uppercase tracking-wide text-red-600 shadow-sm">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60 backdrop-blur-[2px]">
+          <span className="rounded-full border border-destructive/20 bg-destructive/10 px-3 py-1 text-center text-xs font-semibold uppercase tracking-wide text-destructive shadow-sm">
             {__('Out of Stock', 'wepos')}
           </span>
         </div>
@@ -99,82 +125,79 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
     </div>
 
     {/* Content */}
-    <CardContent className="flex flex-1 flex-col p-3 text-center">
+    <CardContent className="flex flex-1 flex-col p-3">
       <h3
-        className="mb-2 min-h-[40px] line-clamp-2 text-sm font-semibold text-gray-900"
+        className="mb-2 min-h-[40px] line-clamp-2 text-sm font-semibold text-foreground"
         title={decodeHtmlEntities(product.name)}
       >
         {truncateTitle(decodeHtmlEntities(product.name), 25)}
       </h3>
 
-      <div className="mb-3 flex w-full flex-col items-center gap-1.5">
-        {/* Category row: badge + optional +N tooltip, constrained to card width */}
-        <div className="flex w-full min-w-0 items-center justify-center gap-1">
-          {(() => {
-            const [first, ...extra] = product.categories ?? [];
-            return (
-              <>
-                {first && (
-                  <Badge
-                    className="h-auto min-w-0 max-w-[calc(100%-2rem)] break-words whitespace-normal rounded-sm bg-gray-100 px-2 py-1 text-[10px] leading-tight font-semibold uppercase tracking-wider text-gray-500"
-                    title={decodeHtmlEntities(first.name)}
-                  >
-                    {decodeHtmlEntities(first.name)}
-                  </Badge>
-                )}
-                {extra.length > 0 && (
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <span className="inline-flex shrink-0 cursor-default items-center rounded-sm border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px] font-semibold text-gray-400 hover:bg-gray-100">
-                        +{extra.length}
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      <div className="flex flex-wrap gap-1">
-                        {extra.map((cat) => (
-                          <span key={cat.id} className="whitespace-nowrap">
-                            {decodeHtmlEntities(cat.name)}
-                          </span>
-                        ))}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-              </>
-            );
-          })()}
-        </div>
+      <div className="mb-3 flex w-full min-w-0 flex-wrap items-center gap-1">
+        {/* Category badge + stock label on same row */}
+        {(() => {
+          const [first, ...extra] = product.categories ?? [];
+          return (
+            <>
+              {first && (
+                <Badge
+                  className="h-auto min-w-0 max-w-[calc(100%-2rem)] break-words whitespace-normal rounded-sm bg-muted px-2 py-1 text-[10px] leading-tight font-semibold uppercase tracking-wider text-muted-foreground"
+                  title={decodeHtmlEntities(first.name)}
+                >
+                  {decodeHtmlEntities(first.name)}
+                </Badge>
+              )}
+              {extra.length > 0 && (
+                <Tooltip>
+                  <TooltipTrigger>
+                    <span className="inline-flex shrink-0 cursor-default items-center rounded-sm border border-border bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground hover:bg-accent">
+                      +{extra.length}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <div className="flex flex-wrap gap-1">
+                      {extra.map((cat) => (
+                        <span key={cat.id} className="whitespace-nowrap">
+                          {decodeHtmlEntities(cat.name)}
+                        </span>
+                      ))}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </>
+          );
+        })()}
 
         {/* Stock label */}
-        <span
-          className={`truncate text-xs ${
-            !hasStock ? 'font-medium text-red-600' : 'text-gray-400'
-          }`}
-        >
-          {getStockLabel(product.stock_quantity)}
-        </span>
+        {product.stock_quantity !== null && (
+          <span
+            className={`text-xs ${
+              !hasStock || product.stock_quantity === 0 ? 'font-medium text-destructive' : 'text-muted-foreground'
+            }`}
+          >
+            {getStockLabel(product.stock_quantity)}
+          </span>
+        )}
       </div>
 
-      <div className="mt-auto flex items-end justify-between border-t border-gray-50 pt-3">
-        <div className="flex flex-col">
-          {product.type === 'variable' ? (
-            <span
-              className="text-sm font-bold text-gray-900"
-              dangerouslySetInnerHTML={{ __html: product.price_html }}
-            />
-          ) : (
-            <>
-              {product.on_sale && product.regular_price && (
-                <span className="mb-0.5 text-xs text-gray-400 line-through">
-                  {formatPrice(product.regular_price)}
-                </span>
-              )}
-              <span className="text-sm font-bold text-gray-900">
-                {formatPrice(product.on_sale ? product.sale_price : product.regular_price)}
+      <div className="mt-auto flex flex-col">
+        {product.type === 'variable' ? (
+          <span className="text-sm font-bold text-foreground">
+            {getVariablePriceRange(product, formatPrice)}
+          </span>
+        ) : (
+          <>
+            {product.on_sale && product.regular_price && (
+              <span className="mb-0.5 text-xs text-muted-foreground line-through">
+                {formatPrice(product.regular_price)}
               </span>
-            </>
-          )}
-        </div>
+            )}
+            <span className="text-sm font-bold text-foreground">
+              {formatPrice(product.on_sale ? product.sale_price : product.regular_price)}
+            </span>
+          </>
+        )}
       </div>
     </CardContent>
   </Card>
@@ -191,7 +214,7 @@ export const ProductGridView: React.FC<ProductGridViewProps> = ({
   getProductImage,
   truncateTitle,
 }) => (
-  <div className="grid grid-cols-2 gap-4 p-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
     {products.map((product) => (
       <ProductGridCard
         key={product.id}

@@ -33,7 +33,7 @@ export const usePOSData = () => {
   const isInitializing = useRef(false);
 
   // Get data from products store
-  const { products, availableGateways, settings, categories, productLoading } =
+  const { products, availableGateways, settings, categories, tags, brands, productLoading } =
     useSelect((select) => {
       const store = select(PRODUCTS_STORE_NAME) as any;
       return {
@@ -41,6 +41,8 @@ export const usePOSData = () => {
         availableGateways: store.getGateways(),
         settings: store.getSettings(),
         categories: store.getCategories(),
+        tags: store.getTags(),
+        brands: store.getBrands(),
         productLoading: store.getProductsLoading(),
       };
     }, []);
@@ -52,10 +54,14 @@ export const usePOSData = () => {
     setGateways,
     setSettings,
     setCategories,
+    setTags,
+    setBrands,
     setProductsLoading,
     setGatewaysLoading,
     setSettingsLoading,
     setCategoriesLoading,
+    setTagsLoading,
+    setBrandsLoading,
   } = useDispatch(PRODUCTS_STORE_NAME) as any;
 
   // ===== STORED DATA STATE (for local storage data not in stores) =====
@@ -64,6 +70,8 @@ export const usePOSData = () => {
       line_items: [],
       fee_lines: [],
       coupon_lines: [],
+      shipping_lines: [],
+      meta_data: [],
     };
     const storedCartData = getFromLocalStorage('cartdata', defaultCartData);
     return sanitizeCartData(storedCartData);
@@ -117,8 +125,42 @@ export const usePOSData = () => {
   const fetchSettings = useCallback(async () => {
     setSettingsLoading(true);
     try {
-      const settings = await posAPI.settings.getSettings();
+      // Pass outlet_id if available (set by wepos-pro after cashier login)
+      const outlet = getFromLocalStorage('wepos_outlet', null);
+      const outletId = outlet?.id || 0;
+      const settings = await posAPI.settings.getSettings(outletId || undefined);
       setSettings(settings);
+
+      // Sync window.wepos currency format values from outlet-specific settings
+      // so formatPrice() uses the correct outlet currency by default
+      if (settings?.woo_general && (window as any).wepos) {
+        const wg = settings.woo_general;
+        const w = (window as any).wepos;
+        if (wg.currency) {
+          w.currency = wg.currency;
+        }
+        if (wg.currency_symbol) {
+          w.currency_format_symbol = wg.currency_symbol;
+        }
+        if (wg.price_num_decimals !== undefined) {
+          w.currency_format_num_decimals = wg.price_num_decimals;
+        }
+        if (wg.price_decimal_sep !== undefined) {
+          w.currency_format_decimal_sep = wg.price_decimal_sep;
+        }
+        if (wg.price_thousand_sep !== undefined) {
+          w.currency_format_thousand_sep = wg.price_thousand_sep;
+        }
+        if (wg.currency_pos) {
+          const formatMap: Record<string, string> = {
+            left: '%s%v',
+            right: '%v%s',
+            left_space: '%s %v',
+            right_space: '%v %s',
+          };
+          w.currency_format = formatMap[wg.currency_pos] || w.currency_format;
+        }
+      }
     } catch (error) {
       console.error('Error fetching settings:', error);
       setSettingsLoading(false);
@@ -135,6 +177,28 @@ export const usePOSData = () => {
       setCategoriesLoading(false);
     }
   }, [setCategoriesLoading, setCategories]);
+
+  const fetchTags = useCallback(async () => {
+    setTagsLoading(true);
+    try {
+      const tags = await posAPI.products.getTags();
+      setTags(tags);
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+      setTagsLoading(false);
+    }
+  }, [setTagsLoading, setTags]);
+
+  const fetchBrands = useCallback(async () => {
+    setBrandsLoading(true);
+    try {
+      const brands = await posAPI.products.getBrands();
+      setBrands(brands);
+    } catch (error) {
+      console.error('Error fetching brands:', error);
+      setBrandsLoading(false);
+    }
+  }, [setBrandsLoading, setBrands]);
 
   // ===== INITIALIZATION =====
   const initializeData = useCallback(async () => {
@@ -153,6 +217,8 @@ export const usePOSData = () => {
         fetchProducts(),
         fetchGateways(),
         fetchCategories(),
+        fetchTags(),
+        fetchBrands(),
       ]);
       console.log('✅ POS data initialization complete');
     } catch (error) {
@@ -161,7 +227,7 @@ export const usePOSData = () => {
     } finally {
       isInitializing.current = false;
     }
-  }, [fetchSettings, fetchProducts, fetchGateways, fetchCategories]);
+  }, [fetchSettings, fetchProducts, fetchGateways, fetchCategories, fetchTags, fetchBrands]);
 
   // ===== LOCALSTORAGE PERSISTENCE =====
   useEffect(() => {
@@ -178,6 +244,8 @@ export const usePOSData = () => {
     availableGateways,
     settings,
     categories,
+    tags,
+    brands,
     productLoading,
 
     // Stored Data (local storage)

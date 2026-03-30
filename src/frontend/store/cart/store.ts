@@ -1,5 +1,5 @@
 import { createReduxStore, register, subscribe, select } from '@wordpress/data';
-import { reducer, initialState } from './reducer';
+import { createReducer, initialState } from './reducer';
 import { actions } from './actions';
 import { selectors } from './selectors';
 import { getFromLocalStorage, setToLocalStorage } from '../../utils/helpers';
@@ -38,12 +38,12 @@ const loadPersistedState = (): CartState => {
   return state;
 };
 
-// Create the store with persisted initial state
+// Create the store with persisted initial state baked into the reducer's default
+const persistedState = loadPersistedState();
 const store = createReduxStore(CART_STORE_NAME, {
-  reducer,
+  reducer: createReducer(persistedState),
   actions,
   selectors,
-  initialState: loadPersistedState(),
 });
 
 // Register the store
@@ -57,8 +57,12 @@ subscribe(() => {
     line_items: storeSelect.getCartItems(),
     coupon_lines: storeSelect.getDiscountLines(),
     fee_lines: storeSelect.getFeeLines(),
+    shipping_lines: storeSelect.getShippingLines(),
+    meta_data: storeSelect.getMetaData(),
     customer_note: storeSelect.getCustomerNote(),
     customer: storeSelect.getCustomer(),
+    server_order: storeSelect.getServerOrder(),
+    server_order_dirty: storeSelect.isServerOrderDirty(),
   };
 
   const serialized = JSON.stringify(currentState);

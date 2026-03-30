@@ -107,7 +107,7 @@ const FeeKeypad = forwardRef<FeeKeypadHandle, FeeKeypadProps>(({
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className="border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700"
+            className="border-border bg-muted text-muted-foreground hover:bg-accent"
           >
             {__('Add', 'wepos')} {name}
           </Button>
@@ -145,7 +145,7 @@ const FeeKeypad = forwardRef<FeeKeypadHandle, FeeKeypadProps>(({
               {/* Bottom row: Clear, 0, Decimal */}
               <Button
                 variant="outline"
-                className="h-12 text-red-600 hover:bg-red-50 hover:text-red-700"
+                className="h-12 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 onClick={handleClear}
               >
                 <Delete size={20} />

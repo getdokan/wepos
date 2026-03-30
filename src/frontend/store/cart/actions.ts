@@ -1,4 +1,5 @@
-import { POSCartItem, Customer } from '../../types';
+import { POSCartItem, POSFeeLine, POSShippingLine, POSOrderMetaItem, Customer } from '../../types';
+import { ServerOrderData } from './types';
 
 export const actions = {
   addToCart(item: POSCartItem) {
@@ -45,6 +46,13 @@ export const actions = {
     };
   },
 
+  addFeeLine(fee: POSFeeLine) {
+    return {
+      type: 'ADD_FEE_LINE' as const,
+      fee,
+    };
+  },
+
   removeDiscount(index: number) {
     return {
       type: 'REMOVE_DISCOUNT' as const,
@@ -76,6 +84,48 @@ export const actions = {
     return {
       type: 'SET_CUSTOMER' as const,
       customer,
+    };
+  },
+
+  addShippingLine(shipping: POSShippingLine) {
+    return {
+      type: 'ADD_SHIPPING_LINE' as const,
+      shipping,
+    };
+  },
+
+  removeShippingLine(index: number) {
+    return {
+      type: 'REMOVE_SHIPPING_LINE' as const,
+      index,
+    };
+  },
+
+  setMetaData(meta_data: POSOrderMetaItem[]) {
+    return {
+      type: 'SET_META_DATA' as const,
+      meta_data,
+    };
+  },
+
+  setOrderCurrency(currency: string, currency_symbol: string) {
+    return {
+      type: 'SET_ORDER_CURRENCY' as const,
+      currency,
+      currency_symbol,
+    };
+  },
+
+  setServerOrder(server_order: ServerOrderData) {
+    return {
+      type: 'SET_SERVER_ORDER' as const,
+      server_order,
+    };
+  },
+
+  clearServerOrder() {
+    return {
+      type: 'CLEAR_SERVER_ORDER' as const,
     };
   },
 };
