@@ -362,7 +362,7 @@ final class WePOS {
         $this->container['rest']   = new WeDevs\WePOS\REST\Manager();
 
         // Use React assets instead of Vue.js assets
-        $layout_style = wepos_get_option('pos_layout_style', 'wepos_general', 'legacy');
+        $layout_style = wepos_get_option('pos_layout_style', 'wepos_general', 'latest');
 
         if (is_admin()) {
             $this->container['assets'] = new WeDevs\WePOS\Assets();

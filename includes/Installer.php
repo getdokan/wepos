@@ -22,6 +22,7 @@ class Installer {
      */
     public function run() {
         $this->add_version_info();
+        $this->set_default_layout_style();
         $this->add_user_roles();
         $this->flush_rewrites();
         $this->schedule_cron_jobs();
@@ -42,6 +43,22 @@ class Installer {
         }
 
         update_option( 'we_pos_version', WEPOS_VERSION );
+    }
+
+    /**
+     * Set default POS layout style to React UI.
+     *
+     * On first install or plugin activation, set the layout to 'latest' (React UI)
+     * so new users get the React UI by default. Users can switch back via settings.
+     *
+     * @since 1.3.3
+     *
+     * @return void
+     */
+    private function set_default_layout_style() {
+        $options = get_option( 'wepos_general', [] );
+        $options['pos_layout_style'] = 'latest';
+        update_option( 'wepos_general', $options );
     }
 
     /**

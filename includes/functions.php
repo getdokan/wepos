@@ -203,7 +203,7 @@ function wepos_get_settings_fields() {
                 'label'   => esc_html__( 'POS Layout Style', 'wepos' ),
                 'desc'    => esc_html__( 'Select the user interface for the frontend POS.', 'wepos' ),
                 'type'    => 'radio',
-                'default' => 'legacy',
+                'default' => 'latest',
                 'options' => [
                     'latest' => esc_html__( 'New UI', 'wepos' ),
                     'legacy' => esc_html__( 'Legacy UI', 'wepos' ),
