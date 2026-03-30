@@ -23,6 +23,7 @@ interface AddFeeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddFee: (fee: POSFeeLine) => void;
+  defaultTaxStatus?: 'taxable' | 'none';
 }
 
 const TAX_CLASSES = [
@@ -35,13 +36,14 @@ const AddFeeModal: React.FC<AddFeeModalProps> = ({
   isOpen,
   onClose,
   onAddFee,
+  defaultTaxStatus = 'taxable',
 }) => {
   const [name, setName] = useState('Fee');
   const [amount, setAmount] = useState('0.00');
   const [isPercentage, setIsPercentage] = useState(false);
   const [amountIncludesTax, setAmountIncludesTax] = useState(false);
   const [taxClass, setTaxClass] = useState('');
-  const [taxStatus, setTaxStatus] = useState<'taxable' | 'none'>('taxable');
+  const [taxStatus, setTaxStatus] = useState<'taxable' | 'none'>(defaultTaxStatus);
 
   const resetForm = () => {
     setName('Fee');
@@ -49,7 +51,7 @@ const AddFeeModal: React.FC<AddFeeModalProps> = ({
     setIsPercentage(false);
     setAmountIncludesTax(false);
     setTaxClass('');
-    setTaxStatus('taxable');
+    setTaxStatus(defaultTaxStatus);
   };
 
   const handleClose = () => {
