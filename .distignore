@@ -6,7 +6,7 @@
 /tests
 /bin
 /docs
-/build
+/dist
 /.idea
 /.vscode
 /assets/src
@@ -17,13 +17,16 @@
 .gitignore
 /**/.DS_Store
 /**/*.LICENCE.txt
+/**/*.map
 package.json
 package-lock.json
+pnpm-lock.yaml
 composer.json
 composer.lock
 README.md
 CHANGELOG.md
 LICENSE
+phpcs.xml
 phpcs.xml.dist
 phpunit.xml.dist
 phpunit.xml
@@ -44,3 +47,5 @@ webpack-entries.js
 base-tailwind.config.js
 .babelrc
 config.json
+tsconfig.json
+.pnpmrc
