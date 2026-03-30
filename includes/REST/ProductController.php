@@ -36,6 +36,24 @@ class ProductController extends \WC_REST_Products_Controller {
     }
 
     /**
+     * Get collection params.
+     *
+     * @return array
+     */
+    public function get_collection_params() {
+        $params = parent::get_collection_params();
+
+        $params['low_stock'] = array(
+            'description'       => __( 'Limit result set to products that are low in stock.', 'wepos' ),
+            'type'              => 'boolean',
+            'sanitize_callback' => 'rest_sanitize_boolean',
+            'validate_callback' => 'rest_validate_request_arg',
+        );
+
+        return $params;
+    }
+
+    /**
      * Get product permission checking
      *
      * @since 1.0.2
@@ -59,5 +77,60 @@ class ProductController extends \WC_REST_Products_Controller {
      */
     public function get_products( $request ) {
         return $this->get_items( $request );
+    }
+
+    /**
+     * Prepare objects query.
+     *
+     * @param \WP_REST_Request $request Request object.
+     *
+     * @return array
+     */
+    protected function prepare_objects_query( $request ) {
+        $args = parent::prepare_objects_query( $request );
+
+        if ( ! empty( $request['low_stock'] ) ) {
+            $threshold = absint( max( get_option( 'woocommerce_notify_low_stock_amount', 2 ), 1 ) );
+
+            $args['meta_query'] = $this->add_meta_query( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+                $args,
+                array(
+                    'key'   => '_manage_stock',
+                    'value' => 'yes',
+                )
+            );
+
+            $args['meta_query'] = $this->add_meta_query( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+                $args,
+                array(
+                    'key'     => '_stock',
+                    'value'   => 0,
+                    'compare' => '>',
+                    'type'    => 'NUMERIC',
+                )
+            );
+
+            $args['meta_query'] = $this->add_meta_query( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+                $args,
+                array(
+                    'key'     => '_stock',
+                    'value'   => $threshold,
+                    'compare' => '<=',
+                    'type'    => 'NUMERIC',
+                )
+            );
+
+            if ( empty( $request['stock_status'] ) ) {
+                $args['meta_query'] = $this->add_meta_query( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+                    $args,
+                    array(
+                        'key'   => '_stock_status',
+                        'value' => 'instock',
+                    )
+                );
+            }
+        }
+
+        return $args;
     }
 }
