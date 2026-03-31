@@ -230,7 +230,10 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
         );
         onCustomerUpdated?.(savedCustomer);
       } else {
-        savedCustomer = await posAPI.customers.createCustomer(customerData);
+        const createdCustomer = await posAPI.customers.createCustomer(customerData);
+        // WooCommerce create customer endpoint sometimes returns simplified data.
+        // Fetch the full customer object to ensure billing/shipping addresses are complete.
+        savedCustomer = await posAPI.customers.getCustomer(createdCustomer.id);
         onCustomerCreated?.(savedCustomer);
       }
 

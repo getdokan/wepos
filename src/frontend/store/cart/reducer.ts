@@ -146,6 +146,7 @@ export const createReducer = (preloadedState: CartState = initialState) => (
       return {
         ...state,
         customer: action.customer,
+        server_order_dirty: true,
       };
 
     case 'ADD_SHIPPING_LINE':
