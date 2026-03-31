@@ -292,7 +292,23 @@ function wepos_admin_menu_capability() {
 function wepos_map_meta_cap( $caps, $cap, $user_id ) {
     if ( 'manage_wepos' === $cap ) {
         $user = get_userdata( $user_id );
-        if ( $user && $user->has_cap( 'manage_woocommerce' ) ) {
+
+        if ( ! $user ) {
+            return $caps;
+        }
+
+        // If manage_wepos is explicitly set in any of the user's roles
+        // (true or false via Access settings), respect that value directly.
+        foreach ( $user->roles as $role_slug ) {
+            $role = get_role( $role_slug );
+            if ( $role && array_key_exists( 'manage_wepos', $role->capabilities ) ) {
+                return $caps;
+            }
+        }
+
+        // Fallback: grant access if user has manage_woocommerce
+        // (for roles that were never configured via Access settings).
+        if ( $user->has_cap( 'manage_woocommerce' ) ) {
             return [ 'exist' ];
         }
     }

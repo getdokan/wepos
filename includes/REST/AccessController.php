@@ -203,11 +203,7 @@ class AccessController extends \WP_REST_Controller {
 				continue;
 			}
 
-			if ( $grant ) {
-				$role->add_cap( $cap );
-			} else {
-				$role->remove_cap( $cap );
-			}
+			$role->add_cap( $cap, $grant );
 		}
 
 		return rest_ensure_response( $this->build_access_data() );
