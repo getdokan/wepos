@@ -28,11 +28,12 @@ class Dashboard {
      * @return void
      */
     public function register_page() {
+        $capability = wepos_admin_menu_capability();
         $hook = add_submenu_page(
             'wepos',
             __( 'Dashboard', 'wepos' ),
             __( 'Dashboard', 'wepos' ),
-            'manage_woocommerce',
+            $capability,
             'wepos-dashboard',
             [ $this, 'render_page' ]
         );

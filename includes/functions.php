@@ -306,9 +306,9 @@ function wepos_map_meta_cap( $caps, $cap, $user_id ) {
             }
         }
 
-        // Fallback: grant access if user has manage_woocommerce
+        // Fallback: grant access if user has manage_woocommerce or manage_options
         // (for roles that were never configured via Access settings).
-        if ( $user->has_cap( 'manage_woocommerce' ) ) {
+        if ( $user->has_cap( 'manage_options' ) || $user->has_cap( 'manage_woocommerce' ) ) {
             return [ 'exist' ];
         }
     }
