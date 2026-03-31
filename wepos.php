@@ -301,6 +301,17 @@ final class WePOS {
      * @return void
      */
     public function deactivate() {
+        // Remove wepos capabilities from Administrator and Shop Manager
+        $roles_to_clean = [ 'administrator', 'shop_manager' ];
+        foreach ( $roles_to_clean as $role_slug ) {
+            $role = get_role( $role_slug );
+            if ( $role ) {
+                $role->remove_cap( 'access_wepos' );
+                $role->remove_cap( 'manage_wepos' );
+            }
+        }
+
+        // Legacy Dokan cleanup
         $users_query = new WP_User_Query( [
             'role__in' => [ 'seller', 'vendor_staff' ]
         ] );

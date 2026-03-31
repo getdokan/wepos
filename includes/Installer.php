@@ -23,6 +23,7 @@ class Installer {
     public function run() {
         $this->add_version_info();
         $this->set_default_layout_style();
+        $this->add_wepos_capabilities();
         $this->add_user_roles();
         $this->flush_rewrites();
         $this->schedule_cron_jobs();
@@ -59,6 +60,33 @@ class Installer {
         $options = get_option( 'wepos_general', [] );
         $options['pos_layout_style'] = 'latest';
         update_option( 'wepos_general', $options );
+    }
+
+    /**
+     * Add WePOS capabilities to default roles.
+     *
+     * Default capability assignments:
+     * - Administrator: access_wepos + manage_wepos
+     * - Shop Manager:  access_wepos + manage_wepos
+     *
+     * @since 1.4.0
+     *
+     * @return void
+     */
+    private function add_wepos_capabilities() {
+        // Administrator gets full access
+        $admin = get_role( 'administrator' );
+        if ( $admin ) {
+            $admin->add_cap( 'access_wepos' );
+            $admin->add_cap( 'manage_wepos' );
+        }
+
+        // Shop Manager gets full access
+        $shop_manager = get_role( 'shop_manager' );
+        if ( $shop_manager ) {
+            $shop_manager->add_cap( 'access_wepos' );
+            $shop_manager->add_cap( 'manage_wepos' );
+        }
     }
 
     /**

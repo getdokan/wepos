@@ -42,7 +42,7 @@ class CouponController extends \WC_REST_Coupons_Controller {
             return true;
         }
 
-        if ( apply_filters( 'wepos_rest_manager_permissions', false ) ) {
+        if ( wepos_current_user_can_manage() ) {
             return true;
         }
 

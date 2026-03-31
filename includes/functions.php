@@ -159,6 +159,11 @@ function wepos_get_settings_sections() {
             'id'    => 'wepos_receipts',
             'title' => __( 'Receipts', 'wepos' ),
             'icon'  => 'dashicons-media-text'
+        ],
+        [
+            'id'    => 'wepos_access',
+            'title' => __( 'Access', 'wepos' ),
+            'icon'  => 'dashicons-admin-users'
         ]
     ];
 
@@ -252,6 +257,30 @@ function wepos_get_option( $option, $section, $default = '' ) {
 }
 
 /**
+ * Get the capability required for the admin menu.
+ *
+ * Uses manage_wepos if the current user has it, otherwise falls back to manage_woocommerce.
+ *
+ * @since 1.4.0
+ *
+ * @return string
+ */
+function wepos_admin_menu_capability() {
+    return 'manage_woocommerce';
+}
+
+/**
+ * Check if the current user can manage WePOS settings.
+ *
+ * @since 1.4.0
+ *
+ * @return bool
+ */
+function wepos_current_user_can_manage() {
+    return current_user_can( 'manage_wepos' ) || current_user_can( 'manage_woocommerce' ) || apply_filters( 'wepos_rest_manager_permissions', false );
+}
+
+/**
  * Detects if current page is wePOS frontend page
  *
  * @return bool
@@ -260,7 +289,7 @@ function wepos_is_frontend() {
     $hasPermission = false;
 
     if ( wp_validate_boolean( get_query_var( 'wepos' ) ) ) {
-        if ( current_user_can( 'manage_woocommerce' ) || apply_filters( 'wepos_frontend_permissions', false ) ) {
+        if ( current_user_can( 'access_wepos' ) || current_user_can( 'manage_woocommerce' ) || apply_filters( 'wepos_frontend_permissions', false ) ) {
             $hasPermission = true;
         }
     }

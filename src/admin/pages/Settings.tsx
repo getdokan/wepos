@@ -15,6 +15,10 @@ import { applyFilters } from '@react/hooks/useExtensions';
 interface WeposAdminData {
 	ajaxurl: string;
 	nonce: string;
+	rest: {
+		root: string;
+		nonce: string;
+	};
 	settings_sections: Array< {
 		id: string;
 		title: string;
@@ -37,6 +41,17 @@ interface WeposAdminData {
 				step?: number;
 			}
 		>
+	>;
+	access_data: Record<
+		string,
+		{
+			name: string;
+			capabilities: {
+				wepos: Record< string, boolean >;
+				wc: Record< string, boolean >;
+				wp: Record< string, boolean >;
+			};
+		}
 	>;
 }
 
@@ -78,60 +93,80 @@ function stripHtml( html: string ): string {
 	return tmp.textContent || tmp.innerText || '';
 }
 
-/* ─── Schema builder ───────────────────────────────────────────────────── */
+/* ─── Access schema constants ─────────────────────────────────────────── */
 
 /**
- * Build a fully-enriched hierarchical schema (like Dokan) from the PHP data.
- *
- * The plugin-ui formatter sees `children` on the root page and treats the
- * data as already hierarchical, returning it as-is.  This lets us keep
- * `dependency_key` as the bare PHP field name (e.g. "enable_fee_tax")
- * so values load/save are 1-to-1 with the old Vue page.
+ * Default roles to display in the Access tab.
+ * Pro can add 'cashier' via the `wepos_access_display_roles` filter.
  */
-function buildSchema(
+const DEFAULT_DISPLAY_ROLES = [
+	'administrator',
+	'editor',
+	'author',
+	'contributor',
+	'subscriber',
+	'customer',
+	'shop_manager',
+];
+
+/**
+ * Capability group labels and ordering.
+ */
+const CAP_GROUPS: Array< { key: string; label: string } > = [
+	{ key: 'wepos', label: __( 'WePOS', 'wepos' ) },
+	{ key: 'wc', label: __( 'WooCommerce', 'wepos' ) },
+	{ key: 'wp', label: __( 'WordPress', 'wepos' ) },
+];
+
+/* ─── Schema builders ─────────────────────────────────────────────────── */
+
+/**
+ * Build schema elements for standard settings sections (General, Receipts, etc.).
+ * Returns a flat array for the plugin-ui formatter.
+ */
+function buildStandardSchema(
 	sections: WeposAdminData[ 'settings_sections' ],
 	fields: WeposAdminData[ 'settings_fields' ]
 ): SettingsElement[] {
-	const pageId = 'wepos_settings';
-	const hookBase = 'wepos_settings';
+	const elements: SettingsElement[] = [];
 
-	const subpages: SettingsElement[] = sections.map( ( section, i ) => {
-		const subpageHook = `${ hookBase }_${ section.id }`;
+	sections.forEach( ( section, i ) => {
+		// Skip access — it has its own builder
+		if ( section.id === 'wepos_access' ) {
+			return;
+		}
+
+		elements.push( {
+			id: section.id,
+			type: 'subpage',
+			label: section.title,
+			icon: ICON_MAP[ section.icon ] || 'Settings',
+			page_id: 'wepos_settings',
+			priority: ( i + 1 ) * 10,
+		} as SettingsElement );
+
 		const sectionId = `${ section.id }_section`;
-		const sectionHook = `${ subpageHook }_${ sectionId }`;
+		elements.push( {
+			id: sectionId,
+			type: 'section',
+			label: '',
+			page_id: section.id,
+			priority: 10,
+		} as SettingsElement );
+
 		const sectionFields = fields[ section.id ] || {};
-
-		const fieldElements: SettingsElement[] = Object.values(
-			sectionFields
-		).map( ( field, j ) => {
-			const fieldHook = `${ sectionHook }_${ field.name }`;
-
-			return {
+		Object.values( sectionFields ).forEach( ( field, j ) => {
+			elements.push( {
 				id: field.name,
 				type: 'field',
-				title: field.label,
 				label: field.label,
-				icon: '',
-				tooltip: '',
-				display: true,
-				hook_key: fieldHook,
-				children: [],
 				description: field.desc ? stripHtml( field.desc ) : '',
 				dependency_key: field.name,
-				dependencies: [],
-				validations: [],
 				variant: VARIANT_MAP[ field.type ] || 'text',
 				value: field.default ?? '',
 				default: field.default ?? '',
 				placeholder: field.placeholder ?? '',
-				readonly: false,
-				disabled: false,
-				size: 20,
-				helper_text: '',
-				postfix: '',
-				prefix: '',
-				image_url: '',
-				is_danger: false,
+				section_id: sectionId,
 				priority: ( j + 1 ) * 10,
 				options: field.options
 					? Object.entries( field.options ).map(
@@ -143,60 +178,149 @@ function buildSchema(
 					: [],
 				...( field.min !== undefined ? { min: field.min } : {} ),
 				...( field.max !== undefined ? { max: field.max } : {} ),
-			} as SettingsElement;
+			} as SettingsElement );
 		} );
-
-		return {
-			id: section.id,
-			type: 'subpage',
-			title: section.title,
-			label: section.title,
-			icon: ICON_MAP[ section.icon ] || 'Settings',
-			tooltip: '',
-			display: true,
-			hook_key: subpageHook,
-			is_danger: false,
-			priority: ( i + 1 ) * 10,
-			children: [
-				{
-					id: sectionId,
-					type: 'section',
-					title: '',
-					label: '',
-					icon: '',
-					tooltip: '',
-					display: true,
-					hook_key: sectionHook,
-					is_danger: false,
-					children: fieldElements,
-					dependencies: [],
-					validations: [],
-					dependency_key: '',
-				} as SettingsElement,
-			],
-			dependencies: [],
-			validations: [],
-			dependency_key: '',
-		} as SettingsElement;
 	} );
 
-	return [
-		{
-			id: pageId,
-			type: 'page',
-			title: __( 'Settings', 'wepos' ),
-			label: __( 'Settings', 'wepos' ),
-			icon: 'Settings',
-			tooltip: '',
-			display: true,
-			hook_key: hookBase,
-			is_danger: false,
-			children: subpages,
-			dependencies: [],
-			validations: [],
-			dependency_key: '',
-		} as SettingsElement,
-	];
+	return elements;
+}
+
+/**
+ * Build flat schema elements for the Access subpage.
+ *
+ * Structure:
+ *   subpage (Access)
+ *     → tab (Administrator) → tab (Editor) → ...
+ *       → section (WePOS) → section (WooCommerce) → section (WordPress)
+ *         → field (switch for each capability)
+ */
+function buildAccessSchema(
+	accessData: WeposAdminData[ 'access_data' ],
+	sectionPriority: number
+): SettingsElement[] {
+	if ( ! accessData || typeof accessData !== 'object' ) {
+		return [];
+	}
+
+	const elements: SettingsElement[] = [];
+
+	// Subpage
+	elements.push( {
+		id: 'wepos_access',
+		type: 'subpage',
+		label: __( 'Access', 'wepos' ),
+		description: __(
+			'By default, access to the POS is limited to Administrator, Shop Manager and Cashier roles. It is recommended that you do not change the default settings unless you are fully aware of the consequences.',
+			'wepos'
+		),
+		icon: 'ShieldCheck',
+		page_id: 'wepos_settings',
+		priority: sectionPriority,
+	} as SettingsElement );
+
+	// Allow pro to add roles (e.g. 'cashier') via filter.
+	const displayRoles = applyFilters< string[] >(
+		'wepos_access_display_roles',
+		DEFAULT_DISPLAY_ROLES
+	);
+
+	// Filter to only display roles that exist in the system
+	const roles = displayRoles.filter( ( slug: string ) => accessData[ slug ] );
+
+	roles.forEach( ( roleSlug, roleIdx ) => {
+		const role = accessData[ roleSlug ];
+		const tabId = `access_tab_${ roleSlug }`;
+
+		// Tab per role
+		elements.push( {
+			id: tabId,
+			type: 'tab',
+			label: role.name,
+			page_id: 'wepos_access',
+			priority: ( roleIdx + 1 ) * 10,
+		} as SettingsElement );
+
+		// Sections per capability group
+		CAP_GROUPS.forEach( ( group, groupIdx ) => {
+			const caps =
+				role.capabilities[
+					group.key as keyof typeof role.capabilities
+				];
+			if ( ! caps || Object.keys( caps ).length === 0 ) {
+				return;
+			}
+
+			const sectionId = `access_${ roleSlug }_${ group.key }`;
+
+			elements.push( {
+				id: sectionId,
+				type: 'section',
+				label: group.label,
+				section_id: tabId,
+				priority: ( groupIdx + 1 ) * 10,
+			} as SettingsElement );
+
+			// Switch field per capability
+			Object.entries( caps ).forEach(
+				( [ cap, enabled ], capIdx ) => {
+					const fieldKey = `access__${ roleSlug }__${ cap }`;
+
+					elements.push( {
+						id: fieldKey,
+						type: 'field',
+						variant: 'switch',
+						label: cap,
+						dependency_key: fieldKey,
+						value: enabled ? 'yes' : 'no',
+						default: enabled ? 'yes' : 'no',
+						enable_state: {
+							value: 'yes',
+							title: __( 'Enabled', 'wepos' ),
+						},
+						disable_state: {
+							value: 'no',
+							title: __( 'Disabled', 'wepos' ),
+						},
+						section_id: sectionId,
+						priority: ( capIdx + 1 ) * 10,
+					} as SettingsElement );
+				}
+			);
+		} );
+	} );
+
+	return elements;
+}
+
+/**
+ * Build the full flat schema from PHP data + access data.
+ */
+function buildSchema(
+	sections: WeposAdminData[ 'settings_sections' ],
+	fields: WeposAdminData[ 'settings_fields' ],
+	accessData: WeposAdminData[ 'access_data' ]
+): SettingsElement[] {
+	const elements: SettingsElement[] = [];
+
+	// Root page
+	elements.push( {
+		id: 'wepos_settings',
+		type: 'page',
+		label: __( 'Settings', 'wepos' ),
+		icon: 'Settings',
+		priority: 10,
+	} as SettingsElement );
+
+	// Standard settings subpages (General, Receipts, etc.)
+	elements.push( ...buildStandardSchema( sections, fields ) );
+
+	// Access subpage with role tabs
+	const accessPriority =
+		( sections.findIndex( ( s ) => s.id === 'wepos_access' ) + 1 ) * 10 ||
+		( sections.length + 1 ) * 10;
+	elements.push( ...buildAccessSchema( accessData, accessPriority ) );
+
+	return elements;
 }
 
 /* ─── Value helpers ────────────────────────────────────────────────────── */
@@ -220,6 +344,18 @@ function flattenValues(
 	return flat;
 }
 
+/**
+ * Parse an access dependency_key into role slug, group, and capability.
+ * Key format: access__{role}__{cap}
+ */
+function parseAccessKey(
+	key: string
+): { role: string; cap: string } | null {
+	const match = key.match( /^access__([^_]+(?:_[^_]+)*)__(.+)$/ );
+	if ( ! match ) return null;
+	return { role: match[ 1 ], cap: match[ 2 ] };
+}
+
 /* ─── Component ────────────────────────────────────────────────────────── */
 
 const Settings = () => {
@@ -227,18 +363,34 @@ const Settings = () => {
 	const [ loading, setLoading ] = useState( true );
 	const [ saving, setSaving ] = useState( false );
 
-	const { settings_sections, settings_fields, ajaxurl, nonce } =
-		window.weposAdmin;
+	const {
+		settings_sections: rawSections,
+		settings_fields,
+		access_data: accessData,
+		ajaxurl,
+		nonce,
+		rest,
+	} = window.weposAdmin;
 
-	// Build the hierarchical schema from the PHP-provided data.
+	// wp_localize_script can serialize PHP arrays as JS objects.
+	const settings_sections: WeposAdminData[ 'settings_sections' ] =
+		Array.isArray( rawSections )
+			? rawSections
+			: Object.values( rawSections || {} );
+
+	// Build the flat schema from PHP-provided data.
 	const schema = useMemo( () => {
-		const base = buildSchema( settings_sections, settings_fields );
+		const base = buildSchema(
+			settings_sections,
+			settings_fields,
+			accessData
+		);
 
 		return applyFilters< SettingsElement[] >(
 			'wepos_react_settings_schema',
 			base
 		);
-	}, [ settings_sections, settings_fields ] );
+	}, [ settings_sections, settings_fields, accessData ] );
 
 	// Load current settings values on mount.
 	useEffect( () => {
@@ -263,7 +415,32 @@ const Settings = () => {
 					}
 
 					const saved = flattenValues( response.data );
-					setValues( { ...defaults, ...saved } );
+
+					// Merge access values from the pre-loaded access_data
+					const accessValues: Record< string, unknown > = {};
+					if ( accessData ) {
+						for ( const [ roleSlug, role ] of Object.entries(
+							accessData
+						) ) {
+							for ( const [ , caps ] of Object.entries(
+								role.capabilities
+							) ) {
+								for ( const [ cap, enabled ] of Object.entries(
+									caps
+								) ) {
+									accessValues[
+										`access__${ roleSlug }__${ cap }`
+									] = enabled ? 'yes' : 'no';
+								}
+							}
+						}
+					}
+
+					setValues( {
+						...defaults,
+						...saved,
+						...accessValues,
+					} );
 				}
 			} )
 			.catch( ( err ) => {
@@ -280,17 +457,21 @@ const Settings = () => {
 	);
 
 	/**
-	 * Save — identical payload to the old Vue page:
-	 *   action           = wepos_save_settings
-	 *   nonce            = <wepos_nonce>
-	 *   section          = wepos_general | wepos_receipts | …
-	 *   settingsData[k]  = v
+	 * Save handler — routes to AJAX for standard settings,
+	 * or to REST API for access settings.
 	 */
 	const handleSave = useCallback(
 		async (
 			scopeId: string,
 			scopeValues: Record< string, unknown >
 		) => {
+			if ( scopeId === 'wepos_access' ) {
+				// Access save: group changes by role and send to REST API
+				await saveAccessSettings( scopeValues, rest );
+				return;
+			}
+
+			// Standard settings save via AJAX
 			setSaving( true );
 
 			try {
@@ -322,15 +503,13 @@ const Settings = () => {
 						__( 'Failed to save settings.', 'wepos' )
 					);
 				}
-			} catch ( err ) {
-				toast.error(
-					__( 'Failed to save settings.', 'wepos' )
-				);
+			} catch {
+				toast.error( __( 'Failed to save settings.', 'wepos' ) );
 			} finally {
 				setSaving( false );
 			}
 		},
-		[ ajaxurl, nonce ]
+		[ ajaxurl, nonce, rest ]
 	);
 
 	return (
@@ -344,14 +523,15 @@ const Settings = () => {
 				title={ __( 'Settings', 'wepos' ) }
 				hookPrefix="wepos"
 				renderSaveButton={ ( { dirty, onSave: save } ) => (
-					<Button onClick={ save } disabled={ ! dirty || saving }>
-						{
-							saving ? (
-								<LoaderCircle className="size-4 mr-2 animate-spin" />
-							) : (
-								<Save className="size-4 mr-2" />
-							)
-						}
+					<Button
+						onClick={ save }
+						disabled={ ! dirty || saving }
+					>
+						{ saving ? (
+							<LoaderCircle className="size-4 mr-2 animate-spin" />
+						) : (
+							<Save className="size-4 mr-2" />
+						) }
 						{ __( 'Save Changes', 'wepos' ) }
 					</Button>
 				) }
@@ -359,5 +539,71 @@ const Settings = () => {
 		</div>
 	);
 };
+
+/* ─── Access save helper ──────────────────────────────────────────────── */
+
+/**
+ * Save access capability changes via REST API.
+ * Groups flat values by role and sends one request per changed role.
+ */
+async function saveAccessSettings(
+	scopeValues: Record< string, unknown >,
+	restConfig: { root: string; nonce: string }
+) {
+	// Group values by role
+	const roleUpdates: Record<
+		string,
+		Record< string, Record< string, boolean > >
+	> = {};
+
+	for ( const [ key, value ] of Object.entries( scopeValues ) ) {
+		const parsed = parseAccessKey( key );
+		if ( ! parsed ) continue;
+
+		const { role, cap } = parsed;
+		const enabled = value === 'yes' || value === true;
+
+		// Determine which group this cap belongs to
+		let group = 'wp';
+		if ( cap === 'access_wepos' || cap === 'manage_wepos' ) {
+			group = 'wepos';
+		} else if ( cap !== 'read' ) {
+			group = 'wc';
+		}
+
+		if ( ! roleUpdates[ role ] ) {
+			roleUpdates[ role ] = {};
+		}
+		if ( ! roleUpdates[ role ][ group ] ) {
+			roleUpdates[ role ][ group ] = {};
+		}
+		roleUpdates[ role ][ group ][ cap ] = enabled;
+	}
+
+	try {
+		// Send one request per role (REST API expects one role per request)
+		for ( const [ roleSlug, capsData ] of Object.entries( roleUpdates ) ) {
+			const response = await fetch(
+				`${ restConfig.root }wepos/v1/settings/access`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-WP-Nonce': restConfig.nonce,
+					},
+					body: JSON.stringify( { [ roleSlug ]: capsData } ),
+				}
+			);
+
+			if ( ! response.ok ) {
+				throw new Error( 'Failed to update' );
+			}
+		}
+
+		toast.success( __( 'Access settings saved successfully.', 'wepos' ) );
+	} catch {
+		toast.error( __( 'Failed to save access settings.', 'wepos' ) );
+	}
+}
 
 export default Settings;

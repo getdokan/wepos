@@ -47,7 +47,7 @@ import {
 } from '@wedevs/plugin-ui';
 import { Slot } from '@wordpress/components';
 import { PluginArea } from '@wordpress/plugins';
-import { ChevronDown, CircleHelp, LayoutGrid, LogOut, ShoppingCart } from 'lucide-react';
+import { ChevronDown, CircleHelp, LayoutGrid, LogOut, ShoppingCart, ExternalLink } from 'lucide-react';
 import Cart, { CartHandle } from '../components/Cart';
 import CategoryFilter from '../components/CategoryFilter';
 import StockStatusFilter, { StockStatus } from '../components/StockStatusFilter';
@@ -928,6 +928,16 @@ const HomePage: React.FC = () => {
                       <Slot name="WeposUserMenuAfterHelp" fillProps={{ DropdownMenuItem }}>
                         {(fills: React.ReactNode) => <>{fills}</>}
                       </Slot>
+                      {window.wepos?.current_user?.can_access_admin && (
+                        <DropdownMenuItem
+                          onClick={() =>
+                            window.open((window as any).wepos?.admin_url, '_blank')
+                          }
+                        >
+                          <ExternalLink className="mr-1 size-4" />
+                          {__('WordPress Admin', 'wepos')}
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem
                         variant="destructive"
                         onClick={() =>
