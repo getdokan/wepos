@@ -132,16 +132,6 @@ const HomePage: React.FC = () => {
   });
   const [mobileActiveTab, setMobileActiveTab] = useState<'products' | 'cart'>('products');
 
-  // Order Data State (still needed for payment processing)
-  const [orderData, setOrderData] = useState({
-    customer_id: 0,
-    customer_note: '',
-    payment_method: '',
-    payment_method_title: '',
-    billing: {},
-    shipping: {},
-  });
-
   // Refs
   const itemsWrapperRef = useRef<HTMLDivElement>(null);
   const cashAmountRef = useRef<HTMLInputElement>(null);
@@ -293,14 +283,6 @@ const HomePage: React.FC = () => {
 
   const createNewSale = useCallback(() => {
     clearCart(); // clearCart resets entire state including server_order
-    setOrderData({
-      customer_id: 0,
-      customer_note: '',
-      payment_method: '',
-      payment_method_title: '',
-      billing: {},
-      shipping: {},
-    });
     setShowPaymentReceipt(false);
     setCashAmount('');
     defaultCustomerLoadedRef.current = false; // Re-load default customer for next sale
@@ -312,20 +294,8 @@ const HomePage: React.FC = () => {
     const hadCustomer = !!selectedCustomer;
     setCustomer(customer);
     if (customer) {
-      setOrderData((prev) => ({
-        ...prev,
-        customer_id: customer.id,
-        billing: customer.billing,
-        shipping: customer.shipping,
-      }));
       toast.success(sprintf(__('Customer %s selected', 'wepos'), `${customer.first_name} ${customer.last_name}`));
     } else {
-      setOrderData((prev) => ({
-        ...prev,
-        customer_id: 0,
-        billing: {},
-        shipping: {},
-      }));
       if (hadCustomer) {
         toast.success(__('Customer removed', 'wepos'));
       }
@@ -630,14 +600,14 @@ const HomePage: React.FC = () => {
     };
 
     let orderPayload: any = {
-      billing: orderData.billing,
-      shipping: orderData.shipping,
+      billing: selectedCustomer?.billing || {},
+      shipping: selectedCustomer?.shipping || {},
       line_items: buildLineItems(),
       fee_lines: buildFeeLines(),
       shipping_lines: buildShippingLines(),
       coupon_lines: [],
-      customer_id: orderData.customer_id,
-      customer_note: orderData.customer_note,
+      customer_id: selectedCustomer?.id || 0,
+      customer_note: customerNote,
       meta_data: [
         { key: '_wepos_is_pos_order', value: true },
         { key: '_wepos_tax_based_on', value: settings?.woo_tax?.wc_tax_based_on || 'base' },
