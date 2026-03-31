@@ -259,15 +259,43 @@ function wepos_get_option( $option, $section, $default = '' ) {
 /**
  * Get the capability required for the admin menu.
  *
- * Uses manage_wepos if the current user has it, otherwise falls back to manage_woocommerce.
+ * Uses manage_wepos so roles granted this cap via Access settings
+ * (e.g. Cashier) can access the WePOS admin pages.
  *
  * @since 1.4.0
  *
  * @return string
  */
 function wepos_admin_menu_capability() {
-    return 'manage_woocommerce';
+    return 'manage_wepos';
 }
+
+/**
+ * Map manage_wepos to users who have manage_woocommerce.
+ *
+ * This ensures backward compatibility — users with manage_woocommerce
+ * can always access WePOS admin even if manage_wepos hasn't been
+ * explicitly granted (e.g. on sites that haven't reactivated the plugin).
+ *
+ * @since 1.4.0
+ *
+ * @param string[] $caps    Required primitive capabilities.
+ * @param string   $cap     Capability being checked.
+ * @param int      $user_id User ID.
+ *
+ * @return string[]
+ */
+function wepos_map_meta_cap( $caps, $cap, $user_id ) {
+    if ( 'manage_wepos' === $cap ) {
+        $user = get_userdata( $user_id );
+        if ( $user && $user->has_cap( 'manage_woocommerce' ) ) {
+            return [ 'exist' ];
+        }
+    }
+
+    return $caps;
+}
+add_filter( 'map_meta_cap', 'wepos_map_meta_cap', 10, 3 );
 
 /**
  * Check if the current user can manage WePOS settings.
@@ -289,7 +317,7 @@ function wepos_is_frontend() {
     $hasPermission = false;
 
     if ( wp_validate_boolean( get_query_var( 'wepos' ) ) ) {
-        if ( current_user_can( 'access_wepos' ) || current_user_can( 'manage_woocommerce' ) || apply_filters( 'wepos_frontend_permissions', false ) ) {
+        if ( current_user_can( 'access_wepos' ) || apply_filters( 'wepos_frontend_permissions', false ) ) {
             $hasPermission = true;
         }
     }

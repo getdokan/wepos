@@ -186,13 +186,44 @@ function buildStandardSchema(
 }
 
 /**
- * Build flat schema elements for the Access subpage.
- *
- * Structure:
- *   subpage (Access)
- *     → tab (Administrator) → tab (Editor) → ...
- *       → section (WePOS) → section (WooCommerce) → section (WordPress)
- *         → field (switch for each capability)
+ * Convert flat schema elements to hierarchical by building parent-child relationships.
+ */
+function convertFlatToHierarchical(
+	flatElements: SettingsElement[]
+): SettingsElement[] {
+	const subpages: SettingsElement[] = [];
+	let currentSubpage: SettingsElement | null = null;
+	let currentSection: SettingsElement | null = null;
+
+	for ( const elem of flatElements ) {
+		if ( elem.type === 'subpage' ) {
+			const subpage: SettingsElement = {
+				...elem,
+				children: [],
+			};
+			subpages.push( subpage );
+			currentSubpage = subpage;
+			currentSection = null;
+		} else if ( elem.type === 'section' || elem.type === 'tab' ) {
+			if ( currentSubpage ) {
+				const section: SettingsElement = {
+					...elem,
+					children: [],
+				};
+				currentSubpage.children!.push( section );
+				currentSection = section;
+			}
+		} else if ( elem.type === 'field' && currentSection ) {
+			currentSection.children!.push( elem );
+		}
+	}
+
+	return subpages;
+}
+
+/**
+ * Build hierarchical schema for the Access subpage.
+ * Returns hierarchical structure with children arrays to preserve dependency_key values.
  */
 function buildAccessSchema(
 	accessData: WeposAdminData[ 'access_data' ],
@@ -202,45 +233,22 @@ function buildAccessSchema(
 		return [];
 	}
 
-	const elements: SettingsElement[] = [];
-
-	// Subpage
-	elements.push( {
-		id: 'wepos_access',
-		type: 'subpage',
-		label: __( 'Access', 'wepos' ),
-		description: __(
-			'By default, access to the POS is limited to Administrator, Shop Manager and Cashier roles. It is recommended that you do not change the default settings unless you are fully aware of the consequences.',
-			'wepos'
-		),
-		icon: 'ShieldCheck',
-		page_id: 'wepos_settings',
-		priority: sectionPriority,
-	} as SettingsElement );
-
-	// Allow pro to add roles (e.g. 'cashier') via filter.
 	const displayRoles = applyFilters< string[] >(
 		'wepos_access_display_roles',
 		DEFAULT_DISPLAY_ROLES
 	);
 
-	// Filter to only display roles that exist in the system
-	const roles = displayRoles.filter( ( slug: string ) => accessData[ slug ] );
+	const roles = displayRoles.filter(
+		( slug: string ) => accessData[ slug ]
+	);
 
-	roles.forEach( ( roleSlug, roleIdx ) => {
+	const tabChildren: SettingsElement[] = [];
+
+	roles.forEach( ( roleSlug: string, roleIdx: number ) => {
 		const role = accessData[ roleSlug ];
 		const tabId = `access_tab_${ roleSlug }`;
+		const sectionChildren: SettingsElement[] = [];
 
-		// Tab per role
-		elements.push( {
-			id: tabId,
-			type: 'tab',
-			label: role.name,
-			page_id: 'wepos_access',
-			priority: ( roleIdx + 1 ) * 10,
-		} as SettingsElement );
-
-		// Sections per capability group
 		CAP_GROUPS.forEach( ( group, groupIdx ) => {
 			const caps =
 				role.capabilities[
@@ -251,28 +259,28 @@ function buildAccessSchema(
 			}
 
 			const sectionId = `access_${ roleSlug }_${ group.key }`;
+			const fieldChildren: SettingsElement[] = [];
 
-			elements.push( {
-				id: sectionId,
-				type: 'section',
-				label: group.label,
-				section_id: tabId,
-				priority: ( groupIdx + 1 ) * 10,
-			} as SettingsElement );
-
-			// Switch field per capability
 			Object.entries( caps ).forEach(
-				( [ cap, enabled ], capIdx ) => {
+				( [ cap, enabled ]: [ string, boolean ], capIdx: number ) => {
 					const fieldKey = `access__${ roleSlug }__${ cap }`;
 
-					elements.push( {
+					// Lock essential caps for administrator — always ON, not toggleable
+					const isLockedForAdmin =
+						roleSlug === 'administrator' &&
+						( cap === 'access_wepos' ||
+							cap === 'manage_wepos' ||
+							cap === 'read' );
+
+					fieldChildren.push( {
 						id: fieldKey,
 						type: 'field',
 						variant: 'switch',
 						label: cap,
 						dependency_key: fieldKey,
-						value: enabled ? 'yes' : 'no',
-						default: enabled ? 'yes' : 'no',
+						value: isLockedForAdmin ? 'yes' : enabled ? 'yes' : 'no',
+						default: isLockedForAdmin ? 'yes' : enabled ? 'yes' : 'no',
+						disabled: isLockedForAdmin,
 						enable_state: {
 							value: 'yes',
 							title: __( 'Enabled', 'wepos' ),
@@ -281,46 +289,77 @@ function buildAccessSchema(
 							value: 'no',
 							title: __( 'Disabled', 'wepos' ),
 						},
-						section_id: sectionId,
 						priority: ( capIdx + 1 ) * 10,
-					} as SettingsElement );
+						children: [],
+					} as unknown as SettingsElement );
 				}
 			);
+
+			sectionChildren.push( {
+				id: sectionId,
+				type: 'section',
+				label: group.label,
+				priority: ( groupIdx + 1 ) * 10,
+				children: fieldChildren,
+			} as SettingsElement );
 		} );
+
+		tabChildren.push( {
+			id: tabId,
+			type: 'tab',
+			label: role.name,
+			priority: ( roleIdx + 1 ) * 10,
+			children: sectionChildren,
+		} as SettingsElement );
 	} );
 
-	return elements;
+	const subpage = {
+		id: 'wepos_access',
+		type: 'subpage',
+		label: __( 'Access', 'wepos' ),
+		description: __(
+			'By default, access to the POS is limited to Administrator, Shop Manager and Cashier roles. It is recommended that you do not change the default settings unless you are fully aware of the consequences.',
+			'wepos'
+		),
+		icon: 'ShieldCheck',
+		priority: sectionPriority,
+		children: tabChildren,
+	} as unknown as SettingsElement;
+
+	return [ subpage ];
 }
 
 /**
- * Build the full flat schema from PHP data + access data.
+ * Build full schema as hierarchical structure (page with children).
+ * This ensures the formatter passes it through unchanged, preserving dependency_key.
  */
 function buildSchema(
 	sections: WeposAdminData[ 'settings_sections' ],
 	fields: WeposAdminData[ 'settings_fields' ],
 	accessData: WeposAdminData[ 'access_data' ]
 ): SettingsElement[] {
-	const elements: SettingsElement[] = [];
-
-	// Root page
-	elements.push( {
+	const rootPage = {
 		id: 'wepos_settings',
 		type: 'page',
 		label: __( 'Settings', 'wepos' ),
 		icon: 'Settings',
 		priority: 10,
-	} as SettingsElement );
+		children: [],
+	} as unknown as SettingsElement;
 
-	// Standard settings subpages (General, Receipts, etc.)
-	elements.push( ...buildStandardSchema( sections, fields ) );
+	// Get standard schema subpages (flat elements)
+	const flatElements = buildStandardSchema( sections, fields );
+	const standardSubpages = convertFlatToHierarchical( flatElements );
+	rootPage.children!.push( ...standardSubpages );
 
-	// Access subpage with role tabs
+	// Get access schema (already hierarchical)
 	const accessPriority =
 		( sections.findIndex( ( s ) => s.id === 'wepos_access' ) + 1 ) * 10 ||
 		( sections.length + 1 ) * 10;
-	elements.push( ...buildAccessSchema( accessData, accessPriority ) );
+	const accessSubpages = buildAccessSchema( accessData, accessPriority );
+	rootPage.children!.push( ...accessSubpages );
 
-	return elements;
+	return [ rootPage ];
 }
 
 /* ─── Value helpers ────────────────────────────────────────────────────── */
@@ -463,11 +502,15 @@ const Settings = () => {
 	const handleSave = useCallback(
 		async (
 			scopeId: string,
-			scopeValues: Record< string, unknown >
+			_treeValues: Record< string, unknown >,
+			flatValues: Record< string, unknown >
 		) => {
 			if ( scopeId === 'wepos_access' ) {
 				// Access save: group changes by role and send to REST API
-				await saveAccessSettings( scopeValues, rest );
+				console.log( '[wepos] Access save - scopeId:', scopeId );
+				console.log( '[wepos] Access save - flatValues:', JSON.stringify( flatValues, null, 2 ) );
+				console.log( '[wepos] Access save - _treeValues:', JSON.stringify( _treeValues, null, 2 ) );
+				await saveAccessSettings( flatValues, rest );
 				return;
 			}
 
@@ -480,7 +523,7 @@ const Settings = () => {
 				formData.append( 'nonce', nonce );
 				formData.append( 'section', scopeId );
 
-				for ( const [ key, value ] of Object.entries( scopeValues ) ) {
+				for ( const [ key, value ] of Object.entries( flatValues ) ) {
 					formData.append(
 						`settingsData[${ key }]`,
 						String( value ?? '' )
