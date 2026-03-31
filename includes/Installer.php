@@ -68,6 +68,7 @@ class Installer {
      * Default capability assignments:
      * - Administrator: access_wepos + manage_wepos
      * - Shop Manager:  access_wepos + manage_wepos
+     * - Editor:        access_wepos
      *
      * @since 1.4.0
      *
@@ -86,6 +87,12 @@ class Installer {
         if ( $shop_manager ) {
             $shop_manager->add_cap( 'access_wepos' );
             $shop_manager->add_cap( 'manage_wepos' );
+        }
+
+        // Editor gets POS frontend access
+        $editor = get_role( 'editor' );
+        if ( $editor ) {
+            $editor->add_cap( 'access_wepos' );
         }
     }
 

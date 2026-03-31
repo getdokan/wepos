@@ -102,10 +102,6 @@ function stripHtml( html: string ): string {
 const DEFAULT_DISPLAY_ROLES = [
 	'administrator',
 	'editor',
-	'author',
-	'contributor',
-	'subscriber',
-	'customer',
 	'shop_manager',
 ];
 
@@ -318,7 +314,7 @@ function buildAccessSchema(
 		type: 'subpage',
 		label: __( 'Access', 'wepos' ),
 		description: __(
-			'By default, access to the POS is limited to Administrator, Shop Manager and Cashier roles. It is recommended that you do not change the default settings unless you are fully aware of the consequences.',
+			'By default, access to the POS is limited to Administrator, Editor, Shop Manager and Cashier roles. It is recommended that you do not change the default settings unless you are fully aware of the consequences.',
 			'wepos'
 		),
 		icon: 'ShieldCheck',

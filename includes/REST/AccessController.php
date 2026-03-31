@@ -89,12 +89,14 @@ class AccessController extends \WP_REST_Controller {
 	/**
 	 * Permission check for reading access settings.
 	 *
+	 * Only administrators can view access settings.
+	 *
 	 * @since 1.4.0
 	 *
 	 * @return bool|\WP_Error
 	 */
 	public function read_permission_check() {
-		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
 			return new \WP_Error(
 				'wepos_rest_cannot_read',
 				__( 'Sorry, you are not allowed to view this resource.', 'wepos' ),
@@ -108,14 +110,14 @@ class AccessController extends \WP_REST_Controller {
 	/**
 	 * Permission check for updating access settings.
 	 *
-	 * Requires both edit_users and promote_users capabilities.
+	 * Only administrators can update access settings.
 	 *
 	 * @since 1.4.0
 	 *
 	 * @return bool|\WP_Error
 	 */
 	public function update_permission_check() {
-		if ( ! current_user_can( 'edit_users' ) || ! current_user_can( 'promote_users' ) ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
 			return new \WP_Error(
 				'wepos_rest_cannot_update',
 				__( 'Sorry, you are not allowed to update access settings.', 'wepos' ),

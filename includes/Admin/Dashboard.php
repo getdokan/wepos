@@ -134,9 +134,12 @@ class Dashboard {
             }
         }
 
-        // Build access data for role-capability management.
-        $access_controller = new \WeDevs\WePOS\REST\AccessController();
-        $access_data       = $access_controller->get_access_settings()->get_data();
+        // Build access data for role-capability management (administrator only).
+        $access_data = null;
+        if ( current_user_can( 'manage_options' ) ) {
+            $access_controller = new \WeDevs\WePOS\REST\AccessController();
+            $access_data       = $access_controller->get_access_settings()->get_data();
+        }
 
         $localize_data = apply_filters( 'wepos_admin_react_localize_data', [
             'access_data'        => $access_data,

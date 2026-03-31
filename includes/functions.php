@@ -160,12 +160,16 @@ function wepos_get_settings_sections() {
             'title' => __( 'Receipts', 'wepos' ),
             'icon'  => 'dashicons-media-text'
         ],
-        [
+    ];
+
+    // Access section is only visible to administrators.
+    if ( current_user_can( 'manage_options' ) ) {
+        $sections[] = [
             'id'    => 'wepos_access',
             'title' => __( 'Access', 'wepos' ),
             'icon'  => 'dashicons-admin-users'
-        ]
-    ];
+        ];
+    }
 
     return apply_filters( 'wepos_settings_sections', $sections );
 }
@@ -296,6 +300,29 @@ function wepos_map_meta_cap( $caps, $cap, $user_id ) {
     return $caps;
 }
 add_filter( 'map_meta_cap', 'wepos_map_meta_cap', 10, 3 );
+
+/**
+ * Allow users with manage_wepos capability to access WP admin.
+ *
+ * WooCommerce blocks users without edit_posts, manage_woocommerce, or
+ * view_admin_dashboard from accessing wp-admin. This filter ensures
+ * roles granted manage_wepos (e.g. Cashier via Access settings) can
+ * reach the WePOS admin pages.
+ *
+ * @since 1.4.0
+ *
+ * @param bool $prevent_access Whether to prevent admin access.
+ *
+ * @return bool
+ */
+function wepos_allow_admin_access( $prevent_access ) {
+    if ( $prevent_access && current_user_can( 'manage_wepos' ) ) {
+        return false;
+    }
+
+    return $prevent_access;
+}
+add_filter( 'woocommerce_prevent_admin_access', 'wepos_allow_admin_access', 10, 1 );
 
 /**
  * Check if the current user can manage WePOS settings.

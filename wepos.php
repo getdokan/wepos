@@ -301,8 +301,8 @@ final class WePOS {
      * @return void
      */
     public function deactivate() {
-        // Remove wepos capabilities from Administrator and Shop Manager
-        $roles_to_clean = [ 'administrator', 'shop_manager' ];
+        // Remove wepos capabilities from roles that received them on activation
+        $roles_to_clean = [ 'administrator', 'shop_manager', 'editor' ];
         foreach ( $roles_to_clean as $role_slug ) {
             $role = get_role( $role_slug );
             if ( $role ) {
