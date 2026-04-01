@@ -276,10 +276,10 @@ class AccessController extends \WP_REST_Controller {
 			$result[ $slug ] = [
 				'name'         => translate_user_role( $role_data['name'] ),
 				'capabilities' => [
-					'wepos' => $this->get_wepos_caps_status( $caps ),
-					'wc'    => $this->get_caps_status( $caps, $this->wc_caps ),
-					'wp'    => $this->get_caps_status( $caps, $this->wp_caps ),
-					'pages' => $this->get_page_caps_status( $caps ),
+					'wepos' => $this->get_wepos_caps_status( $slug, $caps ),
+					'wc'    => $this->get_caps_status( $slug, $caps, $this->wc_caps ),
+					'wp'    => $this->get_caps_status( $slug, $caps, $this->wp_caps ),
+					'pages' => $this->get_page_caps_status( $slug, $caps ),
 				],
 			];
 		}
@@ -299,18 +299,29 @@ class AccessController extends \WP_REST_Controller {
 	}
 
 	/**
-	 * Get capability status for a group.
+	 * Get capability status for a group with role-based defaults.
 	 *
-	 * @param array    $role_caps  All capabilities for the role.
-	 * @param string[] $group_caps Capabilities in this group.
+	 * @param string   $role_slug   Role slug.
+	 * @param array    $role_caps   All capabilities for the role.
+	 * @param string[] $group_caps  Capabilities in this group.
 	 *
 	 * @return array<string, bool>
 	 */
-	private function get_caps_status( $role_caps, $group_caps ) {
+	private function get_caps_status( $role_slug, $role_caps, $group_caps ) {
 		$status = [];
 
 		foreach ( $group_caps as $cap ) {
-			$status[ $cap ] = ! empty( $role_caps[ $cap ] );
+			if ( array_key_exists( $cap, $role_caps ) ) {
+				$status[ $cap ] = ! empty( $role_caps[ $cap ] );
+				continue;
+			}
+
+			if ( 'cashier' === $role_slug && in_array( $cap, [ 'create_customers', 'list_users' ], true ) ) {
+				$status[ $cap ] = true;
+				continue;
+			}
+
+			$status[ $cap ] = false;
 		}
 
 		return $status;
@@ -336,7 +347,7 @@ class AccessController extends \WP_REST_Controller {
 	 *
 	 * @return array<string, bool>
 	 */
-	private function get_wepos_caps_status( $role_caps ) {
+	private function get_wepos_caps_status( $role_slug, $role_caps ) {
 		$is_admin        = ! empty( $role_caps['manage_options'] );
 		$has_full_access = $is_admin || ! empty( $role_caps['manage_woocommerce'] ) || ! empty( $role_caps['edit_others_posts'] );
 		$status          = [];
@@ -350,6 +361,10 @@ class AccessController extends \WP_REST_Controller {
 		foreach ( $this->wepos_caps as $cap ) {
 			if ( array_key_exists( $cap, $role_caps ) ) {
 				$status[ $cap ] = ! empty( $role_caps[ $cap ] );
+			} elseif ( 'cashier' === $role_slug && 'access_wepos' === $cap ) {
+				$status[ $cap ] = true;
+			} elseif ( 'cashier' === $role_slug && 'wepos_view_all_outlets' === $cap ) {
+				$status[ $cap ] = false;
 			} elseif ( $has_full_access && in_array( $cap, $default_on_full, true ) ) {
 				$status[ $cap ] = true;
 			} elseif ( in_array( $cap, $default_on_all, true ) ) {
@@ -362,7 +377,7 @@ class AccessController extends \WP_REST_Controller {
 		return $status;
 	}
 
-	private function get_page_caps_status( $role_caps ) {
+	private function get_page_caps_status( $role_slug, $role_caps ) {
 		$has_full_access = ! empty( $role_caps['manage_options'] ) || ! empty( $role_caps['manage_woocommerce'] ) || ! empty( $role_caps['edit_others_posts'] );
 		$status          = [];
 
@@ -370,6 +385,8 @@ class AccessController extends \WP_REST_Controller {
 			if ( array_key_exists( $cap, $role_caps ) ) {
 				// Explicitly set — use the stored value.
 				$status[ $cap ] = ! empty( $role_caps[ $cap ] );
+			} elseif ( 'cashier' === $role_slug && 'wepos_page_view_pos' === $cap ) {
+				$status[ $cap ] = true;
 			} else {
 				// Administrator and Shop Manager get all pages by default.
 				$status[ $cap ] = $has_full_access;
