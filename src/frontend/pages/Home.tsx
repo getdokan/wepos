@@ -91,7 +91,7 @@ const HomePage: React.FC = () => {
     [],
   );
 
-  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines, shippingLines, metaData, totalShipping, totalTax, serverOrder, orderCurrency, orderCurrencySymbol } = useSelect((select) => {
+  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines, shippingLines, metaData, customerNote, totalShipping, totalTax, serverOrder, orderCurrency, orderCurrencySymbol } = useSelect((select) => {
     const cartStore = select(CART_STORE_NAME) as any;
     return {
       cartItems: cartStore.getCartItems(),
@@ -102,6 +102,7 @@ const HomePage: React.FC = () => {
       discountLines: cartStore.getDiscountLines(),
       shippingLines: cartStore.getShippingLines(),
       metaData: cartStore.getMetaData(),
+      customerNote: cartStore.getCustomerNote(),
       totalShipping: cartStore.getTotalShipping(),
       totalTax: cartStore.getTotalTax(),
       serverOrder: cartStore.getServerOrder(),
@@ -623,7 +624,7 @@ const HomePage: React.FC = () => {
       ...extraFields,
     };
 
-    orderPayload = applyFilters('wepos_react_order_form_data', orderPayload, orderData);
+    orderPayload = applyFilters('wepos_react_order_form_data', orderPayload);
     return orderPayload;
   };
 
