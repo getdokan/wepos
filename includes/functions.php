@@ -438,15 +438,10 @@ function wepos_check_page_access_on_rest( $result, $server, $request ) {
 
     foreach ( $route_page_map as $prefix => $page_key ) {
         if ( strpos( $route, $prefix ) === 0 ) {
-            // Never block the access settings endpoint — admins always need it.
-            if ( $prefix === '/wepos/v1/settings' && strpos( $route, '/wepos/v1/settings/access' ) === 0 ) {
-                break;
-            }
-
-            // Allow GET requests to settings — all POS users need read access
-            // for currency, tax, and store data. Write access is still gated
-            // by the endpoint's own permission_callback.
-            if ( $prefix === '/wepos/v1/settings' && $request->get_method() === 'GET' ) {
+            // Skip page-level gating for all /wepos/v1/settings routes.
+            // The settings endpoints serve the POS frontend (currency, tax, store data)
+            // and have their own permission_callback for both read and write access.
+            if ( $prefix === '/wepos/v1/settings' ) {
                 break;
             }
 
