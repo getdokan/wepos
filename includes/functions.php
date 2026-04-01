@@ -443,6 +443,13 @@ function wepos_check_page_access_on_rest( $result, $server, $request ) {
                 break;
             }
 
+            // Allow GET requests to settings — all POS users need read access
+            // for currency, tax, and store data. Write access is still gated
+            // by the endpoint's own permission_callback.
+            if ( $prefix === '/wepos/v1/settings' && $request->get_method() === 'GET' ) {
+                break;
+            }
+
             if ( ! wepos_user_can_access_page( $page_key ) ) {
                 return new \WP_Error(
                     'wepos_rest_page_access_denied',

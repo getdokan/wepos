@@ -563,6 +563,7 @@ export interface POSSettings {
     wc_tax_display_cart: string;
     wc_tax_based_on?: string;
   };
+  currencies?: Record<string, { name: string; symbol: string }>;
 }
 
 export interface POSPrintData {
