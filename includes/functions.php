@@ -380,8 +380,8 @@ function wepos_user_can_access_page( $page_key ) {
         }
     }
 
-    // Fallback: allow if user has manage_wepos (backward compat).
-    return current_user_can( 'manage_wepos' );
+    // Fallback: only administrators get access when cap isn't explicitly set.
+    return current_user_can( 'manage_options' );
 }
 
 /**

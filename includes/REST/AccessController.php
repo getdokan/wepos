@@ -214,9 +214,13 @@ class AccessController extends \WP_REST_Controller {
 			}
 		}
 
-		// Safety: never remove 'read' from administrator
-		if ( 'administrator' === $slug && isset( $flattened['read'] ) && ! $flattened['read'] ) {
-			unset( $flattened['read'] );
+		// Safety: never remove essential caps from administrator
+		if ( 'administrator' === $slug ) {
+			foreach ( [ 'read', 'access_wepos', 'manage_wepos' ] as $protected ) {
+				if ( isset( $flattened[ $protected ] ) && ! $flattened[ $protected ] ) {
+					unset( $flattened[ $protected ] );
+				}
+			}
 		}
 
 		// Only allow known capabilities
@@ -291,16 +295,16 @@ class AccessController extends \WP_REST_Controller {
 	 * @return array<string, bool>
 	 */
 	private function get_page_caps_status( $role_caps ) {
-		$has_manage = ! empty( $role_caps['manage_wepos'] );
-		$status     = [];
+		$is_admin = ! empty( $role_caps['manage_options'] );
+		$status   = [];
 
 		foreach ( $this->get_page_caps() as $cap ) {
 			if ( array_key_exists( $cap, $role_caps ) ) {
 				// Explicitly set — use the stored value.
 				$status[ $cap ] = ! empty( $role_caps[ $cap ] );
 			} else {
-				// Not set — fall back to manage_wepos.
-				$status[ $cap ] = $has_manage;
+				// Only administrator gets access by default.
+				$status[ $cap ] = $is_admin;
 			}
 		}
 

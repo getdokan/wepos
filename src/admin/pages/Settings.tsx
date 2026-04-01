@@ -505,11 +505,7 @@ const Settings = () => {
 			flatValues: Record< string, unknown >
 		) => {
 			if ( scopeId === 'wepos_access' ) {
-				// Access save: group changes by role and send to REST API
-				console.log( '[wepos] Access save - scopeId:', scopeId );
-				console.log( '[wepos] Access save - flatValues:', JSON.stringify( flatValues, null, 2 ) );
-				console.log( '[wepos] Access save - _treeValues:', JSON.stringify( _treeValues, null, 2 ) );
-				await saveAccessSettings( flatValues, rest );
+				await saveAccessSettings( flatValues, rest, accessData );
 				return;
 			}
 
@@ -586,11 +582,12 @@ const Settings = () => {
 
 /**
  * Save access capability changes via REST API.
- * Groups flat values by role and sends one request per changed role.
+ * Compares against the original data and only sends roles that have actual changes.
  */
 async function saveAccessSettings(
 	scopeValues: Record< string, unknown >,
-	restConfig: { root: string; nonce: string }
+	restConfig: { root: string; nonce: string },
+	originalAccessData: WeposAdminData[ 'access_data' ]
 ) {
 	// Group values by role
 	const roleUpdates: Record<
@@ -624,9 +621,42 @@ async function saveAccessSettings(
 		roleUpdates[ role ][ group ][ cap ] = enabled;
 	}
 
+	// Only keep roles that have actual changes compared to original data.
+	const changedRoles: typeof roleUpdates = {};
+
+	for ( const [ roleSlug, capsData ] of Object.entries( roleUpdates ) ) {
+		const originalRole = originalAccessData?.[ roleSlug ];
+		if ( ! originalRole ) continue;
+
+		let hasChanges = false;
+
+		for ( const [ group, caps ] of Object.entries( capsData ) ) {
+			const originalCaps =
+				originalRole.capabilities[
+					group as keyof typeof originalRole.capabilities
+				] || {};
+			for ( const [ cap, enabled ] of Object.entries( caps ) ) {
+				if ( ( originalCaps as Record< string, boolean > )[ cap ] !== enabled ) {
+					hasChanges = true;
+					break;
+				}
+			}
+			if ( hasChanges ) break;
+		}
+
+		if ( hasChanges ) {
+			changedRoles[ roleSlug ] = capsData;
+		}
+	}
+
+	if ( Object.keys( changedRoles ).length === 0 ) {
+		toast.info( __( 'No changes to save.', 'wepos' ) );
+		return;
+	}
+
 	try {
-		// Send one request per role (REST API expects one role per request)
-		for ( const [ roleSlug, capsData ] of Object.entries( roleUpdates ) ) {
+		// Send one request per changed role
+		for ( const [ roleSlug, capsData ] of Object.entries( changedRoles ) ) {
 			const response = await fetch(
 				`${ restConfig.root }wepos/v1/settings/access`,
 				{
