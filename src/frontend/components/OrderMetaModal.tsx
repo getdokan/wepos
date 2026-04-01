@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { __ } from '@wordpress/i18n';
+import { useSelect } from '@wordpress/data';
 import {
   Modal,
   ModalHeader,
@@ -17,8 +18,8 @@ import {
   Separator,
 } from '@wedevs/plugin-ui';
 import { Minus, ChevronUp, ChevronDown } from 'lucide-react';
-import { POSOrderMetaItem } from '../types';
-import apiFetch from '@wordpress/api-fetch';
+import { POSOrderMetaItem, POSSettings } from '../types';
+import { PRODUCTS_STORE_NAME } from '../store';
 
 interface CurrencyOption {
   value: string;
@@ -52,37 +53,28 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
 }) => {
   const [currency, setCurrency] = useState(initialCurrency);
   const [currencySearch, setCurrencySearch] = useState('');
-  const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
   const [transactionId, setTransactionId] = useState('');
   const [metaItems, setMetaItems] = useState<POSOrderMetaItem[]>([]);
   const [metaExpanded, setMetaExpanded] = useState(true);
 
-  // Fetch currencies from WooCommerce REST API
-  useEffect(() => {
-    if (currencies.length > 0) return;
+  // Build currency options from settings store (already fetched on POS init)
+  const settings = useSelect(
+    (select) => (select(PRODUCTS_STORE_NAME) as any).getSettings() as POSSettings,
+    [],
+  );
 
-    const fetchCurrencies = async () => {
-      try {
-        const response = (await apiFetch({
-          path: `/${window.wepos.rest.wcversion}/data/currencies`,
-          method: 'GET',
-        })) as Array<{ code: string; name: string; symbol: string }>;
-
-        const options = response.map((c) => ({
-          value: c.code,
-          label: decodeHTMLEntities(`${c.name} (${c.symbol})`),
-          symbol: decodeHTMLEntities(c.symbol),
-        }));
-        setCurrencies(options);
-      } catch {
-        // Fallback: use current store currency
-        const symbol = window.wepos?.currency_format_symbol || '$';
-        setCurrencies([{ value: 'default', label: `${__('Default currency', 'wepos')} (${symbol})`, symbol }]);
-      }
-    };
-
-    fetchCurrencies();
-  }, [currencies.length]);
+  const currencies = useMemo<CurrencyOption[]>(() => {
+    if (settings?.currencies && Object.keys(settings.currencies).length > 0) {
+      return Object.entries(settings.currencies).map(([code, data]) => ({
+        value: code,
+        label: decodeHTMLEntities(`${data.name} (${data.symbol})`),
+        symbol: decodeHTMLEntities(data.symbol),
+      }));
+    }
+    // Fallback: use current store currency
+    const symbol = window.wepos?.currency_format_symbol || '$';
+    return [{ value: 'default', label: `${__('Default currency', 'wepos')} (${symbol})`, symbol }];
+  }, [settings?.currencies]);
 
   useEffect(() => {
     if (isOpen) {

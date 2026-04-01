@@ -64,7 +64,7 @@ class SettingController extends \WP_REST_Controller {
                         'default'           => 0,
                     ),
                 ) ),
-                'permission_callback'  => [ $this, 'get_setting_permission_check' ]
+                'permission_callback'  => [ $this, 'read_setting_permission_check' ]
             ),
             array(
                 'methods'              => \WP_REST_Server::CREATABLE,
@@ -77,13 +77,35 @@ class SettingController extends \WP_REST_Controller {
             array(
                 'methods'              => \WP_REST_Server::READABLE,
                 'callback'             => array( $this, 'get_tax_rates' ),
-                'permission_callback'  => [ $this, 'get_setting_permission_check' ]
+                'permission_callback'  => [ $this, 'read_setting_permission_check' ]
             ),
         ) );
     }
 
 	/**
-	 * Setting permission check
+	 * Permission check for reading settings.
+	 *
+	 * Any user with POS access can read settings — the POS frontend
+	 * needs currency, tax, and store data to render properly.
+	 *
+	 * Falls back to wepos_current_user_can_manage() so roles granted
+	 * access via the wepos_rest_manager_permissions filter (e.g. cashier
+	 * in wepos-pro) also pass even if access_wepos isn't in the DB yet.
+	 *
+	 * @since 1.4.0
+	 *
+	 * @return bool|\WP_Error
+	 */
+	public function read_setting_permission_check() {
+		if ( current_user_can( 'access_wepos' ) || wepos_current_user_can_manage() ) {
+			return true;
+		}
+
+		return new \WP_Error( 'wepos_rest_cannot_view', __( 'Sorry, you are not allowed to view this resource.', 'wepos' ), array( 'status' => rest_authorization_required_code() ) );
+	}
+
+	/**
+	 * Permission check for updating settings.
 	 *
 	 * @since 1.1.2
      *
@@ -91,8 +113,8 @@ class SettingController extends \WP_REST_Controller {
      *
      */
 	public function get_setting_permission_check() {
-		if ( ! ( current_user_can( 'manage_woocommerce' ) || apply_filters( 'wepos_rest_manager_permissions', false ) ) ) {
-			return new \WP_Error( 'wepos_rest_cannot_batch', __( 'Sorry, you are not allowed view this resource.', 'wepos' ), array( 'status' => rest_authorization_required_code() ) );
+		if ( ! wepos_current_user_can_manage() ) {
+			return new \WP_Error( 'wepos_rest_cannot_batch', __( 'Sorry, you are not allowed to update this resource.', 'wepos' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
