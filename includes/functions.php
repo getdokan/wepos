@@ -380,8 +380,8 @@ function wepos_user_can_access_page( $page_key ) {
         }
     }
 
-    // Fallback: only administrators get access when cap isn't explicitly set.
-    return current_user_can( 'manage_options' );
+    // Fallback: administrators and shop managers get access when cap isn't explicitly set.
+    return current_user_can( 'manage_options' ) || current_user_can( 'manage_woocommerce' );
 }
 
 /**

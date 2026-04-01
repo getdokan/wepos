@@ -362,16 +362,16 @@ class AccessController extends \WP_REST_Controller {
 	}
 
 	private function get_page_caps_status( $role_caps ) {
-		$is_admin = ! empty( $role_caps['manage_options'] );
-		$status   = [];
+		$has_full_access = ! empty( $role_caps['manage_options'] ) || ! empty( $role_caps['manage_woocommerce'] );
+		$status          = [];
 
 		foreach ( $this->get_page_caps() as $cap ) {
 			if ( array_key_exists( $cap, $role_caps ) ) {
 				// Explicitly set — use the stored value.
 				$status[ $cap ] = ! empty( $role_caps[ $cap ] );
 			} else {
-				// Only administrator gets access by default.
-				$status[ $cap ] = $is_admin;
+				// Administrator and Shop Manager get all pages by default.
+				$status[ $cap ] = $has_full_access;
 			}
 		}
 
