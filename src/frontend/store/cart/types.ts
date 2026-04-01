@@ -60,6 +60,7 @@ export type CartAction =
   | { type: 'ADD_TO_CART'; item: POSCartItem }
   | { type: 'REMOVE_FROM_CART'; index: number }
   | { type: 'UPDATE_CART_ITEM'; index: number; updates: Partial<POSCartItem> }
+  | { type: 'HYDRATE_CART'; state: CartState }
   | { type: 'CLEAR_CART' }
   | {
       type: 'ADD_DISCOUNT';

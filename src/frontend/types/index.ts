@@ -338,7 +338,8 @@ export type OrderStatus =
   | 'cancelled'
   | 'refunded'
   | 'failed'
-  | 'checkout-draft';
+  | 'checkout-draft'
+  | 'pos-open';
 
 export interface BillingAddress {
   first_name: string;

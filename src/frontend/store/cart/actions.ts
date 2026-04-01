@@ -1,5 +1,5 @@
 import { POSCartItem, POSFeeLine, POSShippingLine, POSOrderMetaItem, Customer } from '../../types';
-import { ServerOrderData } from './types';
+import { CartState, ServerOrderData } from './types';
 
 export const actions = {
   addToCart(item: POSCartItem) {
@@ -21,6 +21,13 @@ export const actions = {
       type: 'UPDATE_CART_ITEM' as const,
       index,
       updates,
+    };
+  },
+
+  hydrateCart(state: CartState) {
+    return {
+      type: 'HYDRATE_CART' as const,
+      state,
     };
   },
 

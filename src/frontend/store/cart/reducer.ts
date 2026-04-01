@@ -64,6 +64,11 @@ export const createReducer = (preloadedState: CartState = initialState) => (
       return { ...state, line_items: updatedItems, server_order_dirty: true };
     }
 
+    case 'HYDRATE_CART':
+      return {
+        ...action.state,
+      };
+
     case 'CLEAR_CART':
       return initialState;
 
