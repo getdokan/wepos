@@ -8,6 +8,7 @@ export interface WeposAdminRouteConfig {
 	path: string;
 	element: React.ReactNode;
 	replace?: boolean;
+	page_key?: string;
 }
 
 /**
@@ -42,13 +43,35 @@ function useAdminMenuFix() {
 	}, [ location ] );
 }
 
+/**
+ * Map route paths to page keys for access control.
+ * Pro extends this via the wepos_react_admin_routes filter (page_key field).
+ */
+const ROUTE_PAGE_KEY_MAP: Record< string, string > = {
+	'/settings': 'settings',
+};
+
 const App = () => {
 	useAdminMenuFix();
+
+	const allowedPages: string[] =
+		( window as any ).weposAdmin?.allowed_pages || [];
 
 	const additionalRoutes = applyFilters< WeposAdminRouteConfig[] >(
 		'wepos_react_admin_routes',
 		[]
 	);
+
+	// Build route-to-page_key map from additional routes.
+	const routePageKeys = useMemo( () => {
+		const map = { ...ROUTE_PAGE_KEY_MAP };
+		for ( const route of additionalRoutes ) {
+			if ( route.page_key ) {
+				map[ route.path ] = route.page_key;
+			}
+		}
+		return map;
+	}, [ additionalRoutes ] );
 
 	// Get switchable page keys from the panel switcher data so we can
 	// render placeholder routes for pages that don't have React components yet.
@@ -83,15 +106,29 @@ const App = () => {
 			}
 		}
 
+		// Filter out routes the user cannot access based on page caps.
+		for ( const path of Object.keys( routes ) ) {
+			const pageKey = routePageKeys[ path ];
+			if ( pageKey && ! allowedPages.includes( pageKey ) ) {
+				delete routes[ path ];
+			}
+		}
+
 		return routes;
-	}, [ additionalRoutes, switchableKeys ] );
+	}, [ additionalRoutes, switchableKeys, allowedPages, routePageKeys ] );
+
+	// Find the first available route to use as the fallback redirect.
+	const fallbackPath = Object.keys( allRoutes )[ 0 ] || '/settings';
 
 	return (
 		<Routes>
 			{ Object.entries( allRoutes ).map( ( [ path, element ] ) => (
 				<Route key={ path } path={ path } element={ element } />
 			) ) }
-			<Route path="*" element={ <Navigate to="/settings" replace /> } />
+			<Route
+				path="*"
+				element={ <Navigate to={ fallbackPath } replace /> }
+			/>
 		</Routes>
 	);
 };

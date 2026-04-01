@@ -29,18 +29,25 @@ class Admin {
         if ( current_user_can( $capability ) ) {
             $menu_items = apply_filters( 'wepos_admin_menu', [
                 [
-                    'title' => __( 'Settings', 'wepos' ),
-                    'cap' => $capability,
-                    'url' => 'admin.php?page=' . $slug . '#/settings'
+                    'title'    => __( 'Settings', 'wepos' ),
+                    'cap'      => $capability,
+                    'page_key' => 'settings',
+                    'url'      => 'admin.php?page=' . $slug . '#/settings',
                 ],
                 [
-                    'title' => __( 'View POS', 'wepos' ),
-                    'cap' => $capability,
-                    'url' => site_url() . '/wepos/#'
+                    'title'    => __( 'View POS', 'wepos' ),
+                    'cap'      => $capability,
+                    'page_key' => 'view_pos',
+                    'url'      => site_url() . '/wepos/#',
                 ],
             ], $slug, $capability, $hook );
 
             foreach ( $menu_items as $key => $item ) {
+                // Skip menu items the user cannot access based on page caps.
+                if ( ! empty( $item['page_key'] ) && ! wepos_user_can_access_page( $item['page_key'] ) ) {
+                    continue;
+                }
+
                 $submenu[ $slug ][] = array( $item['title'], $item['cap'], $item['url'] );
             }
         }

@@ -42,6 +42,7 @@ interface WeposAdminData {
 			}
 		>
 	>;
+	allowed_pages: string[];
 	access_data: Record<
 		string,
 		{
@@ -50,6 +51,7 @@ interface WeposAdminData {
 				wepos: Record< string, boolean >;
 				wc: Record< string, boolean >;
 				wp: Record< string, boolean >;
+				pages: Record< string, boolean >;
 			};
 		}
 	>;
@@ -112,6 +114,7 @@ const CAP_GROUPS: Array< { key: string; label: string } > = [
 	{ key: 'wepos', label: __( 'WePOS', 'wepos' ) },
 	{ key: 'wc', label: __( 'WooCommerce', 'wepos' ) },
 	{ key: 'wp', label: __( 'WordPress', 'wepos' ) },
+	{ key: 'pages', label: __( 'Admin Pages', 'wepos' ) },
 ];
 
 /* ─── Schema builders ─────────────────────────────────────────────────── */
@@ -606,6 +609,8 @@ async function saveAccessSettings(
 		let group = 'wp';
 		if ( cap === 'access_wepos' || cap === 'manage_wepos' ) {
 			group = 'wepos';
+		} else if ( cap.startsWith( 'wepos_page_' ) ) {
+			group = 'pages';
 		} else if ( cap !== 'read' ) {
 			group = 'wc';
 		}

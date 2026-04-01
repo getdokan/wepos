@@ -144,6 +144,7 @@ class Dashboard {
 
         $localize_data = apply_filters( 'wepos_admin_react_localize_data', [
             'access_data'        => $access_data,
+            'allowed_pages'      => wepos_get_user_allowed_pages(),
             'rest' => [
                 'root'       => esc_url_raw( get_rest_url() ),
                 'nonce'      => wp_create_nonce( 'wp_rest' ),

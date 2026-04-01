@@ -352,6 +352,113 @@ function wepos_current_user_can_manage() {
 }
 
 /**
+ * Check if the current user can access a specific WePOS admin page.
+ *
+ * If the page capability has been explicitly set for the user's role
+ * (via Access settings), that value is used. Otherwise falls back to
+ * checking manage_wepos so existing installs keep working.
+ *
+ * @since 1.4.0
+ *
+ * @param string $page_key Page identifier (e.g. 'settings', 'outlets', 'license').
+ *
+ * @return bool
+ */
+function wepos_user_can_access_page( $page_key ) {
+    $cap  = 'wepos_page_' . $page_key;
+    $user = wp_get_current_user();
+
+    if ( ! $user || ! $user->exists() ) {
+        return false;
+    }
+
+    // If the cap is explicitly set in any of the user's roles, respect it.
+    foreach ( $user->roles as $role_slug ) {
+        $role = get_role( $role_slug );
+        if ( $role && array_key_exists( $cap, $role->capabilities ) ) {
+            return ! empty( $role->capabilities[ $cap ] );
+        }
+    }
+
+    // Fallback: allow if user has manage_wepos (backward compat).
+    return current_user_can( 'manage_wepos' );
+}
+
+/**
+ * Get list of page keys the current user can access.
+ *
+ * @since 1.4.0
+ *
+ * @return string[]
+ */
+function wepos_get_user_allowed_pages() {
+    $page_caps = apply_filters( 'wepos_access_page_capabilities', [
+        'wepos_page_settings',
+        'wepos_page_view_pos',
+    ] );
+
+    $allowed = [];
+
+    foreach ( $page_caps as $cap ) {
+        // Extract page_key from capability name (strip 'wepos_page_' prefix).
+        $page_key = str_replace( 'wepos_page_', '', $cap );
+        if ( wepos_user_can_access_page( $page_key ) ) {
+            $allowed[] = $page_key;
+        }
+    }
+
+    return $allowed;
+}
+
+/**
+ * Block REST API requests for pages the user cannot access.
+ *
+ * Maps REST route prefixes to page keys. Extensions can add mappings
+ * via the 'wepos_rest_route_page_map' filter.
+ *
+ * @since 1.4.0
+ *
+ * @param mixed            $result  Response to replace the requested version with.
+ * @param \WP_REST_Server  $server  Server instance.
+ * @param \WP_REST_Request $request Request used to generate the response.
+ *
+ * @return mixed|\WP_Error
+ */
+function wepos_check_page_access_on_rest( $result, $server, $request ) {
+    // Only gate authenticated requests — public/unauthenticated calls pass through.
+    if ( ! is_user_logged_in() ) {
+        return $result;
+    }
+
+    $route_page_map = apply_filters( 'wepos_rest_route_page_map', [
+        '/wepos/v1/settings' => 'settings',
+    ] );
+
+    $route = $request->get_route();
+
+    foreach ( $route_page_map as $prefix => $page_key ) {
+        if ( strpos( $route, $prefix ) === 0 ) {
+            // Never block the access settings endpoint — admins always need it.
+            if ( $prefix === '/wepos/v1/settings' && strpos( $route, '/wepos/v1/settings/access' ) === 0 ) {
+                break;
+            }
+
+            if ( ! wepos_user_can_access_page( $page_key ) ) {
+                return new \WP_Error(
+                    'wepos_rest_page_access_denied',
+                    __( 'You do not have access to this resource.', 'wepos' ),
+                    [ 'status' => 403 ]
+                );
+            }
+            break;
+        }
+    }
+
+    return $result;
+}
+add_filter( 'rest_pre_dispatch', 'wepos_check_page_access_on_rest', 10, 3 );
+
+/**
  * Detects if current page is wePOS frontend page
  *
  * @return bool

@@ -66,20 +66,30 @@ class Installer {
      * Add WePOS capabilities to default roles.
      *
      * Default capability assignments:
-     * - Administrator: access_wepos + manage_wepos
-     * - Shop Manager:  access_wepos + manage_wepos
-     * - Editor:        access_wepos
+     * - Administrator: access_wepos + manage_wepos + all page caps
+     * - Shop Manager:  access_wepos + manage_wepos + all page caps
+     * - Editor:        access_wepos + all page caps
      *
      * @since 1.4.0
      *
      * @return void
      */
     private function add_wepos_capabilities() {
+        $page_caps = apply_filters( 'wepos_access_page_capabilities', [
+            'wepos_page_settings',
+            'wepos_page_view_pos',
+        ] );
+
         // Administrator gets full access
         $admin = get_role( 'administrator' );
         if ( $admin ) {
             $admin->add_cap( 'access_wepos' );
             $admin->add_cap( 'manage_wepos' );
+            foreach ( $page_caps as $cap ) {
+                if ( ! array_key_exists( $cap, $admin->capabilities ) ) {
+                    $admin->add_cap( $cap );
+                }
+            }
         }
 
         // Shop Manager gets full access
@@ -87,12 +97,22 @@ class Installer {
         if ( $shop_manager ) {
             $shop_manager->add_cap( 'access_wepos' );
             $shop_manager->add_cap( 'manage_wepos' );
+            foreach ( $page_caps as $cap ) {
+                if ( ! array_key_exists( $cap, $shop_manager->capabilities ) ) {
+                    $shop_manager->add_cap( $cap );
+                }
+            }
         }
 
         // Editor gets POS frontend access
         $editor = get_role( 'editor' );
         if ( $editor ) {
             $editor->add_cap( 'access_wepos' );
+            foreach ( $page_caps as $cap ) {
+                if ( ! array_key_exists( $cap, $editor->capabilities ) ) {
+                    $editor->add_cap( $cap );
+                }
+            }
         }
     }
 

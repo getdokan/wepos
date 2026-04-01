@@ -65,6 +65,30 @@ class AccessController extends \WP_REST_Controller {
 	];
 
 	/**
+	 * WePOS admin page capabilities.
+	 *
+	 * Controls which admin pages a role can access.
+	 * Filterable via 'wepos_access_page_capabilities' so pro can add its own pages.
+	 *
+	 * @var string[]
+	 */
+	private $page_caps = [
+		'wepos_page_settings',
+		'wepos_page_view_pos',
+	];
+
+	/**
+	 * Get page capabilities (filterable so pro can add its own pages).
+	 *
+	 * @since 1.4.0
+	 *
+	 * @return string[]
+	 */
+	public function get_page_caps() {
+		return apply_filters( 'wepos_access_page_capabilities', $this->page_caps );
+	}
+
+	/**
 	 * Register routes.
 	 *
 	 * @since 1.4.0
@@ -182,7 +206,7 @@ class AccessController extends \WP_REST_Controller {
 
 		// Flatten grouped capabilities into a single array
 		$flattened = [];
-		foreach ( [ 'wepos', 'wc', 'wp' ] as $group ) {
+		foreach ( [ 'wepos', 'wc', 'wp', 'pages' ] as $group ) {
 			if ( isset( $caps_data[ $group ] ) && is_array( $caps_data[ $group ] ) ) {
 				foreach ( $caps_data[ $group ] as $cap => $grant ) {
 					$flattened[ $cap ] = wp_validate_boolean( $grant );
@@ -196,7 +220,7 @@ class AccessController extends \WP_REST_Controller {
 		}
 
 		// Only allow known capabilities
-		$allowed_caps = array_merge( $this->wepos_caps, $this->wc_caps, $this->wp_caps );
+		$allowed_caps = array_merge( $this->wepos_caps, $this->wc_caps, $this->wp_caps, $this->get_page_caps() );
 
 		foreach ( $flattened as $cap => $grant ) {
 			if ( ! in_array( $cap, $allowed_caps, true ) ) {
@@ -230,6 +254,7 @@ class AccessController extends \WP_REST_Controller {
 					'wepos' => $this->get_caps_status( $caps, $this->wepos_caps ),
 					'wc'    => $this->get_caps_status( $caps, $this->wc_caps ),
 					'wp'    => $this->get_caps_status( $caps, $this->wp_caps ),
+					'pages' => $this->get_page_caps_status( $caps ),
 				],
 			];
 		}
@@ -250,6 +275,33 @@ class AccessController extends \WP_REST_Controller {
 
 		foreach ( $group_caps as $cap ) {
 			$status[ $cap ] = ! empty( $role_caps[ $cap ] );
+		}
+
+		return $status;
+	}
+
+	/**
+	 * Get effective page capability status for a role.
+	 *
+	 * If a page cap is not explicitly set but the role has manage_wepos,
+	 * show it as enabled (matching the fallback in wepos_user_can_access_page).
+	 *
+	 * @param array $role_caps All capabilities for the role.
+	 *
+	 * @return array<string, bool>
+	 */
+	private function get_page_caps_status( $role_caps ) {
+		$has_manage = ! empty( $role_caps['manage_wepos'] );
+		$status     = [];
+
+		foreach ( $this->get_page_caps() as $cap ) {
+			if ( array_key_exists( $cap, $role_caps ) ) {
+				// Explicitly set — use the stored value.
+				$status[ $cap ] = ! empty( $role_caps[ $cap ] );
+			} else {
+				// Not set — fall back to manage_wepos.
+				$status[ $cap ] = $has_manage;
+			}
 		}
 
 		return $status;
