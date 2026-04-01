@@ -216,7 +216,12 @@ class AccessController extends \WP_REST_Controller {
 
 		// Safety: never remove essential caps from administrator
 		if ( 'administrator' === $slug ) {
-			foreach ( [ 'read', 'access_wepos', 'manage_wepos' ] as $protected ) {
+			$protected_caps = array_merge(
+				[ 'read', 'access_wepos', 'manage_wepos' ],
+				$this->get_page_caps()
+			);
+
+			foreach ( $protected_caps as $protected ) {
 				if ( isset( $flattened[ $protected ] ) && ! $flattened[ $protected ] ) {
 					unset( $flattened[ $protected ] );
 				}

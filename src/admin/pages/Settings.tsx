@@ -114,7 +114,7 @@ const CAP_GROUPS: Array< { key: string; label: string } > = [
 	{ key: 'wepos', label: __( 'WePOS', 'wepos' ) },
 	{ key: 'wc', label: __( 'WooCommerce', 'wepos' ) },
 	{ key: 'wp', label: __( 'WordPress', 'wepos' ) },
-	{ key: 'pages', label: __( 'Admin Pages', 'wepos' ) },
+	{ key: 'pages', label: __( 'WePOS Pages', 'wepos' ) },
 ];
 
 /* ─── Schema builders ─────────────────────────────────────────────────── */
@@ -269,7 +269,8 @@ function buildAccessSchema(
 						roleSlug === 'administrator' &&
 						( cap === 'access_wepos' ||
 							cap === 'manage_wepos' ||
-							cap === 'read' );
+							cap === 'read' ||
+							cap.startsWith( 'wepos_page_' ) );
 
 					fieldChildren.push( {
 						id: fieldKey,
