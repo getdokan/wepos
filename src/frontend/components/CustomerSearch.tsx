@@ -9,7 +9,6 @@ import {
   Avatar,
   AvatarImage,
   AvatarFallback,
-  ScrollArea,
   Spinner,
   toast,
 } from '@wedevs/plugin-ui';
@@ -49,6 +48,8 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
   // Refs
   const searchInputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
+  const listRef = useRef<HTMLDivElement>(null);
+  const selectedItemRef = useRef<HTMLLIElement>(null);
 
   useImperativeHandle(ref, () => ({
     focus: () => searchInputRef.current?.focus(),
@@ -125,6 +126,13 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
   useEffect(() => {
     setSelectedIndex(-1);
   }, [customers]);
+
+  // Scroll selected item into view on keyboard navigation
+  useEffect(() => {
+    if (selectedItemRef.current && listRef.current) {
+      selectedItemRef.current.scrollIntoView({ block: 'nearest' });
+    }
+  }, [selectedIndex]);
 
   // Handle search input change with debouncing
   const handleSearchChange = (value: string) => {
@@ -271,11 +279,11 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
       {/* Search Results */}
       {showResults && !selectedCustomer && (
         <div className="border-border bg-popover absolute top-full right-0 left-0 z-50 mt-1 overflow-hidden rounded-md border shadow-lg">
-          <ScrollArea className="max-h-60">
+          <div ref={listRef} className="max-h-60 overflow-y-auto">
             {customers.length > 0 ? (
               <ul className="py-1">
                 {customers.map((customer, index) => (
-                  <li key={customer.id}>
+                  <li key={customer.id} ref={index === selectedIndex ? selectedItemRef : null}>
                     <button
                       type="button"
                       onClick={() => handleCustomerSelect(customer)}
@@ -314,7 +322,7 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
                 {__('No customer found', 'wepos')}
               </div>
             )}
-          </ScrollArea>
+          </div>
 
           {/* Navigation hints */}
           <div className="border-border bg-muted/50 text-muted-foreground flex flex-wrap gap-4 border-t px-3 py-2 text-xs">
