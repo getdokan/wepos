@@ -42,7 +42,7 @@ class AccessController extends \WP_REST_Controller {
 	private $wc_caps = [
 		'create_customers',
 		'read_private_products',
-		'edit_product',
+		'edit_products',
 		'edit_others_products',
 		'edit_published_products',
 		'read_private_shop_orders',
