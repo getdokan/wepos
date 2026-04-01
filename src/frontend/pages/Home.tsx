@@ -129,6 +129,28 @@ const getCurrencySymbolForOrder = (order: Order, settings: any): string => {
   return window.wepos?.currency_format_symbol || '';
 };
 
+const normalizeCustomerForOrder = (customer: Customer | null): Customer | null => {
+  if (!customer) {
+    return null;
+  }
+
+  const normalizedCustomer: Customer = {
+    ...customer,
+    billing: {
+      ...(customer.billing || {}),
+    },
+    shipping: {
+      ...(customer.shipping || {}),
+    },
+  };
+
+  if (normalizedCustomer.email && !normalizedCustomer.billing.email) {
+    normalizedCustomer.billing.email = normalizedCustomer.email;
+  }
+
+  return normalizedCustomer;
+};
+
 const buildRestoredCartState = (
   order: Order,
   settings: any,
@@ -515,10 +537,11 @@ const HomePage: React.FC = () => {
 
   // Customer selection handler
   const handleCustomerSelected = useCallback((customer: Customer | null) => {
+    const normalizedCustomer = normalizeCustomerForOrder(customer);
     const hadCustomer = !!selectedCustomer;
-    setCustomer(customer);
-    if (customer) {
-      toast.success(sprintf(__('Customer %s selected', 'wepos'), `${customer.first_name} ${customer.last_name}`));
+    setCustomer(normalizedCustomer);
+    if (normalizedCustomer) {
+      toast.success(sprintf(__('Customer %s selected', 'wepos'), `${normalizedCustomer.first_name} ${normalizedCustomer.last_name}`));
     } else {
       if (hadCustomer) {
         toast.success(__('Customer removed', 'wepos'));
@@ -679,6 +702,7 @@ const HomePage: React.FC = () => {
   //   - Mark removed server line items with `id` + `quantity: 0` so WC deletes them
   const buildOrderPayload = (extraFields: Record<string, any> = {}) => {
     const isUpdate = !!serverOrder;
+    const orderCustomer = normalizeCustomerForOrder(selectedCustomer);
 
     // --- line_items ---
     const buildLineItems = () => {
@@ -825,13 +849,13 @@ const HomePage: React.FC = () => {
     };
 
     let orderPayload: any = {
-      billing: selectedCustomer?.billing || {},
-      shipping: selectedCustomer?.shipping || {},
+      billing: orderCustomer?.billing || {},
+      shipping: orderCustomer?.shipping || {},
       line_items: buildLineItems(),
       fee_lines: buildFeeLines(),
       shipping_lines: buildShippingLines(),
       coupon_lines: [],
-      customer_id: selectedCustomer?.id || 0,
+      customer_id: orderCustomer?.id || 0,
       customer_note: customerNote,
       meta_data: [
         { key: '_wepos_is_pos_order', value: true },
