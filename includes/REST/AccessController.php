@@ -256,7 +256,22 @@ class AccessController extends \WP_REST_Controller {
 		$result = [];
 
 		foreach ( $wp_roles->roles as $slug => $role_data ) {
-			$caps = isset( $role_data['capabilities'] ) ? $role_data['capabilities'] : [];
+			$caps     = isset( $role_data['capabilities'] ) ? $role_data['capabilities'] : [];
+			$is_admin = ( 'administrator' === $slug );
+
+			// Administrator always has all caps active.
+			if ( $is_admin ) {
+				$result[ $slug ] = [
+					'name'         => translate_user_role( $role_data['name'] ),
+					'capabilities' => [
+						'wepos' => $this->all_caps_on( $this->wepos_caps ),
+						'wc'    => $this->all_caps_on( $this->wc_caps ),
+						'wp'    => $this->all_caps_on( $this->wp_caps ),
+						'pages' => $this->all_caps_on( $this->get_page_caps() ),
+					],
+				];
+				continue;
+			}
 
 			$result[ $slug ] = [
 				'name'         => translate_user_role( $role_data['name'] ),
@@ -270,6 +285,17 @@ class AccessController extends \WP_REST_Controller {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Return all capabilities as true.
+	 *
+	 * @param string[] $caps Capability names.
+	 *
+	 * @return array<string, bool>
+	 */
+	private function all_caps_on( $caps ) {
+		return array_fill_keys( $caps, true );
 	}
 
 	/**
