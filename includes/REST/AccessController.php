@@ -337,21 +337,22 @@ class AccessController extends \WP_REST_Controller {
 	 * @return array<string, bool>
 	 */
 	private function get_wepos_caps_status( $role_caps ) {
-		$is_admin   = ! empty( $role_caps['manage_options'] );
-		$status     = [];
+		$is_admin        = ! empty( $role_caps['manage_options'] );
+		$has_full_access = $is_admin || ! empty( $role_caps['manage_woocommerce'] ) || ! empty( $role_caps['edit_others_posts'] );
+		$status          = [];
 
-		// Caps that are always ON for administrator — no matter what.
-		$admin_locked = [ 'access_wepos', 'manage_wepos', 'wepos_view_all_outlets' ];
+		// Caps that default to ON for admin and shop manager when not explicitly set.
+		$default_on_full = [ 'access_wepos', 'manage_wepos', 'wepos_view_all_outlets' ];
 
 		// Caps that default to ON for all roles when not explicitly set.
-		$default_on = [ 'wepos_view_all_outlets' ];
+		$default_on_all = [ 'wepos_view_all_outlets' ];
 
 		foreach ( $this->wepos_caps as $cap ) {
-			if ( $is_admin && in_array( $cap, $admin_locked, true ) ) {
-				$status[ $cap ] = true;
-			} elseif ( array_key_exists( $cap, $role_caps ) ) {
+			if ( array_key_exists( $cap, $role_caps ) ) {
 				$status[ $cap ] = ! empty( $role_caps[ $cap ] );
-			} elseif ( in_array( $cap, $default_on, true ) ) {
+			} elseif ( $has_full_access && in_array( $cap, $default_on_full, true ) ) {
+				$status[ $cap ] = true;
+			} elseif ( in_array( $cap, $default_on_all, true ) ) {
 				$status[ $cap ] = true;
 			} else {
 				$status[ $cap ] = false;
@@ -362,7 +363,7 @@ class AccessController extends \WP_REST_Controller {
 	}
 
 	private function get_page_caps_status( $role_caps ) {
-		$has_full_access = ! empty( $role_caps['manage_options'] ) || ! empty( $role_caps['manage_woocommerce'] );
+		$has_full_access = ! empty( $role_caps['manage_options'] ) || ! empty( $role_caps['manage_woocommerce'] ) || ! empty( $role_caps['edit_others_posts'] );
 		$status          = [];
 
 		foreach ( $this->get_page_caps() as $cap ) {

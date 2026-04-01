@@ -306,9 +306,9 @@ function wepos_map_meta_cap( $caps, $cap, $user_id ) {
             }
         }
 
-        // Fallback: grant access if user has manage_woocommerce or manage_options
-        // (for roles that were never configured via Access settings).
-        if ( $user->has_cap( 'manage_options' ) || $user->has_cap( 'manage_woocommerce' ) ) {
+        // Fallback: grant access if user has manage_options, manage_woocommerce, or edit_others_posts
+        // (covers admin, shop manager, and editor when not configured via Access settings).
+        if ( $user->has_cap( 'manage_options' ) || $user->has_cap( 'manage_woocommerce' ) || $user->has_cap( 'edit_others_posts' ) ) {
             return [ 'exist' ];
         }
     }
@@ -380,8 +380,8 @@ function wepos_user_can_access_page( $page_key ) {
         }
     }
 
-    // Fallback: administrators and shop managers get access when cap isn't explicitly set.
-    return current_user_can( 'manage_options' ) || current_user_can( 'manage_woocommerce' );
+    // Fallback: admin, shop manager, and editor get access when cap isn't explicitly set.
+    return current_user_can( 'manage_options' ) || current_user_can( 'manage_woocommerce' ) || current_user_can( 'edit_others_posts' );
 }
 
 /**
