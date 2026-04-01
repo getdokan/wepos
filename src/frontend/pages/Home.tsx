@@ -258,37 +258,58 @@ const HomePage: React.FC = () => {
   // Track whether we've loaded the default customer from settings
   const defaultCustomerLoadedRef = useRef(false);
 
-  // Void: clear cart and delete the pos-open order from server if it exists
+  // Clear cart and, when needed, delete the corresponding pos-open order first.
   const [voiding, setVoiding] = useState(false);
-  const voidCart = useCallback(async () => {
+  const discardCurrentCart = useCallback(async ({
+    deletingMessage,
+    successMessage,
+    failureMessage,
+  }: {
+    deletingMessage?: string;
+    successMessage: string;
+    failureMessage: string;
+  }): Promise<boolean> => {
     if (serverOrder?.order_id) {
       try {
         setVoiding(true);
         await posAPI.orders.deleteOrder(serverOrder.order_id, true);
-        toast.success(__('Order voided successfully', 'wepos'));
+        toast.success(deletingMessage || successMessage);
       } catch (error: any) {
         toast.error(
-          <RawHTML>{error?.message || __('Failed to void order', 'wepos')}</RawHTML>
+          <RawHTML>{error?.message || failureMessage}</RawHTML>
         );
         console.error('Failed to delete server order:', error);
+        return false;
       } finally {
         setVoiding(false);
       }
+    } else {
+      toast.success(successMessage);
     }
-    clearCart();
-    defaultCustomerLoadedRef.current = false; // Re-load default customer
-    if (!serverOrder?.order_id) {
-      toast.success(__('Cart voided', 'wepos'));
-    }
-  }, [serverOrder, clearCart]);
 
-  const createNewSale = useCallback(() => {
     clearCart(); // clearCart resets entire state including server_order
     setShowPaymentReceipt(false);
     setCashAmount('');
-    defaultCustomerLoadedRef.current = false; // Re-load default customer for next sale
+    defaultCustomerLoadedRef.current = false; // Re-load default customer
     window.history.pushState({}, '', window.location.pathname);
-  }, [clearCart]);
+
+    return true;
+  }, [serverOrder, clearCart]);
+
+  const voidCart = useCallback(async () => {
+    await discardCurrentCart({
+      deletingMessage: __('Order voided successfully', 'wepos'),
+      successMessage: __('Cart voided', 'wepos'),
+      failureMessage: __('Failed to void order', 'wepos'),
+    });
+  }, [discardCurrentCart]);
+
+  const createNewSale = useCallback(async () => {
+    await discardCurrentCart({
+      successMessage: __('New sale started', 'wepos'),
+      failureMessage: __('Failed to remove saved order', 'wepos'),
+    });
+  }, [discardCurrentCart]);
 
   // Customer selection handler
   const handleCustomerSelected = useCallback((customer: Customer | null) => {
@@ -812,9 +833,9 @@ const HomePage: React.FC = () => {
         case 'F8':
           e.preventDefault();
           if (e.shiftKey) {
-            clearCart();
+            void voidCart();
           } else {
-            createNewSale();
+            void createNewSale();
           }
           break;
         case 'F9':
