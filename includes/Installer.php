@@ -75,24 +75,27 @@ class Installer {
      * @return void
      */
     private function add_wepos_capabilities() {
-        // Administrator gets full access including all page caps
+        // Administrator gets full access
         $admin = get_role( 'administrator' );
         if ( $admin ) {
             $admin->add_cap( 'access_wepos' );
             $admin->add_cap( 'manage_wepos' );
+            $admin->add_cap( 'wepos_view_all_outlets' );
         }
 
-        // Shop Manager gets POS access (page caps must be granted explicitly via Access settings)
+        // Shop Manager gets POS access + view all outlets
         $shop_manager = get_role( 'shop_manager' );
         if ( $shop_manager ) {
             $shop_manager->add_cap( 'access_wepos' );
             $shop_manager->add_cap( 'manage_wepos' );
+            $shop_manager->add_cap( 'wepos_view_all_outlets' );
         }
 
-        // Editor gets POS frontend access
+        // Editor gets POS frontend access + view all outlets
         $editor = get_role( 'editor' );
         if ( $editor ) {
             $editor->add_cap( 'access_wepos' );
+            $editor->add_cap( 'wepos_view_all_outlets' );
         }
     }
 

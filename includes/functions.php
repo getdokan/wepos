@@ -290,18 +290,18 @@ function wepos_admin_menu_capability() {
  * @return string[]
  */
 function wepos_map_meta_cap( $caps, $cap, $user_id ) {
-    if ( 'manage_wepos' === $cap ) {
+    if ( 'manage_wepos' === $cap || 'access_wepos' === $cap ) {
         $user = get_userdata( $user_id );
 
         if ( ! $user ) {
             return $caps;
         }
 
-        // If manage_wepos is explicitly set in any of the user's roles
+        // If the cap is explicitly set in any of the user's roles
         // (true or false via Access settings), respect that value directly.
         foreach ( $user->roles as $role_slug ) {
             $role = get_role( $role_slug );
-            if ( $role && array_key_exists( 'manage_wepos', $role->capabilities ) ) {
+            if ( $role && array_key_exists( $cap, $role->capabilities ) ) {
                 return $caps;
             }
         }

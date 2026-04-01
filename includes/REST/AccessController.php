@@ -32,6 +32,7 @@ class AccessController extends \WP_REST_Controller {
 	private $wepos_caps = [
 		'access_wepos',
 		'manage_wepos',
+		'wepos_view_all_outlets',
 	];
 
 	/**
@@ -217,7 +218,7 @@ class AccessController extends \WP_REST_Controller {
 		// Safety: never remove essential caps from administrator
 		if ( 'administrator' === $slug ) {
 			$protected_caps = array_merge(
-				[ 'read', 'access_wepos', 'manage_wepos' ],
+				[ 'read', 'access_wepos', 'manage_wepos', 'wepos_view_all_outlets' ],
 				$this->get_page_caps()
 			);
 
@@ -260,7 +261,7 @@ class AccessController extends \WP_REST_Controller {
 			$result[ $slug ] = [
 				'name'         => translate_user_role( $role_data['name'] ),
 				'capabilities' => [
-					'wepos' => $this->get_caps_status( $caps, $this->wepos_caps ),
+					'wepos' => $this->get_wepos_caps_status( $caps ),
 					'wc'    => $this->get_caps_status( $caps, $this->wc_caps ),
 					'wp'    => $this->get_caps_status( $caps, $this->wp_caps ),
 					'pages' => $this->get_page_caps_status( $caps ),
@@ -299,6 +300,41 @@ class AccessController extends \WP_REST_Controller {
 	 *
 	 * @return array<string, bool>
 	 */
+	/**
+	 * Get effective WePOS capability status for a role.
+	 *
+	 * wepos_view_all_outlets defaults to ON when not explicitly set
+	 * (matching the runtime behavior in OutletController).
+	 *
+	 * @param array $role_caps All capabilities for the role.
+	 *
+	 * @return array<string, bool>
+	 */
+	private function get_wepos_caps_status( $role_caps ) {
+		$is_admin   = ! empty( $role_caps['manage_options'] );
+		$status     = [];
+
+		// Caps that are always ON for administrator — no matter what.
+		$admin_locked = [ 'access_wepos', 'manage_wepos', 'wepos_view_all_outlets' ];
+
+		// Caps that default to ON for all roles when not explicitly set.
+		$default_on = [ 'wepos_view_all_outlets' ];
+
+		foreach ( $this->wepos_caps as $cap ) {
+			if ( $is_admin && in_array( $cap, $admin_locked, true ) ) {
+				$status[ $cap ] = true;
+			} elseif ( array_key_exists( $cap, $role_caps ) ) {
+				$status[ $cap ] = ! empty( $role_caps[ $cap ] );
+			} elseif ( in_array( $cap, $default_on, true ) ) {
+				$status[ $cap ] = true;
+			} else {
+				$status[ $cap ] = false;
+			}
+		}
+
+		return $status;
+	}
+
 	private function get_page_caps_status( $role_caps ) {
 		$is_admin = ! empty( $role_caps['manage_options'] );
 		$status   = [];

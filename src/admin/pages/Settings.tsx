@@ -269,6 +269,7 @@ function buildAccessSchema(
 						roleSlug === 'administrator' &&
 						( cap === 'access_wepos' ||
 							cap === 'manage_wepos' ||
+							cap === 'wepos_view_all_outlets' ||
 							cap === 'read' ||
 							cap.startsWith( 'wepos_page_' ) );
 
