@@ -38,10 +38,19 @@ class Frontend {
      */
     public function rewrite_templates() {
         if ( wp_validate_boolean( get_query_var( 'wepos' ) ) ) {
-            //check if user is logged in otherwise redirect to login page
-            if ( ! is_user_logged_in() || ! wepos_is_frontend() ) {
+            // Redirect to login if not authenticated
+            if ( ! is_user_logged_in() ) {
                 wp_redirect( get_permalink( get_option( 'woocommerce_myaccount_page_id' ) ) );
                 exit();
+            }
+
+            // Show permission denied if user cannot access POS
+            if ( ! wepos_is_frontend() ) {
+                wp_die(
+                    esc_html__( 'You do not have sufficient permissions to access this page.', 'wepos' ),
+                    esc_html__( 'Access Denied', 'wepos' ),
+                    [ 'response' => 403 ]
+                );
             }
 
             include_once WEPOS_PATH . '/templates/wepos.php';

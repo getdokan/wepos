@@ -53,7 +53,7 @@ class Dokan {
     public function frontend_permissions( $valid ) {
         if ( dokan_is_user_seller( get_current_user_id() ) && dokan_is_seller_enabled( get_current_user_id() ) ) {
 	        return true;
-        } else if ( current_user_can( 'cashier' ) ) {
+        } else if ( current_user_can( 'cashier' ) && current_user_can( 'access_wepos' ) ) {
             return true;
         }
 

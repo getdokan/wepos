@@ -338,7 +338,8 @@ export type OrderStatus =
   | 'cancelled'
   | 'refunded'
   | 'failed'
-  | 'checkout-draft';
+  | 'checkout-draft'
+  | 'pos-open';
 
 export interface BillingAddress {
   first_name: string;
@@ -563,6 +564,7 @@ export interface POSSettings {
     wc_tax_display_cart: string;
     wc_tax_based_on?: string;
   };
+  currencies?: Record<string, { name: string; symbol: string }>;
 }
 
 export interface POSPrintData {

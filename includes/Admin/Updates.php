@@ -82,6 +82,7 @@ class Updates {
                 </script>
             <?php
         } else {
+            self::set_default_layout_style();
             update_option( 'we_pos_version', WEPOS_VERSION );
         }
     }
@@ -122,12 +123,26 @@ class Updates {
             }
         }
 
+        self::set_default_layout_style();
         update_option( 'we_pos_version', WEPOS_VERSION );
 
         $url = wp_unslash( add_query_arg( [ 'page' => 'wepos' ], admin_url( 'admin.php' ) ) );
         $location = esc_url( $url ) . '#/settings';
         wp_redirect( $location );
         exit();
+    }
+
+    /**
+     * Set default POS layout style to React UI on plugin update.
+     *
+     * @since 1.3.3
+     *
+     * @return void
+     */
+    private static function set_default_layout_style() {
+        $options = get_option( 'wepos_general', [] );
+        $options['pos_layout_style'] = 'latest';
+        update_option( 'wepos_general', $options );
     }
 
 }

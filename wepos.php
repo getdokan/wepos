@@ -301,6 +301,17 @@ final class WePOS {
      * @return void
      */
     public function deactivate() {
+        // Remove wepos capabilities from roles that received them on activation
+        $roles_to_clean = [ 'administrator', 'shop_manager', 'editor' ];
+        foreach ( $roles_to_clean as $role_slug ) {
+            $role = get_role( $role_slug );
+            if ( $role ) {
+                $role->remove_cap( 'access_wepos' );
+                $role->remove_cap( 'manage_wepos' );
+            }
+        }
+
+        // Legacy Dokan cleanup
         $users_query = new WP_User_Query( [
             'role__in' => [ 'seller', 'vendor_staff' ]
         ] );
@@ -362,7 +373,7 @@ final class WePOS {
         $this->container['rest']   = new WeDevs\WePOS\REST\Manager();
 
         // Use React assets instead of Vue.js assets
-        $layout_style = wepos_get_option('pos_layout_style', 'wepos_general', 'legacy');
+        $layout_style = wepos_get_option('pos_layout_style', 'wepos_general', 'latest');
 
         if (is_admin()) {
             $this->container['assets'] = new WeDevs\WePOS\Assets();

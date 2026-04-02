@@ -239,8 +239,9 @@ const ordersAPI = {
 
   // Create order using WooCommerce API (used in POS checkout)
   createOrder: async (orderData: any): Promise<any> => {
+    const isProSaveCartsEnabled = Boolean((window as any).__weposProSaveCartsEnabled);
     const response = await apiFetch({
-      path: `/${API_BASE.WC}/orders`,
+      path: isProSaveCartsEnabled ? `/wepos/v1/orders` : `/${API_BASE.WC}/orders`,
       method: 'POST',
       data: orderData,
     });
@@ -252,8 +253,9 @@ const ordersAPI = {
     id: number,
     orderData: Partial<Order>,
   ): Promise<Order> => {
+    const isProSaveCartsEnabled = Boolean((window as any).__weposProSaveCartsEnabled);
     const response = await apiFetch({
-      path: `${API_BASE.WC}/orders/${id}`,
+      path: isProSaveCartsEnabled ? `/wepos/v1/orders/${id}` : `${API_BASE.WC}/orders/${id}`,
       method: 'PUT',
       data: orderData,
     });
@@ -262,8 +264,11 @@ const ordersAPI = {
   },
 
   deleteOrder: async (id: number, force: boolean = true): Promise<any> => {
+    const isProSaveCartsEnabled = Boolean((window as any).__weposProSaveCartsEnabled);
     const response = await apiFetch({
-      path: `${API_BASE.WC}/orders/${id}?force=${force}`,
+      path: isProSaveCartsEnabled
+        ? `/wepos/v1/orders/${id}?force=${force}`
+        : `${API_BASE.WC}/orders/${id}?force=${force}`,
       method: 'DELETE',
     });
 

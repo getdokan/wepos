@@ -29,7 +29,7 @@ class Settings {
      * @return void
      */
     public function get_settings_value() {
-        if ( ! current_user_can( 'manage_options' ) ) {
+        if ( ! wepos_current_user_can_manage() ) {
             wp_send_json_error( __( 'You have no permission to get settings value', 'wepos' ) );
         }
 
@@ -57,7 +57,7 @@ class Settings {
      */
     public function save_settings_value() {
         try {
-            if ( ! current_user_can( 'manage_options' ) ) {
+            if ( ! wepos_current_user_can_manage() ) {
                 throw new Exception( __( 'You are not authorized to perform this action.', 'wepos' ), 401 );
             }
 

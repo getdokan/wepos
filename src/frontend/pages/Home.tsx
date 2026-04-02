@@ -16,6 +16,7 @@ import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
 import {
   Customer,
+  Order,
   POSCartItem,
   POSBrand,
   POSCategory,
@@ -47,7 +48,7 @@ import {
 } from '@wedevs/plugin-ui';
 import { Slot } from '@wordpress/components';
 import { PluginArea } from '@wordpress/plugins';
-import { ChevronDown, CircleHelp, LayoutGrid, LogOut, ShoppingCart } from 'lucide-react';
+import { ChevronDown, CircleHelp, LayoutGrid, LogOut, ShoppingCart, ExternalLink } from 'lucide-react';
 import Cart, { CartHandle } from '../components/Cart';
 import CategoryFilter from '../components/CategoryFilter';
 import StockStatusFilter, { StockStatus } from '../components/StockStatusFilter';
@@ -62,6 +63,228 @@ import ReceiptModal from '../components/ReceiptModal';
 import SearchBar from '../components/SearchBar';
 import { useResizablePanel } from '../hooks/useResizablePanel';
 import { RawHTML } from '@wordpress/element';
+import { CartState } from '../store/cart';
+
+const INTERNAL_ORDER_META_KEYS = new Set([
+  '_wepos_is_pos_order',
+  '_wepos_tax_based_on',
+  '_wepos_cash_tendered_amount',
+  '_wepos_cash_change_amount',
+  '_wepos_cashier_id',
+  '_wepos_counter_id',
+  '_wepos_outlet_id',
+]);
+
+const getOrderMetaValue = (order: Order, key: string): string => {
+  const meta = order.meta_data?.find((item) => item.key === key);
+  return meta?.value === undefined || meta?.value === null
+    ? ''
+    : String(meta.value);
+};
+
+const scoreRestorableOrder = (
+  order: Order,
+  cashierId: string,
+  outletId: string,
+  counterId: string,
+): number | null => {
+  const orderCashierId = getOrderMetaValue(order, '_wepos_cashier_id');
+  const orderOutletId = getOrderMetaValue(order, '_wepos_outlet_id');
+  const orderCounterId = getOrderMetaValue(order, '_wepos_counter_id');
+
+  if (orderCashierId && cashierId && orderCashierId !== cashierId) {
+    return null;
+  }
+
+  if (orderOutletId && outletId && orderOutletId !== outletId) {
+    return null;
+  }
+
+  if (orderCounterId && counterId && orderCounterId !== counterId) {
+    return null;
+  }
+
+  let score = 0;
+
+  if (orderCashierId && cashierId && orderCashierId === cashierId) {
+    score += 8;
+  }
+
+  if (orderOutletId && outletId && orderOutletId === outletId) {
+    score += 4;
+  }
+
+  if (orderCounterId && counterId && orderCounterId === counterId) {
+    score += 2;
+  }
+
+  return score;
+};
+
+const getCurrencySymbolForOrder = (order: Order, settings: any): string => {
+  if (order.currency && settings?.currencies?.[order.currency]?.symbol) {
+    return settings.currencies[order.currency].symbol;
+  }
+
+  return window.wepos?.currency_format_symbol || '';
+};
+
+const normalizeCustomerForOrder = (customer: Customer | null): Customer | null => {
+  if (!customer) {
+    return null;
+  }
+
+  const normalizedCustomer: Customer = {
+    ...customer,
+    billing: {
+      ...(customer.billing || {}),
+    },
+    shipping: {
+      ...(customer.shipping || {}),
+    },
+  };
+
+  if (normalizedCustomer.email && !normalizedCustomer.billing.email) {
+    normalizedCustomer.billing.email = normalizedCustomer.email;
+  }
+
+  return normalizedCustomer;
+};
+
+const buildRestoredCartState = (
+  order: Order,
+  settings: any,
+  existingCustomer: Customer | null = null,
+): CartState => {
+  const feeLines = (order.fee_lines || [])
+    .filter((line) => parseFloat(line.total || '0') >= 0)
+    .map((line) => ({
+      id: line.id,
+      name: line.name,
+      type: 'fee' as const,
+      value: Math.abs(parseFloat(line.total || '0')).toFixed(2),
+      fee_type: 'fixed' as const,
+      tax_status: line.tax_status || 'none',
+      tax_class: line.tax_class || '',
+      total: Math.abs(parseFloat(line.total || '0')),
+    }));
+
+  const restoredDiscountFeeLines = (order.fee_lines || [])
+    .filter((line) => parseFloat(line.total || '0') < 0)
+    .map((line) => {
+      const value = Math.abs(parseFloat(line.total || '0'));
+      return {
+        id: line.id,
+        name: line.name || __('Discount', 'wepos'),
+        type: 'discount' as const,
+        value,
+        discount_type: 'fixed_cart' as const,
+        tax_status: line.tax_status || 'none',
+        tax_class: line.tax_class || '',
+        total: value,
+        code: `restored_discount_${line.id}`,
+      };
+    });
+
+  const restoredCouponLines = (order.coupon_lines || []).map((line) => ({
+    id: line.id,
+    name: line.code || __('Discount', 'wepos'),
+    type: 'discount' as const,
+    value: Math.abs(parseFloat(line.discount || '0')),
+    discount_type: 'fixed_cart' as const,
+    tax_status: 'none' as const,
+    tax_class: '',
+    total: Math.abs(parseFloat(line.discount || '0')),
+    code: line.code || `restored_coupon_${line.id}`,
+  }));
+
+  return {
+    line_items: (order.line_items || []).map((line) => {
+      const price = Number(
+        line.price
+          || (line.quantity
+            ? parseFloat(line.subtotal || line.total || '0') / line.quantity
+            : 0),
+      );
+      return {
+        id: line.id,
+        product_id: line.product_id,
+        variation_id: line.variation_id || 0,
+        name: line.name,
+        sku: line.sku || '',
+        quantity: line.quantity,
+        type: line.product_id === 0 ? 'custom' : 'simple',
+        on_sale: false,
+        sale_price: price,
+        regular_price: price,
+        editQuantity: false,
+        attribute: [],
+        total_tax: parseFloat(line.total_tax || '0'),
+      };
+    }),
+    coupon_lines: [...restoredDiscountFeeLines, ...restoredCouponLines],
+    fee_lines: feeLines,
+    shipping_lines: (order.shipping_lines || []).map((line) => ({
+      id: line.id,
+      method_title: line.method_title,
+      method_id: line.method_id || 'flat_rate',
+      total: line.total,
+      tax_status: parseFloat(line.total_tax || '0') > 0 ? 'taxable' : 'none',
+      tax_class: '',
+      amount_includes_tax: false,
+    })),
+    meta_data: (order.meta_data || [])
+      .filter((meta) => !INTERNAL_ORDER_META_KEYS.has(meta.key))
+      .map((meta) => ({
+        id: meta.id,
+        key: meta.key,
+        value:
+          typeof meta.value === 'string' ? meta.value : JSON.stringify(meta.value),
+      })),
+    customer_note: order.customer_note || '',
+    customer: existingCustomer,
+    server_order: {
+      order_id: order.id,
+      order_number: order.number,
+      total: order.total,
+      total_tax: order.total_tax,
+      line_items: (order.line_items || []).map((li) => ({
+        id: li.id,
+        product_id: li.product_id,
+        variation_id: li.variation_id,
+        total: li.total,
+        total_tax: li.total_tax,
+        subtotal: li.subtotal,
+        subtotal_tax: li.subtotal_tax,
+        taxes: li.taxes || [],
+      })),
+      fee_lines: (order.fee_lines || []).map((fl) => ({
+        id: fl.id,
+        total: fl.total,
+        total_tax: fl.total_tax,
+        taxes: fl.taxes || [],
+      })),
+      shipping_lines: (order.shipping_lines || []).map((sl) => ({
+        id: sl.id,
+        total: sl.total,
+        total_tax: sl.total_tax,
+        taxes: sl.taxes || [],
+      })),
+      tax_lines: (order.tax_lines || []).map((tl) => ({
+        id: tl.id,
+        rate_code: tl.rate_code,
+        rate_id: tl.rate_id,
+        label: tl.label,
+        compound: tl.compound,
+        tax_total: tl.tax_total,
+        shipping_tax_total: tl.shipping_tax_total,
+      })),
+    },
+    server_order_dirty: false,
+    currency: order.currency || '',
+    currency_symbol: getCurrencySymbolForOrder(order, settings),
+  };
+};
 
 const HomePage: React.FC = () => {
 
@@ -91,7 +314,7 @@ const HomePage: React.FC = () => {
     [],
   );
 
-  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines, shippingLines, metaData, totalShipping, totalTax, serverOrder, orderCurrency, orderCurrencySymbol } = useSelect((select) => {
+  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines, shippingLines, metaData, customerNote, totalShipping, totalTax, serverOrder, orderCurrency, orderCurrencySymbol } = useSelect((select) => {
     const cartStore = select(CART_STORE_NAME) as any;
     return {
       cartItems: cartStore.getCartItems(),
@@ -102,6 +325,7 @@ const HomePage: React.FC = () => {
       discountLines: cartStore.getDiscountLines(),
       shippingLines: cartStore.getShippingLines(),
       metaData: cartStore.getMetaData(),
+      customerNote: cartStore.getCustomerNote(),
       totalShipping: cartStore.getTotalShipping(),
       totalTax: cartStore.getTotalTax(),
       serverOrder: cartStore.getServerOrder(),
@@ -110,7 +334,7 @@ const HomePage: React.FC = () => {
     };
   }, []);
 
-  const { addToCart, clearCart, setCustomer, setServerOrder, clearServerOrder } = useDispatch(CART_STORE_NAME) as any;
+  const { addToCart, clearCart, setCustomer, setServerOrder, hydrateCart } = useDispatch(CART_STORE_NAME) as any;
 
   // UI State
   const [showHelp, setShowHelp] = useState(false);
@@ -131,16 +355,7 @@ const HomePage: React.FC = () => {
     gateway: { id: '', title: '' },
   });
   const [mobileActiveTab, setMobileActiveTab] = useState<'products' | 'cart'>('products');
-
-  // Order Data State (still needed for payment processing)
-  const [orderData, setOrderData] = useState({
-    customer_id: 0,
-    customer_note: '',
-    payment_method: '',
-    payment_method_title: '',
-    billing: {},
-    shipping: {},
-  });
+  const [restoreAttempted, setRestoreAttempted] = useState(false);
 
   // Refs
   const itemsWrapperRef = useRef<HTMLDivElement>(null);
@@ -267,65 +482,67 @@ const HomePage: React.FC = () => {
   // Track whether we've loaded the default customer from settings
   const defaultCustomerLoadedRef = useRef(false);
 
-  // Void: clear cart and delete the pos-open order from server if it exists
+  // Clear cart and, when needed, delete the corresponding pos-open order first.
   const [voiding, setVoiding] = useState(false);
-  const voidCart = useCallback(async () => {
+  const discardCurrentCart = useCallback(async ({
+    deletingMessage,
+    successMessage,
+    failureMessage,
+  }: {
+    deletingMessage?: string;
+    successMessage: string;
+    failureMessage: string;
+  }): Promise<boolean> => {
     if (serverOrder?.order_id) {
       try {
         setVoiding(true);
         await posAPI.orders.deleteOrder(serverOrder.order_id, true);
-        toast.success(__('Order voided successfully', 'wepos'));
+        toast.success(deletingMessage || successMessage);
       } catch (error: any) {
         toast.error(
-          <RawHTML>{error?.message || __('Failed to void order', 'wepos')}</RawHTML>
+          <RawHTML>{error?.message || failureMessage}</RawHTML>
         );
         console.error('Failed to delete server order:', error);
+        return false;
       } finally {
         setVoiding(false);
       }
+    } else {
+      toast.success(successMessage);
     }
-    clearCart();
-    defaultCustomerLoadedRef.current = false; // Re-load default customer
-    if (!serverOrder?.order_id) {
-      toast.success(__('Cart voided', 'wepos'));
-    }
-  }, [serverOrder, clearCart]);
 
-  const createNewSale = useCallback(() => {
     clearCart(); // clearCart resets entire state including server_order
-    setOrderData({
-      customer_id: 0,
-      customer_note: '',
-      payment_method: '',
-      payment_method_title: '',
-      billing: {},
-      shipping: {},
-    });
     setShowPaymentReceipt(false);
     setCashAmount('');
-    defaultCustomerLoadedRef.current = false; // Re-load default customer for next sale
+    defaultCustomerLoadedRef.current = false; // Re-load default customer
     window.history.pushState({}, '', window.location.pathname);
-  }, [clearCart]);
+
+    return true;
+  }, [serverOrder, clearCart]);
+
+  const voidCart = useCallback(async () => {
+    await discardCurrentCart({
+      deletingMessage: __('Order voided successfully', 'wepos'),
+      successMessage: __('Cart voided', 'wepos'),
+      failureMessage: __('Failed to void order', 'wepos'),
+    });
+  }, [discardCurrentCart]);
+
+  const createNewSale = useCallback(async () => {
+    await discardCurrentCart({
+      successMessage: __('New sale started', 'wepos'),
+      failureMessage: __('Failed to remove saved order', 'wepos'),
+    });
+  }, [discardCurrentCart]);
 
   // Customer selection handler
   const handleCustomerSelected = useCallback((customer: Customer | null) => {
+    const normalizedCustomer = normalizeCustomerForOrder(customer);
     const hadCustomer = !!selectedCustomer;
-    setCustomer(customer);
-    if (customer) {
-      setOrderData((prev) => ({
-        ...prev,
-        customer_id: customer.id,
-        billing: customer.billing,
-        shipping: customer.shipping,
-      }));
-      toast.success(sprintf(__('Customer %s selected', 'wepos'), `${customer.first_name} ${customer.last_name}`));
+    setCustomer(normalizedCustomer);
+    if (normalizedCustomer) {
+      toast.success(sprintf(__('Customer %s selected', 'wepos'), `${normalizedCustomer.first_name} ${normalizedCustomer.last_name}`));
     } else {
-      setOrderData((prev) => ({
-        ...prev,
-        customer_id: 0,
-        billing: {},
-        shipping: {},
-      }));
       if (hadCustomer) {
         toast.success(__('Customer removed', 'wepos'));
       }
@@ -405,6 +622,7 @@ const HomePage: React.FC = () => {
             key: '_wepos_cash_change_amount',
             value: changeAmount().toString(),
           },
+          ...getPosSessionMeta(),
           ...metaData.filter((m: any) => m.key.trim() !== '').map((m: any) => ({
             key: m.key,
             value: m.value,
@@ -461,11 +679,12 @@ const HomePage: React.FC = () => {
         const autoShow = cartSettings.autoShowReceipt;
         const autoPrint = cartSettings.autoPrintReceipt;
 
+        // Always clear cart after successful payment — receipt uses order data (printdata), not cart
+        clearCart();
+        setCashAmount('');
+
         if (autoShow || autoPrint) {
           setShowPaymentReceipt(true);
-        } else {
-          clearCart();
-          setCashAmount('');
         }
       }
 
@@ -483,6 +702,7 @@ const HomePage: React.FC = () => {
   //   - Mark removed server line items with `id` + `quantity: 0` so WC deletes them
   const buildOrderPayload = (extraFields: Record<string, any> = {}) => {
     const isUpdate = !!serverOrder;
+    const orderCustomer = normalizeCustomerForOrder(selectedCustomer);
 
     // --- line_items ---
     const buildLineItems = () => {
@@ -629,17 +849,18 @@ const HomePage: React.FC = () => {
     };
 
     let orderPayload: any = {
-      billing: orderData.billing,
-      shipping: orderData.shipping,
+      billing: orderCustomer?.billing || {},
+      shipping: orderCustomer?.shipping || {},
       line_items: buildLineItems(),
       fee_lines: buildFeeLines(),
       shipping_lines: buildShippingLines(),
       coupon_lines: [],
-      customer_id: orderData.customer_id,
-      customer_note: orderData.customer_note,
+      customer_id: orderCustomer?.id || 0,
+      customer_note: customerNote,
       meta_data: [
         { key: '_wepos_is_pos_order', value: true },
         { key: '_wepos_tax_based_on', value: settings?.woo_tax?.wc_tax_based_on || 'base' },
+        ...getPosSessionMeta(),
         ...metaData.filter((m: any) => m.key.trim() !== '').map((m: any) => ({
           key: m.key,
           value: m.value,
@@ -652,7 +873,7 @@ const HomePage: React.FC = () => {
       ...extraFields,
     };
 
-    orderPayload = applyFilters('wepos_react_order_form_data', orderPayload, orderData);
+    orderPayload = applyFilters('wepos_react_order_form_data', orderPayload);
     return orderPayload;
   };
 
@@ -750,11 +971,6 @@ const HomePage: React.FC = () => {
     setShowModal(true);
     if (availableGateways.length > 0) {
       setSelectedGateway(availableGateways[0].id);
-      setOrderData((prev) => ({
-        ...prev,
-        payment_method: availableGateways[0].id,
-        payment_method_title: availableGateways[0].title,
-      }));
     }
   }, [cartItems.length, availableGateways, saveToServer]);
 
@@ -840,9 +1056,9 @@ const HomePage: React.FC = () => {
         case 'F8':
           e.preventDefault();
           if (e.shiftKey) {
-            clearCart();
+            void voidCart();
           } else {
-            createNewSale();
+            void createNewSale();
           }
           break;
         case 'F9':
@@ -875,10 +1091,113 @@ const HomePage: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showModal, showPaymentReceipt, toggleProductView, clearCart, createNewSale, initPayment, backToSale, printReceipt]);
 
+  const getPosSessionMeta = useCallback(() => {
+    const outlet = getFromLocalStorage<any>('wepos_outlet', null);
+    const counter = getFromLocalStorage<any>('wepos_counter', null);
+
+    return [
+      { key: '_wepos_cashier_id', value: String(window.wepos?.current_user_id || '') },
+      { key: '_wepos_counter_id', value: String(counter?.id || '') },
+      { key: '_wepos_outlet_id', value: String(outlet?.id || '') },
+    ].filter((meta) => meta.value !== '');
+  }, []);
+
+  const restoreServerCart = useCallback(async () => {
+    if ( ( window as any ).__weposProSaveCartsEnabled ) {
+      return;
+    }
+
+    if (restoreAttempted || cartItems.length > 0 || serverOrder?.order_id) {
+      return;
+    }
+
+    setRestoreAttempted(true);
+
+    try {
+      const orders = await posAPI.orders.getOrders({
+        status: ['pos-open'],
+        per_page: 100,
+        orderby: 'date',
+        order: 'desc',
+      }) as unknown as Order[];
+
+      const posOrders = (orders || []).filter(
+        (order) => getOrderMetaValue(order, '_wepos_is_pos_order') === 'true'
+          || getOrderMetaValue(order, '_wepos_is_pos_order') === '1'
+      );
+
+      if (posOrders.length === 0) {
+        return;
+      }
+
+      const outlet = getFromLocalStorage<any>('wepos_outlet', null);
+      const counter = getFromLocalStorage<any>('wepos_counter', null);
+      const cashierId = String(window.wepos?.current_user_id || '');
+      const outletId = String(outlet?.id || '');
+      const counterId = String(counter?.id || '');
+
+      const scoredOrders = posOrders
+        .map((order) => ({
+          order,
+          score: scoreRestorableOrder(order, cashierId, outletId, counterId),
+        }))
+        .filter((entry): entry is { order: Order; score: number } => entry.score !== null);
+
+      if (scoredOrders.length === 0) {
+        return;
+      }
+
+      const bestScore = Math.max(...scoredOrders.map((entry) => entry.score));
+      const bestMatches = scoredOrders.filter((entry) => entry.score === bestScore);
+
+      if (bestScore === 0 && bestMatches.length !== 1) {
+        return;
+      }
+
+      const orderToRestore = bestMatches[0].order;
+      let restoredCustomer: Customer | null = null;
+
+      if (orderToRestore.customer_id) {
+        try {
+          restoredCustomer = await posAPI.customers.getCustomer(orderToRestore.customer_id);
+        } catch (error) {
+          console.warn('Unable to restore customer for pos-open order', error);
+        }
+      }
+
+      hydrateCart(buildRestoredCartState(orderToRestore, settings, restoredCustomer));
+      defaultCustomerLoadedRef.current = true;
+
+      if (orderToRestore.payment_method) {
+        setSelectedGateway(orderToRestore.payment_method);
+      }
+
+      toast.success(__('Restored saved cart from server', 'wepos'));
+    } catch (error) {
+      console.error('Failed to restore pos-open order from server', error);
+    }
+  }, [restoreAttempted, cartItems.length, serverOrder, hydrateCart, settings]);
+
   // Initialize data only once
   useEffect(() => {
-    initializeData();
-  }, [initializeData]);
+    let mounted = true;
+
+    const initializeAndRestore = async () => {
+      await initializeData();
+
+      if (!mounted) {
+        return;
+      }
+
+      await restoreServerCart();
+    };
+
+    void initializeAndRestore();
+
+    return () => {
+      mounted = false;
+    };
+  }, [initializeData, restoreServerCart]);
 
   const getTaxBasedOnLabel = () => {
     const taxBasedOn = settings?.woo_tax?.wc_tax_based_on;
@@ -927,6 +1246,16 @@ const HomePage: React.FC = () => {
                       <Slot name="WeposUserMenuAfterHelp" fillProps={{ DropdownMenuItem }}>
                         {(fills: React.ReactNode) => <>{fills}</>}
                       </Slot>
+                      {window.wepos?.current_user?.can_access_admin && (
+                        <DropdownMenuItem
+                          onClick={() =>
+                            window.open((window as any).wepos?.admin_url, '_blank')
+                          }
+                        >
+                          <ExternalLink className="mr-1 size-4" />
+                          {__('WordPress Admin', 'wepos')}
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem
                         variant="destructive"
                         onClick={() =>

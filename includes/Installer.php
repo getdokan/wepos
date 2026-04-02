@@ -22,6 +22,8 @@ class Installer {
      */
     public function run() {
         $this->add_version_info();
+        $this->set_default_layout_style();
+        $this->add_wepos_capabilities();
         $this->add_user_roles();
         $this->flush_rewrites();
         $this->schedule_cron_jobs();
@@ -42,6 +44,59 @@ class Installer {
         }
 
         update_option( 'we_pos_version', WEPOS_VERSION );
+    }
+
+    /**
+     * Set default POS layout style to React UI.
+     *
+     * On first install or plugin activation, set the layout to 'latest' (React UI)
+     * so new users get the React UI by default. Users can switch back via settings.
+     *
+     * @since 1.3.3
+     *
+     * @return void
+     */
+    private function set_default_layout_style() {
+        $options = get_option( 'wepos_general', [] );
+        $options['pos_layout_style'] = 'latest';
+        update_option( 'wepos_general', $options );
+    }
+
+    /**
+     * Add WePOS capabilities to default roles.
+     *
+     * Default capability assignments:
+     * - Administrator: access_wepos + manage_wepos + all page caps
+     * - Shop Manager:  access_wepos + manage_wepos + all page caps
+     * - Editor:        access_wepos + all page caps
+     *
+     * @since 1.4.0
+     *
+     * @return void
+     */
+    private function add_wepos_capabilities() {
+        // Administrator gets full access
+        $admin = get_role( 'administrator' );
+        if ( $admin ) {
+            $admin->add_cap( 'access_wepos' );
+            $admin->add_cap( 'manage_wepos' );
+            $admin->add_cap( 'wepos_view_all_outlets' );
+        }
+
+        // Shop Manager gets POS access + view all outlets
+        $shop_manager = get_role( 'shop_manager' );
+        if ( $shop_manager ) {
+            $shop_manager->add_cap( 'access_wepos' );
+            $shop_manager->add_cap( 'manage_wepos' );
+            $shop_manager->add_cap( 'wepos_view_all_outlets' );
+        }
+
+        // Editor gets POS frontend access + view all outlets
+        $editor = get_role( 'editor' );
+        if ( $editor ) {
+            $editor->add_cap( 'access_wepos' );
+            $editor->add_cap( 'wepos_view_all_outlets' );
+        }
     }
 
     /**

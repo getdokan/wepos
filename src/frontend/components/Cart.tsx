@@ -821,6 +821,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
         isOpen={showFeeModal}
         onClose={() => setShowFeeModal(false)}
         onAddFee={handleAddFee}
+        defaultTaxStatus={settings?.wepos_general?.enable_fee_tax === 'no' ? 'none' : 'taxable'}
       />
 
       <OrderMetaModal

@@ -211,10 +211,11 @@ class ReactAssets
         }
 
         return [
-            'name'       => $user->display_name,
-            'email'      => $user->user_email,
-            'avatar_url' => get_avatar_url( $user->ID, [ 'size' => 96 ] ),
-            'role'       => ! empty( $user->roles ) ? ucfirst( $user->roles[0] ) : '',
+            'name'            => $user->display_name,
+            'email'           => $user->user_email,
+            'avatar_url'      => get_avatar_url( $user->ID, [ 'size' => 96 ] ),
+            'role'            => ! empty( $user->roles ) ? ucfirst( $user->roles[0] ) : '',
+            'can_access_admin' => current_user_can( 'manage_woocommerce' ) || current_user_can( 'manage_wepos' ),
         ];
     }
 }

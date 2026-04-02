@@ -28,11 +28,12 @@ class Dashboard {
      * @return void
      */
     public function register_page() {
+        $capability = wepos_admin_menu_capability();
         $hook = add_submenu_page(
             'wepos',
             __( 'Dashboard', 'wepos' ),
             __( 'Dashboard', 'wepos' ),
-            'manage_woocommerce',
+            $capability,
             'wepos-dashboard',
             [ $this, 'render_page' ]
         );
@@ -134,7 +135,16 @@ class Dashboard {
             }
         }
 
+        // Build access data for role-capability management (administrator only).
+        $access_data = null;
+        if ( current_user_can( 'manage_options' ) ) {
+            $access_controller = new \WeDevs\WePOS\REST\AccessController();
+            $access_data       = $access_controller->get_access_settings()->get_data();
+        }
+
         $localize_data = apply_filters( 'wepos_admin_react_localize_data', [
+            'access_data'        => $access_data,
+            'allowed_pages'      => wepos_get_user_allowed_pages(),
             'rest' => [
                 'root'       => esc_url_raw( get_rest_url() ),
                 'nonce'      => wp_create_nonce( 'wp_rest' ),
@@ -146,7 +156,7 @@ class Dashboard {
             'admin_url'          => admin_url(),
             'assets_url'         => WEPOS_ASSETS,
             'current_user_id'    => get_current_user_id(),
-            'settings_sections'  => wepos_get_settings_sections(),
+            'settings_sections'  => array_values( wepos_get_settings_sections() ),
             'settings_fields'    => $settings_fields,
             'currency_format_symbol'    => function_exists( 'html_entity_decode' ) && function_exists( 'get_woocommerce_currency_symbol' ) ? html_entity_decode( get_woocommerce_currency_symbol() ) : ( function_exists( 'get_woocommerce_currency_symbol' ) ? get_woocommerce_currency_symbol() : '' ),
             'currency_format_num_decimals' => function_exists( 'wc_get_price_decimals' ) ? wc_get_price_decimals() : 2,
