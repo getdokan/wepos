@@ -33,6 +33,9 @@ class Dokan {
 
         // Grant vendor staff POS capabilities when their parent vendor is enabled.
         add_action( 'dokan_new_seller_created', [ $this, 'grant_vendor_staff_caps' ], 20, 2 );
+
+        // Dequeue Dokan styles on wePos admin pages to prevent CSS conflicts.
+        add_action( 'admin_enqueue_scripts', [ $this, 'dequeue_dokan_styles_on_wepos_pages' ], 99 );
     }
 
     /**
@@ -213,5 +216,42 @@ class Dokan {
         // This hook fires for new vendors, not staff directly.
         // Staff caps are granted when staff are created via Dokan's vendor-staff module.
         // We hook into user role changes to grant POS caps to vendor_staff users.
+    }
+
+    /**
+     * Dequeue Dokan styles and scripts on wePos admin pages.
+     *
+     * Dokan loads global CSS (global-admin.css, tailwind, notices) on all
+     * admin pages. These conflict with plugin-ui styles on wePos pages.
+     *
+     * @since 1.4.0
+     *
+     * @param string $hook Current admin page hook.
+     *
+     * @return void
+     */
+    public function dequeue_dokan_styles_on_wepos_pages( $hook ) {
+        // Use $hook parameter — more reliable than get_current_screen() which may be null.
+        $is_wepos_page = (
+            strpos( $hook, 'wepos' ) !== false
+            || ( isset( $_GET['page'] ) && strpos( sanitize_text_field( wp_unslash( $_GET['page'] ) ), 'wepos' ) !== false )
+        );
+
+        if ( ! $is_wepos_page ) {
+            return;
+        }
+
+        // Dequeue ALL Dokan styles on wePos pages to prevent CSS conflicts.
+        global $wp_styles;
+
+        if ( ! $wp_styles ) {
+            return;
+        }
+
+        foreach ( $wp_styles->queue as $handle ) {
+            if ( strpos( $handle, 'dokan' ) !== false ) {
+                wp_dequeue_style( $handle );
+            }
+        }
     }
 }
