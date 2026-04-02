@@ -564,3 +564,83 @@ function wepos_wp_timezone_string() {
 
     return $tz_offset;
 }
+
+/**
+ * Check if Dokan multi-vendor plugin is active.
+ *
+ * @since 1.4.0
+ *
+ * @return bool
+ */
+function wepos_is_dokan_active() {
+    return class_exists( 'WeDevs_Dokan' );
+}
+
+/**
+ * Check if a user is a Dokan vendor (seller) and is enabled.
+ *
+ * @since 1.4.0
+ *
+ * @param int|null $user_id User ID, defaults to current user.
+ *
+ * @return bool
+ */
+function wepos_is_dokan_vendor( $user_id = null ) {
+    if ( ! wepos_is_dokan_active() ) {
+        return false;
+    }
+
+    $user_id = $user_id ?: get_current_user_id();
+
+    return dokan_is_user_seller( $user_id ) && dokan_is_seller_enabled( $user_id );
+}
+
+/**
+ * Check if a user is a Dokan vendor staff member.
+ *
+ * @since 1.4.0
+ *
+ * @param int|null $user_id User ID, defaults to current user.
+ *
+ * @return bool
+ */
+function wepos_is_dokan_vendor_staff( $user_id = null ) {
+    if ( ! wepos_is_dokan_active() ) {
+        return false;
+    }
+
+    $user_id = $user_id ?: get_current_user_id();
+
+    return user_can( $user_id, 'vendor_staff' );
+}
+
+/**
+ * Get the vendor ID for a user.
+ *
+ * - If the user is a vendor, returns their own user ID.
+ * - If the user is vendor staff, returns the parent vendor's user ID.
+ * - Otherwise returns 0 (admin or non-vendor).
+ *
+ * @since 1.4.0
+ *
+ * @param int|null $user_id User ID, defaults to current user.
+ *
+ * @return int Vendor user ID, or 0 if not a vendor context.
+ */
+function wepos_get_vendor_id_for_user( $user_id = null ) {
+    if ( ! wepos_is_dokan_active() ) {
+        return 0;
+    }
+
+    $user_id = $user_id ?: get_current_user_id();
+
+    if ( wepos_is_dokan_vendor( $user_id ) ) {
+        return $user_id;
+    }
+
+    if ( wepos_is_dokan_vendor_staff( $user_id ) ) {
+        return absint( get_user_meta( $user_id, '_vendor_id', true ) );
+    }
+
+    return 0;
+}

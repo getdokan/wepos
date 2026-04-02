@@ -55,6 +55,11 @@ interface WeposAdminData {
 			};
 		}
 	>;
+	// Dokan vendor context (present when Dokan is active)
+	is_dokan_active?: boolean;
+	is_vendor?: boolean;
+	vendor_id?: number;
+	is_vendor_staff?: boolean;
 }
 
 declare global {
@@ -353,12 +358,16 @@ function buildSchema(
 	const standardSubpages = convertFlatToHierarchical( flatElements );
 	rootPage.children!.push( ...standardSubpages );
 
-	// Get access schema (already hierarchical)
-	const accessPriority =
-		( sections.findIndex( ( s ) => s.id === 'wepos_access' ) + 1 ) * 10 ||
-		( sections.length + 1 ) * 10;
-	const accessSubpages = buildAccessSchema( accessData, accessPriority );
-	rootPage.children!.push( ...accessSubpages );
+	// Get access schema (already hierarchical) — hidden for Dokan vendors.
+	const isVendor = window.weposAdmin?.is_vendor === true;
+
+	if ( ! isVendor ) {
+		const accessPriority =
+			( sections.findIndex( ( s ) => s.id === 'wepos_access' ) + 1 ) * 10 ||
+			( sections.length + 1 ) * 10;
+		const accessSubpages = buildAccessSchema( accessData, accessPriority );
+		rootPage.children!.push( ...accessSubpages );
+	}
 
 	return [ rootPage ];
 }
