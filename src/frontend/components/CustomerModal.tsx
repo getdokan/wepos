@@ -2,10 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { __ } from '@wordpress/i18n';
 import { LoaderCircle } from 'lucide-react';
 import {
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
   Button,
   Input,
   Combobox,
@@ -276,22 +277,16 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <Modal
-      open={isOpen}
-      onClose={handleClose}
-      showCloseButton={true}
-      closeOnOverlayClick={false}
-      closeOnEscape={true}
-      className="wepos-customer-modal max-w-175 p-0!"
-    >
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()} dismissible={false}>
+    <DialogContent className="wepos-customer-modal max-w-175 p-0!">
       {/* Header */}
-      <ModalHeader className="px-6 py-5">
-        <ModalTitle className="text-lg font-bold text-foreground">
+      <DialogHeader className="border-b border-border px-6 py-5">
+        <DialogTitle className="text-lg font-bold text-foreground">
           {isEditMode
             ? __('Edit Customer', 'wepos')
             : __('Add New Customer', 'wepos')}
-        </ModalTitle>
-      </ModalHeader>
+        </DialogTitle>
+      </DialogHeader>
 
       <Separator />
 
@@ -427,7 +422,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
       </div>
 
       {/* Footer */}
-      <ModalFooter className="flex justify-end px-6 py-4">
+      <DialogFooter className="border-t border-border flex justify-end px-6 py-4">
         <Button
           onClick={handleSaveCustomer}
           disabled={!isFormValid || isLoading}
@@ -438,8 +433,9 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
             ? __('Update Customer', 'wepos')
             : __('Add Customer', 'wepos')}
         </Button>
-      </ModalFooter>
-    </Modal>
+      </DialogFooter>
+    </DialogContent>
+    </Dialog>
   );
 };
 

@@ -2,10 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useSelect } from '@wordpress/data';
 import {
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
   Button,
   Input,
   Label,
@@ -125,19 +126,13 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <Modal
-      open={isOpen}
-      onClose={handleClose}
-      showCloseButton={true}
-      closeOnOverlayClick={false}
-      closeOnEscape={true}
-      className="max-w-160 p-0!"
-    >
-      <ModalHeader className="px-6 py-5">
-        <ModalTitle className="text-lg font-bold text-foreground">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()} dismissible={false}>
+    <DialogContent className="max-w-160 p-0!">
+      <DialogHeader className="border-b border-border px-6 py-5">
+        <DialogTitle className="text-lg font-bold text-foreground">
           {__('Order Meta', 'wepos')}
-        </ModalTitle>
-      </ModalHeader>
+        </DialogTitle>
+      </DialogHeader>
 
       <Separator />
 
@@ -265,15 +260,16 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
         </div>
       </div>
 
-      <ModalFooter className="flex justify-end gap-2 px-6 py-4">
+      <DialogFooter className="border-t border-border flex justify-end gap-2 px-6 py-4">
         <Button variant="outline" onClick={handleClose}>
           {__('Cancel', 'wepos')}
         </Button>
         <Button onClick={handleSave}>
           {__('Save', 'wepos')}
         </Button>
-      </ModalFooter>
-    </Modal>
+      </DialogFooter>
+    </DialogContent>
+    </Dialog>
   );
 };
 

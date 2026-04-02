@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import {
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
   Button,
   Switch,
   Separator,
@@ -38,16 +39,11 @@ const CartSettingsModal: React.FC<CartSettingsModalProps> = ({
   };
 
   return (
-    <Modal
-      open={isOpen}
-      onClose={onClose}
-      showCloseButton={true}
-      closeOnOverlayClick={true}
-      closeOnEscape={true}
-    >
-      <ModalHeader>
-        <ModalTitle>{__('Cart Settings', 'wepos')}</ModalTitle>
-      </ModalHeader>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <DialogContent className="p-0">
+      <DialogHeader className="border-b border-border py-4 px-8">
+        <DialogTitle>{__('Cart Settings', 'wepos')}</DialogTitle>
+      </DialogHeader>
 
       <div className="max-h-[70vh] overflow-y-auto">
         <div className="space-y-5 p-6">
@@ -140,15 +136,16 @@ const CartSettingsModal: React.FC<CartSettingsModalProps> = ({
         </div>
       </div>
 
-      <ModalFooter>
+      <DialogFooter className="border-t border-border py-5 px-8">
         <Button variant="outline" onClick={onClose}>
           {__('Close', 'wepos')}
         </Button>
         <Button variant="destructive" onClick={onRestoreDefaults}>
           {__('Restore Default Settings', 'wepos')}
         </Button>
-      </ModalFooter>
-    </Modal>
+      </DialogFooter>
+    </DialogContent>
+    </Dialog>
   );
 };
 

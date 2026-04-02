@@ -4,10 +4,11 @@ import { Search, ScanBarcode, ArrowUpDown, CornerDownLeft } from 'lucide-react';
 import {
   Input,
   Button,
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
 } from '@wedevs/plugin-ui';
 import { POSProduct } from '../types';
 import { formatPrice } from '../utils/helpers';
@@ -370,14 +371,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
       )}
 
       {/* Variation selection modal */}
-      <Modal
-        open={showVariationModal}
-        onClose={() => setShowVariationModal(false)}
-        size="sm"
-      >
-        <ModalHeader>
-          <ModalTitle>{__('Select Variations', 'wepos')}</ModalTitle>
-        </ModalHeader>
+      <Dialog open={showVariationModal} onOpenChange={(open) => !open && setShowVariationModal(false)}>
+      <DialogContent className="max-w-sm p-0">
+        <DialogHeader className="border-b border-border py-4 px-8">
+          <DialogTitle>{__('Select Variations', 'wepos')}</DialogTitle>
+        </DialogHeader>
         <div className="p-5">
           {selectedVariationProduct?.attributes?.filter(attr => attr.variation)?.map((attribute) => (
             <div key={attribute.name} className="mb-4">
@@ -410,15 +408,16 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
             </div>
           ))}
         </div>
-        <ModalFooter>
+        <DialogFooter className="border-t border-border py-5 px-8">
           <Button
             disabled={attributeDisabled}
             onClick={addVariationProduct}
           >
             {__('Add Product', 'wepos')}
           </Button>
-        </ModalFooter>
-      </Modal>
+        </DialogFooter>
+      </DialogContent>
+      </Dialog>
     </div>
   );
 };

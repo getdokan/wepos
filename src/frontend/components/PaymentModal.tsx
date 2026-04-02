@@ -8,8 +8,9 @@ import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
 import { applyFilters } from '../hooks/useExtensions';
 import {
-  Modal,
-  ModalFooter,
+  Dialog,
+  DialogContent,
+  DialogFooter,
   Button,
   Separator,
   InputGroup,
@@ -130,15 +131,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   if (!show) return null;
 
   return (
-    <Modal
-      open={show}
-      onClose={onBackToSale}
-      showCloseButton={true}
-      closeOnOverlayClick={false}
-      closeOnEscape={true}
-      className="wepos-payment-modal !p-0"
-      size="full"
-    >
+    <Dialog open={show} onOpenChange={(open) => !open && onBackToSale()} dismissible={false}>
+    <DialogContent className="wepos-payment-modal max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)] !p-0">
       <div className="flex h-[calc(100vh-2rem)] flex-col">
         {/* Main content area */}
         <div className="flex min-h-0 flex-1">
@@ -361,7 +355,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         </div>
 
         {/* Full-width Footer */}
-        <ModalFooter className="shrink-0 justify-between px-12">
+        <DialogFooter className="border-t border-border py-5 shrink-0 justify-between px-12">
           <Button
             variant="outline"
             onClick={onBackToSale}
@@ -376,9 +370,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           >
             {__('Process Payment', 'wepos')}
           </Button>
-        </ModalFooter>
+        </DialogFooter>
       </div>
-    </Modal>
+    </DialogContent>
+    </Dialog>
   );
 };
 

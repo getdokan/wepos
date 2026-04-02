@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import {
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
   Button,
   Input,
   Label,
@@ -75,19 +76,13 @@ const AddFeeModal: React.FC<AddFeeModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <Modal
-      open={isOpen}
-      onClose={handleClose}
-      showCloseButton={true}
-      closeOnOverlayClick={false}
-      closeOnEscape={true}
-      className="max-w-135 p-0!"
-    >
-      <ModalHeader className="px-6 py-5">
-        <ModalTitle className="text-lg font-bold text-foreground">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()} dismissible={false}>
+    <DialogContent className="max-w-135 p-0!">
+      <DialogHeader className="border-b border-border px-6 py-5">
+        <DialogTitle className="text-lg font-bold text-foreground">
           {__('Add Fee', 'wepos')}
-        </ModalTitle>
-      </ModalHeader>
+        </DialogTitle>
+      </DialogHeader>
 
       <Separator />
 
@@ -182,15 +177,16 @@ const AddFeeModal: React.FC<AddFeeModalProps> = ({
         </div>
       </div>
 
-      <ModalFooter className="flex justify-end gap-2 px-6 py-4">
+      <DialogFooter className="border-t border-border flex justify-end gap-2 px-6 py-4">
         <Button variant="outline" onClick={handleClose}>
           {__('Cancel', 'wepos')}
         </Button>
         <Button onClick={handleSubmit}>
           {__('Add Fee', 'wepos')}
         </Button>
-      </ModalFooter>
-    </Modal>
+      </DialogFooter>
+    </DialogContent>
+    </Dialog>
   );
 };
 
