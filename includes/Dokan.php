@@ -31,8 +31,9 @@ class Dokan {
         add_filter( 'wepos_localize_data', [ $this, 'add_vendor_context' ] );
         add_filter( 'wepos_admin_react_localize_data', [ $this, 'add_vendor_context' ] );
 
-        // Grant vendor staff POS capabilities when their parent vendor is enabled.
-        add_action( 'dokan_new_seller_created', [ $this, 'grant_vendor_staff_caps' ], 20, 2 );
+        // Grant POS capabilities to vendor staff when they are created or role changes.
+        add_action( 'dokan_new_staff_created', [ $this, 'grant_staff_pos_caps' ] );
+        add_action( 'set_user_role', [ $this, 'maybe_grant_pos_caps_on_role_change' ], 10, 3 );
 
         // Dequeue Dokan styles on wePos admin pages to prevent CSS conflicts.
         add_action( 'admin_enqueue_scripts', [ $this, 'dequeue_dokan_styles_on_wepos_pages' ], 99 );
@@ -191,9 +192,10 @@ class Dokan {
      */
     public function add_vendor_context( $data ) {
         $data['is_dokan_active']  = true;
-        $data['is_vendor']        = wepos_is_dokan_vendor();
+        $data['is_vendor']        = wepos_is_dokan_vendor() && ! current_user_can( 'manage_woocommerce' );
         $data['vendor_id']        = wepos_get_vendor_id_for_user();
         $data['is_vendor_staff']  = wepos_is_dokan_vendor_staff();
+        $data['is_admin_user']    = current_user_can( 'manage_woocommerce' );
 
         return $data;
     }
@@ -212,10 +214,72 @@ class Dokan {
      *
      * @return void
      */
-    public function grant_vendor_staff_caps( $user_id, $dokan_settings ) {
-        // This hook fires for new vendors, not staff directly.
-        // Staff caps are granted when staff are created via Dokan's vendor-staff module.
-        // We hook into user role changes to grant POS caps to vendor_staff users.
+    /**
+     * Grant POS capabilities to a newly created vendor staff member.
+     *
+     * Fired by Dokan Pro's vendor-staff module when a new staff is created.
+     *
+     * @since 1.4.0
+     *
+     * @param int $user_id Staff user ID.
+     *
+     * @return void
+     */
+    public function grant_staff_pos_caps( $user_id ) {
+        $this->add_pos_caps_to_user( $user_id );
+    }
+
+    /**
+     * Grant POS capabilities when a user's role changes to vendor_staff.
+     *
+     * @since 1.4.0
+     *
+     * @param int    $user_id   User ID.
+     * @param string $new_role  New role slug.
+     * @param array  $old_roles Previous roles.
+     *
+     * @return void
+     */
+    public function maybe_grant_pos_caps_on_role_change( $user_id, $new_role, $old_roles ) {
+        if ( 'vendor_staff' === $new_role ) {
+            $this->add_pos_caps_to_user( $user_id );
+        }
+    }
+
+    /**
+     * Add POS-related capabilities to a user.
+     *
+     * Gives vendor staff the same order/product/user capabilities
+     * that cashiers need to operate the POS frontend.
+     *
+     * @since 1.4.0
+     *
+     * @param int $user_id User ID.
+     *
+     * @return void
+     */
+    private function add_pos_caps_to_user( $user_id ) {
+        $user = get_user_by( 'id', $user_id );
+
+        if ( ! $user ) {
+            return;
+        }
+
+        $caps = [
+            'publish_shop_orders',
+            'edit_shop_orders',
+            'edit_others_shop_orders',
+            'read_private_shop_orders',
+            'read_private_products',
+            'list_users',
+            'create_customers',
+            'manage_product_terms',
+            'read_private_shop_coupons',
+        ];
+
+        foreach ( $caps as $cap ) {
+            $user->add_cap( $cap );
+        }
     }
 
     /**
