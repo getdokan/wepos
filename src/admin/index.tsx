@@ -6,8 +6,11 @@ import * as PluginUI from '@wedevs/plugin-ui';
 import { ThemeProvider, Toaster, type ThemeTokens } from '@wedevs/plugin-ui';
 import { SlotFillProvider } from '@wordpress/components';
 import App from './App';
+import ShadowContainer from '../components/ShadowContainer';
 import { weposHooks } from '@react/hooks/useExtensions';
 import '../components/dokan';
+// CSS import kept so webpack extracts it to wepos-admin-react.css.
+// The stylesheet is loaded inside the Shadow DOM via <link>, not in <head>.
 import './styles/main.css';
 
 // Populate the pre-declared global objects (created by PHP inline script before
@@ -84,18 +87,23 @@ if ( ! container ) {
 } else {
 	weposHooks.doAction( 'wepos_react_admin_before_render' );
 
+	const cssUrls: string[] =
+		( window as any ).weposAdmin?.adminCssUrls || [];
+
 	const root = createRoot( container );
 
 	root.render(
 		<React.StrictMode>
-			<ThemeProvider pluginId="wepos-admin" tokens={ weposTokens }>
-				<SlotFillProvider>
-					<HashRouter>
-						<App />
-						<Toaster position="bottom-center" richColors />
-					</HashRouter>
-				</SlotFillProvider>
-			</ThemeProvider>
+			<ShadowContainer cssUrls={ cssUrls }>
+				<ThemeProvider pluginId="wepos-admin" tokens={ weposTokens }>
+					<SlotFillProvider>
+						<HashRouter>
+							<App />
+							<Toaster position="bottom-center" richColors />
+						</HashRouter>
+					</SlotFillProvider>
+				</ThemeProvider>
+			</ShadowContainer>
 		</React.StrictMode>
 	);
 }
