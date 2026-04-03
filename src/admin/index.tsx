@@ -7,6 +7,7 @@ import { ThemeProvider, Toaster, type ThemeTokens } from '@wedevs/plugin-ui';
 import { SlotFillProvider } from '@wordpress/components';
 import App from './App';
 import { weposHooks } from '@react/hooks/useExtensions';
+import '../components/dokan';
 import './styles/main.css';
 
 // Populate the pre-declared global objects (created by PHP inline script before
