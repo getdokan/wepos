@@ -147,11 +147,20 @@ class Dokan {
         $settings = wepos_get_option( 'show_pos_menu_dashboard', 'wepos_general', 'yes' );
 
         if ( 'yes' === $settings ) {
-            $url['wepos'] = [
-                'title' => __( 'View POS', 'wepos' ),
-                'icon'  => '<i class="fa fa-barcode" aria-hidden="true"></i>',
-                'url'   => untrailingslashit( get_site_url() ) . '/wepos/#',
-                'pos'   => 195,
+            $url['pos'] = [
+                'title'      => __( 'wePos', 'wepos' ),
+                'icon'       => '<i class="fas fa-cash-register"></i>',
+                'url'        => dokan_get_navigation_url( 'pos' ),
+                'pos'        => 55,
+                'permission' => 'dokandar',
+                'submenu'    => [
+                    'view-pos' => [
+                        'title' => __( 'View POS', 'wepos' ),
+                        'icon'  => '<i class="fas fa-desktop"></i>',
+                        'url'   => untrailingslashit( get_site_url() ) . '/wepos/#',
+                        'pos'   => 50,
+                    ],
+                ],
             ];
         }
 
