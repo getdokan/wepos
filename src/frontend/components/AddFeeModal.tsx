@@ -9,11 +9,7 @@ import {
   Button,
   Input,
   Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SmartSelect,
   Switch,
   Separator,
 } from '@wedevs/plugin-ui';
@@ -137,18 +133,13 @@ const AddFeeModal: React.FC<AddFeeModalProps> = ({
             <Label className="mb-2 block text-sm font-medium">
               {__('Tax Class', 'wepos')}
             </Label>
-            <Select value={taxClass || '_standard'} onValueChange={(val) => setTaxClass(!val || val === '_standard' ? '' : val)}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TAX_CLASSES.map((tc) => (
-                  <SelectItem key={tc.value || '_standard'} value={tc.value || '_standard'}>
-                    {tc.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SmartSelect
+              options={TAX_CLASSES.map((tc) => ({ value: tc.value || '_standard', label: tc.label }))}
+              value={taxClass || '_standard'}
+              onValueChange={(val) => setTaxClass(val === '_standard' ? '' : val)}
+              placeholder={__('Select Tax Class', 'wepos')}
+              disableSearch
+            />
           </div>
 
           <div>

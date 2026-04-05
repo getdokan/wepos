@@ -1,16 +1,7 @@
 import React, { useMemo } from 'react';
 import { __ } from '@wordpress/i18n';
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxList,
-  ComboboxItem,
-  ComboboxEmpty,
-  cn,
-} from '@wedevs/plugin-ui';
+import { SmartSelect, cn } from '@wedevs/plugin-ui';
 import { decodeHtmlEntities } from '../utils/helpers';
-import { RawHTML } from '@wordpress/element';
 
 interface TaxonomyItem {
   id: number;
@@ -34,62 +25,37 @@ const TaxonomyFilter: React.FC<TaxonomyFilterProps> = ({
   allLabel,
   emptyLabel,
 }) => {
-  const allOption = useMemo(() => ({ id: 'all', name: allLabel }), [allLabel]);
-
-  const comboboxItems = useMemo(
+  const options = useMemo(
     () => [
-      allOption,
-      ...items.map((item) => ({ id: item.id.toString(), name: item.name })),
+      { value: 'all', label: decodeHtmlEntities(allLabel) },
+      ...items.map((item) => ({ value: item.id.toString(), label: decodeHtmlEntities(item.name) })),
     ],
-    [items, allOption],
+    [items, allLabel],
   );
-
-  const selectedValue = useMemo(() => {
-    if (!selectedItem) return allOption;
-    return (
-      comboboxItems.find((item) => item.id === selectedItem.id.toString()) ||
-      allOption
-    );
-  }, [selectedItem, comboboxItems, allOption]);
 
   return (
     <div className="w-fit shrink-0">
-    <Combobox
-      items={comboboxItems}
-      value={selectedValue}
-      onValueChange={(val: any) => {
-        if (!val || val.id === 'all') {
-          onItemChange(null);
-        } else {
-          const original = items.find(
-            (item) => item.id.toString() === val.id,
-          );
-          onItemChange(original || null);
-        }
-      }}
-      itemToStringLabel={(item: any) => decodeHtmlEntities(item?.name || '')}
-      itemToStringValue={(item: any) => item?.id}
-    >
-      <ComboboxInput
+      <SmartSelect
+        options={options}
+        value={selectedItem ? selectedItem.id.toString() : 'all'}
+        onValueChange={(val) => {
+          if (val === 'all') {
+            onItemChange(null);
+          } else {
+            const original = items.find(
+              (item) => item.id.toString() === val,
+            );
+            onItemChange(original || null);
+          }
+        }}
         placeholder={placeholder}
+        emptyMessage={emptyLabel || __('No items found.', 'wepos')}
+        disableSearch
         className={cn(
           'h-[30px]! max-w-[130px] border-none! cursor-pointer text-sm!',
           selectedItem ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground',
         )}
       />
-      <ComboboxContent>
-        <ComboboxList>
-          {comboboxItems.map((item) => (
-            <ComboboxItem key={item.id} value={item}>
-              <RawHTML>{item.name}</RawHTML>
-            </ComboboxItem>
-          ))}
-        </ComboboxList>
-        <ComboboxEmpty>
-          {emptyLabel || __('No items found.', 'wepos')}
-        </ComboboxEmpty>
-      </ComboboxContent>
-    </Combobox>
     </div>
   );
 };

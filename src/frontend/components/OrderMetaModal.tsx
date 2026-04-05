@@ -10,12 +10,7 @@ import {
   Button,
   Input,
   Label,
-  Combobox,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxList,
-  ComboboxItem,
-  ComboboxEmpty,
+  SmartSelect,
   Separator,
 } from '@wedevs/plugin-ui';
 import { Minus, ChevronUp, ChevronDown } from 'lucide-react';
@@ -53,7 +48,6 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
   initialCurrency = '',
 }) => {
   const [currency, setCurrency] = useState(initialCurrency);
-  const [currencySearch, setCurrencySearch] = useState('');
   const [transactionId, setTransactionId] = useState('');
   const [metaItems, setMetaItems] = useState<POSOrderMetaItem[]>([]);
   const [metaExpanded, setMetaExpanded] = useState(true);
@@ -87,16 +81,10 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
     }
   }, [isOpen, initialMetaData, initialCurrency]);
 
-  const selectedCurrencyItem = useMemo(
-    () => currencies.find((c) => c.value === currency) || null,
-    [currencies, currency],
+  const currencyOptions = useMemo(
+    () => currencies.map((c) => ({ value: c.value, label: c.label })),
+    [currencies],
   );
-
-  const filteredCurrencies = useMemo(() => {
-    if (!currencySearch.trim()) return currencies;
-    const query = currencySearch.toLowerCase();
-    return currencies.filter((c) => c.label.toLowerCase().includes(query));
-  }, [currencies, currencySearch]);
 
   const handleAddRow = () => {
     setMetaItems([...metaItems, { key: '', value: '' }]);
@@ -142,33 +130,15 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
             <Label className="mb-2 block text-sm font-medium">
               {__('Currency', 'wepos')}
             </Label>
-            <Combobox
-              items={filteredCurrencies}
-              value={selectedCurrencyItem}
-              onValueChange={(val: any) => {
-                setCurrency(val?.value ?? '');
-                setCurrencySearch('');
-              }}
-              itemToStringLabel={(item: any) => item?.label}
-              itemToStringValue={(item: any) => item?.value}
-            >
-              <ComboboxInput
-                placeholder={__('Select currency', 'wepos')}
-                onInput={(e: React.FormEvent<HTMLInputElement>) =>
-                  setCurrencySearch((e.target as HTMLInputElement).value)
-                }
-              />
-              <ComboboxContent>
-                <ComboboxList>
-                  {filteredCurrencies.map((item) => (
-                    <ComboboxItem key={item.value} value={item}>
-                      {item.label}
-                    </ComboboxItem>
-                  ))}
-                </ComboboxList>
-                <ComboboxEmpty>{__('No currency found.', 'wepos')}</ComboboxEmpty>
-              </ComboboxContent>
-            </Combobox>
+            <SmartSelect
+              options={currencyOptions}
+              value={currency}
+              onValueChange={(val) => setCurrency(val)}
+              placeholder={__('Select currency', 'wepos')}
+              emptyMessage={__('No currency found.', 'wepos')}
+              showClear
+              className="w-full"
+            />
           </div>
           <div>
             <Label className="mb-2 block text-sm font-medium">

@@ -9,11 +9,7 @@ import {
   Button,
   Input,
   Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SmartSelect,
   Switch,
   Separator,
 } from '@wedevs/plugin-ui';
@@ -27,7 +23,6 @@ interface AddShippingModalProps {
 }
 
 const SHIPPING_METHODS = [
-  { value: '', label: 'Select Shipping Method' },
   { value: 'flat_rate', label: 'Flat rate' },
   { value: 'free_shipping', label: 'Free shipping' },
   { value: 'local_pickup', label: 'Local pickup' },
@@ -106,18 +101,13 @@ const AddShippingModal: React.FC<AddShippingModalProps> = ({
             <Label className="mb-2 block text-sm font-medium">
               {__('Shipping Method', 'wepos')}
             </Label>
-            <Select value={methodId || '_none'} onValueChange={(val) => setMethodId(!val || val === '_none' ? '' : val)}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SHIPPING_METHODS.map((m) => (
-                  <SelectItem key={m.value || '_none'} value={m.value || '_none'}>
-                    {m.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SmartSelect
+              options={SHIPPING_METHODS}
+              value={methodId}
+              onValueChange={(val) => setMethodId(val)}
+              placeholder={__('Select Shipping Method', 'wepos')}
+              disableSearch
+            />
           </div>
         </div>
 
@@ -150,18 +140,13 @@ const AddShippingModal: React.FC<AddShippingModalProps> = ({
             <Label className="mb-2 block text-sm font-medium">
               {__('Tax Class', 'wepos')}
             </Label>
-            <Select value={taxClass || '_standard'} onValueChange={(val) => setTaxClass(!val || val === '_standard' ? '' : val)}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TAX_CLASSES.map((tc) => (
-                  <SelectItem key={tc.value || '_standard'} value={tc.value || '_standard'}>
-                    {tc.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SmartSelect
+              options={TAX_CLASSES.map((tc) => ({ value: tc.value || '_standard', label: tc.label }))}
+              value={taxClass || '_standard'}
+              onValueChange={(val) => setTaxClass(val === '_standard' ? '' : val)}
+              placeholder={__('Select Tax Class', 'wepos')}
+              disableSearch
+            />
           </div>
 
           <div>
