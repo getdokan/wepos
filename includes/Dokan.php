@@ -149,7 +149,7 @@ class Dokan {
         if ( 'yes' === $settings ) {
             $url['pos'] = [
                 'title'      => __( 'wePos', 'wepos' ),
-                'icon'       => '<i class="fas fa-cash-register"></i>',
+                'icon'       => '<i class="fas fa-desktop"></i>',
                 'url'        => dokan_get_navigation_url( 'pos' ),
                 'pos'        => 55,
                 'permission' => 'dokandar',
