@@ -55,11 +55,13 @@ class Dokan {
             return true;
         }
 
-        // Cashiers with POS access can use POS API endpoints.
-        // Vendor-level data isolation is handled by scoping filters,
-        // not by blocking API access entirely.
+        // Cashiers with POS access can use POS API endpoints only if
+        // their parent vendor is enabled.
         if ( current_user_can( 'cashier' ) && current_user_can( 'access_wepos' ) ) {
-            return true;
+            $vendor_id = wepos_get_vendor_id_for_user();
+            if ( $vendor_id && dokan_is_seller_enabled( $vendor_id ) ) {
+                return true;
+            }
         }
 
         return $valid;
@@ -76,7 +78,11 @@ class Dokan {
         if ( dokan_is_user_seller( get_current_user_id() ) && dokan_is_seller_enabled( get_current_user_id() ) ) {
 	        return true;
         } else if ( current_user_can( 'cashier' ) && current_user_can( 'access_wepos' ) ) {
-            return true;
+            // Cashier can access POS only if their parent vendor is enabled.
+            $vendor_id = wepos_get_vendor_id_for_user();
+            if ( $vendor_id && dokan_is_seller_enabled( $vendor_id ) ) {
+                return true;
+            }
         } else if ( wepos_is_dokan_vendor_staff() ) {
             // Vendor staff can access POS if their parent vendor is enabled.
             $vendor_id = wepos_get_vendor_id_for_user();
@@ -108,7 +114,12 @@ class Dokan {
 
         if ( $vendor_id > 0 ) {
             $args['author'] = $vendor_id;
+
+            return $args;
         }
+
+        // Non-admin user with no vendor context should see no products.
+        $args['post__in'] = [ 0 ];
 
         return $args;
     }
