@@ -12,6 +12,15 @@ import {
   Loader2,
 } from 'lucide-react';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
   Button,
   ScrollArea,
   DropdownMenu,
@@ -38,7 +47,7 @@ import { useCartSettings } from '../hooks/useCartSettings';
 interface CartProps {
   onInitPayment: () => void;
   onSaveToServer?: () => void;
-  onVoidCart?: () => void;
+  onVoidCart?: () => void | Promise<void>;
   savingToServer?: boolean;
   voiding?: boolean;
   [name: string]: any;
@@ -156,6 +165,17 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     setMetaData,
     setOrderCurrency,
   } = useDispatch(CART_STORE_NAME) as any;
+
+  // Void confirmation dialog
+  const [showVoidConfirm, setShowVoidConfirm] = useState(false);
+  const handleVoidConfirm = async () => {
+    if (onVoidCart) {
+      await onVoidCart();
+    } else {
+      clearCart();
+    }
+    setShowVoidConfirm(false);
+  };
 
   const addQuantity = (item: POSCartItem, index: number) => {
     updateCartItem(index, { quantity: item.quantity + 1 });
@@ -772,15 +792,35 @@ const Cart = forwardRef<CartHandle, CartProps>(({
             </div>
 
             <div className="flex gap-2 p-2 w-full">
-              <Button
-                variant="destructive"
-                className="h-14 w-[30%] text-lg font-bold"
-                onClick={onVoidCart || clearCart}
-                disabled={voiding}
-              >
-                {voiding && <Loader2 className="mr-1 h-5 w-5 animate-spin" />}
-                {__('Void', 'wepos')}
-              </Button>
+              <AlertDialog open={showVoidConfirm} onOpenChange={setShowVoidConfirm}>
+                <AlertDialogTrigger
+                  render={
+                    <Button
+                      variant="destructive"
+                      className="h-14 w-[30%] text-lg font-bold"
+                      disabled={voiding}
+                    />
+                  }
+                >
+                  {voiding && <Loader2 className="mr-1 h-5 w-5 animate-spin" />}
+                  {__('Void', 'wepos')}
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{__('Void Cart', 'wepos')}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {__('Are you sure you want to void this cart? This action cannot be undone.', 'wepos')}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{__('Cancel', 'wepos')}</AlertDialogCancel>
+                    <AlertDialogAction variant="destructive" onClick={handleVoidConfirm} disabled={voiding}>
+                      {voiding && <Loader2 className="mr-1 h-5 w-5 animate-spin" />}
+                      {__('Void', 'wepos')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
               <Button
                 className="h-14 w-[70%] text-lg font-bold"
                 variant="success"
