@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { __ } from '@wordpress/i18n';
+import { X } from 'lucide-react';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -11,7 +13,6 @@ import {
   Label,
   SmartSelect,
   Switch,
-  Separator,
 } from '@wedevs/plugin-ui';
 import { RadioGroup, RadioGroupItem } from '@wedevs/plugin-ui';
 import { POSFeeLine } from '../types';
@@ -73,18 +74,19 @@ const AddFeeModal: React.FC<AddFeeModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()} dismissible={false}>
-    <DialogContent className="max-w-135 p-0!">
-      <DialogHeader className="border-b border-border px-6 py-5">
-        <DialogTitle className="text-lg font-bold text-foreground">
+    <DialogContent className="max-w-135 gap-0 p-0" showCloseButton={false}>
+      <DialogHeader className="border-b border-border px-6 py-4 flex-row items-center justify-between">
+        <DialogTitle className="text-lg font-semibold text-foreground">
           {__('Add Fee', 'wepos')}
         </DialogTitle>
+        <DialogClose render={<Button variant="ghost" size="icon-sm" />}>
+          <X className="h-4 w-4" />
+        </DialogClose>
       </DialogHeader>
 
-      <Separator />
-
-      <div className="space-y-5 px-6 py-6">
+      <div className="space-y-4 px-6 py-5">
         <div>
-          <Label className="mb-2 block text-sm font-medium">
+          <Label className="mb-1.5 block text-sm font-medium">
             {__('Fee Name', 'wepos')}
           </Label>
           <Input
@@ -95,7 +97,7 @@ const AddFeeModal: React.FC<AddFeeModalProps> = ({
         </div>
 
         <div>
-          <Label className="mb-2 block text-sm font-medium">
+          <Label className="mb-1.5 block text-sm font-medium">
             {__('Amount', 'wepos')}
           </Label>
           <Input
@@ -130,7 +132,7 @@ const AddFeeModal: React.FC<AddFeeModalProps> = ({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label className="mb-2 block text-sm font-medium">
+            <Label className="mb-1.5 block text-sm font-medium">
               {__('Tax Class', 'wepos')}
             </Label>
             <SmartSelect
@@ -143,7 +145,7 @@ const AddFeeModal: React.FC<AddFeeModalProps> = ({
           </div>
 
           <div>
-            <Label className="mb-2 block text-sm font-medium">
+            <Label className="mb-1.5 block text-sm font-medium">
               {__('Tax Status', 'wepos')}
             </Label>
             <RadioGroup
@@ -168,7 +170,7 @@ const AddFeeModal: React.FC<AddFeeModalProps> = ({
         </div>
       </div>
 
-      <DialogFooter className="border-t border-border flex justify-end gap-2 px-6 py-4">
+      <DialogFooter className="border-t border-border gap-2 px-6 py-4">
         <Button variant="outline" onClick={handleClose}>
           {__('Cancel', 'wepos')}
         </Button>

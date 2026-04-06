@@ -40,7 +40,7 @@ const CartSettingsModal: React.FC<CartSettingsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-    <DialogContent className="p-0">
+    <DialogContent className="gap-0 p-0">
       <DialogHeader className="border-b border-border py-4 px-8">
         <DialogTitle>{__('Cart Settings', 'wepos')}</DialogTitle>
       </DialogHeader>

@@ -6,7 +6,7 @@ import {
   X,
   ShoppingCart,
   Minus,
-  UserRound,
+  UserPlus,
   SlidersHorizontal,
   Truck,
   Loader2,
@@ -261,7 +261,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                   onClick={() => customerSearchRef.current?.openNewCustomer()}
                   title={__('Add New Customer', 'wepos')}
                 >
-                  <UserRound className="h-4 w-4" />
+                  <UserPlus className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="ghost"

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { __ } from '@wordpress/i18n';
+import { X } from 'lucide-react';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -11,7 +13,6 @@ import {
   Label,
   SmartSelect,
   Switch,
-  Separator,
 } from '@wedevs/plugin-ui';
 import { RadioGroup, RadioGroupItem } from '@wedevs/plugin-ui';
 import { POSShippingLine } from '../types';
@@ -76,19 +77,20 @@ const AddShippingModal: React.FC<AddShippingModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()} dismissible={false}>
-    <DialogContent className="max-w-150 p-0!">
-      <DialogHeader className="border-b border-border px-6 py-5">
-        <DialogTitle className="text-lg font-bold text-foreground">
+    <DialogContent className="max-w-150 gap-0 p-0" showCloseButton={false}>
+      <DialogHeader className="border-b border-border px-6 py-4 flex-row items-center justify-between">
+        <DialogTitle className="text-lg font-semibold text-foreground">
           {__('Add Shipping', 'wepos')}
         </DialogTitle>
+        <DialogClose render={<Button variant="ghost" size="icon-sm" />}>
+          <X className="h-4 w-4" />
+        </DialogClose>
       </DialogHeader>
 
-      <Separator />
-
-      <div className="space-y-5 px-6 py-6">
+      <div className="space-y-4 px-6 py-5">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label className="mb-2 block text-sm font-medium">
+            <Label className="mb-1.5 block text-sm font-medium">
               {__('Shipping Method Title', 'wepos')}
             </Label>
             <Input
@@ -98,7 +100,7 @@ const AddShippingModal: React.FC<AddShippingModalProps> = ({
             />
           </div>
           <div>
-            <Label className="mb-2 block text-sm font-medium">
+            <Label className="mb-1.5 block text-sm font-medium">
               {__('Shipping Method', 'wepos')}
             </Label>
             <SmartSelect
@@ -113,7 +115,7 @@ const AddShippingModal: React.FC<AddShippingModalProps> = ({
 
         <div className="grid grid-cols-2 items-end gap-4">
           <div>
-            <Label className="mb-2 block text-sm font-medium">
+            <Label className="mb-1.5 block text-sm font-medium">
               {__('Amount', 'wepos')}
             </Label>
             <Input
@@ -137,7 +139,7 @@ const AddShippingModal: React.FC<AddShippingModalProps> = ({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label className="mb-2 block text-sm font-medium">
+            <Label className="mb-1.5 block text-sm font-medium">
               {__('Tax Class', 'wepos')}
             </Label>
             <SmartSelect
@@ -150,7 +152,7 @@ const AddShippingModal: React.FC<AddShippingModalProps> = ({
           </div>
 
           <div>
-            <Label className="mb-2 block text-sm font-medium">
+            <Label className="mb-1.5 block text-sm font-medium">
               {__('Tax Status', 'wepos')}
             </Label>
             <RadioGroup
@@ -175,7 +177,7 @@ const AddShippingModal: React.FC<AddShippingModalProps> = ({
         </div>
       </div>
 
-      <DialogFooter className="border-t border-border flex justify-end gap-2 px-6 py-4">
+      <DialogFooter className="border-t border-border gap-2 px-6 py-4">
         <Button variant="outline" onClick={handleClose}>
           {__('Cancel', 'wepos')}
         </Button>

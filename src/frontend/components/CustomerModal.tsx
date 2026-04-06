@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { __ } from '@wordpress/i18n';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, X } from 'lucide-react';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -10,7 +11,6 @@ import {
   Button,
   Input,
   SmartSelect,
-  Separator,
 } from '@wedevs/plugin-ui';
 import { Customer, BillingAddress } from '../types';
 import { posAPI } from '../api';
@@ -234,22 +234,23 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()} dismissible={false}>
-    <DialogContent className="wepos-customer-modal max-w-175 p-0!">
+    <DialogContent className="wepos-customer-modal max-w-175 gap-0 p-0" showCloseButton={false}>
       {/* Header */}
-      <DialogHeader className="border-b border-border px-6 py-5">
-        <DialogTitle className="text-lg font-bold text-foreground">
+      <DialogHeader className="border-b border-border px-6 py-4 flex-row items-center justify-between">
+        <DialogTitle className="text-lg font-semibold text-foreground">
           {isEditMode
             ? __('Edit Customer', 'wepos')
             : __('Add New Customer', 'wepos')}
         </DialogTitle>
+        <DialogClose render={<Button variant="ghost" size="icon-sm" />}>
+          <X className="h-4 w-4" />
+        </DialogClose>
       </DialogHeader>
 
-      <Separator />
-
       {/* Form Body */}
-      <div className="space-y-5 px-6 py-6">
+      <div className="space-y-3 px-6 py-4">
         {/* First Name / Last Name */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <Input
             type="text"
             placeholder={__('First Name*', 'wepos')}
@@ -275,7 +276,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
         />
 
         {/* Address 1 / Address 2 */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <Input
             type="text"
             placeholder={__('Address 1', 'wepos')}
@@ -291,7 +292,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
         </div>
 
         {/* Country / State */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <SmartSelect
             options={countryOptions}
             value={selectedCountry}
@@ -323,7 +324,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
         </div>
 
         {/* City / Zip Code */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <Input
             type="text"
             placeholder={__('City (optional)', 'wepos')}
@@ -348,7 +349,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
       </div>
 
       {/* Footer */}
-      <DialogFooter className="border-t border-border flex justify-end px-6 py-4">
+      <DialogFooter className="border-t border-border px-6 py-3">
         <Button
           onClick={handleSaveCustomer}
           disabled={!isFormValid || isLoading}
