@@ -220,8 +220,17 @@ const ordersAPI = {
     if (options.orderby) params.append('orderby', options.orderby);
     if (options.order) params.append('order', options.order);
 
+    // Use wepos/v1/orders when pro is active for vendor-scoped POS order filtering.
+    // Falls back to wc/v3/orders for lite-only installs.
+    const isProActive = Boolean(
+      (window as any).__weposProSaveCartsEnabled,
+    );
+    const basePath = isProActive
+      ? `${API_BASE.WEPOS}/orders`
+      : `${API_BASE.WC}/orders`;
+
     const response = await apiFetch({
-      path: `${API_BASE.WC}/orders?${params.toString()}`,
+      path: `${basePath}?${params.toString()}`,
       method: 'GET',
     });
 
@@ -229,8 +238,15 @@ const ordersAPI = {
   },
 
   getOrder: async (id: number): Promise<Order> => {
+    const isProActive = Boolean(
+      (window as any).__weposProSaveCartsEnabled,
+    );
+    const basePath = isProActive
+      ? `${API_BASE.WEPOS}/orders`
+      : `${API_BASE.WC}/orders`;
+
     const response = await apiFetch({
-      path: `${API_BASE.WC}/orders/${id}`,
+      path: `${basePath}/${id}`,
       method: 'GET',
     });
 

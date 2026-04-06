@@ -272,6 +272,20 @@ class SettingController extends \WP_REST_Controller {
 			$settings = $this->merge_outlet_settings( $settings, $overrides );
 		}
 
+		/**
+		 * Filter settings before returning to the client.
+		 *
+		 * Extensions (e.g. wepos-pro Dokan) can use this to overlay
+		 * vendor-specific settings stored in user meta.
+		 *
+		 * @since 1.4.0
+		 *
+		 * @param array            $settings  Merged settings array.
+		 * @param int              $outlet_id Outlet ID (0 = global).
+		 * @param \WP_REST_Request $request   REST request.
+		 */
+		$settings = apply_filters( 'wepos_settings_for_user', $settings, $outlet_id, $request );
+
 		return rest_ensure_response( $settings );
 	}
 
@@ -295,12 +309,35 @@ class SettingController extends \WP_REST_Controller {
 		// Remove meta keys so they don't get saved as setting values
 		unset( $params['_outlet_id'], $params['_restore_currency'] );
 
-		if ( $restore_currency && $outlet_id ) {
-			$this->restore_outlet_currency_defaults( $outlet_id );
-		} elseif ( $outlet_id ) {
-			$this->save_outlet_settings( $outlet_id, $params );
-		} else {
-			$this->save_global_settings( $params );
+		/**
+		 * Allow extensions to intercept settings saves.
+		 *
+		 * Return a truthy value to signal the save was handled
+		 * (e.g. vendor settings saved to user meta). Return null
+		 * to let the default save logic run.
+		 *
+		 * @since 1.4.0
+		 *
+		 * @param mixed            $handled   null = not handled yet.
+		 * @param int              $outlet_id Outlet ID (0 = global).
+		 * @param array            $params    Settings data.
+		 * @param \WP_REST_Request $request   REST request.
+		 */
+		$handled = apply_filters( 'wepos_pre_save_settings', null, $outlet_id, $params, $request );
+
+		if ( is_wp_error( $handled ) ) {
+			return $handled;
+		}
+
+		if ( null === $handled ) {
+			// Default save logic — no extension intercepted.
+			if ( $restore_currency && $outlet_id ) {
+				$this->restore_outlet_currency_defaults( $outlet_id );
+			} elseif ( $outlet_id ) {
+				$this->save_outlet_settings( $outlet_id, $params );
+			} else {
+				$this->save_global_settings( $params );
+			}
 		}
 
 		// Return the merged settings for this outlet (or global if no outlet)

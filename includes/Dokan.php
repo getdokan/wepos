@@ -42,12 +42,23 @@ class Dokan {
     /**
      * Manager permissions
      *
+     * Grants wepos management access to Dokan vendors (dokandar)
+     * and cashiers that have an active vendor association (via
+     * POS session or _vendor_id meta).
+     *
      * @since 1.0.4
      *
-     * @return void
+     * @return bool
      */
     public function manager_permission( $valid ) {
         if ( current_user_can( 'dokandar' ) ) {
+            return true;
+        }
+
+        // Cashiers with POS access can use POS API endpoints.
+        // Vendor-level data isolation is handled by scoping filters,
+        // not by blocking API access entirely.
+        if ( current_user_can( 'cashier' ) && current_user_can( 'access_wepos' ) ) {
             return true;
         }
 
@@ -78,17 +89,25 @@ class Dokan {
     }
 
     /**
-     * Prepare object for product query
-     *
-     * filter by author
+     * Filter product queries so vendors, vendor staff, and cashiers
+     * only see the vendor's own products.
      *
      * @since 1.0.2
      *
-     * @return void
+     * @param array            $args    Product query args.
+     * @param \WP_REST_Request $request REST request.
+     *
+     * @return array
      */
     public function filter_vendor_products( $args, $request ) {
-        if ( ! current_user_can( 'manage_woocommerce' ) && dokan_is_user_seller( dokan_get_current_user_id() ) ) {
-            $args['author'] = dokan_get_current_user_id();
+        if ( current_user_can( 'manage_woocommerce' ) ) {
+            return $args;
+        }
+
+        $vendor_id = wepos_get_vendor_id_for_user();
+
+        if ( $vendor_id > 0 ) {
+            $args['author'] = $vendor_id;
         }
 
         return $args;
@@ -204,6 +223,7 @@ class Dokan {
         $data['is_vendor']        = wepos_is_dokan_vendor() && ! current_user_can( 'manage_woocommerce' );
         $data['vendor_id']        = wepos_get_vendor_id_for_user();
         $data['is_vendor_staff']  = wepos_is_dokan_vendor_staff();
+        $data['is_cashier']       = current_user_can( 'cashier' );
         $data['is_admin_user']    = current_user_can( 'manage_woocommerce' );
 
         return $data;

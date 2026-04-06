@@ -1222,9 +1222,11 @@ const HomePage: React.FC = () => {
             <div className="flex flex-col px-3 py-2 md:px-5 md:py-3">
               {/* Header: Outlet Name + User Info */}
               <div className="flex items-center justify-between gap-2">
-                <h1 className="min-w-0 truncate text-lg font-semibold md:text-xl">
-                  {(window as any).wepos?.outlet_name || __('POS', 'wepos')}
-                </h1>
+                {applyFilters<React.ReactNode>('wepos_pos_header_left', (
+                  <h1 className="min-w-0 truncate text-lg font-semibold md:text-xl">
+                    {__('POS', 'wepos')}
+                  </h1>
+                ))}
 
                 {window.wepos?.current_user && (
                   <DropdownMenu>

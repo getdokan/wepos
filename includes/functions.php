@@ -619,6 +619,8 @@ function wepos_is_dokan_vendor_staff( $user_id = null ) {
  *
  * - If the user is a vendor, returns their own user ID.
  * - If the user is vendor staff, returns the parent vendor's user ID.
+ * - Extensions can resolve vendor context via the wepos_resolve_vendor_id
+ *   filter (e.g. from a cashier's active POS session).
  * - Otherwise returns 0 (admin or non-vendor).
  *
  * @since 1.4.0
@@ -642,5 +644,7 @@ function wepos_get_vendor_id_for_user( $user_id = null ) {
         return absint( get_user_meta( $user_id, '_vendor_id', true ) );
     }
 
-    return 0;
+    // Allow extensions (e.g. wepos-pro) to resolve vendor context for
+    // other user types such as cashiers with an active POS session.
+    return absint( apply_filters( 'wepos_resolve_vendor_id', 0, $user_id ) );
 }
