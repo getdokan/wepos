@@ -1,4 +1,4 @@
-# WePos React Components
+# wePos React Components
 
 ## Customer Components Overview
 
@@ -223,4 +223,4 @@ Both components use `posAPI.customers` endpoints:
 
 ## Styling
 
-Component styles are defined in `src/frontend/styles/components.css` and follow the WePos design system with Tailwind CSS utility classes.
+Component styles are defined in `src/frontend/styles/components.css` and follow the wePos design system with Tailwind CSS utility classes.

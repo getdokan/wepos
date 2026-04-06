@@ -12,7 +12,7 @@ function wepos_footer() {
 }
 
 /**
- * Get translactions for WePos plugin
+ * Get translactions for wePos plugin
  *
  * @param string $domain
  * @param string $language_dir

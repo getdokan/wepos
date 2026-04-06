@@ -158,7 +158,7 @@ const weposDarkTokens: ThemeTokens = {
 };
 
 if (!container) {
-  console.error('WePos: React app container not found');
+  console.error('wePos: React app container not found');
 } else {
   // Fire action so pro/extension plugins can run setup before app renders
   weposHooks.doAction('wepos_react_before_render');

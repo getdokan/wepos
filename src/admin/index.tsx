@@ -83,7 +83,7 @@ const weposTokens: ThemeTokens = {
 };
 
 if ( ! container ) {
-	console.error( 'WePos: React admin app container not found' );
+	console.error( 'wePos: React admin app container not found' );
 } else {
 	weposHooks.doAction( 'wepos_react_admin_before_render' );
 
