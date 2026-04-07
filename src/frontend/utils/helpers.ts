@@ -1,51 +1,111 @@
 import { POSProduct } from '../types';
 
 /**
- * Format a price amount for display
+ * Apply thousand-grouping to an integer string based on the chosen style.
+ *
+ * - thousand: 123,456,789  (groups of 3)
+ * - lakh:     12,34,56,789 (last group of 3, then groups of 2)
+ * - wan:      1,2345,6789  (groups of 4)
+ */
+const applyThousandGrouping = ( integerPart: string, sep: string, style: string ): string => {
+    if ( ! sep ) {
+        return integerPart;
+    }
+
+    switch ( style ) {
+        case 'lakh': {
+            if ( integerPart.length <= 3 ) return integerPart;
+            const last3 = integerPart.slice( -3 );
+            const rest = integerPart.slice( 0, -3 );
+            return rest.replace( /\B(?=(\d{2})+(?!\d))/g, sep ) + sep + last3;
+        }
+        case 'wan':
+            return integerPart.replace( /\B(?=(\d{4})+(?!\d))/g, sep );
+        default:
+            return integerPart.replace( /\B(?=(\d{3})+(?!\d))/g, sep );
+    }
+};
+
+/**
+ * Format a price amount for display.
+ *
+ * Uses nullish coalescing so that valid falsy values (0 precision,
+ * empty separator) are respected instead of silently replaced.
  */
 export const formatPrice = (
     price: number | string = '',
     currencySymbol = '',
-    precision = null,
+    precision: number | string | null = null,
     thousand = '',
     decimal = '',
     format = '',
     isAdmin = false
 ): string | number => {
-    if ( ! window.accounting ) {
-        console.warn( 'Woocommerce Accounting Library Not Found' );
-        return price;
-    }
-    const settings = isAdmin ? window?.weposAdmin || {} :  window?.wepos || {};
+    const settings = isAdmin ? window?.weposAdmin || {} : window?.wepos || {};
 
     if ( ! currencySymbol ) {
-        currencySymbol = settings?.currency_format_symbol
+        currencySymbol = settings?.currency_format_symbol ?? '$';
     }
 
-    if ( ! precision ) {
-        precision = settings?.currency_format_num_decimals
+    // Use explicit null/undefined check so that precision = 0 is respected.
+    if ( precision === null || precision === undefined ) {
+        precision = settings?.currency_format_num_decimals ?? 2;
     }
 
     if ( ! thousand ) {
-        thousand = settings?.currency_format_thousand_sep
+        thousand = settings?.currency_format_thousand_sep ?? ',';
     }
 
     if ( ! decimal ) {
-        decimal = settings?.currency_format_decimal_sep
+        decimal = settings?.currency_format_decimal_sep ?? '.';
     }
 
     if ( ! format ) {
-        format = settings?.currency_format
+        format = settings?.currency_format ?? '%s%v';
     }
 
-    return window.accounting.formatMoney(
-        price,
-        currencySymbol,
-        precision,
-        thousand,
-        decimal,
-        format
-    );
+    const groupStyle = settings?.currency_format_thousands_group_style ?? 'thousand';
+
+    // For non-standard grouping styles (lakh, wan), bypass accounting.js
+    // because it only supports groups of 3.
+    if ( groupStyle !== 'thousand' ) {
+        const num = typeof price === 'string' ? parseFloat( price ) : Number( price );
+        if ( isNaN( num ) ) return price;
+
+        const absNum = Math.abs( num );
+        const prec = typeof precision === 'string' ? parseInt( precision, 10 ) : precision;
+        const fixed = absNum.toFixed( prec || 0 );
+        const parts = fixed.split( '.' );
+        parts[ 0 ] = applyThousandGrouping( parts[ 0 ], thousand, groupStyle );
+        const formatted = parts.join( decimal );
+        const sign = num < 0 ? '-' : '';
+
+        return format.replace( '%s', currencySymbol ).replace( '%v', sign + formatted );
+    }
+
+    // Standard grouping — use accounting.js if available.
+    if ( window.accounting ) {
+        return window.accounting.formatMoney(
+            price,
+            currencySymbol,
+            precision,
+            thousand,
+            decimal,
+            format
+        );
+    }
+
+    // Fallback when accounting.js is not loaded.
+    const num = typeof price === 'string' ? parseFloat( price ) : Number( price );
+    if ( isNaN( num ) ) return price;
+    const prec = typeof precision === 'string' ? parseInt( precision, 10 ) : precision;
+    const absNum = Math.abs( num );
+    const fixed = absNum.toFixed( prec || 0 );
+    const parts = fixed.split( '.' );
+    parts[ 0 ] = parts[ 0 ].replace( /\B(?=(\d{3})+(?!\d))/g, thousand );
+    const formatted = parts.join( decimal );
+    const sign = num < 0 ? '-' : '';
+    return format.replace( '%s', currencySymbol ).replace( '%v', sign + formatted );
 };
 
 /**

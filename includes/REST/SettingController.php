@@ -163,6 +163,7 @@ class SettingController extends \WP_REST_Controller {
 			'price_decimal_sep'    => get_option( 'woocommerce_price_decimal_sep', '.' ),
 			'price_num_decimals'   => get_option( 'woocommerce_price_num_decimals', '2' ),
 			'price_thousand_sep'   => get_option( 'woocommerce_price_thousand_sep', ',' ),
+			'thousands_group_style' => get_option( 'wepos_thousands_group_style', 'thousand' ),
 			'locale'               => get_locale(),
 			'default_customer'     => get_option( 'wepos_default_customer', 0 ),
 			'default_customer_is_cashier' => get_option( 'wepos_default_customer_is_cashier', 'no' ),
@@ -417,6 +418,7 @@ class SettingController extends \WP_REST_Controller {
 				'price_decimal_sep' => 'woocommerce_price_decimal_sep',
 				'price_num_decimals' => 'woocommerce_price_num_decimals',
 				'price_thousand_sep' => 'woocommerce_price_thousand_sep',
+				'thousands_group_style' => 'wepos_thousands_group_style',
 			];
 
 			foreach ( $woo_general_map as $key => $option_name ) {
