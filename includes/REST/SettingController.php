@@ -45,6 +45,40 @@ class SettingController extends \WP_REST_Controller {
 		'thousands_group_style',
 	];
 
+	/**
+	 * Tax-related WooCommerce option defaults for restore.
+	 *
+	 * @var array
+	 */
+	private $tax_option_defaults = [
+		'woocommerce_calc_taxes'           => 'no',
+		'woocommerce_prices_include_tax'   => 'no',
+		'woocommerce_tax_based_on'         => 'shipping',
+		'woocommerce_shipping_tax_class'   => 'inherit',
+		'woocommerce_tax_round_at_subtotal' => 'no',
+		'woocommerce_tax_display_shop'     => 'excl',
+		'woocommerce_tax_display_cart'     => 'excl',
+		'woocommerce_tax_total_display'    => 'itemized',
+		'woocommerce_price_display_suffix' => '',
+	];
+
+	/**
+	 * Tax-related keys within woo_tax that can be restored to defaults.
+	 *
+	 * @var string[]
+	 */
+	private $tax_keys = [
+		'wc_tax_enabled',
+		'wc_prices_include_tax',
+		'wc_tax_based_on',
+		'wc_shipping_tax_class',
+		'wc_tax_round_at_subtotal',
+		'wc_tax_display_shop',
+		'wc_tax_display_cart',
+		'wc_tax_total_display',
+		'wc_price_display_suffix',
+	];
+
     /**
      * Register all routes related with settings
      *
@@ -306,9 +340,10 @@ class SettingController extends \WP_REST_Controller {
 		$params    = $request->get_json_params();
 		$outlet_id = isset( $params['_outlet_id'] ) ? absint( $params['_outlet_id'] ) : 0;
 		$restore_currency = ! empty( $params['_restore_currency'] );
+		$restore_tax      = ! empty( $params['_restore_tax'] );
 
 		// Remove meta keys so they don't get saved as setting values
-		unset( $params['_outlet_id'], $params['_restore_currency'] );
+		unset( $params['_outlet_id'], $params['_restore_currency'], $params['_restore_tax'] );
 
 		/**
 		 * Allow extensions to intercept settings saves.
@@ -334,6 +369,12 @@ class SettingController extends \WP_REST_Controller {
 			// Default save logic — no extension intercepted.
 			if ( $restore_currency && $outlet_id ) {
 				$this->restore_outlet_currency_defaults( $outlet_id );
+			} elseif ( $restore_tax ) {
+				if ( $outlet_id ) {
+					$this->restore_outlet_tax_defaults( $outlet_id );
+				} else {
+					$this->restore_global_tax_defaults();
+				}
 			} elseif ( $outlet_id ) {
 				$this->save_outlet_settings( $outlet_id, $params );
 			} else {
@@ -395,6 +436,56 @@ class SettingController extends \WP_REST_Controller {
 		} else {
 			update_option( $option_key, $existing );
 		}
+	}
+
+	/**
+	 * Remove tax-related keys from outlet-specific overrides,
+	 * restoring WooCommerce defaults for this outlet.
+	 *
+	 * @param int $outlet_id
+	 */
+	private function restore_outlet_tax_defaults( $outlet_id ) {
+		$option_key = "wepos_outlet_settings_{$outlet_id}";
+		$existing   = get_option( $option_key, [] );
+
+		if ( ! empty( $existing['woo_tax'] ) ) {
+			foreach ( $this->tax_keys as $key ) {
+				unset( $existing['woo_tax'][ $key ] );
+			}
+
+			if ( empty( $existing['woo_tax'] ) ) {
+				unset( $existing['woo_tax'] );
+			}
+		}
+
+		// Also restore enable_fee_tax in wepos_general
+		if ( ! empty( $existing['wepos_general'] ) ) {
+			unset( $existing['wepos_general']['enable_fee_tax'] );
+
+			if ( empty( $existing['wepos_general'] ) ) {
+				unset( $existing['wepos_general'] );
+			}
+		}
+
+		if ( empty( $existing ) ) {
+			delete_option( $option_key );
+		} else {
+			update_option( $option_key, $existing );
+		}
+	}
+
+	/**
+	 * Reset global WooCommerce tax options to their defaults.
+	 */
+	private function restore_global_tax_defaults() {
+		foreach ( $this->tax_option_defaults as $option_name => $default_value ) {
+			update_option( $option_name, $default_value );
+		}
+
+		// Reset enable_fee_tax to its default
+		$existing = get_option( 'wepos_general', [] );
+		$existing['enable_fee_tax'] = 'yes';
+		update_option( 'wepos_general', $existing );
 	}
 
 	/**
