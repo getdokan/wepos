@@ -1,8 +1,8 @@
-# WePos React Frontend
+# wePos React Frontend
 
 ## Overview
 
-This is the React.js frontend implementation of the WePos Point of Sale system, migrated from the original Vue.js version while maintaining exact functionality parity.
+This is the React.js frontend implementation of the wePos Point of Sale system, migrated from the original Vue.js version while maintaining exact functionality parity.
 
 ## Architecture
 
@@ -305,7 +305,7 @@ Full TypeScript support with interfaces for:
 - Console logs display WooCommerce order response data
 - Console logs show payment processing results and print data
 - Check browser network tab for detailed API error responses
-- Verify WePos REST API endpoints are accessible
+- Verify wePos REST API endpoints are accessible
 
 ## Payment Processing
 

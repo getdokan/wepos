@@ -6,11 +6,7 @@ import {
   PopoverContent,
   Button,
   PopoverClose,
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
+  SmartSelect,
 } from '@wedevs/plugin-ui';
 import { __ } from '@wordpress/i18n';
 import { POSProduct, ProductVariation, CartItem } from '../types';
@@ -127,21 +123,13 @@ export const ProductVariationSelector: React.FC<
                   <label className="mb-2 block text-sm font-medium text-foreground">
                     {attribute.name}:
                   </label>
-                  <Select
+                  <SmartSelect
+                    options={attribute.options.map((option) => ({ value: option, label: option }))}
                     value={selectedAttributes[attribute.name] ?? ''}
                     onValueChange={(value) => handleAttributeChange(attribute.name, value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={`Select ${attribute.name}...`} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {attribute.options.map((option) => (
-                        <SelectItem key={option} value={option}>
-                          {option}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    placeholder={`Select ${attribute.name}...`}
+                    disableSearch
+                  />
                 </div>
               ))}
 

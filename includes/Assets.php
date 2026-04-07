@@ -271,9 +271,9 @@ class Assets {
             'mon_decimal_point'            => wc_get_price_decimal_separator(),
             'currency_format_num_decimals' => wc_get_price_decimals(),
             'currency_format_symbol'       => get_woocommerce_currency_symbol(),
-            'currency_format_decimal_sep'  => esc_attr( wc_get_price_decimal_separator() ),
-            'currency_format_thousand_sep' => esc_attr( wc_get_price_thousand_separator() ),
-            'currency_format'              => esc_attr( str_replace( array( '%1$s', '%2$s' ), array( '%s', '%v' ), get_woocommerce_price_format() ) ), // For accounting JS
+            'currency_format_decimal_sep'  => wc_get_price_decimal_separator(),
+            'currency_format_thousand_sep' => wc_get_price_thousand_separator(),
+            'currency_format'              => str_replace( array( '%1$s', '%2$s' ), array( '%s', '%v' ), get_woocommerce_price_format() ), // For accounting JS
             'rounding_precision'           => wc_get_rounding_precision(),
             'admin_url'                    => get_admin_url(),
             'assets_url'                   => WEPOS_ASSETS,

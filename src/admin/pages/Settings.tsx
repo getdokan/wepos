@@ -55,6 +55,11 @@ interface WeposAdminData {
 			};
 		}
 	>;
+	// Dokan vendor context (present when Dokan is active)
+	is_dokan_active?: boolean;
+	is_vendor?: boolean;
+	vendor_id?: number;
+	is_vendor_staff?: boolean;
 }
 
 declare global {
@@ -116,6 +121,43 @@ const CAP_GROUPS: Array< { key: string; label: string } > = [
 	{ key: 'wp', label: __( 'WordPress', 'wepos' ) },
 	{ key: 'pages', label: __( 'WePOS Pages', 'wepos' ) },
 ];
+
+/**
+ * Human-readable labels for capabilities.
+ * The keys must match the raw capability slugs used in AccessController.
+ */
+const CAP_LABELS: Record< string, string > = {
+	// WePOS
+	access_wepos: __( 'Access WePOS', 'wepos' ),
+	manage_wepos: __( 'Manage WePOS', 'wepos' ),
+	wepos_view_all_outlets: __( 'View All Outlets', 'wepos' ),
+
+	// WooCommerce
+	create_customers: __( 'Create Customers', 'wepos' ),
+	read_private_products: __( 'Read Private Products', 'wepos' ),
+	edit_products: __( 'Edit Products', 'wepos' ),
+	edit_others_products: __( "Edit Others' Products", 'wepos' ),
+	edit_published_products: __( 'Edit Published Products', 'wepos' ),
+	read_private_shop_orders: __( 'Read Private Shop Orders', 'wepos' ),
+	publish_shop_orders: __( 'Publish Shop Orders', 'wepos' ),
+	edit_shop_orders: __( 'Edit Shop Orders', 'wepos' ),
+	edit_others_shop_orders: __( "Edit Others' Shop Orders", 'wepos' ),
+	edit_users: __( 'Edit Users', 'wepos' ),
+	list_users: __( 'List Users', 'wepos' ),
+	manage_product_terms: __( 'Manage Product Terms', 'wepos' ),
+	read_private_shop_coupons: __( 'Read Private Shop Coupons', 'wepos' ),
+
+	// WordPress
+	read: __( 'Read', 'wepos' ),
+
+	// WePOS Pages
+	wepos_page_settings: __( 'Settings Page', 'wepos' ),
+	wepos_page_view_pos: __( 'View POS Page', 'wepos' ),
+	wepos_page_dashboard: __( 'Dashboard Page', 'wepos' ),
+	wepos_page_outlets: __( 'Outlets Page', 'wepos' ),
+	wepos_page_receipts: __( 'Receipts Page', 'wepos' ),
+	wepos_page_license: __( 'License Page', 'wepos' ),
+};
 
 /* ─── Schema builders ─────────────────────────────────────────────────── */
 
@@ -277,7 +319,7 @@ function buildAccessSchema(
 						id: fieldKey,
 						type: 'field',
 						variant: 'switch',
-						label: cap,
+						label: CAP_LABELS[ cap ] || cap,
 						dependency_key: fieldKey,
 						value: isLockedForAdmin ? 'yes' : enabled ? 'yes' : 'no',
 						default: isLockedForAdmin ? 'yes' : enabled ? 'yes' : 'no',
@@ -353,12 +395,16 @@ function buildSchema(
 	const standardSubpages = convertFlatToHierarchical( flatElements );
 	rootPage.children!.push( ...standardSubpages );
 
-	// Get access schema (already hierarchical)
-	const accessPriority =
-		( sections.findIndex( ( s ) => s.id === 'wepos_access' ) + 1 ) * 10 ||
-		( sections.length + 1 ) * 10;
-	const accessSubpages = buildAccessSchema( accessData, accessPriority );
-	rootPage.children!.push( ...accessSubpages );
+	// Get access schema (already hierarchical) — hidden for Dokan vendors.
+	const isVendor = window.weposAdmin?.is_vendor === true;
+
+	if ( ! isVendor ) {
+		const accessPriority =
+			( sections.findIndex( ( s ) => s.id === 'wepos_access' ) + 1 ) * 10 ||
+			( sections.length + 1 ) * 10;
+		const accessSubpages = buildAccessSchema( accessData, accessPriority );
+		rootPage.children!.push( ...accessSubpages );
+	}
 
 	return [ rootPage ];
 }

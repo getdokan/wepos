@@ -104,16 +104,42 @@ class Dashboard {
             true
         );
 
-        $css_file = WEPOS_PATH . '/build/wepos-admin-react.css';
+        // CSS is loaded in TWO places:
+        // 1. Inside the Shadow DOM via <link> tags (main app isolation)
+        // 2. In <head> via wp_enqueue_style (fallback for portal containers
+        //    that escape to document.body — styles are scoped to .pui-root
+        //    so they don't affect WP admin elements).
+        $css_filename = is_rtl() ? 'wepos-admin-react-rtl.css' : 'wepos-admin-react.css';
+        $css_file     = WEPOS_PATH . '/build/' . $css_filename;
+        $admin_css_urls = [];
 
         if ( file_exists( $css_file ) ) {
             wp_enqueue_style(
                 'wepos-admin-react',
-                WEPOS_URL . '/build/wepos-admin-react.css',
+                WEPOS_URL . '/build/' . $css_filename,
                 [],
                 $version
             );
         }
+
+        if ( file_exists( $css_file ) ) {
+            $admin_css_urls[] = add_query_arg( 'ver', $version, WEPOS_URL . '/build/' . $css_filename );
+        }
+
+        /**
+         * Filter the CSS URLs injected into the admin Shadow DOM.
+         *
+         * Extensions can append their own stylesheet URLs so they are
+         * loaded inside the shadow root alongside the base admin CSS.
+         *
+         * @since 1.4.0
+         *
+         * @param string[] $admin_css_urls Array of CSS file URLs.
+         */
+        $admin_css_urls = apply_filters( 'wepos_admin_shadow_css_urls', $admin_css_urls );
+
+        // Sanitize all URLs before passing to JavaScript.
+        $admin_css_urls = array_values( array_map( 'esc_url', $admin_css_urls ) );
 
         // Enqueue accounting.js
         if ( function_exists( 'WC' ) ) {
@@ -143,6 +169,7 @@ class Dashboard {
         }
 
         $localize_data = apply_filters( 'wepos_admin_react_localize_data', [
+            'adminCssUrls'       => $admin_css_urls,
             'access_data'        => $access_data,
             'allowed_pages'      => wepos_get_user_allowed_pages(),
             'rest' => [

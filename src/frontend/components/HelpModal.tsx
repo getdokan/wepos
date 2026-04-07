@@ -1,6 +1,6 @@
 import React from 'react';
 import { __ } from '@wordpress/i18n';
-import { Modal, Separator } from '@wedevs/plugin-ui';
+import { Dialog, DialogContent } from '@wedevs/plugin-ui';
 
 interface HelpModalProps {
   show: boolean;
@@ -29,21 +29,13 @@ const HelpModal: React.FC<HelpModalProps> = ({ show, onClose }) => {
   if (!show) return null;
 
   return (
-    <Modal
-      open={show}
-      onClose={onClose}
-      showCloseButton={true}
-      closeOnOverlayClick={true}
-      closeOnEscape={true}
-      className="wepos-help-modal max-w-200 p-0!"
-    >
-      <div className="px-8 pt-6 pb-2">
+    <Dialog open={show} onOpenChange={(open) => !open && onClose()}>
+    <DialogContent className="wepos-help-modal max-w-200 gap-0 p-0">
+      <div className="border-b border-border px-8 py-4">
         <h2 className="text-muted-foreground text-2xl font-light">
           {__('Shortcut Keys', 'wepos')}
         </h2>
       </div>
-
-      <Separator />
 
       <div className="grid grid-cols-2 gap-x-12 gap-y-5 px-8 py-6">
         {shortcuts.map((item) => (
@@ -57,7 +49,8 @@ const HelpModal: React.FC<HelpModalProps> = ({ show, onClose }) => {
           </div>
         ))}
       </div>
-    </Modal>
+    </DialogContent>
+    </Dialog>
   );
 };
 

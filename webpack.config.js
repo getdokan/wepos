@@ -1,5 +1,5 @@
 /**
- * Merged Webpack configuration for WePos (React + Vue)
+ * Merged Webpack configuration for wePos (React + Vue)
  */
 const defaultConfig = require('@wordpress/scripts/config/webpack.config');
 const path = require('path');

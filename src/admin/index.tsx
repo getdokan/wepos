@@ -6,7 +6,11 @@ import * as PluginUI from '@wedevs/plugin-ui';
 import { ThemeProvider, Toaster, type ThemeTokens } from '@wedevs/plugin-ui';
 import { SlotFillProvider } from '@wordpress/components';
 import App from './App';
+import ShadowContainer from '../components/ShadowContainer';
 import { weposHooks } from '@react/hooks/useExtensions';
+import '../components/dokan';
+// CSS import kept so webpack extracts it to wepos-admin-react.css.
+// The stylesheet is loaded inside the Shadow DOM via <link>, not in <head>.
 import './styles/main.css';
 
 // Populate the pre-declared global objects (created by PHP inline script before
@@ -31,7 +35,8 @@ const weposTokens: ThemeTokens = {
 	mutedForeground: 'oklch(0.5560 0 0)',
 	accent: 'oklch(0.9700 0 0)',
 	accentForeground: 'oklch(.511 .262 276.966)',
-	destructive: 'oklch(0.5770 0.2450 27.3250)',
+	destructive: 'oklch(0.577 0.245 27.325)',
+	success: 'oklch(0.508 0.118 165.612)',
 	destructiveForeground: 'oklch(1 0 0)',
 	border: 'oklch(0.9220 0 0)',
 	input: 'oklch(0.9220 0 0)',
@@ -79,22 +84,27 @@ const weposTokens: ThemeTokens = {
 };
 
 if ( ! container ) {
-	console.error( 'WePos: React admin app container not found' );
+	console.error( 'wePos: React admin app container not found' );
 } else {
 	weposHooks.doAction( 'wepos_react_admin_before_render' );
+
+	const cssUrls: string[] =
+		( window as any ).weposAdmin?.adminCssUrls || [];
 
 	const root = createRoot( container );
 
 	root.render(
 		<React.StrictMode>
-			<ThemeProvider pluginId="wepos-admin" tokens={ weposTokens }>
-				<SlotFillProvider>
-					<HashRouter>
-						<App />
-						<Toaster position="bottom-center" richColors />
-					</HashRouter>
-				</SlotFillProvider>
-			</ThemeProvider>
+			<ShadowContainer cssUrls={ cssUrls }>
+				<ThemeProvider pluginId="wepos-admin" tokens={ weposTokens }>
+					<SlotFillProvider>
+						<HashRouter>
+							<App />
+							<Toaster position="bottom-center" richColors />
+						</HashRouter>
+					</SlotFillProvider>
+				</ThemeProvider>
+			</ShadowContainer>
 		</React.StrictMode>
 	);
 }

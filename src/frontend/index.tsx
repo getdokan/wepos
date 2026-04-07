@@ -37,9 +37,9 @@ const weposTokens: ThemeTokens = {
   mutedForeground: 'oklch(0.5560 0.0200 276.966)',
   accent: 'oklch(0.9700 0.0100 276.966)',
   accentForeground: 'oklch(0.5110 0.2620 276.966)',
-  destructive: 'oklch(0.5770 0.2450 27.3250)',
+  destructive: 'oklch(0.577 0.245 27.325)',
   destructiveForeground: 'oklch(1 0 0)',
-  success: 'oklch(0.6470 0.1780 145.0000)',
+  success: 'oklch(0.508 0.118 165.612)',
   successForeground: 'oklch(1.0000 0 0)',
   warning: 'oklch(0.7690 0.1880 70.0800)',
   warningForeground: 'oklch(0.2100 0.0340 32.0000)',
@@ -105,9 +105,9 @@ const weposDarkTokens: ThemeTokens = {
   mutedForeground: 'oklch(0.7080 0 0)',
   accent: 'oklch(0.3710 0.0300 276.966)',
   accentForeground: 'oklch(0.9850 0 0)',
-  destructive: 'oklch(0.7040 0.1910 22.2160)',
+  destructive: 'oklch(0.577 0.245 27.325)',
   destructiveForeground: 'oklch(0.9850 0 0)',
-  success: 'oklch(0.6470 0.1780 145.0000)',
+  success: 'oklch(0.508 0.118 165.612)',
   successForeground: 'oklch(1.0000 0 0)',
   warning: 'oklch(0.7690 0.1880 70.0800)',
   warningForeground: 'oklch(0.2100 0.0340 32.0000)',
@@ -158,7 +158,7 @@ const weposDarkTokens: ThemeTokens = {
 };
 
 if (!container) {
-  console.error('WePos: React app container not found');
+  console.error('wePos: React app container not found');
 } else {
   // Fire action so pro/extension plugins can run setup before app renders
   weposHooks.doAction('wepos_react_before_render');

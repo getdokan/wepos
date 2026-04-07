@@ -33,6 +33,11 @@ declare global {
       home_url: string;
       wp_date_format: string;
       wp_time_format: string;
+      // Dokan vendor context (present when Dokan is active)
+      is_dokan_active?: boolean;
+      is_vendor?: boolean;
+      vendor_id?: number;
+      is_vendor_staff?: boolean;
     };
   }
 }

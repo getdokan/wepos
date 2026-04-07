@@ -1,23 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useSelect } from '@wordpress/data';
+import { Minus, ChevronUp, ChevronDown, X } from 'lucide-react';
 import {
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalFooter,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
   Button,
   Input,
   Label,
-  Combobox,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxList,
-  ComboboxItem,
-  ComboboxEmpty,
-  Separator,
+  SmartSelect,
 } from '@wedevs/plugin-ui';
-import { Minus, ChevronUp, ChevronDown } from 'lucide-react';
 import { POSOrderMetaItem, POSSettings } from '../types';
 import { PRODUCTS_STORE_NAME } from '../store';
 
@@ -52,7 +48,6 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
   initialCurrency = '',
 }) => {
   const [currency, setCurrency] = useState(initialCurrency);
-  const [currencySearch, setCurrencySearch] = useState('');
   const [transactionId, setTransactionId] = useState('');
   const [metaItems, setMetaItems] = useState<POSOrderMetaItem[]>([]);
   const [metaExpanded, setMetaExpanded] = useState(true);
@@ -86,16 +81,10 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
     }
   }, [isOpen, initialMetaData, initialCurrency]);
 
-  const selectedCurrencyItem = useMemo(
-    () => currencies.find((c) => c.value === currency) || null,
-    [currencies, currency],
+  const currencyOptions = useMemo(
+    () => currencies.map((c) => ({ value: c.value, label: c.label })),
+    [currencies],
   );
-
-  const filteredCurrencies = useMemo(() => {
-    if (!currencySearch.trim()) return currencies;
-    const query = currencySearch.toLowerCase();
-    return currencies.filter((c) => c.label.toLowerCase().includes(query));
-  }, [currencies, currencySearch]);
 
   const handleAddRow = () => {
     setMetaItems([...metaItems, { key: '', value: '' }]);
@@ -125,58 +114,35 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <Modal
-      open={isOpen}
-      onClose={handleClose}
-      showCloseButton={true}
-      closeOnOverlayClick={false}
-      closeOnEscape={true}
-      className="max-w-160 p-0!"
-    >
-      <ModalHeader className="px-6 py-5">
-        <ModalTitle className="text-lg font-bold text-foreground">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()} dismissible={false}>
+    <DialogContent className="max-w-160 gap-0 p-0" showCloseButton={false}>
+      <DialogHeader className="border-b border-border px-6 py-4 flex-row items-center justify-between">
+        <DialogTitle className="text-lg font-semibold text-foreground">
           {__('Order Meta', 'wepos')}
-        </ModalTitle>
-      </ModalHeader>
+        </DialogTitle>
+        <DialogClose render={<Button variant="ghost" size="icon-sm" />}>
+          <X className="h-4 w-4" />
+        </DialogClose>
+      </DialogHeader>
 
-      <Separator />
-
-      <div className="space-y-4 px-6 py-6">
+      <div className="space-y-4 px-6 py-5">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label className="mb-2 block text-sm font-medium">
+            <Label className="mb-1.5 block text-sm font-medium">
               {__('Currency', 'wepos')}
             </Label>
-            <Combobox
-              items={filteredCurrencies}
-              value={selectedCurrencyItem}
-              onValueChange={(val: any) => {
-                setCurrency(val?.value ?? '');
-                setCurrencySearch('');
-              }}
-              itemToStringLabel={(item: any) => item?.label}
-              itemToStringValue={(item: any) => item?.value}
-            >
-              <ComboboxInput
-                placeholder={__('Select currency', 'wepos')}
-                onInput={(e: React.FormEvent<HTMLInputElement>) =>
-                  setCurrencySearch((e.target as HTMLInputElement).value)
-                }
-              />
-              <ComboboxContent>
-                <ComboboxList>
-                  {filteredCurrencies.map((item) => (
-                    <ComboboxItem key={item.value} value={item}>
-                      {item.label}
-                    </ComboboxItem>
-                  ))}
-                </ComboboxList>
-                <ComboboxEmpty>{__('No currency found.', 'wepos')}</ComboboxEmpty>
-              </ComboboxContent>
-            </Combobox>
+            <SmartSelect
+              options={currencyOptions}
+              value={currency}
+              onValueChange={(val) => setCurrency(val)}
+              placeholder={__('Select currency', 'wepos')}
+              emptyMessage={__('No currency found.', 'wepos')}
+              showClear
+              className="w-full"
+            />
           </div>
           <div>
-            <Label className="mb-2 block text-sm font-medium">
+            <Label className="mb-1.5 block text-sm font-medium">
               {__('Transaction ID', 'wepos')}
             </Label>
             <Input
@@ -265,15 +231,16 @@ const OrderMetaModal: React.FC<OrderMetaModalProps> = ({
         </div>
       </div>
 
-      <ModalFooter className="flex justify-end gap-2 px-6 py-4">
+      <DialogFooter className="border-t border-border gap-2 px-6 py-4">
         <Button variant="outline" onClick={handleClose}>
           {__('Cancel', 'wepos')}
         </Button>
         <Button onClick={handleSave}>
           {__('Save', 'wepos')}
         </Button>
-      </ModalFooter>
-    </Modal>
+      </DialogFooter>
+    </DialogContent>
+    </Dialog>
   );
 };
 

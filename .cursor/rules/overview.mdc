@@ -3,11 +3,11 @@ description:
 globs:
 alwaysApply: true
 ---
-# WePos - WooCommerce Point of Sale Plugin Rules
+# wePos - WooCommerce Point of Sale Plugin Rules
 
 ## 🏗️ Architecture Overview
 
-WePos is a **WordPress plugin** that extends WooCommerce with Point of Sale (POS) functionality. It combines:
+wePos is a **WordPress plugin** that extends WooCommerce with Point of Sale (POS) functionality. It combines:
 - **Backend PHP**: WordPress/WooCommerce integration using PSR-4 autoloading
 - **Frontend Vue.js SPA**: Modern JavaScript interface for POS operations
 - **REST API**: Custom endpoints extending WooCommerce REST API

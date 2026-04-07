@@ -1,4 +1,4 @@
-# WePos Vue.js to React Migration Plan
+# wePos Vue.js to React Migration Plan
 
 ## Overview
 Migrate the existing Vue.js 2.7 frontend POS application to React with TypeScript, using Tailwind CSS and WordPress core React components, while maintaining the ability to easily switch between implementations. **Focus on frontend POS first, admin migration later.**

@@ -151,6 +151,9 @@ export const usePOSData = () => {
         if (wg.price_thousand_sep !== undefined) {
           w.currency_format_thousand_sep = wg.price_thousand_sep;
         }
+        if (wg.thousands_group_style) {
+          w.currency_format_thousands_group_style = wg.thousands_group_style;
+        }
         if (wg.currency_pos) {
           const formatMap: Record<string, string> = {
             left: '%s%v',

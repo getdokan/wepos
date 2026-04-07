@@ -1,20 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { __ } from '@wordpress/i18n';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, X } from 'lucide-react';
 import {
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalFooter,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
   Button,
   Input,
-  Combobox,
-  ComboboxInput,
-  ComboboxContent,
-  ComboboxList,
-  ComboboxItem,
-  ComboboxEmpty,
-  Separator,
+  SmartSelect,
 } from '@wedevs/plugin-ui';
 import { Customer, BillingAddress } from '../types';
 import { posAPI } from '../api';
@@ -66,8 +62,6 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
 
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('');
-  const [countrySearch, setCountrySearch] = useState('');
-  const [stateSearch, setStateSearch] = useState('');
   const [availableStates, setAvailableStates] = useState<
     Array<{ value: string; label: string }>
   >([]);
@@ -76,8 +70,8 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
   const countries = (window as any).wepos?.countries || {};
   const states = (window as any).wepos?.states || {};
 
-  // Country items for Combobox
-  const countryItems = useMemo(
+  // Country options for SmartSelect
+  const countryOptions = useMemo(
     () =>
       Object.entries(countries).map(([code, name]) => ({
         value: code,
@@ -86,41 +80,10 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
     [countries],
   );
 
-  // Selected country item for Combobox
-  const selectedCountryItem = useMemo(
-    () => countryItems.find((item) => item.value === selectedCountry) || null,
-    [countryItems, selectedCountry],
-  );
-
-  // State items for Combobox
-  const stateItems = useMemo(
+  // State options for SmartSelect
+  const stateOptions = useMemo(
     () => availableStates.map((s) => ({ value: s.value, label: s.label })),
     [availableStates],
-  );
-
-  // Selected state item for Combobox
-  const selectedStateItem = useMemo(
-    () => stateItems.find((item) => item.value === customerForm.state) || null,
-    [stateItems, customerForm.state],
-  );
-
-  // Filtered items based on search
-  const filteredCountryItems = useMemo(
-    () => {
-      if (!countrySearch.trim()) return countryItems;
-      const query = countrySearch.toLowerCase();
-      return countryItems.filter((item) => item.label.toLowerCase().includes(query));
-    },
-    [countryItems, countrySearch],
-  );
-
-  const filteredStateItems = useMemo(
-    () => {
-      if (!stateSearch.trim()) return stateItems;
-      const query = stateSearch.toLowerCase();
-      return stateItems.filter((item) => item.label.toLowerCase().includes(query));
-    },
-    [stateItems, stateSearch],
   );
 
   // Load existing customer data when editing
@@ -165,18 +128,14 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
   };
 
   // Handle country selection
-  const handleCountryChange = (val: any) => {
-    const code = val?.value ?? '';
+  const handleCountryChange = (code: string) => {
     setSelectedCountry(code);
-    setCountrySearch('');
-    setStateSearch('');
     setCustomerForm((prev) => ({ ...prev, country: code, state: '' }));
   };
 
   // Handle state selection
-  const handleStateChange = (val: any) => {
-    setStateSearch('');
-    setCustomerForm((prev) => ({ ...prev, state: val?.value ?? '' }));
+  const handleStateChange = (val: string) => {
+    setCustomerForm((prev) => ({ ...prev, state: val }));
   };
 
   // Check if form is valid
@@ -263,8 +222,6 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
       phone: '',
     });
     setSelectedCountry('');
-    setCountrySearch('');
-    setStateSearch('');
   };
 
   // Handle modal close
@@ -276,29 +233,24 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <Modal
-      open={isOpen}
-      onClose={handleClose}
-      showCloseButton={true}
-      closeOnOverlayClick={false}
-      closeOnEscape={true}
-      className="wepos-customer-modal max-w-175 p-0!"
-    >
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()} dismissible={false}>
+    <DialogContent className="wepos-customer-modal max-w-175 gap-0 p-0" showCloseButton={false}>
       {/* Header */}
-      <ModalHeader className="px-6 py-5">
-        <ModalTitle className="text-lg font-bold text-foreground">
+      <DialogHeader className="border-b border-border px-6 py-4 flex-row items-center justify-between">
+        <DialogTitle className="text-lg font-semibold text-foreground">
           {isEditMode
             ? __('Edit Customer', 'wepos')
             : __('Add New Customer', 'wepos')}
-        </ModalTitle>
-      </ModalHeader>
-
-      <Separator />
+        </DialogTitle>
+        <DialogClose render={<Button variant="ghost" size="icon-sm" />}>
+          <X className="h-4 w-4" />
+        </DialogClose>
+      </DialogHeader>
 
       {/* Form Body */}
-      <div className="space-y-5 px-6 py-6">
+      <div className="space-y-3 px-6 py-4">
         {/* First Name / Last Name */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <Input
             type="text"
             placeholder={__('First Name*', 'wepos')}
@@ -324,7 +276,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
         />
 
         {/* Address 1 / Address 2 */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <Input
             type="text"
             placeholder={__('Address 1', 'wepos')}
@@ -340,57 +292,27 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
         </div>
 
         {/* Country / State */}
-        <div className="grid grid-cols-2 gap-4">
-          <Combobox
-            items={filteredCountryItems}
-            value={selectedCountryItem}
+        <div className="grid grid-cols-2 gap-3">
+          <SmartSelect
+            options={countryOptions}
+            value={selectedCountry}
             onValueChange={handleCountryChange}
-            itemToStringLabel={(item: any) => item?.label}
-            itemToStringValue={(item: any) => item?.value}
-          >
-            <ComboboxInput
-              placeholder={__('Select a country', 'wepos')}
-              onInput={(e: React.FormEvent<HTMLInputElement>) =>
-                setCountrySearch((e.target as HTMLInputElement).value)
-              }
-            />
-            <ComboboxContent>
-              <ComboboxList>
-                {filteredCountryItems.map((item) => (
-                  <ComboboxItem key={item.value} value={item}>
-                    {item.label}
-                  </ComboboxItem>
-                ))}
-              </ComboboxList>
-              <ComboboxEmpty>{__('No country found.', 'wepos')}</ComboboxEmpty>
-            </ComboboxContent>
-          </Combobox>
+            placeholder={__('Select a country', 'wepos')}
+            emptyMessage={__('No country found.', 'wepos')}
+            showClear
+            className="w-full"
+          />
 
           {availableStates.length > 0 ? (
-            <Combobox
-              items={filteredStateItems}
-              value={selectedStateItem}
+            <SmartSelect
+              options={stateOptions}
+              value={customerForm.state}
               onValueChange={handleStateChange}
-              itemToStringLabel={(item: any) => item?.label}
-              itemToStringValue={(item: any) => item?.value}
-            >
-              <ComboboxInput
-                placeholder={__('Select a state', 'wepos')}
-                onInput={(e: React.FormEvent<HTMLInputElement>) =>
-                  setStateSearch((e.target as HTMLInputElement).value)
-                }
-              />
-              <ComboboxContent>
-                <ComboboxList>
-                  {filteredStateItems.map((item) => (
-                    <ComboboxItem key={item.value} value={item}>
-                      {item.label}
-                    </ComboboxItem>
-                  ))}
-                </ComboboxList>
-                <ComboboxEmpty>{__('No state found.', 'wepos')}</ComboboxEmpty>
-              </ComboboxContent>
-            </Combobox>
+              placeholder={__('Select a state', 'wepos')}
+              emptyMessage={__('No state found.', 'wepos')}
+              showClear
+              className="w-full"
+            />
           ) : (
             <Input
               type="text"
@@ -402,7 +324,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
         </div>
 
         {/* City / Zip Code */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <Input
             type="text"
             placeholder={__('City (optional)', 'wepos')}
@@ -427,7 +349,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
       </div>
 
       {/* Footer */}
-      <ModalFooter className="flex justify-end px-6 py-4">
+      <DialogFooter className="border-t border-border px-6 py-3">
         <Button
           onClick={handleSaveCustomer}
           disabled={!isFormValid || isLoading}
@@ -438,8 +360,9 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
             ? __('Update Customer', 'wepos')
             : __('Add Customer', 'wepos')}
         </Button>
-      </ModalFooter>
-    </Modal>
+      </DialogFooter>
+    </DialogContent>
+    </Dialog>
   );
 };
 

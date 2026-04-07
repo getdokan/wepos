@@ -1,19 +1,17 @@
 import React, { useState } from 'react';
 import { __ } from '@wordpress/i18n';
+import { X } from 'lucide-react';
 import {
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalFooter,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
   Button,
   Input,
   Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Separator,
+  SmartSelect,
 } from '@wedevs/plugin-ui';
 import { RadioGroup, RadioGroupItem } from '@wedevs/plugin-ui';
 
@@ -73,25 +71,20 @@ const AddMiscProductModal: React.FC<AddMiscProductModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <Modal
-      open={isOpen}
-      onClose={handleClose}
-      showCloseButton={true}
-      closeOnOverlayClick={false}
-      closeOnEscape={true}
-      className="max-w-135 p-0!"
-    >
-      <ModalHeader className="px-6 py-5">
-        <ModalTitle className="text-lg font-bold text-foreground">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()} dismissible={false}>
+    <DialogContent className="max-w-135 gap-0 p-0" showCloseButton={false}>
+      <DialogHeader className="border-b border-border px-6 py-4 flex-row items-center justify-between">
+        <DialogTitle className="text-lg font-semibold text-foreground">
           {__('Add Miscellaneous Product', 'wepos')}
-        </ModalTitle>
-      </ModalHeader>
+        </DialogTitle>
+        <DialogClose render={<Button variant="ghost" size="icon-sm" />}>
+          <X className="h-4 w-4" />
+        </DialogClose>
+      </DialogHeader>
 
-      <Separator />
-
-      <div className="space-y-5 px-6 py-6">
+      <div className="space-y-4 px-6 py-5">
         <div>
-          <Label className="mb-2 block text-sm font-medium">
+          <Label className="mb-1.5 block text-sm font-medium">
             {__('Name', 'wepos')}
           </Label>
           <Input
@@ -102,7 +95,7 @@ const AddMiscProductModal: React.FC<AddMiscProductModalProps> = ({
         </div>
 
         <div>
-          <Label className="mb-2 block text-sm font-medium">
+          <Label className="mb-1.5 block text-sm font-medium">
             {__('SKU', 'wepos')}
           </Label>
           <Input
@@ -113,7 +106,7 @@ const AddMiscProductModal: React.FC<AddMiscProductModalProps> = ({
         </div>
 
         <div>
-          <Label className="mb-2 block text-sm font-medium">
+          <Label className="mb-1.5 block text-sm font-medium">
             {__('Price', 'wepos')}
           </Label>
           <Input
@@ -127,25 +120,20 @@ const AddMiscProductModal: React.FC<AddMiscProductModalProps> = ({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label className="mb-2 block text-sm font-medium">
+            <Label className="mb-1.5 block text-sm font-medium">
               {__('Tax Class', 'wepos')}
             </Label>
-            <Select value={taxClass} onValueChange={(val) => setTaxClass(val ?? '')}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TAX_CLASSES.map((tc) => (
-                  <SelectItem key={tc.value} value={tc.value || '_standard'}>
-                    {tc.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SmartSelect
+              options={TAX_CLASSES.map((tc) => ({ value: tc.value || '_standard', label: tc.label }))}
+              value={taxClass || '_standard'}
+              onValueChange={(val) => setTaxClass(val === '_standard' ? '' : val)}
+              placeholder={__('Select Tax Class', 'wepos')}
+              disableSearch
+            />
           </div>
 
           <div>
-            <Label className="mb-2 block text-sm font-medium">
+            <Label className="mb-1.5 block text-sm font-medium">
               {__('Tax Status', 'wepos')}
             </Label>
             <RadioGroup
@@ -170,15 +158,16 @@ const AddMiscProductModal: React.FC<AddMiscProductModalProps> = ({
         </div>
       </div>
 
-      <ModalFooter className="flex justify-end gap-2 px-6 py-4">
+      <DialogFooter className="border-t border-border gap-2 px-6 py-4">
         <Button variant="outline" onClick={handleClose}>
           {__('Cancel', 'wepos')}
         </Button>
         <Button onClick={handleSubmit}>
           {__('Add to Cart', 'wepos')}
         </Button>
-      </ModalFooter>
-    </Modal>
+      </DialogFooter>
+    </DialogContent>
+    </Dialog>
   );
 };
 
