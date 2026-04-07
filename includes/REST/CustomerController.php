@@ -283,6 +283,8 @@ class CustomerController extends \WC_REST_Customers_Controller {
             'billing_first_name',
             'billing_last_name',
             'billing_email',
+            'billing_phone',
+            'billing_company',
             'billing_address_1',
             'billing_address_2',
             'billing_city',
@@ -291,20 +293,21 @@ class CustomerController extends \WC_REST_Customers_Controller {
             'billing_country',
         );
 
-        if ( false === strpos( $query->query_from, 'wepos_um' ) ) {
-            $query->query_from .= " LEFT JOIN $wpdb->usermeta AS wepos_um ON ($wpdb->users.ID = wepos_um.user_id)";
-        }
-
-        $placeholders   = implode( ',', array_fill( 0, count( $meta_keys ), '%s' ) );
-        $prepare_values = array_merge( $meta_keys, array( $like ) );
+        $placeholders    = implode( ',', array_fill( 0, count( $meta_keys ), '%s' ) );
+        $prepare_values  = array_merge( $meta_keys, array( $like ) );
         $meta_search_sql = $wpdb->prepare(
-            "(wepos_um.meta_key IN ($placeholders) AND wepos_um.meta_value LIKE %s)",
+            "EXISTS (
+                SELECT 1 FROM $wpdb->usermeta AS wepos_um
+                WHERE wepos_um.user_id = $wpdb->users.ID
+                  AND wepos_um.meta_key IN ($placeholders)
+                  AND wepos_um.meta_value LIKE %s
+            )",
             $prepare_values
         );
 
-        $search = $query->query_vars['search'];
-        $leading_wild  = ( ltrim( $search, '*' ) !== $search );
-        $trailing_wild = ( rtrim( $search, '*' ) !== $search );
+        $raw_search    = $query->query_vars['search'];
+        $leading_wild  = ( ltrim( $raw_search, '*' ) !== $raw_search );
+        $trailing_wild = ( rtrim( $raw_search, '*' ) !== $raw_search );
         if ( $leading_wild && $trailing_wild ) {
             $wild = 'both';
         } elseif ( $leading_wild ) {
@@ -315,24 +318,20 @@ class CustomerController extends \WC_REST_Customers_Controller {
             $wild = false;
         }
         if ( $wild ) {
-            $search = trim( $search, '*' );
+            $raw_search = trim( $raw_search, '*' );
         }
 
         $search_columns = ! empty( $query->query_vars['search_columns'] )
             ? (array) $query->query_vars['search_columns']
             : array( 'user_login', 'user_email', 'user_nicename', 'display_name' );
 
-        $search_sql = $query->get_search_sql( $search, $search_columns, $wild );
+        $search_sql  = $query->get_search_sql( $raw_search, $search_columns, $wild );
         $replacement = substr( $search_sql, 0, -1 ) . ' OR ' . $meta_search_sql . ')';
 
         if ( false !== strpos( $query->query_where, $search_sql ) ) {
             $query->query_where = str_replace( $search_sql, $replacement, $query->query_where );
         } else {
             $query->query_where .= ' AND (' . $meta_search_sql . ')';
-        }
-
-        if ( false === stripos( $query->query_fields, 'DISTINCT' ) ) {
-            $query->query_fields = 'DISTINCT ' . $query->query_fields;
         }
     }
 }
