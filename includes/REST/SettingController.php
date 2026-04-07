@@ -367,8 +367,12 @@ class SettingController extends \WP_REST_Controller {
 
 		if ( null === $handled ) {
 			// Default save logic — no extension intercepted.
-			if ( $restore_currency && $outlet_id ) {
-				$this->restore_outlet_currency_defaults( $outlet_id );
+			if ( $restore_currency ) {
+				if ( $outlet_id ) {
+					$this->restore_outlet_currency_defaults( $outlet_id );
+				} else {
+					$this->restore_global_currency_defaults();
+				}
 			} elseif ( $restore_tax ) {
 				if ( $outlet_id ) {
 					$this->restore_outlet_tax_defaults( $outlet_id );
@@ -435,6 +439,24 @@ class SettingController extends \WP_REST_Controller {
 			delete_option( $option_key );
 		} else {
 			update_option( $option_key, $existing );
+		}
+	}
+
+	/**
+	 * Reset global WooCommerce currency/general options to their defaults.
+	 */
+	private function restore_global_currency_defaults() {
+		$defaults = [
+			'woocommerce_currency'          => 'USD',
+			'woocommerce_currency_pos'      => 'left',
+			'woocommerce_price_decimal_sep' => '.',
+			'woocommerce_price_num_decimals' => '2',
+			'woocommerce_price_thousand_sep' => ',',
+			'wepos_thousands_group_style'   => 'thousand',
+		];
+
+		foreach ( $defaults as $option_name => $default_value ) {
+			update_option( $option_name, $default_value );
 		}
 	}
 
