@@ -8,10 +8,11 @@ import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
 import { applyFilters } from '../hooks/useExtensions';
 import {
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
   Button,
   ScrollArea,
   Separator,
@@ -127,14 +128,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   if (!show) return null;
 
   return (
-    <Modal
-      open={show}
-      onClose={onBackToSale}
-      showCloseButton={false}
-      closeOnOverlayClick={false}
-      size="full"
-      className="wepos-payment-modal flex h-[85vh] w-[95vw] max-w-[1400px] flex-col overflow-hidden"
-    >
+    <Dialog open={show} onOpenChange={(open) => { if (!open) onBackToSale(); }}>
+      <DialogContent
+        showCloseButton={false}
+        className="wepos-payment-modal flex h-[85vh] w-[95vw] max-w-[1400px] flex-col overflow-hidden gap-0 p-0"
+      >
       {/* Processing Overlay */}
       {processing && (
         <div className="absolute inset-0 z-[60] flex items-center justify-center rounded-lg bg-background/70 backdrop-blur-sm">
@@ -151,11 +149,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         {/* Left Panel - Sale Summary */}
         <div className="flex w-full shrink-0 flex-col border-b border-border bg-muted/30 md:w-[340px] md:border-b-0 md:border-r">
-          <ModalHeader className="border-b border-border">
-            <ModalTitle>
+          <DialogHeader className="border-b border-border px-8 py-4">
+            <DialogTitle>
               {__('Sale Summary', 'wepos')}
-            </ModalTitle>
-          </ModalHeader>
+            </DialogTitle>
+          </DialogHeader>
 
           {/* Cart Items - Scrollable */}
           <ScrollArea className="min-h-0 max-h-[200px] flex-1 md:max-h-none">
@@ -355,7 +353,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       </div>
 
       {/* Footer */}
-      <ModalFooter className="shrink-0 justify-between">
+      <DialogFooter className="shrink-0 justify-between border-t border-border px-8 py-5">
         <Button
           variant="outline"
           onClick={onBackToSale}
@@ -370,8 +368,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           <CreditCard className="mr-2 h-4 w-4" />
           {__('Process Payment', 'wepos')}
         </Button>
-      </ModalFooter>
-    </Modal>
+      </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
