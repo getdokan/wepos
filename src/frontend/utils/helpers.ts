@@ -196,3 +196,33 @@ export const setToLocalStorage = <T>(key: string, value: T): void => {
     console.error(`Error saving to localStorage for key "${key}":`, error);
   }
 };
+
+/**
+ * Build a localStorage key scoped by the current user session.
+ *
+ * Base behavior: scopes by current_user_id only → `{baseKey}_c{userId}`.
+ * Extensions (e.g., wepos-pro) can hook into `wepos_session_scoped_key`
+ * via the global __weposReactHooks to add vendor/outlet scoping.
+ *
+ * - Non-pro (admin): baseKey_c{currentUserId}
+ * - No user:         baseKey (unchanged)
+ */
+export const getSessionScopedKey = (baseKey: string): string => {
+  try {
+    const userId = Number((window as any).wepos?.current_user_id) || 0;
+    if (!userId) return baseKey;
+
+    // Default: scope by current user only
+    let key = `${baseKey}_c${userId}`;
+
+    // Allow pro/extensions to further scope (e.g., by vendor/outlet/cashier)
+    const hooks = (window as any).__weposReactHooks;
+    if (hooks?.applyFilters) {
+      key = hooks.applyFilters('wepos_session_scoped_key', key, baseKey) as string;
+    }
+
+    return key;
+  } catch {
+    return baseKey;
+  }
+};

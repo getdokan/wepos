@@ -2,14 +2,14 @@ import { createReduxStore, register, subscribe, select } from '@wordpress/data';
 import { createReducer, initialState } from './reducer';
 import { actions } from './actions';
 import { selectors } from './selectors';
-import { getFromLocalStorage, setToLocalStorage } from '../../utils/helpers';
+import { getFromLocalStorage, setToLocalStorage, getSessionScopedKey } from '../../utils/helpers';
 import { CartState } from './types';
 
 export const CART_STORE_NAME = 'wepos/cart';
 
 // Load persisted cart state from localStorage (matching Vue's beforeunload/created behavior)
 const loadPersistedState = (): CartState => {
-  const stored = getFromLocalStorage<Partial<CartState>>('cartdata', {});
+  const stored = getFromLocalStorage<Partial<CartState>>(getSessionScopedKey('cartdata'), {});
 
   const state: CartState = {
     ...initialState,
@@ -68,7 +68,7 @@ subscribe(() => {
   const serialized = JSON.stringify(currentState);
   if (serialized !== lastSerializedState) {
     lastSerializedState = serialized;
-    setToLocalStorage('cartdata', currentState);
+    setToLocalStorage(getSessionScopedKey('cartdata'), currentState);
   }
 });
 
