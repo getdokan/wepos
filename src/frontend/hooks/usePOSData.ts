@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { posAPI } from '../api';
 import { POSCartData, POSOrderData } from '../types';
-import { getFromLocalStorage, setToLocalStorage } from '../utils/helpers';
+import { getFromLocalStorage, setToLocalStorage, getSessionScopedKey } from '../utils/helpers';
 import { PRODUCTS_STORE_NAME } from '../store/products';
 
 // Helper function to sanitize cart data
@@ -73,12 +73,12 @@ export const usePOSData = () => {
       shipping_lines: [],
       meta_data: [],
     };
-    const storedCartData = getFromLocalStorage('cartdata', defaultCartData);
+    const storedCartData = getFromLocalStorage(getSessionScopedKey('cartdata'), defaultCartData);
     return sanitizeCartData(storedCartData);
   });
 
   const [orderData, setOrderData] = useState<POSOrderData>(() =>
-    getFromLocalStorage('orderdata', {
+    getFromLocalStorage(getSessionScopedKey('orderdata'), {
       customer_id: 0,
       customer_note: '',
       payment_method: '',
@@ -234,11 +234,11 @@ export const usePOSData = () => {
 
   // ===== LOCALSTORAGE PERSISTENCE =====
   useEffect(() => {
-    setToLocalStorage('cartdata', cartData);
+    setToLocalStorage(getSessionScopedKey('cartdata'), cartData);
   }, [cartData]);
 
   useEffect(() => {
-    setToLocalStorage('orderdata', orderData);
+    setToLocalStorage(getSessionScopedKey('orderdata'), orderData);
   }, [orderData]);
 
   return {

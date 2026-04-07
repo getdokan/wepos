@@ -189,7 +189,7 @@ class Dashboard {
             'currency_format_num_decimals' => function_exists( 'wc_get_price_decimals' ) ? wc_get_price_decimals() : 2,
             'currency_format_thousand_sep' => function_exists( 'wc_get_thousand_separator' ) ? wc_get_thousand_separator() : ',',
             'currency_format_decimal_sep'  => function_exists( 'wc_get_decimal_separator' ) ? wc_get_decimal_separator() : '.',
-            'currency_format'              => function_exists( 'get_woocommerce_price_format' ) ? get_woocommerce_price_format() : '%s%v',
+            'currency_format'              => function_exists( 'get_woocommerce_price_format' ) ? str_replace( [ '%1$s', '%2$s' ], [ '%s', '%v' ], get_woocommerce_price_format() ) : '%s%v',
         ] );
 
         wp_localize_script( 'wepos-admin-react', 'weposAdmin', $localize_data );
