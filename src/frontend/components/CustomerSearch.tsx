@@ -1,15 +1,13 @@
-import React, { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { useState, useCallback, forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import { __, sprintf } from '@wordpress/i18n';
-import { CornerDownLeft, Pencil, User, X } from 'lucide-react';
+import { UserPen, User } from 'lucide-react';
 import {
-  Button,
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
+  SmartSelect,
+  type SmartSelectOption,
   Avatar,
   AvatarImage,
   AvatarFallback,
-  Spinner,
+  Button,
   toast,
 } from '@wedevs/plugin-ui';
 import { Customer } from '../types';
@@ -29,52 +27,39 @@ export interface CustomerSearchHandle {
   openNewCustomer: () => void;
 }
 
+const customerToOption = (customer: Customer): SmartSelectOption => ({
+  value: String(customer.id),
+  label: `${customer.first_name} ${customer.last_name}`.trim(),
+  description: customer.email,
+});
+
 const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
   selectedCustomer,
   onCustomerSelected,
-  onFocus,
-  onBlur,
-  className=''
+  className = ''
 }, ref) => {
-  // State management
-  const [searchValue, setSearchValue] = useState('');
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [showResults, setShowResults] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-
-  // Refs
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout>();
-  const listRef = useRef<HTMLDivElement>(null);
-  const selectedItemRef = useRef<HTMLLIElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
   useImperativeHandle(ref, () => ({
-    focus: () => searchInputRef.current?.focus(),
+    focus: () => {
+      // Programmatically click the SmartSelect trigger to open it
+      const trigger = triggerRef.current?.querySelector('[data-slot="smart-select-trigger"]') as HTMLButtonElement | null;
+      trigger?.click();
+    },
     openNewCustomer: () => {
       setEditingCustomer(null);
       setShowCustomerModal(true);
     },
   }));
 
-  // Update search value when customer is selected externally
-  useEffect(() => {
-    if (selectedCustomer) {
-      setSearchValue(
-        `${selectedCustomer.first_name} ${selectedCustomer.last_name}`,
-      );
-    } else {
-      setSearchValue('');
-    }
-  }, [selectedCustomer]);
-
-  // Search customers with debouncing
-  const searchCustomers = useCallback(async (query: string) => {
+  // Search handler for SmartSelect
+  const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) {
       setCustomers([]);
-      setShowResults(false);
       return;
     }
 
@@ -82,7 +67,6 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
     try {
       const results = await posAPI.customers.getCustomers(query);
       setCustomers(results);
-      setShowResults(true);
     } catch (error) {
       console.error('Error searching customers:', error);
       setCustomers([]);
@@ -91,106 +75,61 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
     }
   }, []);
 
-  // Handle keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!showResults || customers.length === 0) return;
+  // Build options - always use selectedCustomer's latest data for the selected entry
+  const options = useMemo(() => {
+    const selectedId = selectedCustomer?.id;
+    const opts: SmartSelectOption[] = customers
+      .filter(c => c.id !== selectedId)
+      .map(customerToOption);
 
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev < customers.length - 1 ? prev + 1 : 0,
-        );
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev > 0 ? prev - 1 : customers.length - 1,
-        );
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (selectedIndex >= 0 && selectedIndex < customers.length) {
-          handleCustomerSelect(customers[selectedIndex]);
-        }
-        break;
-      case 'Escape':
-        e.preventDefault();
-        setShowResults(false);
-        setSelectedIndex(-1);
-        break;
-    }
-  };
-
-  // Reset selected index when customers change
-  useEffect(() => {
-    setSelectedIndex(-1);
-  }, [customers]);
-
-  // Scroll selected item into view on keyboard navigation
-  useEffect(() => {
-    if (selectedItemRef.current && listRef.current) {
-      selectedItemRef.current.scrollIntoView({ block: 'nearest' });
-    }
-  }, [selectedIndex]);
-
-  // Handle search input change with debouncing
-  const handleSearchChange = (value: string) => {
-    setSearchValue(value);
-    setSelectedIndex(-1); // Reset selection on new search
-
-    // Clear existing timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
+    if (selectedCustomer) {
+      opts.unshift(customerToOption(selectedCustomer));
     }
 
-    // Set new timer
-    debounceTimerRef.current = setTimeout(() => {
-      searchCustomers(value);
-    }, 300);
-  };
+    return opts;
+  }, [customers, selectedCustomer]);
 
-  // Handle customer selection
-  const handleCustomerSelect = (customer: Customer) => {
-    onCustomerSelected(customer);
-    setSearchValue(`${customer.first_name} ${customer.last_name}`);
-    setShowResults(false);
-  };
+  // Handle value change from SmartSelect
+  const handleValueChange = useCallback((value: string) => {
+    if (!value) {
+      onCustomerSelected(null);
+      return;
+    }
 
-  // Handle input focus
-  const handleFocus = () => {
-    setShowResults(true);
-    onFocus?.();
-  };
+    const customer = customers.find(c => String(c.id) === value)
+      || (selectedCustomer && String(selectedCustomer.id) === value ? selectedCustomer : null);
 
-  // Handle input blur (with delay to allow for clicks)
-  const handleBlur = () => {
-    setTimeout(() => {
-      setShowResults(false);
-      onBlur?.();
-    }, 200);
-  };
+    if (customer) {
+      onCustomerSelected(customer);
+    }
+  }, [customers, selectedCustomer, onCustomerSelected]);
 
-  // Clear customer selection
-  const handleClearCustomer = () => {
-    onCustomerSelected(null);
-    setSearchValue('');
-    setShowResults(false);
-  };
+  // Custom render for options with avatar
+  const renderOption = useCallback((option: SmartSelectOption) => {
+    const customer = customers.find(c => String(c.id) === option.value)
+      || (selectedCustomer && String(selectedCustomer.id) === option.value ? selectedCustomer : null);
 
-  // Handle new customer creation
-  const handleCustomerCreated = (newCustomer: Customer) => {
-    handleCustomerSelect(newCustomer);
-    toast.success(sprintf(__('Customer %s created', 'wepos'), `${newCustomer.first_name} ${newCustomer.last_name}`));
-  };
+    return (
+      <div className="flex items-center gap-3 w-full">
+        <Avatar size="sm" shape="circle" className="shrink-0">
+          {customer?.avatar_url && (
+            <AvatarImage src={customer.avatar_url} alt={option.label} />
+          )}
+          <AvatarFallback>
+            <User className="size-4" />
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <span className="text-foreground text-sm font-semibold">{option.label}</span>
+          {option.description && (
+            <span className="text-muted-foreground ml-3 text-sm">{option.description}</span>
+          )}
+        </div>
+      </div>
+    );
+  }, [customers, selectedCustomer]);
 
-  // Handle customer update
-  const handleCustomerUpdated = (updatedCustomer: Customer) => {
-    handleCustomerSelect(updatedCustomer);
-    toast.success(sprintf(__('Customer %s updated', 'wepos'), `${updatedCustomer.first_name} ${updatedCustomer.last_name}`));
-  };
-
-  // Open edit customer modal
+  // Edit customer
   const handleEditCustomer = () => {
     if (selectedCustomer) {
       setEditingCustomer(selectedCustomer);
@@ -198,160 +137,55 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
     }
   };
 
-  // Close customer modal
+  // Customer modal handlers
+  const handleCustomerCreated = (newCustomer: Customer) => {
+    onCustomerSelected(newCustomer);
+    setCustomers(prev => [newCustomer, ...prev]);
+    toast.success(sprintf(__('Customer %s created', 'wepos'), `${newCustomer.first_name} ${newCustomer.last_name}`));
+  };
+
+  const handleCustomerUpdated = (updatedCustomer: Customer) => {
+    onCustomerSelected(updatedCustomer);
+    toast.success(sprintf(__('Customer %s updated', 'wepos'), `${updatedCustomer.first_name} ${updatedCustomer.last_name}`));
+  };
+
   const handleCloseCustomerModal = () => {
     setShowCustomerModal(false);
     setEditingCustomer(null);
   };
 
   return (
-    <div className={`relative ${className}`}>
-      {/* Search Input - Hide when customer is selected */}
-      {!selectedCustomer && (
-        <InputGroup className="h-9">
-          <InputGroupAddon align="inline-start">
-            <Avatar size="xs" shape="circle">
-              <AvatarFallback className="bg-muted text-muted-foreground">
-                <User className="size-3" />
-              </AvatarFallback>
-            </Avatar>
-          </InputGroupAddon>
+    <div className={`flex items-center gap-1 ${className}`} ref={triggerRef}>
+      {/* SmartSelect for customer search */}
+      <SmartSelect
+        onSearch={handleSearch}
+        options={options}
+        value={selectedCustomer ? String(selectedCustomer.id) : ''}
+        onValueChange={handleValueChange}
+        loading={isSearching}
+        placeholder={__('Search customer', 'wepos')}
+        searchPlaceholder={__('Search customer', 'wepos')}
+        emptyMessage={__('No customer found', 'wepos')}
+        idleMessage={__('Start typing to search', 'wepos')}
+        showClear={true}
+        showChevron={false}
+        startIcon={<User className="size-4" />}
+        renderOption={renderOption}
+        className="flex-1 min-w-0 h-9"
+        contentClassName={selectedCustomer ? '!w-[calc(var(--anchor-width)+2.5rem)]' : undefined}
+      />
 
-          <InputGroupInput
-            ref={searchInputRef}
-            type="text"
-            value={searchValue}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            placeholder={__('Search customer', 'wepos')}
-          />
-
-          <InputGroupAddon align="inline-end">
-            {isSearching && <Spinner className="text-primary mr-1" />}
-          </InputGroupAddon>
-        </InputGroup>
-      )}
-
-      {/* Selected Customer Display */}
+      {/* Edit button - outside to the right, only when customer is selected */}
       {selectedCustomer && (
-        <InputGroup className="h-9">
-          <InputGroupAddon align="inline-start">
-            <Avatar size="xs" shape="circle">
-              <AvatarImage
-                src={selectedCustomer.avatar_url}
-                alt={`${selectedCustomer.first_name} ${selectedCustomer.last_name}`}
-              />
-              <AvatarFallback className="bg-muted text-muted-foreground">
-                <User className="size-3" />
-              </AvatarFallback>
-            </Avatar>
-          </InputGroupAddon>
-
-          <div className="text-foreground flex min-w-0 flex-1 items-center truncate px-2 text-sm font-medium">
-            {selectedCustomer.first_name} {selectedCustomer.last_name}
-          </div>
-
-          <div className="flex flex-row gap-0!">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleEditCustomer}
-              className="text-primary hover:text-primary-hover hover:bg-primary/5 flex h-7 items-center gap-1 px-2 text-xs font-medium"
-              title={__('Edit Customer', 'wepos')}
-            >
-              <Pencil className="size-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClearCustomer}
-              className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2 text-xs font-medium"
-              title={__('Clear Customer', 'wepos')}
-            >
-              <X className="size-3" />
-            </Button>
-          </div>
-        </InputGroup>
-      )}
-
-      {/* Search Results */}
-      {showResults && !selectedCustomer && (
-        <div className="border-border bg-popover absolute top-full right-0 left-0 z-50 mt-1 overflow-hidden rounded-md border shadow-lg">
-          <div ref={listRef} className="max-h-60 overflow-y-auto">
-            {customers.length > 0 ? (
-              <ul className="py-1">
-                {customers.map((customer, index) => (
-                  <li key={customer.id} ref={index === selectedIndex ? selectedItemRef : null}>
-                    <button
-                      type="button"
-                      onClick={() => handleCustomerSelect(customer)}
-                      className={`hover:bg-accent focus:bg-accent flex w-full items-center gap-3 px-4 py-3 text-left transition-colors focus:outline-none ${
-                        index === selectedIndex
-                          ? 'bg-accent'
-                          : ''
-                      }`}
-                    >
-                      <Avatar size="sm" shape="circle" className="shrink-0">
-                        <AvatarImage
-                          src={customer.avatar_url}
-                          alt={`${customer.first_name} ${customer.last_name}`}
-                        />
-                        <AvatarFallback>
-                          <User className="size-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-foreground text-sm font-semibold">
-                          {customer.first_name} {customer.last_name}
-                        </span>
-                        <span className="text-muted-foreground ml-3 text-sm">
-                          {customer.email}
-                        </span>
-                      </div>
-                      {index === selectedIndex && (
-                        <CornerDownLeft className="text-muted-foreground size-4 shrink-0" />
-                      )}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-muted-foreground px-3 py-6 text-center text-sm">
-                {__('No customer found', 'wepos')}
-              </div>
-            )}
-          </div>
-
-          {/* Navigation hints */}
-          <div className="border-border bg-muted/50 text-muted-foreground flex flex-wrap gap-4 border-t px-3 py-2 text-xs">
-            <span className="flex items-center gap-1">
-              <kbd className="bg-muted rounded px-1 py-0.5 font-mono text-xs">
-                ↑↓
-              </kbd>
-              <span className="whitespace-nowrap">
-                {__('to navigate', 'wepos')}
-              </span>
-            </span>
-            <span className="flex items-center gap-1">
-              <kbd className="bg-muted rounded px-1 py-0.5 font-mono text-xs">
-                ←
-              </kbd>
-              <span className="whitespace-nowrap">
-                {__('to select', 'wepos')}
-              </span>
-            </span>
-            <span className="flex items-center gap-1">
-              <kbd className="bg-muted rounded px-1 py-0.5 font-mono text-xs">
-                esc
-              </kbd>
-              <span className="whitespace-nowrap">
-                {__('to dismiss', 'wepos')}
-              </span>
-            </span>
-          </div>
-        </div>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={handleEditCustomer}
+          className="shrink-0 h-9 w-9 bg-accent text-primary hover:text-primary-hover hover:bg-accent rounded-md"
+          title={__('Edit Customer', 'wepos')}
+        >
+          <UserPen className="size-4" />
+        </Button>
       )}
 
       {/* Customer Modal (for both creating and editing) */}
