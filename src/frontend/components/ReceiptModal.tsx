@@ -356,6 +356,16 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
                       </tr>
                     ))}
 
+                    {/* Shipping Tax */}
+                    {Number(printdata.shippingtaxtotal) > 0 && (
+                      <tr className="cart-meta-data">
+                        <td colSpan={2} className="name">
+                          {__('Shipping Tax', 'wepos')}
+                        </td>
+                        <td className="price">{formatPrice(printdata.shippingtaxtotal)}</td>
+                      </tr>
+                    )}
+
                     {/* Tax */}
                     {Number(printdata.taxtotal) > 0 && (
                       <tr>

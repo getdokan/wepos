@@ -580,6 +580,7 @@ export interface POSPrintData {
   subtotal?: number;
   taxtotal?: number;
   shippingtotal?: number;
+  shippingtaxtotal?: number;
   ordertotal?: number;
   gateway: {
     id: string;

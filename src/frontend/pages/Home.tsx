@@ -658,6 +658,7 @@ const HomePage: React.FC = () => {
           subtotal: subtotal,
           taxtotal: parseFloat(orderResponse.total_tax) || 0,
           shippingtotal: totalShipping,
+          shippingtaxtotal: parseFloat(orderResponse.shipping_tax) || 0,
           ordertotal: parseFloat(orderResponse.total) || total,
           gateway: {
             id: orderResponse.payment_method,
