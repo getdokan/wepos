@@ -842,8 +842,16 @@ const HomePage: React.FC = () => {
           method_title: shipping.method_title,
           method_id: shipping.method_id || 'flat_rate',
           total: shipping.total,
-          tax_status: shipping.tax_status,
-          tax_class: shipping.tax_class,
+          meta_data: [
+            {
+              key: '_wepos_pos_data',
+              value: JSON.stringify({
+                tax_status: shipping.tax_status || 'taxable',
+                tax_class: shipping.tax_class || '',
+                amount_includes_tax: !!shipping.amount_includes_tax,
+              }),
+            },
+          ],
         };
         // Match by index position to server shipping lines
         if (isUpdate && serverOrder && serverOrder.shipping_lines[index]) {

@@ -40,7 +40,7 @@ class Common {
         // Tax overrides for POS orders.
         add_filter( 'woocommerce_order_get_tax_location', [ $this, 'get_tax_location' ], 10, 2 );
         add_action( 'woocommerce_order_item_after_calculate_taxes', [ $this, 'order_item_after_calculate_taxes' ] );
-        add_action( 'woocommerce_order_item_shipping_after_calculate_taxes', [ $this, 'order_item_after_calculate_taxes' ] );
+        add_action( 'woocommerce_order_item_shipping_after_calculate_taxes', [ $this, 'order_item_shipping_after_calculate_taxes' ], 10, 2 );
         add_action( 'woocommerce_order_item_fee_after_calculate_taxes', [ $this, 'order_item_fee_after_calculate_taxes' ], 10, 2 );
 
         // Hide POS-internal meta keys from the WooCommerce order edit screen.
@@ -202,6 +202,77 @@ class Common {
 
                 break;
             }
+        }
+    }
+
+    /**
+     * Override shipping item tax after WooCommerce calculates taxes.
+     *
+     * WC_Order_Item_Shipping ignores per-item tax_class and tax_status
+     * (get_tax_class() returns the global option, set_tax_status() is a no-op).
+     * The POS frontend stores the desired values in _wepos_pos_data meta.
+     *
+     * This handler:
+     * - Clears taxes when tax_status = 'none'
+     * - Recalculates with the correct tax_class when it differs from global
+     * - Back-calculates net amount when amount_includes_tax is true
+     *
+     * @since WEPOS_LITE_SINCE
+     *
+     * @param \WC_Order_Item_Shipping $item             The shipping item.
+     * @param array                   $calculate_tax_for The tax calculation location data.
+     *
+     * @return void
+     */
+    public function order_item_shipping_after_calculate_taxes( $item, $calculate_tax_for ): void {
+        $pos_data = null;
+
+        foreach ( $item->get_meta_data() as $meta ) {
+            if ( '_wepos_pos_data' === $meta->key ) {
+                $pos_data = json_decode( $meta->value, true );
+                break;
+            }
+        }
+
+        if ( ! $pos_data || JSON_ERROR_NONE !== json_last_error() ) {
+            return;
+        }
+
+        $tax_status = $pos_data['tax_status'] ?? 'taxable';
+        $tax_class  = $pos_data['tax_class'] ?? '';
+        $includes   = ! empty( $pos_data['amount_includes_tax'] );
+
+        // Tax status = none → clear all taxes.
+        if ( 'none' === $tax_status ) {
+            $item->set_taxes( false );
+            return;
+        }
+
+        // Determine if we need to recalculate (custom tax class or amount includes tax).
+        $global_class = get_option( 'woocommerce_shipping_tax_class', 'inherit' );
+
+        // Resolve 'inherit' to empty string (standard) for comparison.
+        $effective_global = 'inherit' === $global_class ? '' : $global_class;
+        $needs_recalc     = ( $tax_class !== $effective_global ) || $includes;
+
+        if ( ! $needs_recalc ) {
+            return;
+        }
+
+        // Use the POS-specified tax class for rate lookup.
+        $calculate_tax_for['tax_class'] = $tax_class;
+        $tax_rates = \WC_Tax::find_shipping_rates( $calculate_tax_for );
+
+        if ( $includes ) {
+            // Amount entered includes tax — back-calculate net and tax.
+            $inclusive_taxes = \WC_Tax::calc_inclusive_tax( (float) $item->get_total(), $tax_rates );
+            $net             = (float) $item->get_total() - array_sum( $inclusive_taxes );
+            $item->set_total( wc_format_decimal( $net ) );
+            $item->set_taxes( [ 'total' => $inclusive_taxes ] );
+        } else {
+            // Recalculate taxes with the correct class.
+            $taxes = \WC_Tax::calc_tax( (float) $item->get_total(), $tax_rates, false );
+            $item->set_taxes( [ 'total' => $taxes ] );
         }
     }
 
