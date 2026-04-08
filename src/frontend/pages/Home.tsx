@@ -667,7 +667,23 @@ const HomePage: React.FC = () => {
           order_date: orderResponse.date_created,
           cashamount: cashAmount.toString(),
           changeamount: changeAmount().toString(),
-          customer: selectedCustomer || undefined,
+          customer: selectedCustomer
+            ? {
+                id: selectedCustomer.id,
+                first_name:
+                  orderResponse.billing?.first_name ||
+                  selectedCustomer.first_name ||
+                  '',
+                last_name:
+                  orderResponse.billing?.last_name ||
+                  selectedCustomer.last_name ||
+                  '',
+                email:
+                  orderResponse.billing?.email ||
+                  selectedCustomer.email ||
+                  '',
+              }
+            : undefined,
           currency_symbol: orderCurrencySymbol || '',
         };
 
