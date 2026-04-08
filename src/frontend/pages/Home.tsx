@@ -849,9 +849,25 @@ const HomePage: React.FC = () => {
       return items;
     };
 
+    // When no customer is selected, send explicit empty address fields
+    // so WooCommerce clears the previous customer's address on the order.
+    // Sending {} is treated as "no changes" by the WC REST API.
+    const emptyAddress = {
+      first_name: '',
+      last_name: '',
+      company: '',
+      address_1: '',
+      address_2: '',
+      city: '',
+      state: '',
+      postcode: '',
+      country: '',
+      phone: '',
+    };
+
     let orderPayload: any = {
-      billing: orderCustomer?.billing || {},
-      shipping: orderCustomer?.shipping || {},
+      billing: orderCustomer?.billing || emptyAddress,
+      shipping: orderCustomer?.shipping || emptyAddress,
       line_items: buildLineItems(),
       fee_lines: buildFeeLines(),
       shipping_lines: buildShippingLines(),
