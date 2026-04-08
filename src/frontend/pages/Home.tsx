@@ -668,6 +668,7 @@ const HomePage: React.FC = () => {
           cashamount: cashAmount.toString(),
           changeamount: changeAmount().toString(),
           customer: selectedCustomer || undefined,
+          currency_symbol: orderCurrencySymbol || '',
         };
 
         // Allow pro to enrich print data with cashier/outlet/counter info
@@ -1468,7 +1469,7 @@ const HomePage: React.FC = () => {
         settings={settings}
         onClose={createNewSale}
         onNewSale={createNewSale}
-        formatPrice={formatPrice}
+        formatPrice={(amount) => String(formatPrice(amount ?? 0, printdata.currency_symbol || ''))}
         autoPrint={cartSettings.autoPrintReceipt}
         autoShow={cartSettings.autoShowReceipt}
       />

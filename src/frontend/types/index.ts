@@ -589,6 +589,7 @@ export interface POSPrintData {
   order_date?: string;
   cashamount?: string;
   changeamount?: string;
+  currency_symbol?: string;
 }
 
 export interface POSCategory {
