@@ -49,7 +49,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   cashAmountRef,
 }) => {
   // Get cart data from cart store
-  const { cartItems, subtotal, total, discountLines, feeLines, totalTax } =
+  const { cartItems, subtotal, total, discountLines, feeLines, totalTax, orderCurrencySymbol } =
     useSelect((select) => {
       const store = select(CART_STORE_NAME) as any;
       return {
@@ -59,6 +59,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         discountLines: store.getDiscountLines(),
         feeLines: store.getFeeLines(),
         totalTax: store.getTotalTax(),
+        orderCurrencySymbol: store.getOrderCurrencySymbol(),
       };
     }, []);
 
@@ -70,9 +71,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     };
   }, []);
 
-  // Currency symbol from WordPress/WooCommerce settings
+  // Currency symbol priority: order meta > POS settings > WooCommerce default
   const currencySymbol =
-    (window as any).wepos?.currency_format_symbol || '$';
+    orderCurrencySymbol || (window as any).wepos?.currency_format_symbol || '$';
+
+  // Format price using order-specific currency when set
+  const paymentFormatPrice = (price: number | string): string | number =>
+    formatPrice(price, orderCurrencySymbol || '');
 
   // Focus cash input when modal opens
   useEffect(() => {
@@ -101,7 +106,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     if (discount.discount_type === 'percent') {
       return `-${discount.value}%`;
     }
-    return `-${formatPrice(discount.value)}`;
+    return `-${paymentFormatPrice(discount.value)}`;
   };
 
   // Compute actual discount amount
@@ -179,7 +184,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     x{item.quantity}
                   </span>
                   <span className="shrink-0 whitespace-nowrap text-sm font-medium text-foreground">
-                    {formatPrice(getItemPrice(item) * item.quantity)}
+                    {paymentFormatPrice(getItemPrice(item) * item.quantity)}
                   </span>
                 </div>
               ))}
@@ -194,7 +199,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 {__('Subtotal', 'wepos')}
               </span>
               <span className="text-sm font-semibold text-foreground">
-                {formatPrice(subtotal)}
+                {paymentFormatPrice(subtotal)}
               </span>
             </div>
 
@@ -212,7 +217,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     </span>
                   </span>
                   <span className="text-sm text-destructive">
-                    -{formatPrice(getDiscountAmount(discount))}
+                    -{paymentFormatPrice(getDiscountAmount(discount))}
                   </span>
                 </div>
               ),
@@ -227,11 +232,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 <span className="text-sm text-muted-foreground">
                   {fee.name || __('Fee', 'wepos')}{' '}
                   <span className="text-xs">
-                    {formatPrice(parseFloat(fee.value))}
+                    {paymentFormatPrice(parseFloat(fee.value))}
                   </span>
                 </span>
                 <span className="text-sm text-foreground">
-                  {formatPrice(getFeeAmount(fee))}
+                  {paymentFormatPrice(getFeeAmount(fee))}
                 </span>
               </div>
             ))}
@@ -243,7 +248,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                   {__('Tax', 'wepos')}
                 </span>
                 <span className="text-sm text-foreground">
-                  {formatPrice(totalTax)}
+                  {paymentFormatPrice(totalTax)}
                 </span>
               </div>
             )}
@@ -256,7 +261,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 {__('Order Total', 'wepos')}
               </span>
               <span className="text-sm font-bold text-foreground">
-                {formatPrice(total)}
+                {paymentFormatPrice(total)}
               </span>
             </div>
           </div>
@@ -272,7 +277,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                   {__('Pay', 'wepos')}
                 </h2>
                 <span className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-1.5 text-base font-bold text-primary md:text-lg">
-                  {formatPrice(total)}
+                  {paymentFormatPrice(total)}
                 </span>
               </div>
 
@@ -334,7 +339,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                   {/* Change Money */}
                   <div className="flex items-center justify-center border-t border-border bg-background px-4 py-4">
                     <p className="text-sm font-semibold text-primary">
-                      {__('Change money', 'wepos')}: {formatPrice(changeAmount)}
+                      {__('Change money', 'wepos')}: {paymentFormatPrice(changeAmount)}
                     </p>
                   </div>
                 </div>
