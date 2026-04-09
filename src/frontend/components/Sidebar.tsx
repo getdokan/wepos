@@ -6,11 +6,11 @@ import {
 import {
   LayoutMenu,
   LayoutMenuGroupData,
-  SidebarHeader,
   SidebarFooter,
 } from '@wedevs/plugin-ui';
 import { applyFilters } from '../hooks/useExtensions';
 import { __ } from '@wordpress/i18n';
+import ThemeModeSwitcher from './ThemeModeSwitcher';
 
 export interface WeposSidebarMenuItem {
 	id: string;
@@ -88,11 +88,10 @@ const Sidebar: React.FC = () => {
         showGroupLabels={ false }
       />
 
-      { sidebarFooter && (
-        <SidebarFooter>
-          { sidebarFooter }
-        </SidebarFooter>
-      ) }
+      <SidebarFooter>
+        <ThemeModeSwitcher />
+        { sidebarFooter }
+      </SidebarFooter>
     </>
   );
 };

@@ -227,6 +227,22 @@
     --shadow-2xl: var(--shadow-2xl);
 }
 
+/* ─── Circular Reveal Theme Transition (View Transitions API) ─────────── */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+    z-index: 1;
+}
+
+::view-transition-old(root) {
+    z-index: -1;
+}
+
 html,
 body {
     height: 100%;
