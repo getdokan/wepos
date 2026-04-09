@@ -111,10 +111,18 @@ class Dokan {
         }
 
         $vendor_id = wepos_get_vendor_id_for_user();
+        $outlet_id = absint( $request->get_param( 'outlet_id' ) );
 
         if ( $vendor_id > 0 ) {
             $args['author'] = $vendor_id;
 
+            return $args;
+        }
+
+        // Legacy or explicitly admin-owned outlets may not have an assigned
+        // vendor. In those cashier flows, fall back to the admin product scope
+        // instead of forcing an empty result set.
+        if ( $outlet_id > 0 || ( current_user_can( 'cashier' ) && current_user_can( 'access_wepos' ) ) ) {
             return $args;
         }
 

@@ -26,12 +26,40 @@ const API_BASE = {
   WEPOS: `${window.wepos.rest.posversion}`,
 };
 
+const getActiveOutletId = (): number => {
+  try {
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+      return 0;
+    }
+
+    const storedOutlet = localStorage.getItem('wepos_outlet');
+    if (!storedOutlet) {
+      return 0;
+    }
+
+    const outlet = JSON.parse(storedOutlet);
+    return Number(outlet?.id) || 0;
+  } catch {
+    return 0;
+  }
+};
+
+const appendActiveOutletId = (params: URLSearchParams): URLSearchParams => {
+  const outletId = getActiveOutletId();
+
+  if (outletId > 0) {
+    params.set('outlet_id', outletId.toString());
+  }
+
+  return params;
+};
+
 // Products API
 const productsAPI = {
   getProducts: async (
     options: UseProductsOptions = {},
   ): Promise<PaginatedResponse<Product>> => {
-    const params = new URLSearchParams();
+    const params = appendActiveOutletId(new URLSearchParams());
 
     if (options.search) params.append('search', options.search);
     if (options.category)
@@ -82,8 +110,13 @@ const productsAPI = {
     let totalPages = 1;
 
     do {
+      const params = appendActiveOutletId(new URLSearchParams());
+      params.set('status', 'publish');
+      params.set('per_page', '30');
+      params.set('page', page.toString());
+
       const response = (await apiFetch({
-        path: `${API_BASE.WEPOS}/products?status=publish&per_page=30&page=${page}`,
+        path: `${API_BASE.WEPOS}/products?${params.toString()}`,
         parse: false,
       })) as Response;
 
@@ -115,8 +148,11 @@ const productsAPI = {
   },
 
   searchProducts: async (query: string): Promise<Product[]> => {
+    const params = appendActiveOutletId(new URLSearchParams());
+    params.set('s', query);
+
     const response = await apiFetch({
-      path: `${API_BASE.WEPOS}/products/search?s=${encodeURIComponent(query)}`,
+      path: `${API_BASE.WEPOS}/products/search?${params.toString()}`,
       method: 'GET',
     });
 
@@ -125,8 +161,12 @@ const productsAPI = {
 
   getProductByBarcode: async (barcode: string): Promise<Product | null> => {
     try {
+      const params = appendActiveOutletId(new URLSearchParams());
+
       const response = await apiFetch({
-        path: `${API_BASE.WEPOS}/products/barcode/${encodeURIComponent(barcode)}`,
+        path: `${API_BASE.WEPOS}/products/barcode/${encodeURIComponent(barcode)}${
+          params.toString() ? `?${params.toString()}` : ''
+        }`,
         method: 'GET',
       });
 
