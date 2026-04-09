@@ -275,6 +275,11 @@ final class WePOS {
      * @return void
      */
     public function init_plugin() {
+        // Manual unzip/file-replacement updates bypass activation hooks, so
+        // backfill default role capabilities here as a safe, idempotent sync.
+        $installer = new WeDevs\WePOS\Installer();
+        $installer->maybe_sync_capabilities();
+
         $this->init_hooks();
 
         do_action( 'wepos_loaded' );

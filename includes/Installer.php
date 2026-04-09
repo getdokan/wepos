@@ -14,6 +14,19 @@ defined( 'ABSPATH' ) || exit;
 class Installer {
 
     /**
+     * Capability schema option key.
+     *
+     * Tracks whether the default role capabilities have been synced for
+     * the current plugin version. This is separate from we_pos_version so
+     * safe capability backfills do not interfere with manual data updaters.
+     *
+     * @since 1.4.0
+     *
+     * @var string
+     */
+    const CAPABILITIES_VERSION_OPTION = 'wepos_capabilities_version';
+
+    /**
      * Run The Installer.
      *
      * @since 1.3.0
@@ -23,10 +36,34 @@ class Installer {
     public function run() {
         $this->add_version_info();
         $this->set_default_layout_style();
-        $this->add_wepos_capabilities();
+        $this->maybe_sync_capabilities();
         $this->add_user_roles();
         $this->flush_rewrites();
         $this->schedule_cron_jobs();
+    }
+
+    /**
+     * Sync default role capabilities when needed.
+     *
+     * This runs safely on activation and on normal plugin loads after a manual
+     * file update (for example, replacing the plugin directory via unzip).
+     * Only missing capabilities are added, so explicit role-level denies
+     * created from the Access settings are preserved.
+     *
+     * @since 1.4.0
+     *
+     * @return void
+     */
+    public function maybe_sync_capabilities() {
+        $stored_version = get_option( self::CAPABILITIES_VERSION_OPTION );
+
+        if ( $stored_version && version_compare( $stored_version, WEPOS_VERSION, '>=' ) ) {
+            return;
+        }
+
+        $this->add_wepos_capabilities();
+
+        update_option( self::CAPABILITIES_VERSION_OPTION, WEPOS_VERSION );
     }
 
     /**
@@ -75,28 +112,61 @@ class Installer {
      * @return void
      */
     private function add_wepos_capabilities() {
-        // Administrator gets full access
-        $admin = get_role( 'administrator' );
-        if ( $admin ) {
-            $admin->add_cap( 'access_wepos' );
-            $admin->add_cap( 'manage_wepos' );
-            $admin->add_cap( 'wepos_view_all_outlets' );
-        }
+        foreach ( self::get_default_role_capabilities() as $role_slug => $caps ) {
+            $role = get_role( $role_slug );
 
-        // Shop Manager gets POS access + view all outlets
-        $shop_manager = get_role( 'shop_manager' );
-        if ( $shop_manager ) {
-            $shop_manager->add_cap( 'access_wepos' );
-            $shop_manager->add_cap( 'manage_wepos' );
-            $shop_manager->add_cap( 'wepos_view_all_outlets' );
-        }
+            if ( ! $role ) {
+                continue;
+            }
 
-        // Editor gets POS frontend access + view all outlets
-        $editor = get_role( 'editor' );
-        if ( $editor ) {
-            $editor->add_cap( 'access_wepos' );
-            $editor->add_cap( 'wepos_view_all_outlets' );
+            foreach ( $caps as $cap ) {
+                if ( array_key_exists( $cap, $role->capabilities ) ) {
+                    continue;
+                }
+
+                $role->add_cap( $cap );
+            }
         }
+    }
+
+    /**
+     * Get the default role capability map.
+     *
+     * A capability is only backfilled when it is missing from the role, so
+     * access settings that explicitly store a capability as false are left
+     * untouched. Extensions such as wePOS Pro can extend this map to register
+     * defaults for roles like cashier.
+     *
+     * @since 1.4.0
+     *
+     * @return array<string, string[]>
+     */
+    public static function get_default_role_capabilities() {
+        $page_caps = apply_filters( 'wepos_access_page_capabilities', [
+            'wepos_page_settings',
+            'wepos_page_view_pos',
+        ] );
+
+        $defaults = [
+            'administrator' => array_merge(
+                [ 'access_wepos', 'manage_wepos', 'wepos_view_all_outlets' ],
+                $page_caps
+            ),
+            'shop_manager'  => array_merge(
+                [ 'access_wepos', 'manage_wepos', 'wepos_view_all_outlets' ],
+                $page_caps
+            ),
+            'editor'        => array_merge(
+                [ 'access_wepos', 'wepos_view_all_outlets' ],
+                $page_caps
+            ),
+            'cashier'       => [
+                'access_wepos',
+                'wepos_page_view_pos',
+            ],
+        ];
+
+        return apply_filters( 'wepos_default_role_capabilities', $defaults );
     }
 
     /**
