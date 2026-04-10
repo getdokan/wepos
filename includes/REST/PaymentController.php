@@ -52,7 +52,7 @@ class PaymentController extends \WC_REST_Orders_Controller {
      *
      * @since 1.0.2
      *
-     * @return bool|WP_Error
+     * @return bool|\WP_Error
      *
      */
     public function payment_permissions_check() {
@@ -63,7 +63,7 @@ class PaymentController extends \WC_REST_Orders_Controller {
         }
 
         if ( ! apply_filters( "wepos_rest_{$this->base}_check_permissions", $hasPermission ) ) {
-            return new WP_Error( 'wepos_rest_cannot_create', __( 'Sorry, you cannot access this resources.', 'wepos' ), array( 'status' => rest_authorization_required_code() ) );
+            return new \WP_Error( 'wepos_rest_cannot_create', __( 'Sorry, you cannot access this resources.', 'wepos' ), array( 'status' => rest_authorization_required_code() ) );
         }
 
         return true;
