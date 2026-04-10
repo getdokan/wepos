@@ -37,6 +37,25 @@ class Dokan {
 
         // Dequeue Dokan styles on wePos admin pages to prevent CSS conflicts.
         add_action( 'admin_enqueue_scripts', [ $this, 'dequeue_dokan_styles_on_wepos_pages' ], 99 );
+
+        // Vendor staff permission check.
+        add_filter( 'wepos_is_vendor_staff', [ $this, 'is_vendor_staff' ], 10, 2 );
+    }
+
+    /**
+     * Check if user is a vendor staff
+     *
+     * @since 1.4.0
+     *
+     * @param bool $is_staff
+     * @param int  $user_id
+     *
+     * @return bool
+     */
+    public function is_vendor_staff( $is_staff, $user_id = null ) {
+        $user_id = $user_id ?: get_current_user_id();
+
+        return user_can( $user_id, 'vendor_staff' );
     }
 
     /**
@@ -55,9 +74,9 @@ class Dokan {
             return true;
         }
 
-        // Cashiers with POS access can use POS API endpoints only if
+        // Cashiers and Vendor Staff with POS access can use POS API endpoints only if
         // their parent vendor is enabled.
-        if ( current_user_can( 'cashier' ) && current_user_can( 'access_wepos' ) ) {
+        if ( ( current_user_can( 'cashier' ) || apply_filters( 'wepos_is_vendor_staff', false ) ) && current_user_can( 'access_wepos' ) ) {
             $vendor_id = wepos_get_vendor_id_for_user();
             if ( $vendor_id && dokan_is_seller_enabled( $vendor_id ) ) {
                 return true;
@@ -83,7 +102,7 @@ class Dokan {
             if ( $vendor_id && dokan_is_seller_enabled( $vendor_id ) ) {
                 return true;
             }
-        } else if ( wepos_is_dokan_vendor_staff() ) {
+        } else if ( apply_filters( 'wepos_is_vendor_staff', false ) ) {
             // Vendor staff can access POS if their parent vendor is enabled.
             $vendor_id = wepos_get_vendor_id_for_user();
             if ( $vendor_id && dokan_is_seller_enabled( $vendor_id ) ) {
@@ -262,7 +281,7 @@ class Dokan {
         $data['is_dokan_active']  = true;
         $data['is_vendor']        = wepos_is_dokan_vendor() && ! current_user_can( 'manage_woocommerce' );
         $data['vendor_id']        = wepos_get_vendor_id_for_user();
-        $data['is_vendor_staff']  = wepos_is_dokan_vendor_staff();
+        $data['is_vendor_staff']  = apply_filters( 'wepos_is_vendor_staff', false );
         $data['is_cashier']       = current_user_can( 'cashier' );
         $data['is_admin_user']    = current_user_can( 'manage_woocommerce' );
 

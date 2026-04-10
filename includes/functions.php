@@ -596,25 +596,6 @@ function wepos_is_dokan_vendor( $user_id = null ) {
 }
 
 /**
- * Check if a user is a Dokan vendor staff member.
- *
- * @since 1.4.0
- *
- * @param int|null $user_id User ID, defaults to current user.
- *
- * @return bool
- */
-function wepos_is_dokan_vendor_staff( $user_id = null ) {
-    if ( ! wepos_is_dokan_active() ) {
-        return false;
-    }
-
-    $user_id = $user_id ?: get_current_user_id();
-
-    return user_can( $user_id, 'vendor_staff' );
-}
-
-/**
  * Get the vendor ID for a user.
  *
  * - If the user is a vendor, returns their own user ID.
@@ -640,7 +621,7 @@ function wepos_get_vendor_id_for_user( $user_id = null ) {
         return $user_id;
     }
 
-    if ( wepos_is_dokan_vendor_staff( $user_id ) ) {
+    if ( apply_filters( 'wepos_is_vendor_staff', false, $user_id ) ) {
         return absint( get_user_meta( $user_id, '_vendor_id', true ) );
     }
 
