@@ -618,11 +618,10 @@ function wepos_get_vendor_id_for_user( $user_id = null ) {
     $user_id = $user_id ?: get_current_user_id();
 
     if ( wepos_is_dokan_vendor( $user_id ) ) {
+        if ( apply_filters( 'wepos_is_vendor_staff', false, $user_id ) ) {
+            return absint( get_user_meta( $user_id, '_vendor_id', true ) );
+        }
         return $user_id;
-    }
-
-    if ( apply_filters( 'wepos_is_vendor_staff', false, $user_id ) ) {
-        return absint( get_user_meta( $user_id, '_vendor_id', true ) );
     }
 
     // Allow extensions (e.g. wepos-pro) to resolve vendor context for
