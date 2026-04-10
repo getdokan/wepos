@@ -114,14 +114,35 @@ class Dokan {
         $outlet_id = absint( $request->get_param( 'outlet_id' ) );
 
         if ( $vendor_id > 0 ) {
-            $args['author'] = $vendor_id;
+            /** @var \WP_User $vendor */
+            $vendor = get_userdata( $vendor_id );
+
+            // If the vendor exists and is not a site admin, restrict products to that vendor.
+            if ( $vendor instanceof \WP_User && ! $vendor->has_cap( 'manage_options' ) ) {
+                $args['author'] = $vendor_id;
+
+                return $args;
+            }
+        }
+
+        // Logic for cashiers in neutral or admin-owned outlets.
+        // We want to show admin products and exclude all vendor products.
+        if ( current_user_can( 'cashier' ) && ( $outlet_id > 0 || current_user_can( 'access_wepos' ) ) ) {
+            // Get all vendors (users with the 'seller' role).
+            $vendor_ids = get_users( [
+                'role'   => 'seller',
+                'fields' => 'ID',
+            ] );
+
+            if ( ! empty( $vendor_ids ) ) {
+                // Exclude all vendor products so only admin/neutral products remain.
+                $args['author__not_in'] = $vendor_ids;
+            }
 
             return $args;
         }
 
-        // Legacy or explicitly admin-owned outlets may not have an assigned
-        // vendor. In those cashier flows, fall back to the admin product scope
-        // instead of forcing an empty result set.
+        // Legacy or explicitly admin-owned outlets (for non-cashiers)
         if ( $outlet_id > 0 || ( current_user_can( 'cashier' ) && current_user_can( 'access_wepos' ) ) ) {
             return $args;
         }
