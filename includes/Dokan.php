@@ -188,9 +188,7 @@ class Dokan {
             return;
         }
 
-        $user = get_user_by( 'id', $user_id );
-        $user->add_cap( 'publish_shop_orders' );
-        $user->add_cap( 'list_users' );
+        $this->add_pos_caps_to_user( $user_id );
     }
 
     /**
@@ -209,9 +207,7 @@ class Dokan {
             return;
         }
 
-        $user = get_user_by( 'id', $user_id );
-        $user->add_cap( 'publish_shop_orders' );
-        $user->add_cap( 'list_users' );
+        $this->add_pos_caps_to_user( $user_id );
     }
 
     /**
