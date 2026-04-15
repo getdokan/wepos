@@ -90,16 +90,16 @@ class PanelSwitcher {
             return;
         }
 
-        $transient_key  = $this->get_transient_key( $page_key );
-        $is_react       = get_transient( $transient_key );
+        $transient_key = $this->get_transient_key( $page_key );
+        $active_panel  = self::get_active_panel( $page_key );
 
-        if ( $is_react ) {
-            // Currently React, switch back to Vue.
-            delete_transient( $transient_key );
+        if ( 'react' === $active_panel ) {
+            // Currently React, switch to Vue explicitly.
+            set_transient( $transient_key, 'vue', $this->transient_expiration );
             $redirect_url = admin_url( $pages[ $page_key ]['vue_url'] );
         } else {
-            // Currently Vue, switch to React.
-            set_transient( $transient_key, true, $this->transient_expiration );
+            // Currently Vue, switch to React explicitly.
+            set_transient( $transient_key, 'react', $this->transient_expiration );
             $redirect_url = admin_url( $pages[ $page_key ]['react_url'] );
         }
 
@@ -118,8 +118,10 @@ class PanelSwitcher {
      */
     public static function get_active_panel( $page_key ) {
         $transient_key = 'wepos_react_' . sanitize_key( $page_key ) . '_page';
+        $panel         = get_transient( $transient_key );
 
-        return get_transient( $transient_key ) ? 'react' : 'vue';
+        // React is the global default; only an explicit "vue" transient should load Vue.
+        return 'vue' === $panel ? 'vue' : 'react';
     }
 
     /**
