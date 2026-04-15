@@ -112,7 +112,7 @@ class CustomerController extends \WC_REST_Customers_Controller {
      * @return bool|\WP_Error
      */
     public function create_customer_permission_callback() {
-        if ( ! ( wepos_current_user_can_manage() && current_user_can( 'create_customers' ) ) ) {
+        if ( ! ( wepos_current_user_can_manage() ) ) {
             return new \WP_Error( 'wepos_rest_cannot_create', __( 'Sorry, you are not allowed to create customers.', 'wepos' ), array( 'status' => rest_authorization_required_code() ) );
         }
 
@@ -127,7 +127,7 @@ class CustomerController extends \WC_REST_Customers_Controller {
      * @return bool|\WP_Error
      */
     public function update_customer_permission_callback() {
-        if ( ! ( wepos_current_user_can_manage() && current_user_can( 'edit_users' ) ) ) {
+        if ( ! ( wepos_current_user_can_manage() ) ) {
             return new \WP_Error( 'wepos_rest_cannot_update', __( 'Sorry, you are not allowed to update customers.', 'wepos' ), array( 'status' => rest_authorization_required_code() ) );
         }
 
@@ -143,7 +143,7 @@ class CustomerController extends \WC_REST_Customers_Controller {
      *
      */
     public function get_customers_permissions_check() {
-        if ( ! ( wepos_current_user_can_manage() && current_user_can( 'list_users' ) ) ) {
+        if ( ! ( wepos_current_user_can_manage() ) ) {
             return new \WP_Error( 'wepos_rest_cannot_view', __( 'Sorry, you are not allowed to view customers.', 'wepos' ), array( 'status' => rest_authorization_required_code() ) );
         }
 
