@@ -100,7 +100,7 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
       )}
 
       {hasStock && (
-        <div className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        <div className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center opacity-100 lg:opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           {product.type === 'variable' ? (
             <ProductVariationSelector product={product} onAddToCart={onAddToCartItem}>
               <Button variant="default" size="icon-sm" className="h-8 w-8 rounded-full shadow-md">
