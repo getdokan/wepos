@@ -151,6 +151,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
     try {
       const customerData: Partial<Customer> = {
         email: customerForm.email,
+        password: customerForm.email,
         first_name: customerForm.first_name,
         last_name: customerForm.last_name,
         username: isEditMode ? editingCustomer!.username : customerForm.email,
