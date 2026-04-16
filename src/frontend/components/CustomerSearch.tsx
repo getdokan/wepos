@@ -27,9 +27,14 @@ export interface CustomerSearchHandle {
   openNewCustomer: () => void;
 }
 
+const getCustomerDisplayName = (customer: Customer): string => {
+  const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
+  return fullName || customer.username || customer.email || String(customer.id);
+};
+
 const customerToOption = (customer: Customer): SmartSelectOption => ({
   value: String(customer.id),
-  label: `${customer.first_name} ${customer.last_name}`.trim(),
+  label: getCustomerDisplayName(customer),
   description: customer.email,
 });
 
@@ -141,12 +146,12 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
   const handleCustomerCreated = (newCustomer: Customer) => {
     onCustomerSelected(newCustomer);
     setCustomers(prev => [newCustomer, ...prev]);
-    toast.success(sprintf(__('Customer %s created', 'wepos'), `${newCustomer.first_name} ${newCustomer.last_name}`));
+    toast.success(sprintf(__('Customer %s created', 'wepos'), getCustomerDisplayName(newCustomer)));
   };
 
   const handleCustomerUpdated = (updatedCustomer: Customer) => {
     onCustomerSelected(updatedCustomer);
-    toast.success(sprintf(__('Customer %s updated', 'wepos'), `${updatedCustomer.first_name} ${updatedCustomer.last_name}`));
+    toast.success(sprintf(__('Customer %s updated', 'wepos'), getCustomerDisplayName(updatedCustomer)));
   };
 
   const handleCloseCustomerModal = () => {
