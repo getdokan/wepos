@@ -151,6 +151,11 @@ const normalizeCustomerForOrder = (customer: Customer | null): Customer | null =
   return normalizedCustomer;
 };
 
+const getCustomerDisplayName = (customer: Customer): string => {
+  const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
+  return fullName || customer.username || customer.email || String(customer.id);
+};
+
 const buildRestoredCartState = (
   order: Order,
   settings: any,
@@ -541,7 +546,7 @@ const HomePage: React.FC = () => {
     const hadCustomer = !!selectedCustomer;
     setCustomer(normalizedCustomer);
     if (normalizedCustomer) {
-      toast.success(sprintf(__('Customer %s selected', 'wepos'), `${normalizedCustomer.first_name} ${normalizedCustomer.last_name}`));
+      toast.success(sprintf(__('Customer %s selected', 'wepos'), getCustomerDisplayName(normalizedCustomer)));
     } else {
       if (hadCustomer) {
         toast.success(__('Customer removed', 'wepos'));
@@ -683,6 +688,8 @@ const HomePage: React.FC = () => {
                   orderResponse.billing?.email ||
                   selectedCustomer.email ||
                   '',
+                username: selectedCustomer.username || '',
+                note: customerNote || '',
               }
             : undefined,
           currency_symbol: orderCurrencySymbol || '',
