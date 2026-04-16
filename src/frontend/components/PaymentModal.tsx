@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useSelect } from '@wordpress/data';
 import { LoaderCircle, ArrowLeft, CreditCard } from 'lucide-react';
-import { POSGateway, POSCartItem, POSDiscountLine, POSFeeLine } from '../types';
+import { POSGateway, POSCartItem, POSDiscountLine, POSFeeLine, POSShippingLine } from '../types';
 import { formatPrice } from '../utils/helpers';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
@@ -49,7 +49,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   cashAmountRef,
 }) => {
   // Get cart data from cart store
-  const { cartItems, subtotal, total, discountLines, feeLines, totalTax, orderCurrencySymbol } =
+  const { cartItems, subtotal, total, discountLines, feeLines, shippingLines, totalTax, orderCurrencySymbol } =
     useSelect((select) => {
       const store = select(CART_STORE_NAME) as any;
       return {
@@ -58,6 +58,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         total: store.getTotal(),
         discountLines: store.getDiscountLines(),
         feeLines: store.getFeeLines(),
+        shippingLines: store.getShippingLines(),
         totalTax: store.getTotalTax(),
         orderCurrencySymbol: store.getOrderCurrencySymbol(),
       };
@@ -237,6 +238,21 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 </span>
                 <span className="text-sm text-foreground">
                   {paymentFormatPrice(getFeeAmount(fee))}
+                </span>
+              </div>
+            ))}
+
+            {/* Shipping Lines */}
+            {shippingLines.map((shipping: POSShippingLine, index: number) => (
+              <div
+                key={`shipping-${index}`}
+                className="flex justify-between py-1"
+              >
+                <span className="text-sm text-muted-foreground">
+                  {shipping.method_title || __('Shipping', 'wepos')}
+                </span>
+                <span className="text-sm text-foreground">
+                  {paymentFormatPrice(shipping.total)}
                 </span>
               </div>
             ))}
