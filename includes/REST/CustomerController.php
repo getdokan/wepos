@@ -240,8 +240,8 @@ class CustomerController extends \WC_REST_Customers_Controller {
             return $prepared_args;
         }
 
-        if ( empty( $prepared_args['role'] ) || 'all' === $prepared_args['role'] ) {
-            $prepared_args['role'] = 'customer';
+        if ( empty( $prepared_args['role'] ) && ! empty( $request['role'] ) && 'all' !== $request['role'] ) {
+            $prepared_args['role'] = $request['role'];
         }
 
         if ( $has_search ) {

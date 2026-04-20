@@ -437,7 +437,7 @@ const customersAPI = {
     params.append('role', 'all');
 
     const response = await apiFetch({
-      path: `${API_BASE.WC}/customers?${params.toString()}`,
+      path: `${API_BASE.WEPOS}/customers?${params.toString()}`,
       method: 'GET',
     });
 
