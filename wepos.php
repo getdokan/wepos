@@ -47,9 +47,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * WePOS class
+ * wePOS class
  *
- * @class WePOS The class that holds the entire WePOS plugin
+ * @class wePOS The class that holds the entire wePOS plugin
  */
 final class WePOS {
 
@@ -68,7 +68,7 @@ final class WePOS {
     private $container = [];
 
     /**
-     * Constructor for the WePOS class
+     * Constructor for the wePOS class
      *
      * Sets up all the appropriate hooks and actions
      * within our plugin.
@@ -212,9 +212,9 @@ final class WePOS {
     }
 
     /**
-     * Initializes the WePOS() class
+     * Initializes the wePOS() class
      *
-     * Checks for an existing WePOS() instance
+     * Checks for an existing wePOS() instance
      * and if it doesn't find one, creates it.
      *
      * @return \WePOS
@@ -494,7 +494,7 @@ final class WePOS {
             add_action( 'shutdown', [ wc()->customer, 'save' ], 10 );
         }
     }
-} // WePOS
+} // wePOS
 
 function wepos() {
     return WePOS::init();

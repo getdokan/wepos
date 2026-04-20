@@ -116,10 +116,10 @@ const DEFAULT_DISPLAY_ROLES = [
  * Capability group labels and ordering.
  */
 const CAP_GROUPS: Array< { key: string; label: string } > = [
-	{ key: 'wepos', label: __( 'WePOS', 'wepos' ) },
+	{ key: 'wepos', label: __( 'wePOS', 'wepos' ) },
 	{ key: 'wc', label: __( 'WooCommerce', 'wepos' ) },
 	{ key: 'wp', label: __( 'WordPress', 'wepos' ) },
-	{ key: 'pages', label: __( 'WePOS Pages', 'wepos' ) },
+	{ key: 'pages', label: __( 'wePOS Pages', 'wepos' ) },
 ];
 
 /**
@@ -127,9 +127,9 @@ const CAP_GROUPS: Array< { key: string; label: string } > = [
  * The keys must match the raw capability slugs used in AccessController.
  */
 const CAP_LABELS: Record< string, string > = {
-	// WePOS
-	access_wepos: __( 'Access WePOS', 'wepos' ),
-	manage_wepos: __( 'Manage WePOS', 'wepos' ),
+	// wePOS
+	access_wepos: __( 'Access wePOS', 'wepos' ),
+	manage_wepos: __( 'Manage wePOS', 'wepos' ),
 	wepos_view_all_outlets: __( 'View All Outlets', 'wepos' ),
 
 	// WooCommerce
@@ -150,7 +150,7 @@ const CAP_LABELS: Record< string, string > = {
 	// WordPress
 	read: __( 'Read', 'wepos' ),
 
-	// WePOS Pages
+	// wePOS Pages
 	wepos_page_settings: __( 'Settings Page', 'wepos' ),
 	wepos_page_view_pos: __( 'View POS Page', 'wepos' ),
 	wepos_page_dashboard: __( 'Dashboard Page', 'wepos' ),

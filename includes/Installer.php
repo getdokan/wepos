@@ -100,7 +100,7 @@ class Installer {
     }
 
     /**
-     * Add WePOS capabilities to default roles.
+     * Add wePOS capabilities to default roles.
      *
      * Default capability assignments:
      * - Administrator: access_wepos + manage_wepos + all page caps

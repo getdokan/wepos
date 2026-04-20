@@ -1,7 +1,7 @@
 <?php
 
 /**
- * WePOS Footer
+ * wePOS Footer
  *
  * @since 1.0.0
  *
@@ -264,7 +264,7 @@ function wepos_get_option( $option, $section, $default = '' ) {
  * Get the capability required for the admin menu.
  *
  * Uses manage_wepos so roles granted this cap via Access settings
- * (e.g. Cashier) can access the WePOS admin pages.
+ * (e.g. Cashier) can access the wePOS admin pages.
  *
  * @since 1.4.0
  *
@@ -278,7 +278,7 @@ function wepos_admin_menu_capability() {
  * Map manage_wepos to users who have manage_woocommerce.
  *
  * This ensures backward compatibility — users with manage_woocommerce
- * can always access WePOS admin even if manage_wepos hasn't been
+ * can always access wePOS admin even if manage_wepos hasn't been
  * explicitly granted (e.g. on sites that haven't reactivated the plugin).
  *
  * @since 1.4.0
@@ -323,7 +323,7 @@ add_filter( 'map_meta_cap', 'wepos_map_meta_cap', 10, 3 );
  * WooCommerce blocks users without edit_posts, manage_woocommerce, or
  * view_admin_dashboard from accessing wp-admin. This filter ensures
  * roles granted manage_wepos (e.g. Cashier via Access settings) can
- * reach the WePOS admin pages.
+ * reach the wePOS admin pages.
  *
  * @since 1.4.0
  *
@@ -341,7 +341,7 @@ function wepos_allow_admin_access( $prevent_access ) {
 add_filter( 'woocommerce_prevent_admin_access', 'wepos_allow_admin_access', 10, 1 );
 
 /**
- * Check if the current user can manage WePOS settings.
+ * Check if the current user can manage wePOS settings.
  *
  * @since 1.4.0
  *
@@ -352,7 +352,7 @@ function wepos_current_user_can_manage() {
 }
 
 /**
- * Check if the current user can access a specific WePOS admin page.
+ * Check if the current user can access a specific wePOS admin page.
  *
  * If the page capability has been explicitly set for the user's role
  * (via Access settings), that value is used. Otherwise falls back to

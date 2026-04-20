@@ -16,7 +16,7 @@ import {
   POSBrand,
 } from '../types';
 
-// Configure api-fetch with WePOS endpoints
+// Configure api-fetch with wePOS endpoints
 apiFetch.use(apiFetch.createNonceMiddleware(window.wepos.rest.nonce));
 apiFetch.use(apiFetch.createRootURLMiddleware(window.wepos.rest.root));
 

@@ -71,7 +71,7 @@ class Updates {
             $url = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
             ?>
                 <div id="message" class="updated">
-                    <p><?php printf( '<strong>%s  &#8211; %s</strong>', esc_attr__( 'WePOS Data Update Required', 'wepos' ), esc_attr__( 'We need to update your install to the latest version', 'wepos' ) ); ?></p>
+                    <p><?php printf( '<strong>%s  &#8211; %s</strong>', esc_attr__( 'wePOS Data Update Required', 'wepos' ), esc_attr__( 'We need to update your install to the latest version', 'wepos' ) ); ?></p>
                     <p class="submit"><a href="<?php echo esc_url( add_query_arg( [ 'wepos_do_update' => true ], $url ) ); ?>" class="wepos-update-btn button-primary"><?php esc_attr_e( 'Run the updater', 'wepos' ); ?></a></p>
                 </div>
 

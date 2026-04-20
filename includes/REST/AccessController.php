@@ -25,7 +25,7 @@ class AccessController extends \WP_REST_Controller {
 	protected $base = 'settings/access';
 
 	/**
-	 * WePOS-specific capabilities.
+	 * wePOS-specific capabilities.
 	 *
 	 * @var string[]
 	 */
@@ -66,7 +66,7 @@ class AccessController extends \WP_REST_Controller {
 	];
 
 	/**
-	 * WePOS admin page capabilities.
+	 * wePOS admin page capabilities.
 	 *
 	 * Controls which admin pages a role can access.
 	 * Filterable via 'wepos_access_page_capabilities' so pro can add its own pages.
@@ -338,7 +338,7 @@ class AccessController extends \WP_REST_Controller {
 	 * @return array<string, bool>
 	 */
 	/**
-	 * Get effective WePOS capability status for a role.
+	 * Get effective wePOS capability status for a role.
 	 *
 	 * wepos_view_all_outlets defaults to ON when not explicitly set
 	 * (matching the runtime behavior in OutletController).
