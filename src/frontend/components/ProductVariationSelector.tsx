@@ -16,6 +16,8 @@ interface ProductVariationSelectorProps {
   onAddToCart: (cartItem: CartItem) => void;
   children: React.ReactNode;
   anchor?: HTMLElement | null;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 interface SelectedAttributes {
@@ -24,10 +26,9 @@ interface SelectedAttributes {
 
 export const ProductVariationSelector: React.FC<
   ProductVariationSelectorProps
-> = ({ product, onAddToCart, children }) => {
+> = ({ product, onAddToCart, children, open, onOpenChange }) => {
   const [selectedAttributes, setSelectedAttributes] =
     useState<SelectedAttributes>({});
-  const [popoverAnchor, setPopoverAnchor] = useState<HTMLElement | null>(null);
 
   // Find matching variation based on selected attributes
   const matchingVariation = useMemo(() => {
@@ -104,7 +105,7 @@ export const ProductVariationSelector: React.FC<
 
   return (
     <>
-      <Popover>
+      <Popover open={open} onOpenChange={onOpenChange}>
         <PopoverTrigger asChild>
           {children}
         </PopoverTrigger>

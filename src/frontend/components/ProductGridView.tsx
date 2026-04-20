@@ -81,127 +81,150 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
   hasStock,
   getProductImage,
   truncateTitle,
-}) => (
-  <Card className="group cursor-pointer border-border p-0 transition-all duration-200 hover:shadow-lg">
-    {/* Image */}
-    <div className="relative h-48 w-full overflow-hidden rounded-t-xl bg-muted">
-      <Thumbnail
-        src={getProductImage(product)}
-        alt={product.name}
-        className="h-full w-full rounded-none object-cover transition-transform duration-300"
-      />
+}) => {
+  const isVariable = product.type === 'variable';
 
-      {!hasStock && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60 backdrop-blur-[2px]">
-          <span className="rounded-full border border-destructive/20 bg-destructive/10 px-3 py-1 text-center text-xs font-semibold uppercase tracking-wide text-destructive shadow-sm">
-            {__('Out of Stock', 'wepos')}
-          </span>
-        </div>
-      )}
+  const cardContent = (
+    <Card
+      className={`group border-border p-0 transition-all duration-200 hover:shadow-lg ${
+        hasStock ? 'cursor-pointer' : 'cursor-not-allowed'
+      }`}
+      onClick={
+        hasStock && !isVariable
+          ? () => {
+              onAddToCart(product);
+            }
+          : undefined
+      }
+    >
+      {/* Image */}
+      <div className="relative h-48 w-full overflow-hidden rounded-t-xl bg-muted">
+        <Thumbnail
+          src={getProductImage(product)}
+          alt={product.name}
+          className="h-full w-full rounded-none object-cover transition-transform duration-300"
+        />
 
-      {hasStock && (
-        <div className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center opacity-100 lg:opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-          {product.type === 'variable' ? (
-            <ProductVariationSelector product={product} onAddToCart={onAddToCartItem}>
+        {!hasStock && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60 backdrop-blur-[2px]">
+            <span className="rounded-full border border-destructive/20 bg-destructive/10 px-3 py-1 text-center text-xs font-semibold uppercase tracking-wide text-destructive shadow-sm">
+              {__('Out of Stock', 'wepos')}
+            </span>
+          </div>
+        )}
+
+        {hasStock && (
+          <div className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center opacity-100 lg:opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            {isVariable ? (
               <Button variant="default" size="icon-sm" className="h-8 w-8 rounded-full shadow-md">
                 <ChevronDown className="h-5 w-5" />
               </Button>
-            </ProductVariationSelector>
-          ) : (
-            <Button
-              variant="default"
-              size="icon-sm"
-              className="h-8 w-8 rounded-full shadow-md"
-              onClick={(e: React.MouseEvent) => {
-                e.stopPropagation();
-                onAddToCart(product);
-              }}
+            ) : (
+              <Button
+                variant="default"
+                size="icon-sm"
+                className="h-8 w-8 rounded-full shadow-md"
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  onAddToCart(product);
+                }}
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <CardContent className="flex flex-1 flex-col p-3">
+        <h3
+          className="mb-2 min-h-[40px] line-clamp-2 text-sm font-semibold text-foreground"
+          title={decodeHtmlEntities(product.name)}
+        >
+          {truncateTitle(decodeHtmlEntities(product.name), 25)}
+        </h3>
+
+        <div className="mb-3 flex w-full min-w-0 flex-wrap items-center gap-1">
+          {/* Category badge + stock label on same row */}
+          {(() => {
+            const [first, ...extra] = product.categories ?? [];
+            return (
+              <>
+                {first && (
+                  <Badge
+                    className="h-auto min-w-0 max-w-[calc(100%-2rem)] break-words whitespace-normal rounded-sm bg-muted px-2 py-1 text-[10px] leading-tight font-semibold uppercase tracking-wider text-muted-foreground"
+                    title={decodeHtmlEntities(first.name)}
+                  >
+                    {decodeHtmlEntities(first.name)}
+                  </Badge>
+                )}
+                {extra.length > 0 && (
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <span className="inline-flex shrink-0 cursor-default items-center rounded-sm border border-border bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground hover:bg-accent">
+                        +{extra.length}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <div className="flex flex-wrap gap-1">
+                        {extra.map((cat) => (
+                          <span key={cat.id} className="whitespace-nowrap">
+                            {decodeHtmlEntities(cat.name)}
+                          </span>
+                        ))}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </>
+            );
+          })()}
+
+          {/* Stock label */}
+          {product.stock_quantity !== null && (
+            <span
+              className={`text-xs ${
+                !hasStock || product.stock_quantity === 0 ? 'font-medium text-destructive' : 'text-muted-foreground'
+              }`}
             >
-              <Plus className="h-5 w-5" />
-            </Button>
+              {getStockLabel(product.stock_quantity)}
+            </span>
           )}
         </div>
-      )}
-    </div>
 
-    {/* Content */}
-    <CardContent className="flex flex-1 flex-col p-3">
-      <h3
-        className="mb-2 min-h-[40px] line-clamp-2 text-sm font-semibold text-foreground"
-        title={decodeHtmlEntities(product.name)}
-      >
-        {truncateTitle(decodeHtmlEntities(product.name), 25)}
-      </h3>
-
-      <div className="mb-3 flex w-full min-w-0 flex-wrap items-center gap-1">
-        {/* Category badge + stock label on same row */}
-        {(() => {
-          const [first, ...extra] = product.categories ?? [];
-          return (
-            <>
-              {first && (
-                <Badge
-                  className="h-auto min-w-0 max-w-[calc(100%-2rem)] break-words whitespace-normal rounded-sm bg-muted px-2 py-1 text-[10px] leading-tight font-semibold uppercase tracking-wider text-muted-foreground"
-                  title={decodeHtmlEntities(first.name)}
-                >
-                  {decodeHtmlEntities(first.name)}
-                </Badge>
-              )}
-              {extra.length > 0 && (
-                <Tooltip>
-                  <TooltipTrigger>
-                    <span className="inline-flex shrink-0 cursor-default items-center rounded-sm border border-border bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground hover:bg-accent">
-                      +{extra.length}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">
-                    <div className="flex flex-wrap gap-1">
-                      {extra.map((cat) => (
-                        <span key={cat.id} className="whitespace-nowrap">
-                          {decodeHtmlEntities(cat.name)}
-                        </span>
-                      ))}
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-            </>
-          );
-        })()}
-
-        {/* Stock label */}
-        {product.stock_quantity !== null && (
-          <span
-            className={`text-xs ${
-              !hasStock || product.stock_quantity === 0 ? 'font-medium text-destructive' : 'text-muted-foreground'
-            }`}
-          >
-            {getStockLabel(product.stock_quantity)}
-          </span>
-        )}
-      </div>
-
-      <div className="mt-auto flex flex-col">
-        {product.type === 'variable' ? (
-          <span className="text-sm font-bold text-foreground">
-            {getVariablePriceRange(product, formatPrice)}
-          </span>
-        ) : (
-          <>
-            {product.on_sale && product.regular_price && (
-              <span className="mb-0.5 text-xs text-muted-foreground line-through">
-                {formatPrice(product.regular_price)}
-              </span>
-            )}
+        <div className="mt-auto flex flex-col">
+          {isVariable ? (
             <span className="text-sm font-bold text-foreground">
-              {formatPrice(product.on_sale ? product.sale_price : product.regular_price)}
+              {getVariablePriceRange(product, formatPrice)}
             </span>
-          </>
-        )}
-      </div>
-    </CardContent>
-  </Card>
-);
+          ) : (
+            <>
+              {product.on_sale && product.regular_price && (
+                <span className="mb-0.5 text-xs text-muted-foreground line-through">
+                  {formatPrice(product.regular_price)}
+                </span>
+              )}
+              <span className="text-sm font-bold text-foreground">
+                {formatPrice(product.on_sale ? product.sale_price : product.regular_price)}
+              </span>
+            </>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  if (hasStock && isVariable) {
+    return (
+      <ProductVariationSelector product={product} onAddToCart={onAddToCartItem}>
+        {cardContent}
+      </ProductVariationSelector>
+    );
+  }
+
+  return cardContent;
+};
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 

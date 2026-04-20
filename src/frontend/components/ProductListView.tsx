@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import { ChevronRight, Plus } from 'lucide-react';
 import {
@@ -198,6 +198,8 @@ interface ActionButtonProps {
   hasStock: boolean;
   onAddToCart: (product: POSProduct) => void;
   onAddToCartItem: (cartItem: CartItem) => void;
+  variationSelectorOpen?: boolean;
+  onVariationSelectorOpenChange?: (open: boolean) => void;
 }
 
 const ActionButton: React.FC<ActionButtonProps> = ({
@@ -205,6 +207,8 @@ const ActionButton: React.FC<ActionButtonProps> = ({
   hasStock,
   onAddToCart,
   onAddToCartItem,
+  variationSelectorOpen,
+  onVariationSelectorOpenChange,
 }) => {
   if (!hasStock) {
     return (
@@ -222,7 +226,12 @@ const ActionButton: React.FC<ActionButtonProps> = ({
 
   if (product.type === 'variable') {
     return (
-      <ProductVariationSelector product={product} onAddToCart={onAddToCartItem}>
+      <ProductVariationSelector
+        product={product}
+        onAddToCart={onAddToCartItem}
+        open={variationSelectorOpen}
+        onOpenChange={onVariationSelectorOpenChange}
+      >
         <Button
           variant="default"
           size="icon"
@@ -269,55 +278,74 @@ const ProductListRow: React.FC<ProductListRowProps> = ({
   formatPrice,
   hasStock,
   getProductImage,
-}) => (
-  <div
-    className={`${ROW_GRID} py-4 border-b border-border transition-colors hover:bg-muted/50 ${
-      !hasStock ? 'opacity-60' : ''
-    }`}
-  >
-    {/* Product info */}
-    <ProductInfo
-      product={product}
-      getProductImage={getProductImage}
-      formatPrice={formatPrice}
-      onAddToCartItem={onAddToCartItem}
-      hasStock={hasStock}
-    />
+}) => {
+  const isVariableProduct = product.type === 'variable';
+  const [isVariationSelectorOpen, setIsVariationSelectorOpen] = useState(false);
 
-    {/* Type */}
-    <div className="text-center">
-      <span className="text-sm text-muted-foreground capitalize">
-        {product.type === 'variable' ? __('Variable', 'wepos') : __('Simple', 'wepos')}
-      </span>
-    </div>
+  return (
+    <div
+      className={`${ROW_GRID} py-4 border-b border-border transition-colors hover:bg-muted/50 ${
+        !hasStock ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+      }`}
+      onClick={
+        hasStock
+          ? () => {
+              if (isVariableProduct) {
+                setIsVariationSelectorOpen(true);
+                return;
+              }
 
-    {/* Stock */}
-    <div className="text-center">
-      <span
-        className={`text-sm font-medium ${
-          (product.stock_quantity ?? 0) === 0 && product.manage_stock
-            ? 'text-destructive'
-            : 'text-foreground'
-        }`}
-      >
-        {product.manage_stock ? (product.stock_quantity ?? 0) : '-'}
-      </span>
-    </div>
-
-    {/* Price */}
-    <PriceCell product={product} formatPrice={formatPrice} />
-
-    {/* Action */}
-    <div className="flex justify-end">
-      <ActionButton
+              onAddToCart(product);
+            }
+          : undefined
+      }
+    >
+      {/* Product info */}
+      <ProductInfo
         product={product}
-        hasStock={hasStock}
-        onAddToCart={onAddToCart}
+        getProductImage={getProductImage}
+        formatPrice={formatPrice}
         onAddToCartItem={onAddToCartItem}
+        hasStock={hasStock}
       />
+
+      {/* Type */}
+      <div className="text-center">
+        <span className="text-sm text-muted-foreground capitalize">
+          {isVariableProduct ? __('Variable', 'wepos') : __('Simple', 'wepos')}
+        </span>
+      </div>
+
+      {/* Stock */}
+      <div className="text-center">
+        <span
+          className={`text-sm font-medium ${
+            (product.stock_quantity ?? 0) === 0 && product.manage_stock
+              ? 'text-destructive'
+              : 'text-foreground'
+          }`}
+        >
+          {product.manage_stock ? (product.stock_quantity ?? 0) : '-'}
+        </span>
+      </div>
+
+      {/* Price */}
+      <PriceCell product={product} formatPrice={formatPrice} />
+
+      {/* Action */}
+      <div className="flex justify-end">
+        <ActionButton
+          product={product}
+          hasStock={hasStock}
+          onAddToCart={onAddToCart}
+          onAddToCartItem={onAddToCartItem}
+          variationSelectorOpen={isVariationSelectorOpen}
+          onVariationSelectorOpenChange={setIsVariationSelectorOpen}
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
