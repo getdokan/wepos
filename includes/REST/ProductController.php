@@ -100,6 +100,16 @@ class ProductController extends \WC_REST_Products_Controller {
             }
         }
 
+        /**
+         * Filter wePOS product query arguments before fetching products.
+         *
+         * @since 1.4.0
+         *
+         * @param array            $args    Product query args.
+         * @param \WP_REST_Request $request Request object.
+         */
+        $args = apply_filters( 'wepos_rest_product_query_args', $args, $request );
+
         return $args;
     }
 

@@ -19,6 +19,7 @@ class Dokan {
     public function __construct() {
         add_filter( 'wepos_frontend_permissions', [ $this, 'frontend_permissions' ], 10, 1 );
         add_filter( 'woocommerce_rest_product_object_query', [ $this, 'filter_vendor_products' ], 10, 2 );
+        add_filter( 'wepos_rest_product_query_args', [ $this, 'exclude_dokan_specific_products_from_pos' ], 10, 2 );
         add_action( 'dokan_new_seller_created', [ $this, 'after_create_vendor' ], 15, 2 );
         add_filter( 'dokan_get_dashboard_nav', [ $this, 'show_pos_menu' ], 15 );
         add_filter( 'wepos_settings_fields', [ $this, 'add_dokan_settings' ], 11 );
@@ -168,6 +169,60 @@ class Dokan {
 
         // Non-admin user with no vendor context should see no products.
         $args['post__in'] = [ 0 ];
+
+        return $args;
+    }
+
+    /**
+     * Exclude Dokan-specific non-POS products from wePOS product lists.
+     *
+     * @since 1.4.0
+     *
+     * @param array            $args    Product query args.
+     * @param \WP_REST_Request $request Request object.
+     *
+     * @return array
+     */
+    public function exclude_dokan_specific_products_from_pos( $args, $request ) {
+        $excluded_product_types = array_filter(
+            array_map(
+                'sanitize_title',
+                (array) apply_filters( 'wepos_dokan_excluded_product_types', [ 'product_pack' ], $request, $args )
+            )
+        );
+
+        if ( ! empty( $excluded_product_types ) ) {
+            if ( ! isset( $args['tax_query'] ) || ! is_array( $args['tax_query'] ) ) {
+                $args['tax_query'] = [];
+            }
+
+            $args['tax_query'][] = [
+                'taxonomy' => 'product_type',
+                'field'    => 'slug',
+                'terms'    => $excluded_product_types,
+                'operator' => 'NOT IN',
+            ];
+        }
+
+        $excluded_product_ids = array_filter(
+            array_map(
+                'absint',
+                (array) apply_filters(
+                    'wepos_dokan_excluded_product_ids',
+                    [
+                        get_option( 'dokan_advertisement_product_id', 0 ),
+                        get_option( 'dokan_reverse_withdrawal_product_id', 0 ),
+                    ],
+                    $request,
+                    $args
+                )
+            )
+        );
+
+        if ( ! empty( $excluded_product_ids ) ) {
+            $post_not_in         = isset( $args['post__not_in'] ) ? array_map( 'absint', (array) $args['post__not_in'] ) : [];
+            $args['post__not_in'] = array_values( array_unique( array_merge( $post_not_in, $excluded_product_ids ) ) );
+        }
 
         return $args;
     }
