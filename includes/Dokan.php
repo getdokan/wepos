@@ -233,6 +233,7 @@ class Dokan {
                         'icon'  => '<i class="fas fa-desktop"></i>',
                         'url'   => untrailingslashit( get_site_url() ) . '/wepos/#',
                         'pos'   => 50,
+                        'target' => '_blank',
                     ],
                 ],
             ];
