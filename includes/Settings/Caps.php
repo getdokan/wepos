@@ -49,6 +49,185 @@ class Caps {
     }
 
     /**
+     * All caps subject to the vendor → staff cascade.
+     *
+     * When the parent vendor lacks one of these caps, the cap is
+     * forced off for the child user regardless of per-user overrides.
+     * Ensures that admin revocation propagates automatically and that
+     * staff never gain a permission the vendor does not hold.
+     *
+     * @since 1.5.0
+     *
+     * @return string[]
+     */
+    public static function cascadable_caps() {
+        $caps = array_merge(
+            [
+                'access_wepos',
+                'manage_wepos',
+                'wepos_view_all_outlets',
+            ],
+            self::managed_caps(),
+            \apply_filters( 'wepos_access_page_capabilities', [ 'wepos_page_settings', 'wepos_page_view_pos' ] ),
+            [
+                'create_customers',
+                'read_private_products',
+                'edit_products',
+                'edit_others_products',
+                'edit_published_products',
+                'read_private_shop_orders',
+                'publish_shop_orders',
+                'edit_shop_orders',
+                'edit_others_shop_orders',
+                'edit_users',
+                'list_users',
+                'manage_product_terms',
+                'read_private_shop_coupons',
+                'read',
+            ]
+        );
+
+        /**
+         * Filter the list of caps subject to the vendor → staff cascade.
+         *
+         * @since 1.5.0
+         *
+         * @param string[] $caps Cap slugs.
+         */
+        return \apply_filters( 'wepos_cascadable_staff_caps', $caps );
+    }
+
+    /**
+     * Per-request cache of parent vendor caps, keyed by vendor ID.
+     *
+     * @var array<int, array<string, bool>>
+     */
+    private static $parent_caps_cache = [];
+
+    /**
+     * Per-request cache of resolved parent vendor IDs, keyed by user ID.
+     *
+     * Values: vendor ID, 0 = no parent, or -1 = resolution in flight.
+     *
+     * @var array<int, int>
+     */
+    private static $parent_id_cache = [];
+
+    /**
+     * Reentry guard for the cascade filter.
+     *
+     * The WP cap resolution helpers triggered during parent-vendor lookup
+     * can themselves fire `user_has_cap`, which would recurse back into
+     * this filter and overflow the stack. The flag stops that at the door.
+     *
+     * @var bool
+     */
+    private static $cascade_in_progress = false;
+
+    /**
+     * Apply the vendor → staff cascade to a `user_has_cap` payload.
+     *
+     * When the user is vendor staff or a cashier linked to a vendor,
+     * any cap the parent vendor lacks is forced off for the child.
+     *
+     * @since 1.5.0
+     *
+     * @param array<string, bool> $allcaps Current user cap map.
+     * @param \WP_User|int|null   $user    User object or ID.
+     *
+     * @return array<string, bool>
+     */
+    public static function apply_cascade( $allcaps, $user ) {
+        if ( ! is_array( $allcaps ) ) {
+            return $allcaps;
+        }
+
+        if ( self::$cascade_in_progress ) {
+            return $allcaps;
+        }
+
+        $user_id = 0;
+
+        if ( is_object( $user ) && isset( $user->ID ) ) {
+            $user_id = (int) $user->ID;
+        } elseif ( is_numeric( $user ) ) {
+            $user_id = (int) $user;
+        }
+
+        if ( ! $user_id ) {
+            return $allcaps;
+        }
+
+        self::$cascade_in_progress = true;
+
+        try {
+            $parent_vendor = self::cached_parent_vendor_id( $user_id );
+
+            if ( ! $parent_vendor || $parent_vendor === $user_id ) {
+                return $allcaps;
+            }
+
+            $parent_caps = self::parent_vendor_caps( $parent_vendor );
+
+            foreach ( self::cascadable_caps() as $cap ) {
+                if ( empty( $parent_caps[ $cap ] ) ) {
+                    $allcaps[ $cap ] = false;
+                }
+            }
+
+            return $allcaps;
+        } finally {
+            self::$cascade_in_progress = false;
+        }
+    }
+
+    /**
+     * Cached variant of parent_vendor_id — used only inside the cascade
+     * filter to avoid re-running the filter-heavy resolver per cap check.
+     *
+     * @param int $user_id User ID.
+     *
+     * @return int
+     */
+    private static function cached_parent_vendor_id( $user_id ) {
+        if ( array_key_exists( $user_id, self::$parent_id_cache ) ) {
+            return self::$parent_id_cache[ $user_id ];
+        }
+
+        $resolved = self::parent_vendor_id( $user_id );
+        self::$parent_id_cache[ $user_id ] = (int) $resolved;
+
+        return self::$parent_id_cache[ $user_id ];
+    }
+
+    /**
+     * Resolve the parent vendor's effective caps, using a per-request cache
+     * to avoid triggering repeated user_has_cap filter recursion.
+     *
+     * @param int $vendor_id Vendor user ID.
+     *
+     * @return array<string, bool>
+     */
+    private static function parent_vendor_caps( $vendor_id ) {
+        if ( isset( self::$parent_caps_cache[ $vendor_id ] ) ) {
+            return self::$parent_caps_cache[ $vendor_id ];
+        }
+
+        $vendor = \get_userdata( $vendor_id );
+
+        if ( ! $vendor ) {
+            self::$parent_caps_cache[ $vendor_id ] = [];
+            return self::$parent_caps_cache[ $vendor_id ];
+        }
+
+        $allcaps = isset( $vendor->allcaps ) && is_array( $vendor->allcaps ) ? $vendor->allcaps : [];
+
+        self::$parent_caps_cache[ $vendor_id ] = $allcaps;
+
+        return $allcaps;
+    }
+
+    /**
      * Get a section's capability config.
      *
      * @param string $section Section payload key.

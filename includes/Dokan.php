@@ -58,6 +58,28 @@ class Dokan {
 
         // Vendor staff permission check.
         add_filter( 'wepos_is_vendor_staff', [ $this, 'is_vendor_staff' ], 10, 2 );
+
+        // Vendor → staff/cashier cap cascade. When the admin revokes a wePOS-managed
+        // cap on the vendor, mirror the revoke to every cap check for the vendor's
+        // staff/cashiers — even if the vendor's own Access overlay says the cap is on.
+        add_filter( 'user_has_cap', [ $this, 'cascade_vendor_caps_to_staff' ], 20, 4 );
+    }
+
+    /**
+     * Force-off every cascadable cap on the vendor's staff/cashiers when
+     * the parent vendor lacks it.
+     *
+     * @since 1.5.0
+     *
+     * @param array<string, bool> $allcaps Caps map for the user being checked.
+     * @param string[]            $caps    Required primitive caps for the current check.
+     * @param array               $args    Original cap check args.
+     * @param \WP_User|null       $user    User object.
+     *
+     * @return array<string, bool>
+     */
+    public function cascade_vendor_caps_to_staff( $allcaps, $caps, $args, $user ) {
+        return \WeDevs\WePOS\Settings\Caps::apply_cascade( $allcaps, $user );
     }
 
     /**
