@@ -404,8 +404,34 @@ class SettingController extends \WP_REST_Controller {
 		$user_id  = get_current_user_id();
 		$settings = array_merge( $settings, $this->get_personal_settings( $user_id ) );
 		$settings = $this->apply_view_gating( $settings, $user_id );
+		$settings['_permissions'] = $this->build_permissions_payload( $user_id );
 
 		return rest_ensure_response( $settings );
+	}
+
+	/**
+	 * Build per-section view/edit permission map so the frontend can
+	 * gate tab visibility and save actions without re-deriving caps.
+	 *
+	 * @param int $user_id Current user ID.
+	 *
+	 * @return array{can_view: array<string, bool>, can_edit: array<string, bool>}
+	 */
+	private function build_permissions_payload( $user_id ) {
+		$sections = [ 'woo_general', 'wepos_general', 'woo_tax', 'wepos_barcode', 'wepos_cashier', 'wepos_theme' ];
+
+		$can_view = [];
+		$can_edit = [];
+
+		foreach ( $sections as $section ) {
+			$can_view[ $section ] = Caps::can_view( $section, $user_id );
+			$can_edit[ $section ] = Caps::can_edit( $section, $user_id );
+		}
+
+		return [
+			'can_view' => $can_view,
+			'can_edit' => $can_edit,
+		];
 	}
 
 	/**
@@ -427,7 +453,7 @@ class SettingController extends \WP_REST_Controller {
 		$restore_tax      = ! empty( $params['_restore_tax'] );
 
 		// Remove meta keys so they don't get saved as setting values
-		unset( $params['_outlet_id'], $params['_restore_currency'], $params['_restore_tax'] );
+		unset( $params['_outlet_id'], $params['_restore_currency'], $params['_restore_tax'], $params['_permissions'] );
 
 		// Per-section edit gating — silently drop sections the user cannot edit.
 		$user_id = get_current_user_id();

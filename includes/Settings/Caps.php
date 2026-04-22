@@ -379,8 +379,9 @@ class Caps {
     }
 
     /**
-     * Resolve a section-level cap, respecting explicit false values
-     * stored on roles while falling back to the coarse manager check.
+     * Resolve a section-level cap via the full WP cap resolution, so
+     * role-level grants, per-user add_cap overrides, and the vendor →
+     * staff cascade filter all apply consistently.
      *
      * @param string $cap     Capability slug.
      * @param int    $user_id User ID.
@@ -388,47 +389,25 @@ class Caps {
      * @return bool
      */
     private static function resolve_cap( $cap, $user_id ) {
-        $user = \get_userdata( $user_id );
-
-        if ( ! $user ) {
+        if ( ! $user_id ) {
             return false;
         }
 
-        foreach ( $user->roles as $role_slug ) {
-            $role = \get_role( $role_slug );
-            if ( $role && array_key_exists( $cap, $role->capabilities ) ) {
-                return ! empty( $role->capabilities[ $cap ] );
-            }
-        }
-
-        return false;
+        return \user_can( $user_id, $cap );
     }
 
     /**
-     * Site admin / shop manager / editor / Dokan vendor fallback so section
-     * caps are granted automatically when not explicitly configured.
+     * Site admin / shop manager fallback so section caps are granted
+     * automatically when not explicitly configured.
      *
-     * Dokan vendors manage their own store — their section access is gated by
-     * `access_wepos` / `manage_wepos` and scoped to vendor meta, so granular
-     * section caps are not required.
+     * Dokan vendors do NOT bypass section caps: admins must be able to
+     * disable a specific settings tab for vendors from the Access matrix.
      *
      * @param int $user_id User ID.
      *
      * @return bool
      */
     private static function has_full_access( $user_id ) {
-        if ( \user_can( $user_id, 'manage_options' ) || \user_can( $user_id, 'manage_woocommerce' ) ) {
-            return true;
-        }
-
-        // Dokan vendor acting on their own store.
-        if ( function_exists( 'wepos_get_vendor_id_for_user' ) ) {
-            $vendor_id = \absint( \wepos_get_vendor_id_for_user( $user_id ) );
-            if ( $vendor_id === $user_id && \user_can( $user_id, 'dokandar' ) ) {
-                return true;
-            }
-        }
-
-        return false;
+        return \user_can( $user_id, 'manage_options' ) || \user_can( $user_id, 'manage_woocommerce' );
     }
 }
