@@ -1,6 +1,8 @@
 <?php
 namespace WeDevs\WePOS\REST;
 
+use WeDevs\WePOS\Settings\Caps;
+
 /**
  * Access Settings API Controller
  *
@@ -77,6 +79,45 @@ class AccessController extends \WP_REST_Controller {
 		'wepos_page_settings',
 		'wepos_page_view_pos',
 	];
+
+	/**
+	 * Section-level settings capabilities.
+	 *
+	 * @var string[]
+	 */
+	private $settings_caps = [
+		'view_general_settings',
+		'edit_general_settings',
+		'view_tax_settings',
+		'edit_tax_settings',
+		'view_barcode_settings',
+		'edit_barcode_settings',
+	];
+
+	/**
+	 * Role slugs exposed in the Access matrix.
+	 *
+	 * Vendor and vendor-staff appear only when Dokan is active.
+	 *
+	 * @return string[]
+	 */
+	private function get_display_roles() {
+		$roles = [ 'administrator', 'shop_manager', 'editor', 'cashier' ];
+
+		if ( function_exists( 'wepos_is_dokan_active' ) && wepos_is_dokan_active() ) {
+			$roles[] = 'seller';
+			$roles[] = 'vendor_staff';
+		}
+
+		/**
+		 * Filter the role slugs shown in the Access matrix.
+		 *
+		 * @since 1.5.0
+		 *
+		 * @param string[] $roles Role slugs.
+		 */
+		return apply_filters( 'wepos_access_display_roles', $roles );
+	}
 
 	/**
 	 * Get page capabilities (filterable so pro can add its own pages).
@@ -207,7 +248,7 @@ class AccessController extends \WP_REST_Controller {
 
 		// Flatten grouped capabilities into a single array
 		$flattened = [];
-		foreach ( [ 'wepos', 'wc', 'wp', 'pages' ] as $group ) {
+		foreach ( [ 'wepos', 'wc', 'wp', 'pages', 'settings' ] as $group ) {
 			if ( isset( $caps_data[ $group ] ) && is_array( $caps_data[ $group ] ) ) {
 				foreach ( $caps_data[ $group ] as $cap => $grant ) {
 					$flattened[ $cap ] = wp_validate_boolean( $grant );
@@ -230,7 +271,7 @@ class AccessController extends \WP_REST_Controller {
 		}
 
 		// Only allow known capabilities
-		$allowed_caps = array_merge( $this->wepos_caps, $this->wc_caps, $this->wp_caps, $this->get_page_caps() );
+		$allowed_caps = array_merge( $this->wepos_caps, $this->wc_caps, $this->wp_caps, $this->get_page_caps(), $this->settings_caps );
 
 		foreach ( $flattened as $cap => $grant ) {
 			if ( ! in_array( $cap, $allowed_caps, true ) ) {
@@ -253,21 +294,28 @@ class AccessController extends \WP_REST_Controller {
 	private function build_access_data() {
 		global $wp_roles;
 
-		$result = [];
+		$display_roles = $this->get_display_roles();
+		$result        = [];
 
-		foreach ( $wp_roles->roles as $slug => $role_data ) {
-			$caps     = isset( $role_data['capabilities'] ) ? $role_data['capabilities'] : [];
-			$is_admin = ( 'administrator' === $slug );
+		foreach ( $display_roles as $slug ) {
+			if ( ! isset( $wp_roles->roles[ $slug ] ) ) {
+				continue;
+			}
+
+			$role_data = $wp_roles->roles[ $slug ];
+			$caps      = isset( $role_data['capabilities'] ) ? $role_data['capabilities'] : [];
+			$is_admin  = ( 'administrator' === $slug );
 
 			// Administrator always has all caps active.
 			if ( $is_admin ) {
 				$result[ $slug ] = [
 					'name'         => translate_user_role( $role_data['name'] ),
 					'capabilities' => [
-						'wepos' => $this->all_caps_on( $this->wepos_caps ),
-						'wc'    => $this->all_caps_on( $this->wc_caps ),
-						'wp'    => $this->all_caps_on( $this->wp_caps ),
-						'pages' => $this->all_caps_on( $this->get_page_caps() ),
+						'wepos'    => $this->all_caps_on( $this->wepos_caps ),
+						'wc'       => $this->all_caps_on( $this->wc_caps ),
+						'wp'       => $this->all_caps_on( $this->wp_caps ),
+						'pages'    => $this->all_caps_on( $this->get_page_caps() ),
+						'settings' => $this->all_caps_on( $this->settings_caps ),
 					],
 				];
 				continue;
@@ -276,15 +324,49 @@ class AccessController extends \WP_REST_Controller {
 			$result[ $slug ] = [
 				'name'         => translate_user_role( $role_data['name'] ),
 				'capabilities' => [
-					'wepos' => $this->get_wepos_caps_status( $slug, $caps ),
-					'wc'    => $this->get_caps_status( $slug, $caps, $this->wc_caps ),
-					'wp'    => $this->get_caps_status( $slug, $caps, $this->wp_caps ),
-					'pages' => $this->get_page_caps_status( $slug, $caps ),
+					'wepos'    => $this->get_wepos_caps_status( $slug, $caps ),
+					'wc'       => $this->get_caps_status( $slug, $caps, $this->wc_caps ),
+					'wp'       => $this->get_caps_status( $slug, $caps, $this->wp_caps ),
+					'pages'    => $this->get_page_caps_status( $slug, $caps ),
+					'settings' => $this->get_settings_caps_status( $slug, $caps ),
 				],
 			];
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Resolve section-level settings caps for a role, honoring the
+	 * default matrix when the cap isn't explicitly stored.
+	 *
+	 * @param string $role_slug Role slug.
+	 * @param array  $role_caps Stored capabilities for this role.
+	 *
+	 * @return array<string, bool>
+	 */
+	private function get_settings_caps_status( $role_slug, $role_caps ) {
+		$has_full_access = ! empty( $role_caps['manage_options'] )
+			|| ! empty( $role_caps['manage_woocommerce'] );
+
+		$status = [];
+
+		foreach ( $this->settings_caps as $cap ) {
+			if ( array_key_exists( $cap, $role_caps ) ) {
+				$status[ $cap ] = ! empty( $role_caps[ $cap ] );
+				continue;
+			}
+
+			if ( 'shop_manager' === $role_slug || $has_full_access ) {
+				$status[ $cap ] = true;
+				continue;
+			}
+
+			// Cashier / vendor / staff default off until admin toggles them on.
+			$status[ $cap ] = false;
+		}
+
+		return $status;
 	}
 
 	/**

@@ -1,6 +1,8 @@
 <?php
 namespace WeDevs\WePOS\REST;
 
+use WeDevs\WePOS\Settings\Caps;
+
 /**
  * Settings API Controller
  *
@@ -29,7 +31,26 @@ class SettingController extends \WP_REST_Controller {
 	 *
 	 * @var string[]
 	 */
-	private $overridable_sections = [ 'woo_general', 'woo_tax', 'wepos_general' ];
+	private $overridable_sections = [ 'woo_general', 'woo_tax', 'wepos_general', 'wepos_barcode' ];
+
+	/**
+	 * Sections stored per-user (not per-outlet or globally).
+	 *
+	 * @var string[]
+	 */
+	private $personal_sections = [ 'wepos_cashier', 'wepos_theme' ];
+
+	/**
+	 * Default payload for the server-backed barcode scanner section.
+	 *
+	 * @var array
+	 */
+	private $barcode_defaults = [
+		'averageTimeThreshold' => 24,
+		'minimumLength'        => 8,
+		'prefix'               => '',
+		'suffix'               => '',
+	];
 
 	/**
 	 * Currency-related keys within woo_general that can be restored to WC defaults.
@@ -147,11 +168,13 @@ class SettingController extends \WP_REST_Controller {
      *
      */
 	public function get_setting_permission_check() {
-		if ( ! wepos_current_user_can_manage() ) {
-			return new \WP_Error( 'wepos_rest_cannot_batch', __( 'Sorry, you are not allowed to update this resource.', 'wepos' ), array( 'status' => rest_authorization_required_code() ) );
+		// POS users can save personal sections (cashier/theme) even without
+		// manage_wepos. Per-section gating is enforced inside update_settings().
+		if ( current_user_can( 'access_wepos' ) || wepos_current_user_can_manage() ) {
+			return true;
 		}
 
-		return true;
+		return new \WP_Error( 'wepos_rest_cannot_batch', __( 'Sorry, you are not allowed to update this resource.', 'wepos' ), array( 'status' => rest_authorization_required_code() ) );
 	}
 
 	/**
@@ -221,6 +244,63 @@ class SettingController extends \WP_REST_Controller {
 			];
 		}
 		$settings['currencies'] = $currencies_with_symbols;
+
+		// Server-backed barcode scanner settings.
+		$barcode = get_option( 'wepos_barcode', [] );
+		$settings['wepos_barcode'] = is_array( $barcode )
+			? array_merge( $this->barcode_defaults, $barcode )
+			: $this->barcode_defaults;
+
+		return $settings;
+	}
+
+	/**
+	 * Load personal sections (cashier UX + theme) for the current user.
+	 *
+	 * @param int $user_id Current user ID (0 = logged-out).
+	 *
+	 * @return array
+	 */
+	private function get_personal_settings( $user_id ) {
+		if ( ! $user_id ) {
+			return [
+				'wepos_cashier' => (object) [],
+				'wepos_theme'   => (object) [],
+			];
+		}
+
+		$cashier = get_user_meta( $user_id, '_wepos_cashier_settings', true );
+		$theme   = get_user_meta( $user_id, '_wepos_theme_settings', true );
+
+		return [
+			'wepos_cashier' => is_array( $cashier ) ? $cashier : (object) [],
+			'wepos_theme'   => is_array( $theme ) ? $theme : (object) [],
+		];
+	}
+
+	/**
+	 * Strip sections the current user has no permission to view.
+	 *
+	 * Reference data (tax_classes, currencies, woo_defaults, has_outlet_currency_override)
+	 * is always kept — the POS UI needs it to render even for restricted roles.
+	 *
+	 * @param array $settings Full settings payload.
+	 * @param int   $user_id  Current user.
+	 *
+	 * @return array
+	 */
+	private function apply_view_gating( $settings, $user_id ) {
+		foreach ( array_keys( $settings ) as $section ) {
+			$config = Caps::section_config( $section );
+
+			if ( null === $config ) {
+				continue;
+			}
+
+			if ( ! Caps::can_view( $section, $user_id ) ) {
+				unset( $settings[ $section ] );
+			}
+		}
 
 		return $settings;
 	}
@@ -321,6 +401,10 @@ class SettingController extends \WP_REST_Controller {
 		 */
 		$settings = apply_filters( 'wepos_settings_for_user', $settings, $outlet_id, $request );
 
+		$user_id  = get_current_user_id();
+		$settings = array_merge( $settings, $this->get_personal_settings( $user_id ) );
+		$settings = $this->apply_view_gating( $settings, $user_id );
+
 		return rest_ensure_response( $settings );
 	}
 
@@ -344,6 +428,31 @@ class SettingController extends \WP_REST_Controller {
 
 		// Remove meta keys so they don't get saved as setting values
 		unset( $params['_outlet_id'], $params['_restore_currency'], $params['_restore_tax'] );
+
+		// Per-section edit gating — silently drop sections the user cannot edit.
+		$user_id = get_current_user_id();
+		foreach ( array_keys( $params ) as $section ) {
+			$config = Caps::section_config( $section );
+
+			if ( null === $config ) {
+				if ( ! wepos_current_user_can_manage() ) {
+					unset( $params[ $section ] );
+				}
+				continue;
+			}
+
+			if ( ! Caps::can_edit( $section, $user_id ) ) {
+				unset( $params[ $section ] );
+			}
+		}
+
+		// Route personal sections to user meta regardless of outlet_id.
+		foreach ( $this->personal_sections as $personal_section ) {
+			if ( isset( $params[ $personal_section ] ) ) {
+				$this->save_personal_section( $user_id, $personal_section, $params[ $personal_section ] );
+				unset( $params[ $personal_section ] );
+			}
+		}
 
 		/**
 		 * Allow extensions to intercept settings saves.
@@ -582,6 +691,63 @@ class SettingController extends \WP_REST_Controller {
 			$updated = array_merge( $existing, $params['wepos_receipts'] );
 			update_option( 'wepos_receipts', $updated );
 		}
+
+		if ( isset( $params['wepos_barcode'] ) && is_array( $params['wepos_barcode'] ) ) {
+			$existing = get_option( 'wepos_barcode', [] );
+			if ( ! is_array( $existing ) ) {
+				$existing = [];
+			}
+			$updated  = array_merge( $existing, $this->sanitize_barcode_payload( $params['wepos_barcode'] ) );
+			update_option( 'wepos_barcode', $updated );
+		}
+	}
+
+	/**
+	 * Sanitize the barcode payload with per-key rules.
+	 *
+	 * @param array $payload Raw payload.
+	 *
+	 * @return array
+	 */
+	private function sanitize_barcode_payload( $payload ) {
+		$clean = [];
+
+		if ( isset( $payload['averageTimeThreshold'] ) ) {
+			$clean['averageTimeThreshold'] = max( 1, absint( $payload['averageTimeThreshold'] ) );
+		}
+
+		if ( isset( $payload['minimumLength'] ) ) {
+			$clean['minimumLength'] = max( 0, absint( $payload['minimumLength'] ) );
+		}
+
+		if ( array_key_exists( 'prefix', $payload ) ) {
+			$clean['prefix'] = sanitize_text_field( (string) $payload['prefix'] );
+		}
+
+		if ( array_key_exists( 'suffix', $payload ) ) {
+			$clean['suffix'] = sanitize_text_field( (string) $payload['suffix'] );
+		}
+
+		return $clean;
+	}
+
+	/**
+	 * Save a personal section to the user's own meta.
+	 *
+	 * @param int    $user_id User ID.
+	 * @param string $section Section key (e.g. wepos_cashier).
+	 * @param mixed  $data    Payload.
+	 *
+	 * @return void
+	 */
+	private function save_personal_section( $user_id, $section, $data ) {
+		if ( ! $user_id || ! is_array( $data ) ) {
+			return;
+		}
+
+		$meta_key = '_' . $section . '_settings';
+
+		update_user_meta( $user_id, $meta_key, $data );
 	}
 
 	/**

@@ -7,7 +7,29 @@ import {
 	type SettingsElement,
 } from '@wedevs/plugin-ui';
 import { LoaderCircle, Save } from 'lucide-react';
+import { applyFilters as wpApplyFilters } from '@wordpress/hooks';
 import { applyFilters } from '@react/hooks/useExtensions';
+import {
+	buildPosSettingsSubpage,
+	POS_SETTINGS_SUBPAGE_ID,
+} from './pos-settings/schema';
+import {
+	ReferenceDataContext,
+	type ReferenceData,
+} from './pos-settings/reference-data';
+import { registerPosSettingsFields } from './pos-settings/register';
+
+// Register custom POS Settings field variants (country_state, customer_search,
+// currency_select, tax_class_select) once at module load so they're available
+// the first time the Settings page mounts.
+registerPosSettingsFields();
+
+const POS_SETTINGS_SECTIONS = [
+	'woo_general',
+	'woo_tax',
+	'wepos_general',
+	'wepos_barcode',
+];
 
 /**
  * Shape of the `weposAdmin` global set by Dashboard.php via wp_localize_script.
@@ -52,6 +74,7 @@ interface WeposAdminData {
 				wc: Record< string, boolean >;
 				wp: Record< string, boolean >;
 				pages: Record< string, boolean >;
+				settings?: Record< string, boolean >;
 			};
 		}
 	>;
@@ -110,6 +133,9 @@ const DEFAULT_DISPLAY_ROLES = [
 	'administrator',
 	'editor',
 	'shop_manager',
+	'cashier',
+	'seller',
+	'vendor_staff',
 ];
 
 /**
@@ -117,9 +143,10 @@ const DEFAULT_DISPLAY_ROLES = [
  */
 const CAP_GROUPS: Array< { key: string; label: string } > = [
 	{ key: 'wepos', label: __( 'wePOS', 'wepos' ) },
+	{ key: 'settings', label: __( 'Settings', 'wepos' ) },
+	{ key: 'pages', label: __( 'wePOS Pages', 'wepos' ) },
 	{ key: 'wc', label: __( 'WooCommerce', 'wepos' ) },
 	{ key: 'wp', label: __( 'WordPress', 'wepos' ) },
-	{ key: 'pages', label: __( 'wePOS Pages', 'wepos' ) },
 ];
 
 /**
@@ -128,9 +155,17 @@ const CAP_GROUPS: Array< { key: string; label: string } > = [
  */
 const CAP_LABELS: Record< string, string > = {
 	// wePOS
-	access_wepos: __( 'Access wePOS', 'wepos' ),
-	manage_wepos: __( 'Manage wePOS', 'wepos' ),
+	access_wepos: __( 'Access POS', 'wepos' ),
+	manage_wepos: __( 'Manage POS', 'wepos' ),
 	wepos_view_all_outlets: __( 'View All Outlets', 'wepos' ),
+
+	// Settings sections
+	view_general_settings: __( 'View General Settings', 'wepos' ),
+	edit_general_settings: __( 'Edit General Settings', 'wepos' ),
+	view_tax_settings: __( 'View Tax Settings', 'wepos' ),
+	edit_tax_settings: __( 'Edit Tax Settings', 'wepos' ),
+	view_barcode_settings: __( 'View Barcode Settings', 'wepos' ),
+	edit_barcode_settings: __( 'Edit Barcode Settings', 'wepos' ),
 
 	// WooCommerce
 	create_customers: __( 'Create Customers', 'wepos' ),
@@ -313,7 +348,8 @@ function buildAccessSchema(
 							cap === 'manage_wepos' ||
 							cap === 'wepos_view_all_outlets' ||
 							cap === 'read' ||
-							cap.startsWith( 'wepos_page_' ) );
+							cap.startsWith( 'wepos_page_' ) ||
+							cap.endsWith( '_settings' ) );
 
 					fieldChildren.push( {
 						id: fieldKey,
@@ -406,7 +442,53 @@ function buildSchema(
 		rootPage.children!.push( ...accessSubpages );
 	}
 
+	// POS Settings subpage — always last, after Access.
+	const posPriority =
+		( rootPage.children!.length + 1 ) * 10 + 100;
+	rootPage.children!.push( buildPosSettingsSubpage( posPriority ) );
+
 	return [ rootPage ];
+}
+
+/**
+ * Split `{ section.field: value }` back into REST-payload shape
+ * `{ section: { field: value } }`, keeping only known POS Settings sections.
+ */
+function groupPosSettingsBySection(
+	flat: Record< string, unknown >
+): Record< string, Record< string, unknown > > {
+	const grouped: Record< string, Record< string, unknown > > = {};
+	for ( const [ key, value ] of Object.entries( flat ) ) {
+		const dot = key.indexOf( '.' );
+		if ( dot < 0 ) continue;
+		const section = key.slice( 0, dot );
+		if ( ! POS_SETTINGS_SECTIONS.includes( section ) ) continue;
+		const field = key.slice( dot + 1 );
+		if ( ! grouped[ section ] ) grouped[ section ] = {};
+		grouped[ section ][ field ] = value;
+	}
+	return grouped;
+}
+
+/**
+ * Flatten POS Settings sections from the REST response into dot-keyed map
+ * (`woo_general.store_name`) for the plugin-ui values state.
+ */
+function flattenPosSettings(
+	response: Record< string, unknown >
+): Record< string, unknown > {
+	const flat: Record< string, unknown > = {};
+	for ( const section of POS_SETTINGS_SECTIONS ) {
+		const bucket = response[ section ];
+		if ( bucket && typeof bucket === 'object' ) {
+			for ( const [ field, value ] of Object.entries(
+				bucket as Record< string, unknown >
+			) ) {
+				flat[ `${ section }.${ field }` ] = value;
+			}
+		}
+	}
+	return flat;
 }
 
 /* ─── Value helpers ────────────────────────────────────────────────────── */
@@ -448,6 +530,10 @@ const Settings = () => {
 	const [ values, setValues ] = useState< Record< string, unknown > >( {} );
 	const [ loading, setLoading ] = useState( true );
 	const [ saving, setSaving ] = useState( false );
+	const [ referenceData, setReferenceData ] = useState< ReferenceData >( {
+		currencies: {},
+		tax_classes: {},
+	} );
 
 	const {
 		settings_sections: rawSections,
@@ -478,56 +564,71 @@ const Settings = () => {
 		);
 	}, [ settings_sections, settings_fields, accessData ] );
 
-	// Load current settings values on mount.
+	// Load current settings values on mount via REST.
 	useEffect( () => {
-		const formData = new FormData();
-		formData.append( 'action', 'wepos_get_setting_values' );
-		formData.append( 'nonce', nonce );
-
-		fetch( ajaxurl, { method: 'POST', body: formData } )
+		fetch( `${ rest.root }wepos/v1/settings`, {
+			method: 'GET',
+			headers: { 'X-WP-Nonce': rest.nonce },
+		} )
 			.then( ( res ) => res.json() )
 			.then( ( response ) => {
-				if ( response.success && response.data ) {
-					const defaults: Record< string, unknown > = {};
+				const defaults: Record< string, unknown > = {};
 
-					for ( const sectionFields of Object.values(
-						settings_fields
-					) ) {
-						for ( const field of Object.values( sectionFields ) ) {
-							if ( field.default !== undefined ) {
-								defaults[ field.name ] = field.default;
-							}
+				for ( const sectionFields of Object.values(
+					settings_fields
+				) ) {
+					for ( const field of Object.values( sectionFields ) ) {
+						if ( field.default !== undefined ) {
+							defaults[ field.name ] = field.default;
 						}
 					}
-
-					const saved = flattenValues( response.data );
-
-					// Merge access values from the pre-loaded access_data
-					const accessValues: Record< string, unknown > = {};
-					if ( accessData ) {
-						for ( const [ roleSlug, role ] of Object.entries(
-							accessData
-						) ) {
-							for ( const [ , caps ] of Object.entries(
-								role.capabilities
-							) ) {
-								for ( const [ cap, enabled ] of Object.entries(
-									caps
-								) ) {
-									accessValues[
-										`access__${ roleSlug }__${ cap }`
-									] = enabled ? 'yes' : 'no';
-								}
-							}
-						}
-					}
-
-					setValues( {
-						...defaults,
-						...saved,
-						...accessValues,
-					} );
 				}
+
+				const saved = flattenValues(
+					response as Record< string, Record< string, unknown > >
+				);
+
+				// Dot-keyed POS Settings values (woo_general.*, woo_tax.*, etc.)
+				const posSettings = flattenPosSettings(
+					response as Record< string, unknown >
+				);
+
+				// Reference data needed by custom POS Settings fields.
+				const typed = response as {
+					currencies?: ReferenceData[ 'currencies' ];
+					tax_classes?: ReferenceData[ 'tax_classes' ];
+				};
+				setReferenceData( {
+					currencies: typed.currencies || {},
+					tax_classes: typed.tax_classes || {},
+				} );
+
+				// Merge access values from the pre-loaded access_data
+				const accessValues: Record< string, unknown > = {};
+				if ( accessData ) {
+					for ( const [ roleSlug, role ] of Object.entries(
+						accessData
+					) ) {
+						for ( const [ , caps ] of Object.entries(
+							role.capabilities
+						) ) {
+							for ( const [ cap, enabled ] of Object.entries(
+								caps
+							) ) {
+								accessValues[
+									`access__${ roleSlug }__${ cap }`
+								] = enabled ? 'yes' : 'no';
+							}
+						}
+					}
+				}
+
+				setValues( {
+					...defaults,
+					...saved,
+					...posSettings,
+					...accessValues,
+				} );
 			} )
 			.catch( ( err ) => {
 				console.error( 'wePos: failed to load settings', err );
@@ -543,8 +644,9 @@ const Settings = () => {
 	);
 
 	/**
-	 * Save handler — routes to AJAX for standard settings,
-	 * or to REST API for access settings.
+	 * Save handler — routes access settings to their dedicated REST endpoint,
+	 * all other sections to the unified /wepos/v1/settings endpoint with
+	 * their section payload keyed by the admin section id.
 	 */
 	const handleSave = useCallback(
 		async (
@@ -557,71 +659,87 @@ const Settings = () => {
 				return;
 			}
 
-			// Standard settings save via AJAX
 			setSaving( true );
 
 			try {
-				const formData = new FormData();
-				formData.append( 'action', 'wepos_save_settings' );
-				formData.append( 'nonce', nonce );
-				formData.append( 'section', scopeId );
+				let payload: Record< string, Record< string, unknown > > = {};
 
-				for ( const [ key, value ] of Object.entries( flatValues ) ) {
-					formData.append(
-						`settingsData[${ key }]`,
-						String( value ?? '' )
-					);
+				if ( scopeId === POS_SETTINGS_SUBPAGE_ID ) {
+					payload = groupPosSettingsBySection( flatValues );
+				} else {
+					payload[ scopeId ] = flatValues;
 				}
 
-				const res = await fetch( ajaxurl, {
+				const res = await fetch( `${ rest.root }wepos/v1/settings`, {
 					method: 'POST',
-					body: formData,
+					headers: {
+						'Content-Type': 'application/json',
+						'X-WP-Nonce': rest.nonce,
+					},
+					body: JSON.stringify( payload ),
 				} );
 
-				const result = await res.json();
-
-				if ( result.success ) {
-					toast.success(
-						__( 'Settings saved successfully.', 'wepos' )
-					);
-				} else {
-					toast.error(
-						__( 'Failed to save settings.', 'wepos' )
-					);
+				if ( ! res.ok ) {
+					throw new Error( 'save_failed' );
 				}
+
+				if ( scopeId === POS_SETTINGS_SUBPAGE_ID ) {
+					const updated = await res.clone().json();
+					setValues( ( prev ) => ( {
+						...prev,
+						...flattenPosSettings(
+							updated as Record< string, unknown >
+						),
+					} ) );
+					const typed = updated as {
+						currencies?: ReferenceData[ 'currencies' ];
+						tax_classes?: ReferenceData[ 'tax_classes' ];
+					};
+					setReferenceData( {
+						currencies: typed.currencies || {},
+						tax_classes: typed.tax_classes || {},
+					} );
+				}
+
+				toast.success(
+					__( 'Settings saved successfully.', 'wepos' )
+				);
 			} catch {
 				toast.error( __( 'Failed to save settings.', 'wepos' ) );
 			} finally {
 				setSaving( false );
 			}
 		},
-		[ ajaxurl, nonce, rest ]
+		[ rest, accessData ]
 	);
 
 	return (
 		<div className="wepos-admin-settings -mx-[20px] -mt-[10px]">
-			<SettingsUI
-				schema={ schema }
-				values={ values }
-				onChange={ handleChange }
-				onSave={ handleSave }
-				loading={ loading }
-				title={ __( 'Settings', 'wepos' ) }
-				hookPrefix="wepos"
-				renderSaveButton={ ( { dirty, onSave: save } ) => (
-					<Button
-						onClick={ save }
-						disabled={ ! dirty || saving }
-					>
-						{ saving ? (
-							<LoaderCircle className="size-4 mr-2 animate-spin" />
-						) : (
-							<Save className="size-4 mr-2" />
-						) }
-						{ __( 'Save Changes', 'wepos' ) }
-					</Button>
-				) }
-			/>
+			<ReferenceDataContext.Provider value={ referenceData }>
+				<SettingsUI
+					schema={ schema }
+					values={ values }
+					onChange={ handleChange }
+					onSave={ handleSave }
+					loading={ loading }
+					title={ __( 'Settings', 'wepos' ) }
+					hookPrefix="wepos"
+					applyFilters={ wpApplyFilters }
+					renderSaveButton={ ( { dirty, onSave: save } ) => (
+						<Button
+							onClick={ save }
+							disabled={ ! dirty || saving }
+						>
+							{ saving ? (
+								<LoaderCircle className="size-4 mr-2 animate-spin" />
+							) : (
+								<Save className="size-4 mr-2" />
+							) }
+							{ __( 'Save Changes', 'wepos' ) }
+						</Button>
+					) }
+				/>
+			</ReferenceDataContext.Provider>
 		</div>
 	);
 };
@@ -652,10 +770,18 @@ async function saveAccessSettings(
 
 		// Determine which group this cap belongs to
 		let group = 'wp';
-		if ( cap === 'access_wepos' || cap === 'manage_wepos' ) {
+		if (
+			cap === 'access_wepos' ||
+			cap === 'manage_wepos' ||
+			cap === 'wepos_view_all_outlets'
+		) {
 			group = 'wepos';
 		} else if ( cap.startsWith( 'wepos_page_' ) ) {
 			group = 'pages';
+		} else if (
+			/^(view|edit)_(general|tax|barcode)_settings$/.test( cap )
+		) {
+			group = 'settings';
 		} else if ( cap !== 'read' ) {
 			group = 'wc';
 		}

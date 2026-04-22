@@ -168,6 +168,10 @@ class Dashboard {
             $access_data       = $access_controller->get_access_settings()->get_data();
         }
 
+        // Reference data for POS Settings custom fields (country/state dropdowns).
+        $wc_countries = function_exists( 'WC' ) ? WC()->countries->get_countries() : [];
+        $wc_states    = function_exists( 'WC' ) ? WC()->countries->get_states() : [];
+
         $localize_data = apply_filters( 'wepos_admin_react_localize_data', [
             'adminCssUrls'       => $admin_css_urls,
             'access_data'        => $access_data,
@@ -185,6 +189,8 @@ class Dashboard {
             'current_user_id'    => get_current_user_id(),
             'settings_sections'  => array_values( wepos_get_settings_sections() ),
             'settings_fields'    => $settings_fields,
+            'countries'          => $wc_countries,
+            'states'             => $wc_states,
             'currency_format_symbol'    => function_exists( 'html_entity_decode' ) && function_exists( 'get_woocommerce_currency_symbol' ) ? html_entity_decode( get_woocommerce_currency_symbol() ) : ( function_exists( 'get_woocommerce_currency_symbol' ) ? get_woocommerce_currency_symbol() : '' ),
             'currency_format_num_decimals' => function_exists( 'wc_get_price_decimals' ) ? wc_get_price_decimals() : 2,
             'currency_format_thousand_sep' => function_exists( 'wc_get_thousand_separator' ) ? wc_get_thousand_separator() : ',',

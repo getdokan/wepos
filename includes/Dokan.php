@@ -22,8 +22,28 @@ class Dokan {
         add_filter( 'wepos_rest_product_query_args', [ $this, 'exclude_dokan_specific_products_from_pos' ], 10, 2 );
         add_action( 'dokan_new_seller_created', [ $this, 'after_create_vendor' ], 15, 2 );
         add_filter( 'dokan_get_dashboard_nav', [ $this, 'show_pos_menu' ], 15 );
+
+        // Vendor dashboard POS Access page.
+        add_filter( 'dokan_query_var_filter', [ $this, 'register_pos_access_query_var' ] );
+        add_action( 'dokan_load_custom_template', [ $this, 'render_pos_access_template' ], 10 );
         add_filter( 'wepos_settings_fields', [ $this, 'add_dokan_settings' ], 11 );
         add_filter( 'wepos_rest_manager_permissions', [ $this, 'manager_permission' ], 10 );
+
+        // Vendor-scoped settings overlay/save. Runs at priority 20 so wepos-pro's
+        // priority-10 handlers win when installed — core handles vendor-level
+        // overrides when pro isn't present.
+        add_filter( 'wepos_settings_for_user', [ $this, 'load_vendor_settings' ], 20, 3 );
+        add_filter( 'wepos_pre_save_settings', [ $this, 'save_vendor_settings' ], 20, 4 );
+
+        // Dokan profile <-> wePOS store-info sync.
+        add_filter( 'wepos_settings_for_user', [ $this, 'sync_store_info_from_dokan' ], 30, 3 );
+
+        // Vendor-dashboard staff permissions — inject a wePOS capability group
+        // into Dokan Pro's permissions matrix and persist changes on save.
+        add_filter( 'dokan_get_all_caps', [ $this, 'add_wepos_staff_caps_group' ] );
+        add_filter( 'dokan_get_all_cap_labels', [ $this, 'add_wepos_staff_caps_label' ] );
+        add_action( 'dokan_after_save_staff', [ $this, 'save_wepos_staff_caps' ], 10, 2 );
+        add_action( 'dokan_stuffs_content_inside_before', [ $this, 'maybe_render_staff_cascade_notice' ] );
 
         // If vendor created via REST API
         add_action( 'dokan_new_vendor', [ $this, 'after_create_vendor_via_rest' ], 15 );
@@ -290,11 +310,151 @@ class Dokan {
                         'pos'   => 50,
                         'target' => '_blank',
                     ],
+                    'pos-access' => [
+                        'title'      => __( 'POS Access', 'wepos' ),
+                        'icon'       => '<i class="fas fa-user-shield"></i>',
+                        'url'        => dokan_get_navigation_url( 'pos/access' ),
+                        'pos'        => 60,
+                        'permission' => 'dokandar',
+                    ],
                 ],
             ];
         }
 
         return $url;
+    }
+
+    /**
+     * Register the `pos/access` query var so Dokan dispatches it to our
+     * template loader.
+     *
+     * @since 1.5.0
+     *
+     * @param array $query_vars
+     *
+     * @return array
+     */
+    public function register_pos_access_query_var( $query_vars ) {
+        $query_vars['pos'] = 'pos';
+        return $query_vars;
+    }
+
+    /**
+     * Render the vendor dashboard POS Access page.
+     *
+     * @since 1.5.0
+     *
+     * @param array $query_vars
+     *
+     * @return void
+     */
+    public function render_pos_access_template( $query_vars ) {
+        if ( ! isset( $query_vars['pos'] ) ) {
+            return;
+        }
+
+        // Only handle the access path — leave other pos/* routes for pro.
+        $path = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+        if ( false === strpos( $path, '/pos/access' ) ) {
+            return;
+        }
+
+        if ( ! current_user_can( 'dokandar' ) ) {
+            if ( function_exists( 'dokan_get_template_part' ) ) {
+                dokan_get_template_part(
+                    'global/dokan-error',
+                    '',
+                    [
+                        'deleted' => false,
+                        'message' => __( 'You do not have permission to access this page.', 'wepos' ),
+                    ]
+                );
+            }
+            return;
+        }
+
+        $this->handle_pos_access_submit();
+
+        $template = WEPOS_PATH . '/templates/dokan/pos-access.php';
+        if ( file_exists( $template ) ) {
+            include $template;
+        }
+    }
+
+    /**
+     * Persist staff cap toggles submitted from the POS Access page.
+     *
+     * @since 1.5.0
+     *
+     * @return void
+     */
+    private function handle_pos_access_submit() {
+        if ( empty( $_POST['wepos_pos_access_nonce'] ) ) {
+            return;
+        }
+
+        $nonce = sanitize_text_field( wp_unslash( $_POST['wepos_pos_access_nonce'] ) );
+        if ( ! wp_verify_nonce( $nonce, 'wepos_pos_access' ) ) {
+            return;
+        }
+
+        $vendor_id = get_current_user_id();
+        if ( ! $vendor_id || ! current_user_can( 'dokandar' ) ) {
+            return;
+        }
+
+        $staff_caps = isset( $_POST['wepos_staff'] ) && is_array( $_POST['wepos_staff'] )
+            ? wp_unslash( $_POST['wepos_staff'] )
+            : [];
+
+        foreach ( $this->get_vendor_pos_users( $vendor_id ) as $user ) {
+            $requested = isset( $staff_caps[ $user->ID ] ) && is_array( $staff_caps[ $user->ID ] )
+                ? $staff_caps[ $user->ID ]
+                : [];
+
+            foreach ( [ 'access_wepos', 'manage_wepos' ] as $cap ) {
+                if ( ! empty( $requested[ $cap ] ) ) {
+                    $user->add_cap( $cap );
+                } else {
+                    $user->remove_cap( $cap );
+                }
+            }
+        }
+
+        // Flash message — reloaded page will see it via transient.
+        set_transient( 'wepos_pos_access_saved_' . $vendor_id, 1, 30 );
+    }
+
+    /**
+     * Collect staff + cashiers owned by the given vendor.
+     *
+     * @since 1.5.0
+     *
+     * @param int $vendor_id
+     *
+     * @return \WP_User[]
+     */
+    public function get_vendor_pos_users( $vendor_id ) {
+        $users = [];
+
+        $staff = get_users(
+            [
+                'role__in'   => [ 'vendor_staff', 'cashier' ],
+                'meta_key'   => '_vendor_id',
+                'meta_value' => $vendor_id,
+                'fields'     => 'all',
+            ]
+        );
+
+        if ( is_array( $staff ) ) {
+            foreach ( $staff as $user ) {
+                if ( $user instanceof \WP_User ) {
+                    $users[ $user->ID ] = $user;
+                }
+            }
+        }
+
+        return array_values( $users );
     }
 
     /**
@@ -457,5 +617,419 @@ class Dokan {
                 wp_dequeue_style( $handle );
             }
         }
+    }
+
+    // =========================================================================
+    // Vendor-Scoped Settings
+    // =========================================================================
+
+    /**
+     * Sections a vendor may store as overrides.
+     *
+     * @var string[]
+     */
+    private $vendor_mergeable_sections = [ 'wepos_general', 'woo_general', 'woo_tax', 'wepos_barcode' ];
+
+    /**
+     * Whether wePOS Pro provides vendor settings handling.
+     *
+     * When pro is installed it registers `wepos_settings_for_user` and
+     * `wepos_pre_save_settings` at priority 10 and exposes outlet-ownership
+     * helpers. Core defers to pro in that case to avoid double-applying
+     * overlays or conflicting with outlet-ownership validation.
+     *
+     * @return bool
+     */
+    private function pro_handles_vendor_settings() {
+        return function_exists( 'wepos_user_owns_outlet' );
+    }
+
+    /**
+     * Overlay vendor-level + outlet-level settings on read.
+     *
+     * @since 1.5.0
+     *
+     * @param array $settings  Merged settings.
+     * @param int   $outlet_id Outlet ID (0 = vendor-level).
+     * @param mixed $request   REST request (unused here).
+     *
+     * @return array
+     */
+    public function load_vendor_settings( $settings, $outlet_id, $request ) {
+        if ( $this->pro_handles_vendor_settings() ) {
+            return $settings;
+        }
+
+        if ( current_user_can( 'manage_woocommerce' ) ) {
+            return $settings;
+        }
+
+        $vendor_id = wepos_get_vendor_id_for_user();
+
+        if ( $vendor_id <= 0 ) {
+            return $settings;
+        }
+
+        $vendor_settings = get_user_meta( $vendor_id, '_wepos_vendor_settings', true );
+
+        if ( ! empty( $vendor_settings ) && is_array( $vendor_settings ) ) {
+            $settings = $this->merge_vendor_settings_into( $settings, $vendor_settings );
+        }
+
+        if ( $outlet_id ) {
+            $outlet_settings = get_user_meta( $vendor_id, "_wepos_outlet_settings_{$outlet_id}", true );
+
+            if ( ! empty( $outlet_settings ) && is_array( $outlet_settings ) ) {
+                $settings = $this->merge_vendor_settings_into( $settings, $outlet_settings );
+            }
+        }
+
+        return $settings;
+    }
+
+    /**
+     * Intercept settings save for vendors — store overrides in user meta
+     * so global WC options remain untouched.
+     *
+     * @since 1.5.0
+     *
+     * @param mixed $handled   null = not yet handled.
+     * @param int   $outlet_id Outlet ID (0 = vendor-level).
+     * @param array $params    Settings payload.
+     * @param mixed $request   REST request.
+     *
+     * @return mixed
+     */
+    public function save_vendor_settings( $handled, $outlet_id, $params, $request ) {
+        if ( null !== $handled || $this->pro_handles_vendor_settings() ) {
+            return $handled;
+        }
+
+        if ( current_user_can( 'manage_woocommerce' ) ) {
+            return $handled;
+        }
+
+        $vendor_id = wepos_get_vendor_id_for_user();
+
+        if ( $vendor_id <= 0 ) {
+            return $handled;
+        }
+
+        // Mirror vendor store-info writes to Dokan's profile source of truth.
+        if ( isset( $params['woo_general'] ) && is_array( $params['woo_general'] ) ) {
+            $this->sync_store_info_to_dokan( $vendor_id, $params['woo_general'] );
+        }
+
+        $meta_key = $outlet_id
+            ? "_wepos_outlet_settings_{$outlet_id}"
+            : '_wepos_vendor_settings';
+
+        $existing = get_user_meta( $vendor_id, $meta_key, true );
+        $merged   = $this->deep_merge_vendor_settings(
+            is_array( $existing ) ? $existing : [],
+            $params
+        );
+
+        update_user_meta( $vendor_id, $meta_key, $merged );
+
+        return true;
+    }
+
+    /**
+     * Overlay Dokan profile store fields onto the `woo_general` section
+     * so Vendor Dashboard reads stay in sync with Dokan's profile.
+     *
+     * Runs after load_vendor_settings so it wins on conflicts.
+     *
+     * @since 1.5.0
+     *
+     * @param array $settings  Settings payload.
+     * @param int   $outlet_id Outlet ID.
+     * @param mixed $request   REST request.
+     *
+     * @return array
+     */
+    public function sync_store_info_from_dokan( $settings, $outlet_id, $request ) {
+        if ( current_user_can( 'manage_woocommerce' ) ) {
+            return $settings;
+        }
+
+        $vendor_id = wepos_get_vendor_id_for_user();
+
+        if ( $vendor_id <= 0 || ! function_exists( 'dokan' ) ) {
+            return $settings;
+        }
+
+        $profile = get_user_meta( $vendor_id, 'dokan_profile_settings', true );
+
+        if ( ! is_array( $profile ) ) {
+            return $settings;
+        }
+
+        $address = isset( $profile['address'] ) && is_array( $profile['address'] ) ? $profile['address'] : [];
+
+        $field_map = [
+            'store_name'      => isset( $profile['store_name'] ) ? $profile['store_name'] : null,
+            'store_address'   => isset( $address['street_1'] ) ? $address['street_1'] : null,
+            'store_address_2' => isset( $address['street_2'] ) ? $address['street_2'] : null,
+            'store_city'      => isset( $address['city'] ) ? $address['city'] : null,
+            'store_postcode'  => isset( $address['zip'] ) ? $address['zip'] : null,
+            'default_country' => isset( $address['country'], $address['state'] )
+                ? $address['country'] . ':' . $address['state']
+                : ( isset( $address['country'] ) ? $address['country'] : null ),
+        ];
+
+        if ( ! isset( $settings['woo_general'] ) || ! is_array( $settings['woo_general'] ) ) {
+            $settings['woo_general'] = [];
+        }
+
+        foreach ( $field_map as $key => $value ) {
+            if ( null === $value || '' === $value ) {
+                continue;
+            }
+            $settings['woo_general'][ $key ] = $value;
+        }
+
+        return $settings;
+    }
+
+    /**
+     * Mirror vendor store-info updates into Dokan's profile settings.
+     *
+     * @since 1.5.0
+     *
+     * @param int   $vendor_id Vendor user ID.
+     * @param array $general   woo_general payload.
+     *
+     * @return void
+     */
+    private function sync_store_info_to_dokan( $vendor_id, $general ) {
+        $profile = get_user_meta( $vendor_id, 'dokan_profile_settings', true );
+
+        if ( ! is_array( $profile ) ) {
+            $profile = [];
+        }
+
+        if ( ! isset( $profile['address'] ) || ! is_array( $profile['address'] ) ) {
+            $profile['address'] = [];
+        }
+
+        if ( isset( $general['store_name'] ) ) {
+            $profile['store_name'] = sanitize_text_field( $general['store_name'] );
+        }
+
+        if ( isset( $general['store_address'] ) ) {
+            $profile['address']['street_1'] = sanitize_text_field( $general['store_address'] );
+        }
+
+        if ( isset( $general['store_address_2'] ) ) {
+            $profile['address']['street_2'] = sanitize_text_field( $general['store_address_2'] );
+        }
+
+        if ( isset( $general['store_city'] ) ) {
+            $profile['address']['city'] = sanitize_text_field( $general['store_city'] );
+        }
+
+        if ( isset( $general['store_postcode'] ) ) {
+            $profile['address']['zip'] = sanitize_text_field( $general['store_postcode'] );
+        }
+
+        if ( isset( $general['default_country'] ) ) {
+            $parts = explode( ':', $general['default_country'] );
+            $profile['address']['country'] = isset( $parts[0] ) ? sanitize_text_field( $parts[0] ) : '';
+            $profile['address']['state']   = isset( $parts[1] ) ? sanitize_text_field( $parts[1] ) : '';
+        }
+
+        update_user_meta( $vendor_id, 'dokan_profile_settings', $profile );
+    }
+
+    /**
+     * Merge a vendor settings overlay onto the base settings array.
+     *
+     * Only allowed sections are merged; `currency_symbol` is resolved
+     * when the overlay includes a currency code.
+     *
+     * @param array $base     Base settings.
+     * @param array $override Vendor overrides.
+     *
+     * @return array
+     */
+    private function merge_vendor_settings_into( $base, $override ) {
+        foreach ( $this->vendor_mergeable_sections as $section ) {
+            if ( isset( $override[ $section ] ) && is_array( $override[ $section ] ) ) {
+                $base[ $section ] = array_merge(
+                    isset( $base[ $section ] ) && is_array( $base[ $section ] ) ? $base[ $section ] : [],
+                    $override[ $section ]
+                );
+            }
+        }
+
+        if ( ! empty( $override['woo_general']['currency'] ) && function_exists( 'get_woocommerce_currency_symbol' ) ) {
+            $base['woo_general']['currency_symbol'] = html_entity_decode(
+                get_woocommerce_currency_symbol( $override['woo_general']['currency'] )
+            );
+        }
+
+        return $base;
+    }
+
+    /**
+     * Deep-merge incoming payload into stored vendor settings, preserving
+     * unrelated keys within each section.
+     *
+     * @param array $existing Stored settings.
+     * @param array $incoming Incoming payload.
+     *
+     * @return array
+     */
+    private function deep_merge_vendor_settings( $existing, $incoming ) {
+        foreach ( $this->vendor_mergeable_sections as $section ) {
+            if ( isset( $incoming[ $section ] ) && is_array( $incoming[ $section ] ) ) {
+                $existing[ $section ] = array_merge(
+                    isset( $existing[ $section ] ) && is_array( $existing[ $section ] ) ? $existing[ $section ] : [],
+                    $incoming[ $section ]
+                );
+            }
+        }
+
+        return $existing;
+    }
+
+    // =========================================================================
+    // Vendor Dashboard Staff Permissions
+    // =========================================================================
+
+    /**
+     * Staff-facing capability slugs rendered in the Dokan permissions matrix.
+     *
+     * Labels map to the `Access POS` / `Manage POS` UX even though the
+     * underlying capability symbols are kept as access_wepos / manage_wepos
+     * for backward compatibility.
+     *
+     * @return array<string, string>
+     */
+    private function get_staff_pos_caps() {
+        return [
+            'access_wepos' => __( 'Access POS', 'wepos' ),
+            'manage_wepos' => __( 'Manage POS', 'wepos' ),
+        ];
+    }
+
+    /**
+     * Add the wePOS cap group to Dokan's staff permissions matrix.
+     *
+     * @since 1.5.0
+     *
+     * @param array<string, array<string, string>> $caps Grouped Dokan caps.
+     *
+     * @return array<string, array<string, string>>
+     */
+    public function add_wepos_staff_caps_group( $caps ) {
+        if ( ! is_array( $caps ) ) {
+            return $caps;
+        }
+
+        $caps['wepos'] = $this->get_staff_pos_caps();
+
+        return $caps;
+    }
+
+    /**
+     * Register the wePOS group label.
+     *
+     * @since 1.5.0
+     *
+     * @param array<string, string> $labels Cap group labels.
+     *
+     * @return array<string, string>
+     */
+    public function add_wepos_staff_caps_label( $labels ) {
+        if ( ! is_array( $labels ) ) {
+            return $labels;
+        }
+
+        $labels['wepos'] = __( 'wePOS Permissions', 'wepos' );
+
+        return $labels;
+    }
+
+    /**
+     * Persist the wePOS caps submitted on the staff permissions form.
+     *
+     * Dokan's template posts a boolean for every cap input; anything
+     * absent from the payload is treated as off. The vendor → staff
+     * cascade is enforced at read time in Settings\Caps::effective_*.
+     *
+     * @since 1.5.0
+     *
+     * @param int $vendor_id Vendor user ID who owns this staff member.
+     * @param int $staff_id  Staff user ID.
+     *
+     * @return void
+     */
+    public function save_wepos_staff_caps( $vendor_id, $staff_id ) {
+        if ( ! $staff_id || ! isset( $_POST['_dokan_manage_staff_permission_nonce'] ) ) {
+            return;
+        }
+
+        $nonce = sanitize_text_field( wp_unslash( $_POST['_dokan_manage_staff_permission_nonce'] ) );
+
+        if ( ! wp_verify_nonce( $nonce, 'dokan_manage_staff_permission' ) ) {
+            return;
+        }
+
+        $staff_user = get_user_by( 'id', $staff_id );
+
+        if ( ! $staff_user ) {
+            return;
+        }
+
+        foreach ( array_keys( $this->get_staff_pos_caps() ) as $cap ) {
+            $granted = ! empty( $_POST[ $cap ] );
+
+            if ( $granted ) {
+                $staff_user->add_cap( $cap );
+            } else {
+                $staff_user->remove_cap( $cap );
+            }
+        }
+    }
+
+    /**
+     * Surface a banner on the permissions page when the vendor's own
+     * POS access is disabled by the site admin — explains why staff
+     * toggles appear inert.
+     *
+     * @since 1.5.0
+     *
+     * @return void
+     */
+    public function maybe_render_staff_cascade_notice() {
+        if ( ! function_exists( 'dokan_get_navigation_url' ) ) {
+            return;
+        }
+
+        if ( empty( $_GET['action'] ) || 'edit' !== $_GET['action'] ) {
+            return;
+        }
+
+        $vendor_id = get_current_user_id();
+
+        if ( ! $vendor_id ) {
+            return;
+        }
+
+        $access_off = ! user_can( $vendor_id, 'access_wepos' );
+        $manage_off = ! user_can( $vendor_id, 'manage_wepos' );
+
+        if ( ! $access_off && ! $manage_off ) {
+            return;
+        }
+
+        $message = $access_off
+            ? __( 'Your store currently does not have POS access. Staff toggles under wePOS Permissions will stay disabled until the site administrator enables POS access for your store.', 'wepos' )
+            : __( 'Your store cannot manage POS settings. Staff members granted Manage POS here will only be able to view POS content until POS management is enabled for your store.', 'wepos' );
+
+        echo '<div class="dokan-alert dokan-alert-warning" style="margin-bottom:16px;">' . esc_html( $message ) . '</div>';
     }
 }

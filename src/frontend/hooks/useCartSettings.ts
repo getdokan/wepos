@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { posAPI } from '../api';
 
-const STORAGE_KEY = 'wepos_cart_settings';
+const LEGACY_STORAGE_KEY = 'wepos_cart_settings';
 
 export interface ColumnSubOption {
   key: string;
@@ -74,81 +75,161 @@ const DEFAULT_SETTINGS: CartSettings = {
   ],
 };
 
-function loadSettings(): CartSettings {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return {
-        ...DEFAULT_SETTINGS,
-        ...parsed,
-        columns: DEFAULT_SETTINGS.columns.map((defaultCol) => {
-          const savedCol = parsed.columns?.find((c: CartColumnConfig) => c.key === defaultCol.key);
-          if (!savedCol) return defaultCol;
-          return {
-            ...defaultCol,
-            ...savedCol,
-            subOptions: defaultCol.subOptions?.map((defaultSub) => {
-              const savedSub = savedCol.subOptions?.find((s: ColumnSubOption) => s.key === defaultSub.key);
-              return savedSub ? { ...defaultSub, ...savedSub } : defaultSub;
-            }),
-          };
-        }),
-      };
-    }
-  } catch {
-    // ignore parse errors
-  }
-  return { ...DEFAULT_SETTINGS };
+function mergeColumns(
+  defaultColumns: CartColumnConfig[],
+  saved?: CartColumnConfig[],
+): CartColumnConfig[] {
+  return defaultColumns.map((defaultCol) => {
+    const savedCol = saved?.find((c) => c.key === defaultCol.key);
+    if (!savedCol) return defaultCol;
+    return {
+      ...defaultCol,
+      ...savedCol,
+      subOptions: defaultCol.subOptions?.map((defaultSub) => {
+        const savedSub = savedCol.subOptions?.find(
+          (s: ColumnSubOption) => s.key === defaultSub.key,
+        );
+        return savedSub ? { ...defaultSub, ...savedSub } : defaultSub;
+      }),
+    };
+  });
 }
 
-function saveSettings(settings: CartSettings) {
+function mergeWithDefaults(raw: unknown): CartSettings | null {
+  if (!raw || typeof raw !== 'object') {
+    return null;
+  }
+  const parsed = raw as Partial<CartSettings>;
+  return {
+    ...DEFAULT_SETTINGS,
+    ...parsed,
+    columns: mergeColumns(DEFAULT_SETTINGS.columns, parsed.columns),
+  };
+}
+
+function readLegacyLocalStorage(): CartSettings | null {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    const stored = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!stored) return null;
+    return mergeWithDefaults(JSON.parse(stored));
   } catch {
-    // ignore storage errors
+    return null;
+  }
+}
+
+function clearLegacyLocalStorage() {
+  try {
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+  } catch {
+    // ignore
   }
 }
 
 export function useCartSettings() {
-  const [settings, setSettings] = useState<CartSettings>(loadSettings);
+  const [settings, setSettings] = useState<CartSettings>(
+    () => readLegacyLocalStorage() ?? { ...DEFAULT_SETTINGS },
+  );
 
   useEffect(() => {
-    saveSettings(settings);
-  }, [settings]);
+    let cancelled = false;
 
-  const updateSettings = useCallback((updates: Partial<CartSettings>) => {
-    setSettings((prev) => ({ ...prev, ...updates }));
+    (async () => {
+      try {
+        const response = await posAPI.settings.getSettings();
+        const remote = mergeWithDefaults(
+          (response as unknown as { wepos_cashier?: unknown }).wepos_cashier,
+        );
+
+        if (cancelled) return;
+
+        if (remote) {
+          setSettings(remote);
+        }
+
+        const legacy = readLegacyLocalStorage();
+        if (legacy && !remote) {
+          try {
+            await posAPI.settings.updateSettings({ wepos_cashier: legacy });
+            setSettings(legacy);
+          } catch {
+            // ignore
+          }
+        }
+        clearLegacyLocalStorage();
+      } catch {
+        // keep defaults / legacy already in state
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const toggleColumn = useCallback((key: string) => {
-    setSettings((prev) => ({
-      ...prev,
-      columns: prev.columns.map((col) =>
-        col.key === key ? { ...col, enabled: !col.enabled } : col,
-      ),
-    }));
+  const persist = useCallback(async (next: CartSettings) => {
+    try {
+      await posAPI.settings.updateSettings({ wepos_cashier: next });
+    } catch {
+      // ignore — UI reflects last user input
+    }
   }, []);
 
-  const toggleSubOption = useCallback((columnKey: string, subKey: string) => {
-    setSettings((prev) => ({
-      ...prev,
-      columns: prev.columns.map((col) =>
-        col.key === columnKey
-          ? {
-              ...col,
-              subOptions: col.subOptions?.map((sub) =>
-                sub.key === subKey ? { ...sub, enabled: !sub.enabled } : sub,
-              ),
-            }
-          : col,
-      ),
-    }));
-  }, []);
+  const updateSettings = useCallback(
+    (updates: Partial<CartSettings>) => {
+      setSettings((prev) => {
+        const next = { ...prev, ...updates };
+        void persist(next);
+        return next;
+      });
+    },
+    [persist],
+  );
+
+  const toggleColumn = useCallback(
+    (key: string) => {
+      setSettings((prev) => {
+        const next = {
+          ...prev,
+          columns: prev.columns.map((col) =>
+            col.key === key ? { ...col, enabled: !col.enabled } : col,
+          ),
+        };
+        void persist(next);
+        return next;
+      });
+    },
+    [persist],
+  );
+
+  const toggleSubOption = useCallback(
+    (columnKey: string, subKey: string) => {
+      setSettings((prev) => {
+        const next = {
+          ...prev,
+          columns: prev.columns.map((col) =>
+            col.key === columnKey
+              ? {
+                  ...col,
+                  subOptions: col.subOptions?.map((sub) =>
+                    sub.key === subKey
+                      ? { ...sub, enabled: !sub.enabled }
+                      : sub,
+                  ),
+                }
+              : col,
+          ),
+        };
+        void persist(next);
+        return next;
+      });
+    },
+    [persist],
+  );
 
   const restoreDefaults = useCallback(() => {
     setSettings({ ...DEFAULT_SETTINGS });
-  }, []);
+    void persist({ ...DEFAULT_SETTINGS });
+  }, [persist]);
 
   const isColumnEnabled = useCallback(
     (key: string) => settings.columns.find((c) => c.key === key)?.enabled ?? true,

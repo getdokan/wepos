@@ -147,14 +147,25 @@ class Installer {
             'wepos_page_view_pos',
         ] );
 
+        $settings_caps = [
+            'view_general_settings',
+            'edit_general_settings',
+            'view_tax_settings',
+            'edit_tax_settings',
+            'view_barcode_settings',
+            'edit_barcode_settings',
+        ];
+
         $defaults = [
             'administrator' => array_merge(
                 [ 'access_wepos', 'manage_wepos', 'wepos_view_all_outlets' ],
-                $page_caps
+                $page_caps,
+                $settings_caps
             ),
             'shop_manager'  => array_merge(
                 [ 'access_wepos', 'manage_wepos', 'wepos_view_all_outlets' ],
-                $page_caps
+                $page_caps,
+                $settings_caps
             ),
             'editor'        => array_merge(
                 [ 'access_wepos', 'wepos_view_all_outlets' ],
