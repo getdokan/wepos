@@ -23,9 +23,6 @@ class Dokan {
         add_action( 'dokan_new_seller_created', [ $this, 'after_create_vendor' ], 15, 2 );
         add_filter( 'dokan_get_dashboard_nav', [ $this, 'show_pos_menu' ], 15 );
 
-        // Vendor dashboard POS Access page.
-        add_filter( 'dokan_query_var_filter', [ $this, 'register_pos_access_query_var' ] );
-        add_action( 'dokan_load_custom_template', [ $this, 'render_pos_access_template' ], 10 );
         add_filter( 'wepos_settings_fields', [ $this, 'add_dokan_settings' ], 11 );
         add_filter( 'wepos_rest_manager_permissions', [ $this, 'manager_permission' ], 10 );
 
@@ -310,151 +307,11 @@ class Dokan {
                         'pos'   => 50,
                         'target' => '_blank',
                     ],
-                    'pos-access' => [
-                        'title'      => __( 'POS Access', 'wepos' ),
-                        'icon'       => '<i class="fas fa-user-shield"></i>',
-                        'url'        => dokan_get_navigation_url( 'pos/access' ),
-                        'pos'        => 60,
-                        'permission' => 'dokandar',
-                    ],
                 ],
             ];
         }
 
         return $url;
-    }
-
-    /**
-     * Register the `pos/access` query var so Dokan dispatches it to our
-     * template loader.
-     *
-     * @since 1.5.0
-     *
-     * @param array $query_vars
-     *
-     * @return array
-     */
-    public function register_pos_access_query_var( $query_vars ) {
-        $query_vars['pos'] = 'pos';
-        return $query_vars;
-    }
-
-    /**
-     * Render the vendor dashboard POS Access page.
-     *
-     * @since 1.5.0
-     *
-     * @param array $query_vars
-     *
-     * @return void
-     */
-    public function render_pos_access_template( $query_vars ) {
-        if ( ! isset( $query_vars['pos'] ) ) {
-            return;
-        }
-
-        // Only handle the access path — leave other pos/* routes for pro.
-        $path = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
-        if ( false === strpos( $path, '/pos/access' ) ) {
-            return;
-        }
-
-        if ( ! current_user_can( 'dokandar' ) ) {
-            if ( function_exists( 'dokan_get_template_part' ) ) {
-                dokan_get_template_part(
-                    'global/dokan-error',
-                    '',
-                    [
-                        'deleted' => false,
-                        'message' => __( 'You do not have permission to access this page.', 'wepos' ),
-                    ]
-                );
-            }
-            return;
-        }
-
-        $this->handle_pos_access_submit();
-
-        $template = WEPOS_PATH . '/templates/dokan/pos-access.php';
-        if ( file_exists( $template ) ) {
-            include $template;
-        }
-    }
-
-    /**
-     * Persist staff cap toggles submitted from the POS Access page.
-     *
-     * @since 1.5.0
-     *
-     * @return void
-     */
-    private function handle_pos_access_submit() {
-        if ( empty( $_POST['wepos_pos_access_nonce'] ) ) {
-            return;
-        }
-
-        $nonce = sanitize_text_field( wp_unslash( $_POST['wepos_pos_access_nonce'] ) );
-        if ( ! wp_verify_nonce( $nonce, 'wepos_pos_access' ) ) {
-            return;
-        }
-
-        $vendor_id = get_current_user_id();
-        if ( ! $vendor_id || ! current_user_can( 'dokandar' ) ) {
-            return;
-        }
-
-        $staff_caps = isset( $_POST['wepos_staff'] ) && is_array( $_POST['wepos_staff'] )
-            ? wp_unslash( $_POST['wepos_staff'] )
-            : [];
-
-        foreach ( $this->get_vendor_pos_users( $vendor_id ) as $user ) {
-            $requested = isset( $staff_caps[ $user->ID ] ) && is_array( $staff_caps[ $user->ID ] )
-                ? $staff_caps[ $user->ID ]
-                : [];
-
-            foreach ( [ 'access_wepos', 'manage_wepos' ] as $cap ) {
-                if ( ! empty( $requested[ $cap ] ) ) {
-                    $user->add_cap( $cap );
-                } else {
-                    $user->remove_cap( $cap );
-                }
-            }
-        }
-
-        // Flash message — reloaded page will see it via transient.
-        set_transient( 'wepos_pos_access_saved_' . $vendor_id, 1, 30 );
-    }
-
-    /**
-     * Collect staff + cashiers owned by the given vendor.
-     *
-     * @since 1.5.0
-     *
-     * @param int $vendor_id
-     *
-     * @return \WP_User[]
-     */
-    public function get_vendor_pos_users( $vendor_id ) {
-        $users = [];
-
-        $staff = get_users(
-            [
-                'role__in'   => [ 'vendor_staff', 'cashier' ],
-                'meta_key'   => '_vendor_id',
-                'meta_value' => $vendor_id,
-                'fields'     => 'all',
-            ]
-        );
-
-        if ( is_array( $staff ) ) {
-            foreach ( $staff as $user ) {
-                if ( $user instanceof \WP_User ) {
-                    $users[ $user->ID ] = $user;
-                }
-            }
-        }
-
-        return array_values( $users );
     }
 
     /**
