@@ -449,15 +449,17 @@ class SettingController extends \WP_REST_Controller {
 	public function update_settings( $request ) {
 		$params    = $request->get_json_params();
 		$outlet_id = isset( $params['_outlet_id'] ) ? absint( $params['_outlet_id'] ) : 0;
-		$restore_currency     = ! empty( $params['_restore_currency'] );
-		$restore_tax          = ! empty( $params['_restore_tax'] );
-		$restore_pos_settings = ! empty( $params['_restore_pos_settings'] );
+		$restore_currency         = ! empty( $params['_restore_currency'] );
+		$restore_tax              = ! empty( $params['_restore_tax'] );
+		$restore_default_customer = ! empty( $params['_restore_default_customer'] );
+		$restore_pos_settings     = ! empty( $params['_restore_pos_settings'] );
 
 		// Remove meta keys so they don't get saved as setting values
 		unset(
 			$params['_outlet_id'],
 			$params['_restore_currency'],
 			$params['_restore_tax'],
+			$params['_restore_default_customer'],
 			$params['_restore_pos_settings'],
 			$params['_permissions']
 		);
@@ -509,28 +511,52 @@ class SettingController extends \WP_REST_Controller {
 
 		if ( null === $handled ) {
 			// Default save logic — no extension intercepted.
+			//
+			// `_restore_pos_settings` is the catch-all reset (clears every
+			// overridable section) and takes precedence. Otherwise, the
+			// narrower restore flags can combine in a single request so a
+			// single UI button can reset more than one concern at once
+			// (e.g. the General tab's "Restore to Default" button clears
+			// both currency and default_customer). A plain save runs only
+			// when no restore flag is present.
+			$is_restore = $restore_pos_settings || $restore_currency || $restore_tax || $restore_default_customer;
+
 			if ( $restore_pos_settings ) {
 				if ( $outlet_id ) {
 					$this->restore_outlet_pos_defaults( $outlet_id );
 				} else {
 					$this->restore_global_pos_defaults();
 				}
-			} elseif ( $restore_currency ) {
-				if ( $outlet_id ) {
-					$this->restore_outlet_currency_defaults( $outlet_id );
-				} else {
-					$this->restore_global_currency_defaults();
-				}
-			} elseif ( $restore_tax ) {
-				if ( $outlet_id ) {
-					$this->restore_outlet_tax_defaults( $outlet_id );
-				} else {
-					$this->restore_global_tax_defaults();
-				}
-			} elseif ( $outlet_id ) {
-				$this->save_outlet_settings( $outlet_id, $params );
 			} else {
-				$this->save_global_settings( $params );
+				if ( $restore_currency ) {
+					if ( $outlet_id ) {
+						$this->restore_outlet_currency_defaults( $outlet_id );
+					} else {
+						$this->restore_global_currency_defaults();
+					}
+				}
+				if ( $restore_tax ) {
+					if ( $outlet_id ) {
+						$this->restore_outlet_tax_defaults( $outlet_id );
+					} else {
+						$this->restore_global_tax_defaults();
+					}
+				}
+				if ( $restore_default_customer ) {
+					if ( $outlet_id ) {
+						$this->restore_outlet_default_customer_defaults( $outlet_id );
+					} else {
+						$this->restore_global_default_customer_defaults();
+					}
+				}
+			}
+
+			if ( ! $is_restore ) {
+				if ( $outlet_id ) {
+					$this->save_outlet_settings( $outlet_id, $params );
+				} else {
+					$this->save_global_settings( $params );
+				}
 			}
 		}
 
@@ -606,6 +632,45 @@ class SettingController extends \WP_REST_Controller {
 		foreach ( $defaults as $option_name => $default_value ) {
 			update_option( $option_name, $default_value );
 		}
+	}
+
+	/**
+	 * Remove default-customer keys from outlet-specific overrides,
+	 * so this outlet re-inherits from vendor (Dokan) or admin.
+	 *
+	 * @since 1.5.0
+	 *
+	 * @param int $outlet_id
+	 */
+	private function restore_outlet_default_customer_defaults( $outlet_id ) {
+		$option_key = "wepos_outlet_settings_{$outlet_id}";
+		$existing   = get_option( $option_key, [] );
+
+		if ( ! empty( $existing['woo_general'] ) ) {
+			unset( $existing['woo_general']['default_customer'] );
+			unset( $existing['woo_general']['default_customer_is_cashier'] );
+
+			if ( empty( $existing['woo_general'] ) ) {
+				unset( $existing['woo_general'] );
+			}
+		}
+
+		if ( empty( $existing ) ) {
+			delete_option( $option_key );
+		} else {
+			update_option( $option_key, $existing );
+		}
+	}
+
+	/**
+	 * Reset the global Default Customer options to their ship defaults
+	 * ("Guest" customer, cashier-mode off).
+	 *
+	 * @since 1.5.0
+	 */
+	private function restore_global_default_customer_defaults() {
+		update_option( 'wepos_default_customer', 0 );
+		update_option( 'wepos_default_customer_is_cashier', 'no' );
 	}
 
 	/**

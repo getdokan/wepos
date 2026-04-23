@@ -559,12 +559,12 @@ const HomePage: React.FC = () => {
     if (!settings?.woo_general || defaultCustomerLoadedRef.current || selectedCustomer) return;
     defaultCustomerLoadedRef.current = true;
 
-    // Outlet meta (set by wepos-pro) takes priority over global settings
-    const outlet = getFromLocalStorage<any>('wepos_outlet', null);
-    const outletMeta = outlet?.meta || {};
-
-    const isCashier = outletMeta.default_customer_is_cashier ?? settings.woo_general.default_customer_is_cashier;
-    const defaultCustomerId = outletMeta.default_customer ?? settings.woo_general.default_customer;
+    // The server now computes the effective default customer via the
+    // Admin ← Vendor ← Outlet merge chain (`wepos_settings_for_user`
+    // filter in wepos-pro/Dokan.php + merge_outlet_settings in wepos),
+    // so we read directly from the merged settings response.
+    const isCashier = settings.woo_general.default_customer_is_cashier;
+    const defaultCustomerId = settings.woo_general.default_customer;
 
     if (isCashier === 'yes') {
       // Set the logged-in cashier as the default customer
