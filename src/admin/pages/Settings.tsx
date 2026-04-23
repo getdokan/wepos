@@ -7,10 +7,7 @@ import {
 	type SettingsElement,
 } from '@wedevs/plugin-ui';
 import { LoaderCircle, Save } from 'lucide-react';
-import {
-	applyFilters as wpApplyFilters,
-	addFilter as wpAddFilter,
-} from '@wordpress/hooks';
+import { applyFilters as wpApplyFilters } from '@wordpress/hooks';
 import { applyFilters } from '@react/hooks/useExtensions';
 import {
 	buildPosSettingsSubpage,
@@ -22,10 +19,6 @@ import {
 	type ReferenceData,
 } from './pos-settings/reference-data';
 import { registerPosSettingsFields } from './pos-settings/register';
-import {
-	DefaultCustomerCashierRow,
-	DefaultCustomerSelectRow,
-} from '../components/DefaultCustomerField';
 
 // Register custom POS Settings field variants (country_state, customer_search,
 // currency_select, tax_class_select) once at module load so they're available
@@ -551,36 +544,6 @@ function parseAccessKey(
 	if ( ! match ) return null;
 	return { role: match[ 1 ], cap: match[ 2 ] };
 }
-
-/* ─── Default Customer variant ──────────────────────────────────────── */
-
-// Register the custom `default_customer` and `default_customer_cashier`
-// variant renderers. Plugin-ui calls
-// applyFilters(`${hookPrefix}_settings_${variant}_field`, <fallback />, element)
-// for any unknown variant — we short-circuit to our own row components.
-//
-// Registered on `@wordpress/hooks` (not the useExtensions re-export) because
-// SettingsUI below receives `applyFilters={ wpApplyFilters }` — plugin-ui
-// looks up variant filters on the WordPress global hook instance.
-//
-// Both fields are declared in the POS Settings → General tab schema (see
-// `pos-settings/schema.ts::buildGeneralTab`) so they participate in the
-// tab's shared "Save Changes" button and per-scope dirty tracking.
-wpAddFilter(
-	'wepos_settings_default_customer_field',
-	'wepos/default-customer-field',
-	( _fallback: unknown, element: SettingsElement ) => (
-		<DefaultCustomerSelectRow element={ element } />
-	)
-);
-
-wpAddFilter(
-	'wepos_settings_default_customer_cashier_field',
-	'wepos/default-customer-cashier-field',
-	( _fallback: unknown, element: SettingsElement ) => (
-		<DefaultCustomerCashierRow element={ element } />
-	)
-);
 
 /* ─── Component ────────────────────────────────────────────────────────── */
 

@@ -201,6 +201,10 @@ const CASHIER_KEY = 'woo_general.default_customer_is_cashier';
 
 interface RowProps {
 	element: SettingsElement;
+	// `registerVariant` forwards plugin-ui's fieldProps.onChange here; the
+	// row components read/write via `useSettings().updateValue` so it's
+	// unused, but the prop must match the shared FieldComponent signature.
+	onChange: ( key: string, value: unknown ) => void;
 }
 
 /**
@@ -212,7 +216,7 @@ interface RowProps {
  * When the cashier toggle is on, the SmartSelect is replaced with a
  * disabled input showing the logged-in user's name.
  */
-export const DefaultCustomerSelectRow: React.FC< RowProps > = ( { element } ) => {
+export function DefaultCustomerSelectRow( { element }: RowProps ) {
 	const { values, updateValue } = useSettings();
 	const weposData = window.wepos || window.weposAdmin?.wepos || {};
 	const currentUser = weposData.current_user || {};
@@ -305,14 +309,14 @@ export const DefaultCustomerSelectRow: React.FC< RowProps > = ( { element } ) =>
 			</div>
 		</FieldRow>
 	);
-};
+}
 
 /**
  * "Default Customer is Cashier" toggle row. Same horizontal layout as
  * Currency — label + description on the left, switch on the right.
  * Flipping this on clears the selected customer id (stored as 0).
  */
-export const DefaultCustomerCashierRow: React.FC< RowProps > = ( { element } ) => {
+export function DefaultCustomerCashierRow( { element }: RowProps ) {
 	const { values, updateValue } = useSettings();
 	const isCashier =
 		values[ CASHIER_KEY ] === 'yes' || values[ CASHIER_KEY ] === true;
@@ -333,6 +337,6 @@ export const DefaultCustomerCashierRow: React.FC< RowProps > = ( { element } ) =
 			/>
 		</FieldRow>
 	);
-};
+}
 
 export default DefaultCustomerField;
