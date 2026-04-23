@@ -102,7 +102,21 @@ class Dokan {
     public function is_vendor_staff( $is_staff, $user_id = null ) {
         $user_id = $user_id ?: get_current_user_id();
 
-        return user_can( $user_id, 'vendor_staff' );
+        if ( ! $user_id ) {
+            return false;
+        }
+
+        // Role membership is the source of truth. `user_can( $user_id, 'vendor_staff' )`
+        // only works because WP maps role slugs into allcaps at load time — if the caps
+        // cache is cold or a context runs user_can before roles are hydrated, the cap
+        // check can misfire. Inspect $user->roles directly for a reliable answer.
+        $user = get_userdata( $user_id );
+
+        if ( ! $user || empty( $user->roles ) ) {
+            return false;
+        }
+
+        return in_array( 'vendor_staff', (array) $user->roles, true );
     }
 
     /**
