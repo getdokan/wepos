@@ -387,8 +387,45 @@ final class WePOS {
                 $this->container['assets'] = new WeDevs\WePOS\ReactAssets();
             } else {
                 $this->container['assets'] = new WeDevs\WePOS\Assets();
+
+                // Register the shared React components handle even when the
+                // legacy Vue frontend is active. Extensions (e.g. wepos-pro)
+                // may still enqueue their own React bundles that declare
+                // `wepos-react-components` as a dependency — without this
+                // registration WP_Scripts logs "called incorrectly" notices.
+                add_action( 'wepos_enqueue_scripts', [ $this, 'register_shared_react_handle' ], 5 );
             }
         }
+    }
+
+    /**
+     * Register the shared wepos-react-components script handle on the
+     * frontend so extensions that depend on it can enqueue cleanly even
+     * when the legacy Vue UI is the primary renderer.
+     *
+     * @return void
+     */
+    public function register_shared_react_handle() {
+        if ( wp_script_is( 'wepos-react-components', 'registered' ) ) {
+            return;
+        }
+
+        $asset_file = WEPOS_PATH . '/build/wepos-components.asset.php';
+        $script_file = WEPOS_PATH . '/build/wepos-components.js';
+
+        if ( ! file_exists( $script_file ) ) {
+            return;
+        }
+
+        $asset_data = file_exists( $asset_file ) ? include $asset_file : [ 'dependencies' => [], 'version' => WEPOS_VERSION ];
+
+        wp_register_script(
+            'wepos-react-components',
+            WEPOS_URL . '/build/wepos-components.js',
+            isset( $asset_data['dependencies'] ) ? $asset_data['dependencies'] : [],
+            isset( $asset_data['version'] ) ? $asset_data['version'] : WEPOS_VERSION,
+            true
+        );
     }
 
     /**
