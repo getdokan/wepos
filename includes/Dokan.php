@@ -102,7 +102,21 @@ class Dokan {
     public function is_vendor_staff( $is_staff, $user_id = null ) {
         $user_id = $user_id ?: get_current_user_id();
 
-        return user_can( $user_id, 'vendor_staff' );
+        if ( ! $user_id ) {
+            return false;
+        }
+
+        // Role membership is the source of truth. `user_can( $user_id, 'vendor_staff' )`
+        // only works because WP maps role slugs into allcaps at load time — if the caps
+        // cache is cold or a context runs user_can before roles are hydrated, the cap
+        // check can misfire. Inspect $user->roles directly for a reliable answer.
+        $user = get_userdata( $user_id );
+
+        if ( ! $user || empty( $user->roles ) ) {
+            return false;
+        }
+
+        return in_array( 'vendor_staff', (array) $user->roles, true );
     }
 
     /**
@@ -482,6 +496,12 @@ class Dokan {
             'create_customers',
             'manage_product_terms',
             'read_private_shop_coupons',
+            'view_general_settings',
+            'edit_general_settings',
+            'view_tax_settings',
+            'edit_tax_settings',
+            'view_barcode_settings',
+            'edit_barcode_settings',
         ];
 
         foreach ( $caps as $cap ) {
@@ -817,8 +837,14 @@ class Dokan {
      */
     private function get_staff_pos_caps() {
         return [
-            'access_wepos' => __( 'Access POS', 'wepos' ),
-            'manage_wepos' => __( 'Manage POS', 'wepos' ),
+            'access_wepos'           => __( 'Access POS', 'wepos' ),
+            'manage_wepos'           => __( 'Manage POS', 'wepos' ),
+            'view_general_settings'  => __( 'View General Settings', 'wepos' ),
+            'edit_general_settings'  => __( 'Edit General Settings', 'wepos' ),
+            'view_tax_settings'      => __( 'View Tax Settings', 'wepos' ),
+            'edit_tax_settings'      => __( 'Edit Tax Settings', 'wepos' ),
+            'view_barcode_settings'  => __( 'View Barcode Settings', 'wepos' ),
+            'edit_barcode_settings'  => __( 'Edit Barcode Settings', 'wepos' ),
         ];
     }
 

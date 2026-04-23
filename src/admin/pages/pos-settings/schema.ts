@@ -3,6 +3,68 @@ import type { SettingsElement } from '@wedevs/plugin-ui';
 
 export const POS_SETTINGS_SUBPAGE_ID = 'wepos_pos_settings_main';
 
+export type SectionPermissions = {
+	can_view: Record< string, boolean >;
+	can_edit: Record< string, boolean >;
+};
+
+/**
+ * Drop fields whose REST section is hidden by view permissions and
+ * mark fields read-only when their section is view-only (no edit).
+ *
+ * Fields use `dependency_key = "<section>.<field>"`; the prefix is the
+ * cap-managed section.
+ */
+function applyPermsToFields(
+	fields: SettingsElement[],
+	perms?: SectionPermissions
+): SettingsElement[] {
+	if ( ! perms ) {
+		return fields;
+	}
+
+	const out: SettingsElement[] = [];
+
+	for ( const field of fields ) {
+		const typed = field as unknown as {
+			dependency_key?: string;
+			perm_section?: string;
+		};
+		const key = typed.dependency_key;
+		const dot = key ? key.indexOf( '.' ) : -1;
+
+		// Resolve the cap-managed section this field belongs to. Defaults
+		// to the dependency_key prefix (e.g. `woo_tax.foo` → `woo_tax`) but
+		// fields may opt into a different section via `perm_section` when
+		// they live in a tab whose permission scope differs from their
+		// REST storage bucket (e.g. `wepos_general.enable_fee_tax` rendered
+		// inside the Tax tab — gated by tax caps, saved to wepos_general).
+		const section = typed.perm_section
+			|| ( key && dot >= 0 ? key.slice( 0, dot ) : '' );
+
+		if ( ! section ) {
+			out.push( field );
+			continue;
+		}
+
+		if ( perms.can_view[ section ] === false ) {
+			continue;
+		}
+
+		if ( perms.can_edit[ section ] === false ) {
+			out.push( {
+				...field,
+				disabled: true,
+			} as unknown as SettingsElement );
+			continue;
+		}
+
+		out.push( field );
+	}
+
+	return out;
+}
+
 /**
  * Build the POS Settings subpage — nested under the main Settings page
  * alongside General / Receipts / Access.
@@ -12,8 +74,19 @@ export const POS_SETTINGS_SUBPAGE_ID = 'wepos_pos_settings_main';
  * `section.field` so saves can be regrouped per REST section.
  */
 export function buildPosSettingsSubpage(
-	priority = 40
-): SettingsElement {
+	priority = 40,
+	perms?: SectionPermissions
+): SettingsElement | null {
+	const tabs = [
+		buildGeneralTab( perms ),
+		buildTaxTab( perms ),
+		buildBarcodeTab( perms ),
+	].filter( ( t ): t is SettingsElement => t !== null );
+
+	if ( tabs.length === 0 ) {
+		return null;
+	}
+
 	return {
 		id: POS_SETTINGS_SUBPAGE_ID,
 		type: 'subpage',
@@ -24,12 +97,49 @@ export function buildPosSettingsSubpage(
 		),
 		icon: 'Store',
 		priority,
-		children: [ buildGeneralTab(), buildTaxTab(), buildBarcodeTab() ],
+		children: tabs,
 	} as unknown as SettingsElement;
 }
 
-function buildGeneralTab(): SettingsElement {
+/**
+ * Build a tab when at least one section's view perms allow it.
+ * Returns null when every field would be filtered out.
+ */
+function buildTabIfAllowed(
+	tab: SettingsElement,
+	perms: SectionPermissions | undefined
+): SettingsElement | null {
+	const sections = ( tab.children || [] ) as SettingsElement[];
+	const filteredSections: SettingsElement[] = [];
+
+	for ( const section of sections ) {
+		const fields = applyPermsToFields(
+			( section.children || [] ) as SettingsElement[],
+			perms
+		);
+		if ( fields.length === 0 ) {
+			continue;
+		}
+		filteredSections.push( {
+			...section,
+			children: fields,
+		} as unknown as SettingsElement );
+	}
+
+	if ( filteredSections.length === 0 ) {
+		return null;
+	}
+
 	return {
+		...tab,
+		children: filteredSections,
+	} as unknown as SettingsElement;
+}
+
+function buildGeneralTab(
+	perms?: SectionPermissions
+): SettingsElement | null {
+	const tab = {
 		id: 'pos_settings_general',
 		type: 'tab',
 		label: __( 'General', 'wepos' ),
@@ -95,10 +205,14 @@ function buildGeneralTab(): SettingsElement {
 			},
 		],
 	} as unknown as SettingsElement;
+
+	return buildTabIfAllowed( tab, perms );
 }
 
-function buildTaxTab(): SettingsElement {
-	return {
+function buildTaxTab(
+	perms?: SectionPermissions
+): SettingsElement | null {
+	const tab = {
 		id: 'pos_settings_tax',
 		type: 'tab',
 		label: __( 'Tax', 'wepos' ),
@@ -193,16 +307,23 @@ function buildTaxTab(): SettingsElement {
 					),
 					switchField(
 						'wepos_general.enable_fee_tax',
-						__( 'Calculate Tax on Fees', 'wepos' )
+						__( 'Calculate Tax on Fees', 'wepos' ),
+						// Field sits inside Tax tab → gate by tax caps
+						// even though it persists under wepos_general.
+						{ perm_section: 'woo_tax' } as Partial< SettingsElement >
 					),
 				],
 			},
 		],
 	} as unknown as SettingsElement;
+
+	return buildTabIfAllowed( tab, perms );
 }
 
-function buildBarcodeTab(): SettingsElement {
-	return {
+function buildBarcodeTab(
+	perms?: SectionPermissions
+): SettingsElement | null {
+	const tab = {
 		id: 'pos_settings_barcode',
 		type: 'tab',
 		label: __( 'Barcode', 'wepos' ),
@@ -252,6 +373,8 @@ function buildBarcodeTab(): SettingsElement {
 			},
 		],
 	} as unknown as SettingsElement;
+
+	return buildTabIfAllowed( tab, perms );
 }
 
 /* ───── field helpers ────────────────────────────────────────────────── */

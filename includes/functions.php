@@ -606,7 +606,10 @@ function wepos_is_dokan_vendor( $user_id = null ) {
 
     $user_id = $user_id ?: get_current_user_id();
 
-    return dokan_is_user_seller( $user_id ) && dokan_is_seller_enabled( $user_id );
+    // $exclude_staff = true — Dokan Pro grants `dokandar` to the vendor_staff
+    // role so dokan_is_user_seller() otherwise returns true for staff too,
+    // which would mask staff as vendors in every caller of this helper.
+    return dokan_is_user_seller( $user_id, true ) && dokan_is_seller_enabled( $user_id );
 }
 
 /**
@@ -631,10 +634,18 @@ function wepos_get_vendor_id_for_user( $user_id = null ) {
 
     $user_id = $user_id ?: get_current_user_id();
 
-    if ( wepos_is_dokan_vendor( $user_id ) ) {
-        if ( apply_filters( 'wepos_is_vendor_staff', false, $user_id ) ) {
-            return absint( get_user_meta( $user_id, '_vendor_id', true ) );
+    // Vendor staff: parent vendor stored in user meta (_vendor_id). Check
+    // staff first because dokan_is_user_seller() is false for staff and
+    // would otherwise route into the resolve_vendor_id fallback, leaving
+    // staff settings reads/writes orphaned from the vendor's store.
+    if ( apply_filters( 'wepos_is_vendor_staff', false, $user_id ) ) {
+        $parent = absint( get_user_meta( $user_id, '_vendor_id', true ) );
+        if ( $parent ) {
+            return $parent;
         }
+    }
+
+    if ( wepos_is_dokan_vendor( $user_id ) ) {
         return $user_id;
     }
 

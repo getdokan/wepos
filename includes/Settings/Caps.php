@@ -264,11 +264,7 @@ class Caps {
             return (bool) $user_id;
         }
 
-        if ( self::has_full_access( $user_id ) ) {
-            return true;
-        }
-
-        return self::resolve_cap( $config['view'], $user_id );
+        return self::resolve_section_cap( $user_id, $config['view'] );
     }
 
     /**
@@ -284,7 +280,8 @@ class Caps {
         $config  = self::section_config( $section );
 
         if ( null === $config ) {
-            return \user_can( $user_id, 'manage_wepos' ) || \user_can( $user_id, 'manage_woocommerce' );
+            // Admin-only sections — staff inherit via parent vendor.
+            return self::resolve_admin_cap( $user_id );
         }
 
         if ( ! empty( $config['personal'] ) ) {
@@ -295,11 +292,128 @@ class Caps {
             return false;
         }
 
-        if ( self::has_full_access( $user_id ) ) {
+        return self::resolve_section_cap( $user_id, $config['edit'] );
+    }
+
+    /**
+     * Resolve a section-level cap (view_* / edit_*) honouring the
+     * vendor → staff delegation rules.
+     *
+     * Rules, in order:
+     *  1. Non-staff users → direct cap resolution (role + user caps).
+     *  2. Staff with an explicit per-user override in wp_capabilities
+     *     (set via vendor Access page's add_cap( $cap, false/true )) →
+     *     that override wins so vendors can hide a tab per-staff.
+     *  3. Staff without an explicit override → inherit from parent vendor.
+     *
+     * @since 1.5.0
+     *
+     * @param int    $user_id User ID.
+     * @param string $cap     Capability slug.
+     *
+     * @return bool
+     */
+    private static function resolve_section_cap( $user_id, $cap ) {
+        if ( ! $user_id ) {
+            return false;
+        }
+
+        $is_staff = \apply_filters( 'wepos_is_vendor_staff', false, $user_id );
+
+        if ( ! $is_staff ) {
+            if ( self::has_full_access( $user_id ) ) {
+                return true;
+            }
+            return self::resolve_cap( $cap, $user_id );
+        }
+
+        $override = self::explicit_user_cap( $user_id, $cap );
+
+        if ( null !== $override ) {
+            return $override;
+        }
+
+        $parent = self::parent_vendor_id( $user_id );
+
+        if ( ! $parent || $parent === $user_id ) {
+            // Orphan staff — fall back to per-user resolution.
+            if ( self::has_full_access( $user_id ) ) {
+                return true;
+            }
+            return self::resolve_cap( $cap, $user_id );
+        }
+
+        if ( self::has_full_access( $parent ) ) {
             return true;
         }
 
-        return self::resolve_cap( $config['edit'], $user_id );
+        return self::resolve_cap( $cap, $parent );
+    }
+
+    /**
+     * Resolve manage_wepos / manage_woocommerce for admin-only sections,
+     * honouring the vendor → staff delegation rules.
+     *
+     * @since 1.5.0
+     *
+     * @param int $user_id User ID.
+     *
+     * @return bool
+     */
+    private static function resolve_admin_cap( $user_id ) {
+        if ( ! $user_id ) {
+            return false;
+        }
+
+        $is_staff = \apply_filters( 'wepos_is_vendor_staff', false, $user_id );
+
+        if ( $is_staff ) {
+            // Respect per-user revocation of manage_wepos when set explicitly.
+            $override = self::explicit_user_cap( $user_id, 'manage_wepos' );
+
+            if ( false === $override ) {
+                return false;
+            }
+
+            $parent = self::parent_vendor_id( $user_id );
+
+            if ( $parent && $parent !== $user_id ) {
+                return \user_can( $parent, 'manage_wepos' )
+                    || \user_can( $parent, 'manage_woocommerce' );
+            }
+        }
+
+        return \user_can( $user_id, 'manage_wepos' )
+            || \user_can( $user_id, 'manage_woocommerce' );
+    }
+
+    /**
+     * Read the explicit per-user cap value stored in wp_capabilities.
+     *
+     * Returns the stored boolean when the vendor's Access page wrote an
+     * explicit add_cap( $cap, true|false ) for this user, or null when no
+     * explicit decision exists and the cap is resolved through role defaults
+     * or the parent vendor.
+     *
+     * @since 1.5.0
+     *
+     * @param int    $user_id User ID.
+     * @param string $cap     Capability slug.
+     *
+     * @return bool|null
+     */
+    private static function explicit_user_cap( $user_id, $cap ) {
+        $user = \get_userdata( $user_id );
+
+        if ( ! $user || ! is_array( $user->caps ) ) {
+            return null;
+        }
+
+        if ( ! array_key_exists( $cap, $user->caps ) ) {
+            return null;
+        }
+
+        return (bool) $user->caps[ $cap ];
     }
 
     /**
@@ -343,6 +457,26 @@ class Caps {
 
         if ( ! $user_id ) {
             return false;
+        }
+
+        // Vendor staff never carry manage_wepos themselves — they act on the
+        // parent vendor's store, so manage authority is inherited wholesale
+        // from the vendor. An explicit per-user revoke (via the vendor Access
+        // page's add_cap( $cap, false )) still wins so vendors can keep a
+        // specific staff member out of settings entirely.
+        if ( \apply_filters( 'wepos_is_vendor_staff', false, $user_id ) ) {
+            $override = self::explicit_user_cap( $user_id, 'manage_wepos' );
+
+            if ( false === $override ) {
+                return false;
+            }
+
+            $parent_vendor = self::parent_vendor_id( $user_id );
+
+            if ( $parent_vendor && $parent_vendor !== $user_id ) {
+                return \user_can( $parent_vendor, 'manage_wepos' )
+                    || \user_can( $parent_vendor, 'manage_woocommerce' );
+            }
         }
 
         if ( ! ( \user_can( $user_id, 'manage_wepos' ) || \user_can( $user_id, 'manage_woocommerce' ) ) ) {
