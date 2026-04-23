@@ -36,11 +36,18 @@ class Dokan {
         add_filter( 'wepos_settings_for_user', [ $this, 'sync_store_info_from_dokan' ], 30, 3 );
 
         // Vendor-dashboard staff permissions — inject a wePOS capability group
-        // into Dokan Pro's permissions matrix and persist changes on save.
-        add_filter( 'dokan_get_all_caps', [ $this, 'add_wepos_staff_caps_group' ] );
+        // into Dokan's permissions matrix (legacy PHP template + new React
+        // dashboard both consume `dokan_get_all_cap`) and persist changes on
+        // save.
+        add_filter( 'dokan_get_all_cap', [ $this, 'add_wepos_staff_caps_group' ] );
         add_filter( 'dokan_get_all_cap_labels', [ $this, 'add_wepos_staff_caps_label' ] );
         add_action( 'dokan_after_save_staff', [ $this, 'save_wepos_staff_caps' ], 10, 2 );
         add_action( 'dokan_stuffs_content_inside_before', [ $this, 'maybe_render_staff_cascade_notice' ] );
+        // Dokan Pro's React staff permissions UI saves via a REST endpoint
+        // that calls add_cap/remove_cap, which leaves role-granted wePOS caps
+        // intact on a revoke. Re-apply our caps as explicit user-level overrides
+        // after that request completes.
+        add_filter( 'rest_request_after_callbacks', [ $this, 'reapply_wepos_caps_after_dokan_rest_save' ], 10, 3 );
 
         // If vendor created via REST API
         add_action( 'dokan_new_vendor', [ $this, 'after_create_vendor_via_rest' ], 15 );
@@ -110,8 +117,13 @@ class Dokan {
      * @return bool
      */
     public function manager_permission( $valid ) {
-        if ( current_user_can( 'dokandar' ) ) {
-            return true;
+        // Vendors manage their own POS, but only when admin has not revoked
+        // access_wepos. The cap is the source of truth — role alone is not.
+        if ( current_user_can( 'dokandar' ) && current_user_can( 'access_wepos' ) ) {
+            $user_id = get_current_user_id();
+            if ( $user_id && dokan_is_seller_enabled( $user_id ) ) {
+                return true;
+            }
         }
 
         // Cashiers and Vendor Staff with POS access can use POS API endpoints only if
@@ -134,23 +146,39 @@ class Dokan {
      * @return void
      */
     public function frontend_permissions( $valid ) {
-        if ( dokan_is_user_seller( get_current_user_id() ) && dokan_is_seller_enabled( get_current_user_id() ) ) {
-	        return true;
-        } else if ( current_user_can( 'cashier' ) && current_user_can( 'access_wepos' ) ) {
-            // Cashier can access POS only if their parent vendor is enabled.
-            $vendor_id = wepos_get_vendor_id_for_user();
-            if ( $vendor_id && dokan_is_seller_enabled( $vendor_id ) ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return $valid;
+        }
+
+        // Vendors: must have access_wepos (admin-revocable) AND an enabled store.
+        if ( dokan_is_user_seller( $user_id ) ) {
+            if ( ! current_user_can( 'access_wepos' ) ) {
+                return $valid;
+            }
+
+            if ( dokan_is_seller_enabled( $user_id ) ) {
                 return true;
             }
-        } else if ( apply_filters( 'wepos_is_vendor_staff', false ) ) {
-            // Vendor staff can access POS if their parent vendor is enabled.
+
+            return $valid;
+        }
+
+        // Cashiers / vendor staff: cap must be present (cascade already revokes
+        // when parent vendor lacks it) and parent vendor must be enabled.
+        if ( current_user_can( 'cashier' ) || apply_filters( 'wepos_is_vendor_staff', false ) ) {
+            if ( ! current_user_can( 'access_wepos' ) ) {
+                return $valid;
+            }
+
             $vendor_id = wepos_get_vendor_id_for_user();
             if ( $vendor_id && dokan_is_seller_enabled( $vendor_id ) ) {
                 return true;
             }
         }
 
-        return false;
+        return $valid;
     }
 
     /**
@@ -866,12 +894,71 @@ class Dokan {
         foreach ( array_keys( $this->get_staff_pos_caps() ) as $cap ) {
             $granted = ! empty( $_POST[ $cap ] );
 
-            if ( $granted ) {
-                $staff_user->add_cap( $cap );
-            } else {
-                $staff_user->remove_cap( $cap );
-            }
+            // Use add_cap( $cap, false ) so the user-level override wins over
+            // the role default — otherwise revoking a cap granted by the
+            // vendor_staff role is a no-op.
+            $staff_user->add_cap( $cap, $granted );
         }
+    }
+
+    /**
+     * Re-apply wePOS caps as explicit user-level overrides after Dokan Pro's
+     * React staff permissions endpoint writes.
+     *
+     * The upstream handler calls $staff->remove_cap( $cap ) when a toggle is
+     * turned off, but WP_User::remove_cap only clears the user-level entry —
+     * a role-granted copy of the cap (e.g. access_wepos on vendor_staff)
+     * survives and the revoke silently no-ops. We translate the same intent
+     * into add_cap( $cap, false ) so the user-level false wins.
+     *
+     * @since 1.5.0
+     *
+     * @param \WP_REST_Response|\WP_HTTP_Response|\WP_Error|mixed $response REST response.
+     * @param array                                              $handler  Matched route handler.
+     * @param \WP_REST_Request                                   $request  REST request.
+     *
+     * @return mixed The original response (unmodified).
+     */
+    public function reapply_wepos_caps_after_dokan_rest_save( $response, $handler, $request ) {
+        if ( is_wp_error( $response ) ) {
+            return $response;
+        }
+
+        $route = $request->get_route();
+        if ( ! preg_match( '#^/dokan/v1/vendor-staff/(\d+)/capabilities$#', $route, $m ) ) {
+            return $response;
+        }
+
+        $method = $request->get_method();
+        if ( 'PUT' !== $method && 'POST' !== $method ) {
+            return $response;
+        }
+
+        $staff = get_user_by( 'id', (int) $m[1] );
+        if ( ! $staff ) {
+            return $response;
+        }
+
+        $capabilities = $request->get_param( 'capabilities' );
+        if ( ! is_array( $capabilities ) ) {
+            return $response;
+        }
+
+        $managed = array_keys( $this->get_staff_pos_caps() );
+
+        foreach ( $capabilities as $entry ) {
+            if ( ! is_array( $entry ) || empty( $entry['capability'] ) ) {
+                continue;
+            }
+
+            if ( ! in_array( $entry['capability'], $managed, true ) ) {
+                continue;
+            }
+
+            $staff->add_cap( $entry['capability'], ! empty( $entry['access'] ) );
+        }
+
+        return $response;
     }
 
     /**
