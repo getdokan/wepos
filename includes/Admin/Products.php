@@ -38,8 +38,13 @@ class Products {
         add_action( 'woocommerce_product_quick_edit_save', [ $this, 'save_quick_edit_pos_visibility' ] );
         add_action( 'admin_footer-edit.php', [ $this, 'quick_edit_pos_visibility_script' ] );
 
-        // Decimal quantity support (Feature 2)
+        // Decimal quantity support (Feature 2). Runs unconditionally — the
+        // JS and save-time handler each check the toggle state themselves so
+        // the UI `step` attribute AND the server-side save path enforce the
+        // same rule: allow decimals when ON, force integers when OFF.
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_decimal_qty_script' ] );
+        add_action( 'woocommerce_admin_process_product_object', [ $this, 'enforce_integer_stock_on_save' ] );
+        add_action( 'woocommerce_admin_process_variation_object', [ $this, 'enforce_integer_stock_on_save' ] );
     }
 
     /**
@@ -406,7 +411,13 @@ class Products {
     }
 
     /**
-     * Add step="any" to stock inputs when Decimal Quantities is enabled.
+     * Force the stock quantity input's `step` attribute to match the
+     * Decimal Quantities toggle. WooCommerce ships with `step="any"` by
+     * default, which allows decimal entry even when our toggle is OFF, so
+     * we always override it — `any` when ON, `1` when OFF.
+     *
+     * Covers the full product edit page (`_stock`), variation rows, and
+     * the WC Quick Edit inline row.
      *
      * @since 1.5.0
      *
@@ -415,10 +426,6 @@ class Products {
      * @return void
      */
     public function enqueue_decimal_qty_script( $hook ) {
-        if ( 'yes' !== wepos_get_option( 'enable_decimal_quantities', 'wepos_general', 'no' ) ) {
-            return;
-        }
-
         if ( ! in_array( $hook, [ 'post.php', 'post-new.php', 'edit.php' ], true ) ) {
             return;
         }
@@ -428,18 +435,65 @@ class Products {
             return;
         }
 
-        $script = <<<'JS'
-jQuery(function($) {
-    $('input[name="_stock"]').attr('step', 'any');
-    $(document).on('click', '.editinline', function() {
-        setTimeout(function() {
-            $('.inline-edit-row input[name="_stock"]').attr('step', 'any');
-        }, 100);
-    });
-});
-JS;
+        $enabled = 'yes' === wepos_get_option( 'enable_decimal_quantities', 'wepos_general', 'no' );
+        $step    = $enabled ? 'any' : '1';
+
+        $script = 'jQuery(function($){'
+            . 'var step = ' . wp_json_encode( $step ) . ';'
+            . '$(\'input[name="_stock"]\').attr("step", step);'
+            // Variation rows use bracketed name="variable_stock[...]".
+            . '$(\'input[name^="variable_stock"]\').attr("step", step);'
+            // Variation rows are added dynamically — observe and re-apply.
+            . '$(document.body).on("woocommerce_variations_loaded woocommerce_variations_added", function(){'
+            . '  $(\'input[name^="variable_stock"]\').attr("step", step);'
+            . '});'
+            // WC Quick Edit row is cloned on .editinline click.
+            . '$(document).on("click", ".editinline", function(){'
+            . '  setTimeout(function(){'
+            . '    $(\'.inline-edit-row input[name="_stock"]\').attr("step", step);'
+            . '  }, 100);'
+            . '});'
+            . '});';
 
         wp_add_inline_script( 'jquery-core', $script );
+    }
+
+    /**
+     * Server-side guard: when Decimal Quantities is OFF, truncate any
+     * fractional stock quantity to an integer before the product (or
+     * variation) is saved. Prevents decimals from slipping through via
+     * form manipulation, clipboard paste, or other UI bypasses.
+     *
+     * Runs for both `woocommerce_admin_process_product_object` (simple /
+     * variable products) and `woocommerce_admin_process_variation_object`
+     * (each individual variation).
+     *
+     * @since 1.5.0
+     *
+     * @param \WC_Product $product
+     *
+     * @return void
+     */
+    public function enforce_integer_stock_on_save( $product ) {
+        if ( 'yes' === wepos_get_option( 'enable_decimal_quantities', 'wepos_general', 'no' ) ) {
+            return;
+        }
+
+        if ( ! is_object( $product ) || ! method_exists( $product, 'get_stock_quantity' ) ) {
+            return;
+        }
+
+        $stock = $product->get_stock_quantity();
+        if ( null === $stock || ! is_numeric( $stock ) ) {
+            return;
+        }
+
+        $stock_float = (float) $stock;
+        if ( floor( $stock_float ) === $stock_float ) {
+            return; // Already integer-valued.
+        }
+
+        $product->set_stock_quantity( (int) floor( $stock_float ) );
     }
 
     /**

@@ -93,19 +93,22 @@ class Common {
         add_filter( 'woocommerce_rest_prepare_product_object', [ $this, 'rest_expose_pos_visibility' ], 10, 2 );
         add_action( 'woocommerce_rest_insert_product_object', [ $this, 'rest_save_pos_visibility' ], 10, 2 );
 
-        // Decimal quantities — when the toggle is on, allow fractional values
-        // for both product stock_quantity and order line-item quantities.
+        // Decimal quantities — always preserve fractional values at the data
+        // layer. WooCommerce casts every quantity passed through
+        // `wc_stock_amount()` to int via the default
+        // `woocommerce_stock_amount => intval` filter. That truncates
+        // decimals on both write AND read — so once a user toggles decimal
+        // quantities OFF, every previously saved decimal (order line qty,
+        // product stock) would display as an integer even though the DB still
+        // holds the float. Swapping in `floatval` is always safe: for an
+        // integer value like `5`, `floatval()` returns `5.0` which PHP
+        // coerces back to `"5"` on output (no visible change).
         //
-        // WooCommerce casts every quantity passed through `wc_stock_amount()`
-        // to int via the default `woocommerce_stock_amount => intval` filter.
-        // That truncates decimals on product save AND on order creation, which
-        // is why POS checkout fails when a cart line has a decimal quantity.
-        // Swapping in `floatval` is the same fix used by woocommerce-pos.
-        if ( 'yes' === wepos_get_option( 'enable_decimal_quantities', 'wepos_general', 'no' ) ) {
-            remove_filter( 'woocommerce_stock_amount', 'intval' );
-            add_filter( 'woocommerce_stock_amount', 'floatval' );
-            add_action( 'woocommerce_before_product_object_save', [ $this, 'recalc_decimal_stock_status' ] );
-        }
+        // The `enable_decimal_quantities` toggle only gates the UI surfaces
+        // (cart input, admin stock step, QuickEdit step, order REST schema).
+        remove_filter( 'woocommerce_stock_amount', 'intval' );
+        add_filter( 'woocommerce_stock_amount', 'floatval' );
+        add_action( 'woocommerce_before_product_object_save', [ $this, 'recalc_decimal_stock_status' ] );
     }
 
     /**
