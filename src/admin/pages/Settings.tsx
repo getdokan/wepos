@@ -8,6 +8,10 @@ import {
 } from '@wedevs/plugin-ui';
 import { LoaderCircle, Save } from 'lucide-react';
 import { applyFilters, addFilter } from '@react/hooks/useExtensions';
+import {
+	buildPosSettingsSubpage,
+	POS_SETTINGS_SUBPAGE_ID,
+} from './pos-settings/schema';
 import { GlobalDefaultCustomerField } from '../components/DefaultCustomerField';
 
 /**
