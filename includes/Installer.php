@@ -27,6 +27,30 @@ class Installer {
     const CAPABILITIES_VERSION_OPTION = 'wepos_capabilities_version';
 
     /**
+     * Cap-schema revision. Bump whenever default role capabilities change
+     * so existing installs backfill the new caps even when WEPOS_VERSION
+     * has not bumped (e.g. zip overwrite during dev).
+     *
+     * Revision history:
+     *  1 — initial section caps + page caps for admin/shop_manager/editor/cashier.
+     *  2 — added section view/edit caps to seller and vendor_staff roles.
+     *
+     * @since 1.5.0
+     *
+     * @var int
+     */
+    const CAPABILITIES_SCHEMA_REVISION = 2;
+
+    /**
+     * Option key tracking the most recent cap-schema revision applied.
+     *
+     * @since 1.5.0
+     *
+     * @var string
+     */
+    const CAPABILITIES_REVISION_OPTION = 'wepos_capabilities_revision';
+
+    /**
      * Run The Installer.
      *
      * @since 1.3.0
@@ -55,15 +79,21 @@ class Installer {
      * @return void
      */
     public function maybe_sync_capabilities() {
-        $stored_version = get_option( self::CAPABILITIES_VERSION_OPTION );
+        $stored_version  = get_option( self::CAPABILITIES_VERSION_OPTION );
+        $stored_revision = (int) get_option( self::CAPABILITIES_REVISION_OPTION, 0 );
 
-        if ( $stored_version && version_compare( $stored_version, WEPOS_VERSION, '>=' ) ) {
+        $version_synced  = $stored_version
+            && version_compare( $stored_version, WEPOS_VERSION, '>=' );
+        $revision_synced = $stored_revision >= self::CAPABILITIES_SCHEMA_REVISION;
+
+        if ( $version_synced && $revision_synced ) {
             return;
         }
 
         $this->add_wepos_capabilities();
 
         update_option( self::CAPABILITIES_VERSION_OPTION, WEPOS_VERSION );
+        update_option( self::CAPABILITIES_REVISION_OPTION, self::CAPABILITIES_SCHEMA_REVISION );
     }
 
     /**
@@ -175,6 +205,15 @@ class Installer {
                 'access_wepos',
                 'wepos_page_view_pos',
             ],
+            'seller'        => array_merge(
+                [ 'access_wepos', 'manage_wepos', 'wepos_view_all_outlets' ],
+                $page_caps,
+                $settings_caps
+            ),
+            'vendor_staff'  => array_merge(
+                [ 'access_wepos' ],
+                $settings_caps
+            ),
         ];
 
         return apply_filters( 'wepos_default_role_capabilities', $defaults );

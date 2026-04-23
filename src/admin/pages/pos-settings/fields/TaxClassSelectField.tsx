@@ -46,6 +46,7 @@ export default function TaxClassSelectField( { element, onChange }: Props ) {
 					onValueChange={ ( v ) => onChange( key, v ) }
 					placeholder={ __( 'Select tax class', 'wepos' ) }
 					disableSearch
+					disabled={ !! element.disabled }
 					className="w-full"
 				/>
 			</div>

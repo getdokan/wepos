@@ -35,6 +35,7 @@ export default function CurrencySelectField( { element, onChange }: Props ) {
 					value={ String( element.value || '' ) }
 					onValueChange={ ( v ) => onChange( key, v ) }
 					placeholder={ __( 'Select currency', 'wepos' ) }
+					disabled={ !! element.disabled }
 					className="w-full"
 				/>
 			</div>

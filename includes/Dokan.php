@@ -482,6 +482,12 @@ class Dokan {
             'create_customers',
             'manage_product_terms',
             'read_private_shop_coupons',
+            'view_general_settings',
+            'edit_general_settings',
+            'view_tax_settings',
+            'edit_tax_settings',
+            'view_barcode_settings',
+            'edit_barcode_settings',
         ];
 
         foreach ( $caps as $cap ) {
@@ -817,8 +823,14 @@ class Dokan {
      */
     private function get_staff_pos_caps() {
         return [
-            'access_wepos' => __( 'Access POS', 'wepos' ),
-            'manage_wepos' => __( 'Manage POS', 'wepos' ),
+            'access_wepos'           => __( 'Access POS', 'wepos' ),
+            'manage_wepos'           => __( 'Manage POS', 'wepos' ),
+            'view_general_settings'  => __( 'View General Settings', 'wepos' ),
+            'edit_general_settings'  => __( 'Edit General Settings', 'wepos' ),
+            'view_tax_settings'      => __( 'View Tax Settings', 'wepos' ),
+            'edit_tax_settings'      => __( 'Edit Tax Settings', 'wepos' ),
+            'view_barcode_settings'  => __( 'View Barcode Settings', 'wepos' ),
+            'edit_barcode_settings'  => __( 'Edit Barcode Settings', 'wepos' ),
         ];
     }
 

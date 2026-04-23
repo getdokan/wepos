@@ -12,6 +12,7 @@ import { applyFilters } from '@react/hooks/useExtensions';
 import {
 	buildPosSettingsSubpage,
 	POS_SETTINGS_SUBPAGE_ID,
+	type SectionPermissions,
 } from './pos-settings/schema';
 import {
 	ReferenceDataContext,
@@ -415,7 +416,8 @@ function buildAccessSchema(
 function buildSchema(
 	sections: WeposAdminData[ 'settings_sections' ],
 	fields: WeposAdminData[ 'settings_fields' ],
-	accessData: WeposAdminData[ 'access_data' ]
+	accessData: WeposAdminData[ 'access_data' ],
+	perms?: SectionPermissions
 ): SettingsElement[] {
 	const rootPage = {
 		id: 'wepos_settings',
@@ -431,10 +433,12 @@ function buildSchema(
 	const standardSubpages = convertFlatToHierarchical( flatElements );
 	rootPage.children!.push( ...standardSubpages );
 
-	// Get access schema (already hierarchical) — hidden for Dokan vendors.
+	// Get access schema (already hierarchical) — hidden for Dokan vendors
+	// and their staff (vendors get a Dokan staff permissions matrix instead).
 	const isVendor = window.weposAdmin?.is_vendor === true;
+	const isVendorStaff = window.weposAdmin?.is_vendor_staff === true;
 
-	if ( ! isVendor ) {
+	if ( ! isVendor && ! isVendorStaff ) {
 		const accessPriority =
 			( sections.findIndex( ( s ) => s.id === 'wepos_access' ) + 1 ) * 10 ||
 			( sections.length + 1 ) * 10;
@@ -442,10 +446,15 @@ function buildSchema(
 		rootPage.children!.push( ...accessSubpages );
 	}
 
-	// POS Settings subpage — always last, after Access.
+	// POS Settings subpage — always last, after Access. Hidden when
+	// view perms strip every section.
 	const posPriority =
 		( rootPage.children!.length + 1 ) * 10 + 100;
-	rootPage.children!.push( buildPosSettingsSubpage( posPriority ) );
+	const posSubpage = buildPosSettingsSubpage( posPriority, perms );
+
+	if ( posSubpage ) {
+		rootPage.children!.push( posSubpage );
+	}
 
 	return [ rootPage ];
 }
@@ -534,6 +543,10 @@ const Settings = () => {
 		currencies: {},
 		tax_classes: {},
 	} );
+	const [ permissions, setPermissions ] = useState< SectionPermissions >( {
+		can_view: {},
+		can_edit: {},
+	} );
 
 	const {
 		settings_sections: rawSections,
@@ -555,14 +568,15 @@ const Settings = () => {
 		const base = buildSchema(
 			settings_sections,
 			settings_fields,
-			accessData
+			accessData,
+			permissions
 		);
 
 		return applyFilters< SettingsElement[] >(
 			'wepos_react_settings_schema',
 			base
 		);
-	}, [ settings_sections, settings_fields, accessData ] );
+	}, [ settings_sections, settings_fields, accessData, permissions ] );
 
 	// Load current settings values on mount via REST.
 	useEffect( () => {
@@ -597,11 +611,19 @@ const Settings = () => {
 				const typed = response as {
 					currencies?: ReferenceData[ 'currencies' ];
 					tax_classes?: ReferenceData[ 'tax_classes' ];
+					_permissions?: SectionPermissions;
 				};
 				setReferenceData( {
 					currencies: typed.currencies || {},
 					tax_classes: typed.tax_classes || {},
 				} );
+
+				if ( typed._permissions ) {
+					setPermissions( {
+						can_view: typed._permissions.can_view || {},
+						can_edit: typed._permissions.can_edit || {},
+					} );
+				}
 
 				// Merge access values from the pre-loaded access_data
 				const accessValues: Record< string, unknown > = {};
@@ -725,19 +747,36 @@ const Settings = () => {
 					title={ __( 'Settings', 'wepos' ) }
 					hookPrefix="wepos"
 					applyFilters={ wpApplyFilters }
-					renderSaveButton={ ( { dirty, onSave: save } ) => (
-						<Button
-							onClick={ save }
-							disabled={ ! dirty || saving }
-						>
-							{ saving ? (
-								<LoaderCircle className="size-4 mr-2 animate-spin" />
-							) : (
-								<Save className="size-4 mr-2" />
-							) }
-							{ __( 'Save Changes', 'wepos' ) }
-						</Button>
-					) }
+					renderSaveButton={ ( { scopeId, dirty, onSave: save } ) => {
+						if ( scopeId === POS_SETTINGS_SUBPAGE_ID ) {
+							const posSections = [
+								'woo_general',
+								'woo_tax',
+								'wepos_barcode',
+								'wepos_general',
+							];
+							const canEditAny = posSections.some(
+								( s ) => permissions.can_edit[ s ] !== false
+							);
+							if ( ! canEditAny ) {
+								return null;
+							}
+						}
+
+						return (
+							<Button
+								onClick={ save }
+								disabled={ ! dirty || saving }
+							>
+								{ saving ? (
+									<LoaderCircle className="size-4 mr-2 animate-spin" />
+								) : (
+									<Save className="size-4 mr-2" />
+								) }
+								{ __( 'Save Changes', 'wepos' ) }
+							</Button>
+						);
+					} }
 				/>
 			</ReferenceDataContext.Provider>
 		</div>
