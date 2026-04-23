@@ -117,13 +117,13 @@ function registerUiToggleVariant() {
 
 function buildSchema(): SettingsElement[] {
 	const posOptions: UiToggleOption[] = [
-		{ value: 'latest', label: __( 'New UI (React)', 'wepos' ) },
-		{ value: 'legacy', label: __( 'Legacy UI (Vue)', 'wepos' ) },
+		{ value: 'latest', label: __( 'New UI', 'wepos' ) },
+		{ value: 'legacy', label: __( 'Legacy UI', 'wepos' ) },
 	];
 
 	const adminOptions: UiToggleOption[] = [
-		{ value: 'new', label: __( 'New UI (React)', 'wepos' ) },
-		{ value: 'legacy', label: __( 'Legacy UI (Vue)', 'wepos' ) },
+		{ value: 'new', label: __( 'New UI', 'wepos' ) },
+		{ value: 'legacy', label: __( 'Legacy UI', 'wepos' ) },
 	];
 
 	return [
