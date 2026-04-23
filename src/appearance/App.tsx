@@ -1,17 +1,12 @@
-import { useState } from '@wordpress/element';
+import { useMemo, useState, useEffect, createElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { addFilter, applyFilters } from '@wordpress/hooks';
 import {
-	Card,
-	CardHeader,
-	CardTitle,
-	CardDescription,
-	CardContent,
-	CardFooter,
+	Settings,
 	Button,
-	RadioGroup,
-	LabeledRadio,
-	Separator,
+	ButtonToggleGroup,
 	toast,
+	type SettingsElement,
 } from '@wedevs/plugin-ui';
 import { LoaderCircle, Save } from 'lucide-react';
 
@@ -37,19 +32,186 @@ const defaults = {
 	admin_ui_style: 'new' as const,
 };
 
+const HOOK_PREFIX = 'wepos_appearance';
+
+interface UiToggleOption {
+	value: string;
+	label: string;
+}
+
+type MergedElement = SettingsElement & {
+	options?: UiToggleOption[];
+};
+
+const UiToggleField = ( {
+	element,
+	onChange,
+}: {
+	element: MergedElement;
+	onChange: ( key: string, value: unknown ) => void;
+} ) => {
+	const options = ( element.options as UiToggleOption[] | undefined ) || [];
+	const value = ( element.value as string | undefined ) || '';
+	const label = element.label || element.title || '';
+	const description = element.description || '';
+
+	return (
+		<div className="grid grid-cols-12 gap-4 items-center w-full p-4">
+			<div className="sm:col-span-8 col-span-12">
+				{ label && (
+					<div className="text-sm font-medium text-foreground">
+						{ label }
+					</div>
+				) }
+				{ description && (
+					<p className="mt-1 text-sm text-muted-foreground">
+						{ description }
+					</p>
+				) }
+			</div>
+			<div className="sm:col-span-4 col-span-12 flex sm:justify-end">
+				<ButtonToggleGroup
+					items={ options.map( ( opt ) => ( {
+						value: String( opt.value ),
+						label: opt.label,
+					} ) ) }
+					value={ value }
+					onChange={ ( next ) => {
+						if ( element.dependency_key ) {
+							onChange( element.dependency_key, next );
+						}
+					} }
+				/>
+			</div>
+		</div>
+	);
+};
+
+let variantRegistered = false;
+function registerUiToggleVariant() {
+	if ( variantRegistered ) {
+		return;
+	}
+	variantRegistered = true;
+
+	addFilter(
+		`${ HOOK_PREFIX }_settings_ui_toggle_field`,
+		'wepos/appearance/ui_toggle',
+		( defaultElement: React.ReactElement, mergedElement: MergedElement ) => {
+			// plugin-ui passes the merged element (value included) but the
+			// bound onChange lives on the fallback element — reuse it so
+			// the custom variant writes back to the Settings context.
+			const defaultProps =
+				( defaultElement as { props?: { onChange?: ( k: string, v: unknown ) => void } } )
+					?.props || {};
+			const onChange =
+				defaultProps.onChange || ( () => undefined );
+
+			return createElement( UiToggleField, {
+				element: mergedElement,
+				onChange,
+			} );
+		}
+	);
+}
+
+function buildSchema(): SettingsElement[] {
+	const posOptions: UiToggleOption[] = [
+		{ value: 'latest', label: __( 'New UI (React)', 'wepos' ) },
+		{ value: 'legacy', label: __( 'Legacy UI (Vue)', 'wepos' ) },
+	];
+
+	const adminOptions: UiToggleOption[] = [
+		{ value: 'new', label: __( 'New UI (React)', 'wepos' ) },
+		{ value: 'legacy', label: __( 'Legacy UI (Vue)', 'wepos' ) },
+	];
+
+	return [
+		{
+			id: 'appearance',
+			type: 'page',
+			is_danger: false,
+			label: __( 'Appearance', 'wepos' ),
+			priority: 10,
+			children: [
+				{
+					id: 'appearance_general',
+					type: 'section',
+					is_danger: false,
+					label: __( 'General', 'wepos' ),
+					description: __(
+						'Choose which user interface wePOS uses on the POS frontend and inside the WordPress admin.',
+						'wepos'
+					),
+					page_id: 'appearance',
+					priority: 10,
+					children: [
+						{
+							id: 'pos_layout_style',
+							type: 'field',
+							is_danger: false,
+							variant: 'ui_toggle',
+							label: __( 'POS Layout Style', 'wepos' ),
+							description: __(
+								'Controls the interface customers and cashiers see on the frontend POS.',
+								'wepos'
+							),
+							layout: 'horizontal',
+							dependency_key: 'wepos_appearance.pos_layout_style',
+							default: defaults.pos_layout_style,
+							options: posOptions,
+							section_id: 'appearance_general',
+							priority: 10,
+						} as SettingsElement,
+						{
+							id: 'admin_ui_style',
+							type: 'field',
+							is_danger: false,
+							variant: 'ui_toggle',
+							label: __( 'Admin Dashboard UI', 'wepos' ),
+							description: __(
+								'Controls the interface of every wePOS page inside the WordPress admin.',
+								'wepos'
+							),
+							layout: 'horizontal',
+							dependency_key: 'wepos_appearance.admin_ui_style',
+							default: defaults.admin_ui_style,
+							options: adminOptions,
+							section_id: 'appearance_general',
+							priority: 20,
+						} as SettingsElement,
+					],
+				},
+			],
+		},
+	];
+}
+
 const App = () => {
 	const bootstrap = window.weposAppearance?.settings || defaults;
 	const rest = window.weposAppearance?.rest;
 
-	const [ posLayout, setPosLayout ] = useState< 'latest' | 'legacy' >(
-		( bootstrap.pos_layout_style as 'latest' | 'legacy' ) || 'latest'
-	);
-	const [ adminUi, setAdminUi ] = useState< 'new' | 'legacy' >(
-		( bootstrap.admin_ui_style as 'new' | 'legacy' ) || 'new'
-	);
+	const [ values, setValues ] = useState< Record< string, unknown > >( {
+		'wepos_appearance.pos_layout_style': bootstrap.pos_layout_style,
+		'wepos_appearance.admin_ui_style': bootstrap.admin_ui_style,
+	} );
 	const [ saving, setSaving ] = useState( false );
 
-	const handleSave = async () => {
+	useEffect( () => {
+		registerUiToggleVariant();
+	}, [] );
+
+	const schema = useMemo( () => buildSchema(), [] );
+
+	const handleChange = ( _scopeId: string, key: string, next: unknown ) => {
+		setValues( ( prev ) => ( { ...prev, [ key ]: next } ) );
+	};
+
+	const handleSave = async (
+		_scopeId: string,
+		_tree: Record< string, unknown >,
+		flat: Record< string, unknown >
+	) => {
 		if ( ! rest ) {
 			toast.error( __( 'REST configuration missing.', 'wepos' ) );
 			return;
@@ -66,8 +228,12 @@ const App = () => {
 				},
 				body: JSON.stringify( {
 					wepos_appearance: {
-						pos_layout_style: posLayout,
-						admin_ui_style: adminUi,
+						pos_layout_style:
+							flat[ 'wepos_appearance.pos_layout_style' ] ??
+							values[ 'wepos_appearance.pos_layout_style' ],
+						admin_ui_style:
+							flat[ 'wepos_appearance.admin_ui_style' ] ??
+							values[ 'wepos_appearance.admin_ui_style' ],
 					},
 				} ),
 			} );
@@ -78,8 +244,6 @@ const App = () => {
 
 			toast.success( __( 'Appearance saved. Reloading…', 'wepos' ) );
 
-			// Full reload so the correct Vue/React bundle loads on the next
-			// paint — the selected style governs what the admin/frontend mounts.
 			setTimeout( () => {
 				window.location.reload();
 			}, 400 );
@@ -90,106 +254,17 @@ const App = () => {
 	};
 
 	return (
-		<div className="pui-root" style={ { padding: '24px 16px', maxWidth: 820 } }>
-			<div style={ { marginBottom: 20 } }>
-				<h1 style={ { fontSize: 22, fontWeight: 600, margin: 0 } }>
-					{ __( 'Appearance', 'wepos' ) }
-				</h1>
-				<p
-					style={ {
-						margin: '6px 0 0',
-						color: 'var(--color-muted-foreground)',
-					} }
-				>
-					{ __(
-						'Choose which user interface wePOS uses on the POS frontend and inside the WordPress admin.',
-						'wepos'
-					) }
-				</p>
-			</div>
-
-			<Card>
-				<CardHeader>
-					<CardTitle>{ __( 'POS Layout Style', 'wepos' ) }</CardTitle>
-					<CardDescription>
-						{ __(
-							'Controls the interface customers and cashiers see on the frontend POS.',
-							'wepos'
-						) }
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<RadioGroup
-						value={ posLayout }
-						onValueChange={ ( v ) =>
-							setPosLayout( v as 'latest' | 'legacy' )
-						}
-					>
-						<LabeledRadio
-							id="pos-layout-latest"
-							value="latest"
-							label={ __( 'New UI (React)', 'wepos' ) }
-							description={ __(
-								'Modern React interface with the latest POS features.',
-								'wepos'
-							) }
-						/>
-						<LabeledRadio
-							id="pos-layout-legacy"
-							value="legacy"
-							label={ __( 'Legacy UI (Vue)', 'wepos' ) }
-							description={ __(
-								'Classic Vue interface retained for backwards compatibility.',
-								'wepos'
-							) }
-						/>
-					</RadioGroup>
-				</CardContent>
-			</Card>
-
-			<Separator style={ { margin: '20px 0' } } />
-
-			<Card>
-				<CardHeader>
-					<CardTitle>
-						{ __( 'Admin Dashboard UI', 'wepos' ) }
-					</CardTitle>
-					<CardDescription>
-						{ __(
-							'Controls the interface of every wePOS page inside the WordPress admin.',
-							'wepos'
-						) }
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<RadioGroup
-						value={ adminUi }
-						onValueChange={ ( v ) =>
-							setAdminUi( v as 'new' | 'legacy' )
-						}
-					>
-						<LabeledRadio
-							id="admin-ui-new"
-							value="new"
-							label={ __( 'New UI (React)', 'wepos' ) }
-							description={ __(
-								'Renders all wePOS admin pages with the React dashboard.',
-								'wepos'
-							) }
-						/>
-						<LabeledRadio
-							id="admin-ui-legacy"
-							value="legacy"
-							label={ __( 'Legacy UI (Vue)', 'wepos' ) }
-							description={ __(
-								'Falls back to the original Vue admin pages.',
-								'wepos'
-							) }
-						/>
-					</RadioGroup>
-				</CardContent>
-				<CardFooter style={ { justifyContent: 'flex-end' } }>
-					<Button onClick={ handleSave } disabled={ saving }>
+		<div className="pui-root" style={ { padding: '16px' } }>
+			<Settings
+				title={ __( 'Appearance', 'wepos' ) }
+				schema={ schema }
+				values={ values }
+				hookPrefix={ HOOK_PREFIX }
+				applyFilters={ applyFilters }
+				onChange={ handleChange }
+				onSave={ handleSave }
+				renderSaveButton={ ( { onSave } ) => (
+					<Button onClick={ onSave } disabled={ saving }>
 						{ saving ? (
 							<LoaderCircle className="animate-spin" />
 						) : (
@@ -199,8 +274,8 @@ const App = () => {
 							? __( 'Saving…', 'wepos' )
 							: __( 'Save Changes', 'wepos' ) }
 					</Button>
-				</CardFooter>
-			</Card>
+				) }
+			/>
 		</div>
 	);
 };
