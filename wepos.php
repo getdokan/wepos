@@ -360,7 +360,7 @@ final class WePOS {
             $this->container['admin']          = new WeDevs\WePOS\Admin\Admin();
             $this->container['settings']       = new WeDevs\WePOS\Admin\Settings();
             $this->container['dashboard']      = new WeDevs\WePOS\Admin\Dashboard();
-            $this->container['panel_switcher'] = new WeDevs\WePOS\Admin\PanelSwitcher();
+            $this->container['appearance']     = new WeDevs\WePOS\Admin\Appearance();
 
             new WeDevs\WePOS\Admin\Products();
             new WeDevs\WePOS\Admin\Updates();
@@ -378,7 +378,7 @@ final class WePOS {
         $this->container['rest']   = new WeDevs\WePOS\REST\Manager();
 
         // Use React assets instead of Vue.js assets
-        $layout_style = wepos_get_option('pos_layout_style', 'wepos_general', 'latest');
+        $layout_style = wepos_get_option( 'pos_layout_style', 'wepos_appearance', 'latest' );
 
         if (is_admin()) {
             $this->container['assets'] = new WeDevs\WePOS\Assets();

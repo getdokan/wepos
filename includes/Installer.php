@@ -124,9 +124,27 @@ class Installer {
      * @return void
      */
     private function set_default_layout_style() {
-        $options = get_option( 'wepos_general', [] );
-        $options['pos_layout_style'] = 'latest';
-        update_option( 'wepos_general', $options );
+        $options = get_option( 'wepos_appearance', [] );
+
+        // Carry over any legacy value previously stored under wepos_general.
+        if ( empty( $options['pos_layout_style'] ) ) {
+            $legacy = get_option( 'wepos_general', [] );
+            if ( ! empty( $legacy['pos_layout_style'] ) ) {
+                $options['pos_layout_style'] = $legacy['pos_layout_style'];
+                unset( $legacy['pos_layout_style'] );
+                update_option( 'wepos_general', $legacy );
+            }
+        }
+
+        if ( empty( $options['pos_layout_style'] ) ) {
+            $options['pos_layout_style'] = 'latest';
+        }
+
+        if ( empty( $options['admin_ui_style'] ) ) {
+            $options['admin_ui_style'] = 'new';
+        }
+
+        update_option( 'wepos_appearance', $options );
     }
 
     /**

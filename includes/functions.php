@@ -207,17 +207,6 @@ function wepos_get_settings_fields() {
                     'custom' => __( 'Custom field', 'wepos' ),
                 ]
             ],
-            'pos_layout_style'        => [
-                'name'    => 'pos_layout_style',
-                'label'   => esc_html__( 'POS Layout Style', 'wepos' ),
-                'desc'    => esc_html__( 'Select the user interface for the frontend POS.', 'wepos' ),
-                'type'    => 'radio',
-                'default' => 'latest',
-                'options' => [
-                    'latest' => esc_html__( 'New UI', 'wepos' ),
-                    'legacy' => esc_html__( 'Legacy UI', 'wepos' ),
-                ],
-            ],
         ],
         'wepos_receipts' => [
             'receipt_header' => [
@@ -393,6 +382,7 @@ function wepos_user_can_access_page( $page_key ) {
  */
 function wepos_get_user_allowed_pages() {
     $page_caps = apply_filters( 'wepos_access_page_capabilities', [
+        'wepos_page_appearance',
         'wepos_page_settings',
         'wepos_page_view_pos',
     ] );

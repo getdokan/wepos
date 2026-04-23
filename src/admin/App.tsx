@@ -2,7 +2,6 @@ import { useMemo, useEffect } from '@wordpress/element';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { applyFilters } from '@react/hooks/useExtensions';
 import Settings from './pages/Settings';
-import Placeholder from './pages/Placeholder';
 
 export interface WeposAdminRouteConfig {
 	path: string;
@@ -73,11 +72,6 @@ const App = () => {
 		return map;
 	}, [ additionalRoutes ] );
 
-	// Get switchable page keys from the panel switcher data so we can
-	// render placeholder routes for pages that don't have React components yet.
-	const switchableKeys =
-		( window as any ).weposPanelSwitch?.supported_keys || [];
-
 	const allRoutes = useMemo( () => {
 		const routes: Record< string, React.ReactNode > = {
 			'/settings': <Settings />,
@@ -97,15 +91,6 @@ const App = () => {
 			}
 		}
 
-		// Add placeholder routes for switchable pages that don't have
-		// a React component registered yet (e.g., pro pages).
-		for ( const key of switchableKeys ) {
-			const path = '/' + key;
-			if ( ! routes[ path ] ) {
-				routes[ path ] = <Placeholder />;
-			}
-		}
-
 		// Filter out routes the user cannot access based on page caps.
 		for ( const path of Object.keys( routes ) ) {
 			const pageKey = routePageKeys[ path ];
@@ -115,7 +100,7 @@ const App = () => {
 		}
 
 		return routes;
-	}, [ additionalRoutes, switchableKeys, allowedPages, routePageKeys ] );
+	}, [ additionalRoutes, allowedPages, routePageKeys ] );
 
 	// Find the first available route to use as the fallback redirect.
 	const fallbackPath = Object.keys( allRoutes )[ 0 ] || '/settings';
