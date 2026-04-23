@@ -183,13 +183,18 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     setShowVoidConfirm(false);
   };
 
+  // IEEE 754 arithmetic on decimals produces artifacts like
+  // `32.2 - 1 === 31.200000000000003`. Round to 4 decimal places so +/−
+  // always gives a clean result without affecting normal decimal inputs.
+  const roundQuantity = (n: number) => Math.round(n * 10000) / 10000;
+
   const addQuantity = (item: POSCartItem, index: number) => {
-    updateCartItem(index, { quantity: item.quantity + 1 });
+    updateCartItem(index, { quantity: roundQuantity(item.quantity + 1) });
   };
 
   const removeQuantity = (item: POSCartItem, index: number) => {
     if (item.quantity > 1) {
-      updateCartItem(index, { quantity: item.quantity - 1 });
+      updateCartItem(index, { quantity: roundQuantity(item.quantity - 1) });
     }
   };
 
