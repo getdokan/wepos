@@ -7,29 +7,8 @@ import {
 	type SettingsElement,
 } from '@wedevs/plugin-ui';
 import { LoaderCircle, Save } from 'lucide-react';
-import { applyFilters as wpApplyFilters } from '@wordpress/hooks';
-import { applyFilters } from '@react/hooks/useExtensions';
-import {
-	buildPosSettingsSubpage,
-	POS_SETTINGS_SUBPAGE_ID,
-} from './pos-settings/schema';
-import {
-	ReferenceDataContext,
-	type ReferenceData,
-} from './pos-settings/reference-data';
-import { registerPosSettingsFields } from './pos-settings/register';
-
-// Register custom POS Settings field variants (country_state, customer_search,
-// currency_select, tax_class_select) once at module load so they're available
-// the first time the Settings page mounts.
-registerPosSettingsFields();
-
-const POS_SETTINGS_SECTIONS = [
-	'woo_general',
-	'woo_tax',
-	'wepos_general',
-	'wepos_barcode',
-];
+import { applyFilters, addFilter } from '@react/hooks/useExtensions';
+import { GlobalDefaultCustomerField } from '../components/DefaultCustomerField';
 
 /**
  * Shape of the `weposAdmin` global set by Dashboard.php via wp_localize_script.
@@ -232,13 +211,16 @@ function buildStandardSchema(
 
 		const sectionFields = fields[ section.id ] || {};
 		Object.values( sectionFields ).forEach( ( field, j ) => {
+			const variant = VARIANT_MAP[ field.type ] || 'text';
+			const isSwitch = variant === 'switch';
+
 			elements.push( {
 				id: field.name,
 				type: 'field',
 				label: field.label,
 				description: field.desc ? stripHtml( field.desc ) : '',
 				dependency_key: field.name,
-				variant: VARIANT_MAP[ field.type ] || 'text',
+				variant,
 				value: field.default ?? '',
 				default: field.default ?? '',
 				placeholder: field.placeholder ?? '',
@@ -252,6 +234,15 @@ function buildStandardSchema(
 							} )
 						)
 					: [],
+				// Plugin-ui's switch variant needs explicit on/off values —
+				// otherwise it treats the default string `'no'` as truthy and
+				// renders stuck-ON.
+				...( isSwitch
+					? {
+							enable_state: { value: 'yes', title: __( 'Enabled', 'wepos' ) },
+							disable_state: { value: 'no', title: __( 'Disabled', 'wepos' ) },
+						}
+					: {} ),
 				...( field.min !== undefined ? { min: field.min } : {} ),
 				...( field.max !== undefined ? { max: field.max } : {} ),
 			} as SettingsElement );
@@ -524,6 +515,52 @@ function parseAccessKey(
 	return { role: match[ 1 ], cap: match[ 2 ] };
 }
 
+/* ─── Default Customer injection ──────────────────────────────────────── */
+
+// Register the custom `default_customer` variant renderer. Plugin-ui calls
+// applyFilters(`${hookPrefix}_settings_${variant}_field`, <fallback />, element)
+// for any unknown variant — we short-circuit to our self-contained component.
+addFilter(
+	'wepos_settings_default_customer_field',
+	'wepos/default-customer-field',
+	() => <GlobalDefaultCustomerField />
+);
+
+// Inject the field into the wepos_general subpage after the existing fields.
+addFilter(
+	'wepos_react_settings_schema',
+	'wepos/default-customer-field',
+	( schema: SettingsElement[] ) => {
+		const rootPage = schema[ 0 ];
+		if ( ! rootPage?.children ) {
+			return schema;
+		}
+
+		const generalSubpage = rootPage.children.find(
+			( el ) => el.id === 'wepos_general'
+		);
+		if ( ! generalSubpage?.children?.length ) {
+			return schema;
+		}
+
+		const generalSection = generalSubpage.children[ 0 ];
+		if ( ! generalSection?.children ) {
+			return schema;
+		}
+
+		generalSection.children.push( {
+			id: 'default_customer',
+			type: 'field',
+			variant: 'default_customer',
+			label: __( 'Default Customer', 'wepos' ),
+			dependency_key: 'default_customer',
+			priority: 999,
+		} as SettingsElement );
+
+		return schema;
+	}
+);
+
 /* ─── Component ────────────────────────────────────────────────────────── */
 
 const Settings = () => {
@@ -715,31 +752,29 @@ const Settings = () => {
 
 	return (
 		<div className="wepos-admin-settings -mx-[20px] -mt-[10px]">
-			<ReferenceDataContext.Provider value={ referenceData }>
-				<SettingsUI
-					schema={ schema }
-					values={ values }
-					onChange={ handleChange }
-					onSave={ handleSave }
-					loading={ loading }
-					title={ __( 'Settings', 'wepos' ) }
-					hookPrefix="wepos"
-					applyFilters={ wpApplyFilters }
-					renderSaveButton={ ( { dirty, onSave: save } ) => (
-						<Button
-							onClick={ save }
-							disabled={ ! dirty || saving }
-						>
-							{ saving ? (
-								<LoaderCircle className="size-4 mr-2 animate-spin" />
-							) : (
-								<Save className="size-4 mr-2" />
-							) }
-							{ __( 'Save Changes', 'wepos' ) }
-						</Button>
-					) }
-				/>
-			</ReferenceDataContext.Provider>
+			<SettingsUI
+				schema={ schema }
+				values={ values }
+				onChange={ handleChange }
+				onSave={ handleSave }
+				loading={ loading }
+				title={ __( 'Settings', 'wepos' ) }
+				hookPrefix="wepos"
+				applyFilters={ applyFilters as any }
+				renderSaveButton={ ( { dirty, onSave: save } ) => (
+					<Button
+						onClick={ save }
+						disabled={ ! dirty || saving }
+					>
+						{ saving ? (
+							<LoaderCircle className="size-4 mr-2 animate-spin" />
+						) : (
+							<Save className="size-4 mr-2" />
+						) }
+						{ __( 'Save Changes', 'wepos' ) }
+					</Button>
+				) }
+			/>
 		</div>
 	);
 };

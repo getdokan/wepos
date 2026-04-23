@@ -88,6 +88,9 @@ const Cart = forwardRef<CartHandle, CartProps>(({
   const [showFeeModal, setShowFeeModal] = useState(false);
   const [showOrderMetaModal, setShowOrderMetaModal] = useState(false);
 
+  // Decimal-quantity: index of the cart row whose qty is currently being edited.
+  const [editingQtyIndex, setEditingQtyIndex] = useState<number | null>(null);
+
   // Refs for child components
   const discountRef = useRef<FeeKeypadHandle>(null);
   const noteRef = useRef<CustomerNoteHandle>(null);
@@ -148,6 +151,9 @@ const Cart = forwardRef<CartHandle, CartProps>(({
       settings: store.getSettings(),
     };
   }, []);
+
+  const decimalQtyEnabled =
+    settings?.wepos_general?.enable_decimal_quantities === 'yes';
 
   const {
     updateCartItem,
@@ -377,9 +383,50 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                                   >
                                     <Minus className="h-4 w-4" />
                                   </Button>
-                                  <span className="w-8 text-center font-sm">
-                                    {item.quantity}
-                                  </span>
+                                  {editingQtyIndex === index && decimalQtyEnabled ? (
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="any"
+                                      autoFocus
+                                      defaultValue={item.quantity}
+                                      className="w-14 h-6 text-center text-sm border border-border bg-background rounded focus:outline-none focus:ring-1 focus:ring-ring"
+                                      onBlur={(e) => {
+                                        const val = parseFloat(e.target.value);
+                                        if (!isNaN(val) && val > 0) {
+                                          updateCartItem(index, { quantity: val });
+                                        }
+                                        setEditingQtyIndex(null);
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          e.currentTarget.blur();
+                                        } else if (e.key === 'Escape') {
+                                          setEditingQtyIndex(null);
+                                        }
+                                      }}
+                                    />
+                                  ) : (
+                                    <span
+                                      className={`w-8 text-center font-sm ${
+                                        decimalQtyEnabled
+                                          ? 'cursor-pointer hover:underline'
+                                          : ''
+                                      }`}
+                                      onClick={() => {
+                                        if (decimalQtyEnabled) {
+                                          setEditingQtyIndex(index);
+                                        }
+                                      }}
+                                      title={
+                                        decimalQtyEnabled
+                                          ? __('Click to edit', 'wepos')
+                                          : undefined
+                                      }
+                                    >
+                                      {item.quantity}
+                                    </span>
+                                  )}
                                   <Button
                                     variant="outline"
                                     size="icon-sm"

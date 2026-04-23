@@ -218,6 +218,20 @@ function wepos_get_settings_fields() {
                     'legacy' => esc_html__( 'Legacy UI', 'wepos' ),
                 ],
             ],
+            'enable_pos_only_products' => [
+                'name'    => 'enable_pos_only_products',
+                'label'   => __( 'Enable POS only products', 'wepos' ),
+                'desc'    => __( 'Enable per-product POS visibility control (POS & Online / POS Only / Online Only).', 'wepos' ),
+                'type'    => 'checkbox',
+                'default' => 'no',
+            ],
+            'enable_decimal_quantities' => [
+                'name'    => 'enable_decimal_quantities',
+                'label'   => __( 'Enable decimal quantities', 'wepos' ),
+                'desc'    => __( 'Allow cashiers to enter fractional product quantities in the POS cart and admin stock inputs.', 'wepos' ),
+                'type'    => 'checkbox',
+                'default' => 'no',
+            ],
         ],
         'wepos_receipts' => [
             'receipt_header' => [

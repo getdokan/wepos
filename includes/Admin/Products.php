@@ -8,6 +8,8 @@ namespace WeDevs\WePOS\Admin;
 */
 class Products {
 
+    const POS_VISIBILITY_META = '_wepos_pos_visibility';
+
     /**
      * Product Constructor
      *
@@ -18,6 +20,26 @@ class Products {
         add_action( 'woocommerce_product_after_variable_attributes', [ $this, 'add_variation_barcode_field' ], 10, 3 );
         add_action( 'woocommerce_process_product_meta', [ $this, 'save_field' ] );
         add_action( 'woocommerce_save_product_variation', [ $this, 'save_variation_data' ], 10, 2 );
+
+        // POS Visibility (Feature 1) — renders in the Publish metabox next to
+        // Catalog visibility so merchants see it where they already control
+        // other publish-time visibility rules.
+        //
+        // Public-facing hooks for this feature (pre_get_posts, template_redirect,
+        // WC REST filters, REST pos_visibility read/write) live in
+        // `WeDevs\WePOS\Common` because this class is only instantiated for
+        // admin requests, while those hooks must run on the frontend and REST.
+        add_action( 'post_submitbox_misc_actions', [ $this, 'add_pos_visibility_field' ] );
+        add_action( 'woocommerce_process_product_meta', [ $this, 'save_pos_visibility' ] );
+
+        // POS Visibility — WooCommerce Quick Edit on the products list table.
+        add_action( 'quick_edit_custom_box', [ $this, 'quick_edit_pos_visibility_field' ], 10, 2 );
+        add_action( 'manage_product_posts_custom_column', [ $this, 'inject_pos_visibility_row_data' ], 99, 2 );
+        add_action( 'woocommerce_product_quick_edit_save', [ $this, 'save_quick_edit_pos_visibility' ] );
+        add_action( 'admin_footer-edit.php', [ $this, 'quick_edit_pos_visibility_script' ] );
+
+        // Decimal quantity support (Feature 2)
+        add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_decimal_qty_script' ] );
     }
 
     /**
@@ -109,5 +131,327 @@ class Products {
         $barcode  = isset( $postdata['_wepos_barcode'][$i] ) ?  sanitize_text_field( $postdata['_wepos_barcode'][$i] ) : '';
         $product->update_meta_data( '_wepos_barcode', $barcode );
         $product->save();
+    }
+
+    /**
+     * Output the POS Visibility widget in the Publish metabox — styled to
+     * match WooCommerce's own "Catalog visibility" click-to-edit control.
+     *
+     * Hooked on `post_submitbox_misc_actions` (runs for any post type) so we
+     * scope to `product` here.
+     *
+     * @since 1.5.0
+     *
+     * @return void
+     */
+    public function add_pos_visibility_field() {
+        global $post;
+
+        if ( ! $post || 'product' !== $post->post_type ) {
+            return;
+        }
+
+        if ( 'yes' !== wepos_get_option( 'enable_pos_only_products', 'wepos_general', 'no' ) ) {
+            return;
+        }
+
+        $value = get_post_meta( $post->ID, self::POS_VISIBILITY_META, true );
+        if ( empty( $value ) ) {
+            $value = 'pos_and_online';
+        }
+
+        $options = self::get_pos_visibility_options();
+        $current_label = isset( $options[ $value ] ) ? $options[ $value ] : $options['pos_and_online'];
+        $radio_name    = self::POS_VISIBILITY_META;
+        ?>
+        <div class="misc-pub-section misc-pub-wepos-pos-visibility" id="wepos-pos-visibility">
+            <?php esc_html_e( 'POS visibility:', 'wepos' ); ?>
+            <strong id="wepos-pos-visibility-display"><?php echo esc_html( $current_label ); ?></strong>
+            <a href="#wepos-pos-visibility" id="wepos-pos-visibility-show" class="hide-if-no-js" style="display:inline;">
+                <?php esc_html_e( 'Edit', 'wepos' ); ?>
+            </a>
+
+            <div id="wepos-pos-visibility-select" class="hide-if-js" style="display:none;margin-top:6px;">
+                <?php foreach ( $options as $key => $label ) : ?>
+                    <label style="display:block;margin:5px 0;">
+                        <input type="radio"
+                            name="<?php echo esc_attr( $radio_name ); ?>"
+                            value="<?php echo esc_attr( $key ); ?>"
+                            <?php checked( $value, $key ); ?> />
+                        <?php echo esc_html( $label ); ?>
+                    </label>
+                <?php endforeach; ?>
+                <p>
+                    <a href="#wepos-pos-visibility" id="wepos-pos-visibility-save" class="hide-if-no-js button"><?php esc_html_e( 'OK', 'wepos' ); ?></a>
+                    <a href="#wepos-pos-visibility" id="wepos-pos-visibility-cancel" class="hide-if-no-js"><?php esc_html_e( 'Cancel', 'wepos' ); ?></a>
+                </p>
+            </div>
+        </div>
+        <script>
+        (function () {
+            var display = document.getElementById('wepos-pos-visibility-display'),
+                show    = document.getElementById('wepos-pos-visibility-show'),
+                select  = document.getElementById('wepos-pos-visibility-select'),
+                cancel  = document.getElementById('wepos-pos-visibility-cancel'),
+                save    = document.getElementById('wepos-pos-visibility-save'),
+                radioName = <?php echo wp_json_encode( $radio_name ); ?>;
+
+            if ( ! display || ! show || ! select || ! cancel || ! save ) {
+                return;
+            }
+
+            var current = document.querySelector('input[name="' + radioName + '"]:checked');
+
+            function toggle() {
+                var hidden = select.style.display === 'none' || select.style.display === '';
+                select.style.display = hidden ? 'block' : 'none';
+                show.style.display   = hidden ? 'none'  : 'inline';
+            }
+
+            function updateDisplay() {
+                var checked = document.querySelector('input[name="' + radioName + '"]:checked');
+                if ( checked ) {
+                    display.textContent = checked.parentNode.textContent.trim();
+                }
+            }
+
+            show.addEventListener('click', function (e) { e.preventDefault(); toggle(); });
+
+            cancel.addEventListener('click', function (e) {
+                e.preventDefault();
+                if ( current ) { current.checked = true; }
+                updateDisplay();
+                toggle();
+            });
+
+            save.addEventListener('click', function (e) {
+                e.preventDefault();
+                // The radio is the actual form field — it will submit with the
+                // post regardless of whether the user clicks OK. The OK click
+                // only updates the label and hides the editor.
+                current = document.querySelector('input[name="' + radioName + '"]:checked');
+                updateDisplay();
+                toggle();
+            });
+        })();
+        </script>
+        <?php
+    }
+
+    /**
+     * Save the POS Visibility meta on product save.
+     *
+     * @since 1.5.0
+     *
+     * @param int $post_id
+     *
+     * @return void
+     */
+    public function save_pos_visibility( $post_id ) {
+        if ( 'yes' !== wepos_get_option( 'enable_pos_only_products', 'wepos_general', 'no' ) ) {
+            return;
+        }
+
+        $postdata = wp_unslash( $_POST );
+
+        if ( ! isset( $postdata[ self::POS_VISIBILITY_META ] ) ) {
+            return;
+        }
+
+        $value = sanitize_text_field( $postdata[ self::POS_VISIBILITY_META ] );
+        if ( ! array_key_exists( $value, self::get_pos_visibility_options() ) ) {
+            $value = 'pos_and_online';
+        }
+
+        update_post_meta( $post_id, self::POS_VISIBILITY_META, $value );
+    }
+
+    /**
+     * Render the POS Visibility select inside WooCommerce's Quick Edit row.
+     *
+     * `quick_edit_custom_box` fires once per column; we only render on the
+     * `product_cat` column so we appear inside the standard WC quick-edit
+     * layout (and only once per row).
+     *
+     * @since 1.5.0
+     *
+     * @param string $column_name
+     * @param string $post_type
+     *
+     * @return void
+     */
+    public function quick_edit_pos_visibility_field( $column_name, $post_type ) {
+        if ( 'product_cat' !== $column_name || 'product' !== $post_type ) {
+            return;
+        }
+
+        if ( 'yes' !== wepos_get_option( 'enable_pos_only_products', 'wepos_general', 'no' ) ) {
+            return;
+        }
+
+        $options = self::get_pos_visibility_options();
+        ?>
+        <br class="clear" />
+        <label>
+            <span class="title"><?php esc_html_e( 'POS Visibility', 'wepos' ); ?></span>
+            <span class="input-text-wrap">
+                <select name="<?php echo esc_attr( self::POS_VISIBILITY_META ); ?>" class="wepos-pos-visibility-qe-select">
+                    <?php foreach ( $options as $key => $label ) : ?>
+                        <option value="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </span>
+        </label>
+        <?php
+    }
+
+    /**
+     * Stamp the current POS visibility value into each product row so the
+     * Quick Edit JS can copy it into the select when the row is opened.
+     *
+     * @since 1.5.0
+     *
+     * @param string $column
+     * @param int    $post_id
+     *
+     * @return void
+     */
+    public function inject_pos_visibility_row_data( $column, $post_id ) {
+        if ( 'name' !== $column ) {
+            return;
+        }
+
+        if ( 'yes' !== wepos_get_option( 'enable_pos_only_products', 'wepos_general', 'no' ) ) {
+            return;
+        }
+
+        $value = get_post_meta( $post_id, self::POS_VISIBILITY_META, true );
+        if ( empty( $value ) ) {
+            $value = 'pos_and_online';
+        }
+
+        echo '<span class="wepos-pos-visibility-data" style="display:none;">' . esc_html( $value ) . '</span>';
+    }
+
+    /**
+     * Persist the POS visibility value submitted from Quick Edit.
+     *
+     * @since 1.5.0
+     *
+     * @param \WC_Product $product
+     *
+     * @return void
+     */
+    public function save_quick_edit_pos_visibility( $product ) {
+        if ( 'yes' !== wepos_get_option( 'enable_pos_only_products', 'wepos_general', 'no' ) ) {
+            return;
+        }
+
+        if ( ! isset( $_REQUEST[ self::POS_VISIBILITY_META ] ) ) {
+            return;
+        }
+
+        $value = sanitize_text_field( wp_unslash( $_REQUEST[ self::POS_VISIBILITY_META ] ) );
+        if ( ! array_key_exists( $value, self::get_pos_visibility_options() ) ) {
+            $value = 'pos_and_online';
+        }
+
+        $product->update_meta_data( self::POS_VISIBILITY_META, $value );
+    }
+
+    /**
+     * Copy each row's stored POS visibility value into the Quick Edit select
+     * when the row is opened.
+     *
+     * @since 1.5.0
+     *
+     * @return void
+     */
+    public function quick_edit_pos_visibility_script() {
+        $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+        if ( ! $screen || 'edit-product' !== $screen->id ) {
+            return;
+        }
+
+        if ( 'yes' !== wepos_get_option( 'enable_pos_only_products', 'wepos_general', 'no' ) ) {
+            return;
+        }
+        ?>
+        <script>
+        jQuery(function($){
+            if ( typeof inlineEditPost === 'undefined' ) { return; }
+
+            var originalEdit = inlineEditPost.edit;
+            inlineEditPost.edit = function( id ) {
+                originalEdit.apply( this, arguments );
+
+                var postId = 0;
+                if ( typeof id === 'object' ) {
+                    postId = parseInt( this.getId( id ), 10 );
+                }
+
+                if ( ! postId ) { return; }
+
+                var $row       = $( '#post-' + postId );
+                var $editRow   = $( '#edit-' + postId );
+                var stored     = $.trim( $row.find( '.wepos-pos-visibility-data' ).text() );
+
+                if ( stored ) {
+                    $editRow.find( '.wepos-pos-visibility-qe-select' ).val( stored );
+                }
+            };
+        });
+        </script>
+        <?php
+    }
+
+    /**
+     * Add step="any" to stock inputs when Decimal Quantities is enabled.
+     *
+     * @since 1.5.0
+     *
+     * @param string $hook
+     *
+     * @return void
+     */
+    public function enqueue_decimal_qty_script( $hook ) {
+        if ( 'yes' !== wepos_get_option( 'enable_decimal_quantities', 'wepos_general', 'no' ) ) {
+            return;
+        }
+
+        if ( ! in_array( $hook, [ 'post.php', 'post-new.php', 'edit.php' ], true ) ) {
+            return;
+        }
+
+        $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+        if ( ! $screen || 'product' !== $screen->post_type ) {
+            return;
+        }
+
+        $script = <<<'JS'
+jQuery(function($) {
+    $('input[name="_stock"]').attr('step', 'any');
+    $(document).on('click', '.editinline', function() {
+        setTimeout(function() {
+            $('.inline-edit-row input[name="_stock"]').attr('step', 'any');
+        }, 100);
+    });
+});
+JS;
+
+        wp_add_inline_script( 'jquery-core', $script );
+    }
+
+    /**
+     * Canonical list of POS Visibility options.
+     *
+     * @return array<string,string>
+     */
+    public static function get_pos_visibility_options() {
+        return [
+            'pos_and_online' => __( 'POS & Online', 'wepos' ),
+            'pos_only'       => __( 'POS Only', 'wepos' ),
+            'online_only'    => __( 'Online Only', 'wepos' ),
+        ];
     }
 }
