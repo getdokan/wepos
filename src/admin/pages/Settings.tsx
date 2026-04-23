@@ -11,7 +11,7 @@ import {
 	applyFilters as wpApplyFilters,
 	addFilter as wpAddFilter,
 } from '@wordpress/hooks';
-import { applyFilters, addFilter } from '@react/hooks/useExtensions';
+import { applyFilters } from '@react/hooks/useExtensions';
 import {
 	buildPosSettingsSubpage,
 	POS_SETTINGS_SUBPAGE_ID,
@@ -22,7 +22,10 @@ import {
 	type ReferenceData,
 } from './pos-settings/reference-data';
 import { registerPosSettingsFields } from './pos-settings/register';
-import { GlobalDefaultCustomerField } from '../components/DefaultCustomerField';
+import {
+	DefaultCustomerCashierRow,
+	DefaultCustomerSelectRow,
+} from '../components/DefaultCustomerField';
 
 // Register custom POS Settings field variants (country_state, customer_search,
 // currency_select, tax_class_select) once at module load so they're available
@@ -549,54 +552,34 @@ function parseAccessKey(
 	return { role: match[ 1 ], cap: match[ 2 ] };
 }
 
-/* ─── Default Customer injection ──────────────────────────────────────── */
+/* ─── Default Customer variant ──────────────────────────────────────── */
 
-// Register the custom `default_customer` variant renderer. Plugin-ui calls
+// Register the custom `default_customer` and `default_customer_cashier`
+// variant renderers. Plugin-ui calls
 // applyFilters(`${hookPrefix}_settings_${variant}_field`, <fallback />, element)
-// for any unknown variant — we short-circuit to our self-contained component.
+// for any unknown variant — we short-circuit to our own row components.
 //
 // Registered on `@wordpress/hooks` (not the useExtensions re-export) because
 // SettingsUI below receives `applyFilters={ wpApplyFilters }` — plugin-ui
 // looks up variant filters on the WordPress global hook instance.
+//
+// Both fields are declared in the POS Settings → General tab schema (see
+// `pos-settings/schema.ts::buildGeneralTab`) so they participate in the
+// tab's shared "Save Changes" button and per-scope dirty tracking.
 wpAddFilter(
 	'wepos_settings_default_customer_field',
 	'wepos/default-customer-field',
-	() => <GlobalDefaultCustomerField />
+	( _fallback: unknown, element: SettingsElement ) => (
+		<DefaultCustomerSelectRow element={ element } />
+	)
 );
 
-// Inject the field into the wepos_general subpage after the existing fields.
-addFilter(
-	'wepos_react_settings_schema',
-	'wepos/default-customer-field',
-	( schema: SettingsElement[] ) => {
-		const rootPage = schema[ 0 ];
-		if ( ! rootPage?.children ) {
-			return schema;
-		}
-
-		const generalSubpage = rootPage.children.find(
-			( el ) => el.id === 'wepos_general'
-		);
-		if ( ! generalSubpage?.children?.length ) {
-			return schema;
-		}
-
-		const generalSection = generalSubpage.children[ 0 ];
-		if ( ! generalSection?.children ) {
-			return schema;
-		}
-
-		generalSection.children.push( {
-			id: 'default_customer',
-			type: 'field',
-			variant: 'default_customer',
-			label: __( 'Default Customer', 'wepos' ),
-			dependency_key: 'default_customer',
-			priority: 999,
-		} as SettingsElement );
-
-		return schema;
-	}
+wpAddFilter(
+	'wepos_settings_default_customer_cashier_field',
+	'wepos/default-customer-cashier-field',
+	( _fallback: unknown, element: SettingsElement ) => (
+		<DefaultCustomerCashierRow element={ element } />
+	)
 );
 
 /* ─── Component ────────────────────────────────────────────────────────── */

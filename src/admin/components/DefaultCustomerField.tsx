@@ -9,10 +9,11 @@ import {
 	Input,
 	LabeledSwitch,
 	SmartSelect,
-	toast,
-	Button,
+	Switch,
+	useSettings,
 } from '@wedevs/plugin-ui';
-import { LoaderCircle, Save } from 'lucide-react';
+import type { SettingsElement } from '@wedevs/plugin-ui';
+import FieldRow from '../pages/pos-settings/fields/FieldRow';
 
 declare const window: any;
 
@@ -195,88 +196,142 @@ export const DefaultCustomerField: React.FC< DefaultCustomerFieldProps > = ( {
 	);
 };
 
+const CUSTOMER_KEY = 'woo_general.default_customer';
+const CASHIER_KEY = 'woo_general.default_customer_is_cashier';
+
+interface RowProps {
+	element: SettingsElement;
+}
+
 /**
- * A self-contained version that loads its own value from `/wepos/v1/settings`
- * and saves back via POST. Used in the admin Settings page, where the field
- * needs to persist independently of the rest of the schema-driven form.
+ * Customer picker row for the admin POS Settings → General tab.
+ * Layout matches the sibling Currency field: label + description on the
+ * left, control on the right (via `FieldRow`). Participates in plugin-ui's
+ * save flow via `useSettings().updateValue`.
+ *
+ * When the cashier toggle is on, the SmartSelect is replaced with a
+ * disabled input showing the logged-in user's name.
  */
-export const GlobalDefaultCustomerField: React.FC = () => {
-	const [ value, setValue ] = useState< number >( 0 );
-	const [ isCashier, setIsCashier ] = useState< boolean >( false );
-	const [ loading, setLoading ] = useState( true );
-	const [ saving, setSaving ] = useState( false );
-	const [ dirty, setDirty ] = useState( false );
+export const DefaultCustomerSelectRow: React.FC< RowProps > = ( { element } ) => {
+	const { values, updateValue } = useSettings();
+	const weposData = window.wepos || window.weposAdmin?.wepos || {};
+	const currentUser = weposData.current_user || {};
+
+	const rawCustomer = values[ CUSTOMER_KEY ];
+	const rawCashier = values[ CASHIER_KEY ];
+	const value = rawCustomer == null ? 0 : Number( rawCustomer ) || 0;
+	const isCashier = rawCashier === 'yes' || rawCashier === true;
+
+	const [ customerOptions, setCustomerOptions ] = useState<
+		{ value: string; label: string }[]
+	>( [] );
+	const [ loading, setLoading ] = useState( false );
 
 	useEffect( () => {
-		apiFetch< any >( { path: '/wepos/v1/settings' } )
-			.then( ( res ) => {
-				const g = res?.woo_general || {};
-				setValue( Number( g.default_customer ) || 0 );
-				setIsCashier( g.default_customer_is_cashier === 'yes' );
+		if ( value <= 0 ) return;
+
+		apiFetch< CustomerResult >( {
+			path: `wc/v3/customers/${ value }`,
+		} )
+			.then( ( customer ) => {
+				const labelText = getCustomerDisplayName( customer );
+				setCustomerOptions( ( prev ) => {
+					if ( prev.some( ( o ) => o.value === String( customer.id ) ) ) {
+						return prev;
+					}
+					return [ { value: String( customer.id ), label: labelText }, ...prev ];
+				} );
 			} )
-			.catch( () => {} )
-			.finally( () => setLoading( false ) );
+			.catch( () => {} );
+	}, [ value ] );
+
+	const handleSearch = useCallback( async ( query: string ) => {
+		if ( ! query.trim() ) {
+			setCustomerOptions( [] );
+			return;
+		}
+		setLoading( true );
+		try {
+			const results = await apiFetch< CustomerResult[] >( {
+				path: `wc/v3/customers?search=${ encodeURIComponent( query ) }&role=all`,
+			} );
+			setCustomerOptions(
+				results.map( ( c ) => ( {
+					value: String( c.id ),
+					label: `${ getCustomerDisplayName( c ) } (${ c.email })`,
+				} ) )
+			);
+		} catch {
+			setCustomerOptions( [] );
+		} finally {
+			setLoading( false );
+		}
 	}, [] );
 
-	const handleChange = ( v: number | null, cashier: boolean | null ) => {
-		setValue( v === null ? 0 : v );
-		setIsCashier( cashier === null ? false : cashier );
-		setDirty( true );
-	};
+	const options = [
+		{ value: '0', label: __( 'Guest Customer', 'wepos' ) },
+		...customerOptions,
+	];
 
-	const handleSave = async () => {
-		setSaving( true );
-		try {
-			await apiFetch( {
-				path: '/wepos/v1/settings',
-				method: 'POST',
-				data: {
-					woo_general: {
-						default_customer: value,
-						default_customer_is_cashier: isCashier ? 'yes' : 'no',
-					},
-				},
-			} );
-			toast.success( __( 'Default customer saved.', 'wepos' ) );
-			setDirty( false );
-		} catch {
-			toast.error( __( 'Failed to save default customer.', 'wepos' ) );
-		} finally {
-			setSaving( false );
+	const cashierName =
+		`${ currentUser.first_name || '' } ${ currentUser.last_name || '' }`.trim() ||
+		currentUser.name ||
+		currentUser.username ||
+		__( 'Cashier', 'wepos' );
+
+	return (
+		<FieldRow element={ element }>
+			<div className="max-w-56 md:max-w-full w-full">
+				{ isCashier ? (
+					<Input type="text" value={ cashierName } disabled />
+				) : (
+					<SmartSelect
+						options={ options }
+						value={ String( value ) }
+						onValueChange={ ( v ) =>
+							updateValue( CUSTOMER_KEY, v ? Number( v ) : 0 )
+						}
+						onSearch={ handleSearch }
+						loading={ loading }
+						placeholder={ __( 'Guest Customer', 'wepos' ) }
+						searchPlaceholder={ __( 'Search customer…', 'wepos' ) }
+						emptyMessage={ __( 'No customer found', 'wepos' ) }
+						idleMessage={ __( 'Type to search…', 'wepos' ) }
+						disabled={ !! element.disabled }
+						debounceMs={ 300 }
+						className="w-full"
+					/>
+				) }
+			</div>
+		</FieldRow>
+	);
+};
+
+/**
+ * "Default Customer is Cashier" toggle row. Same horizontal layout as
+ * Currency — label + description on the left, switch on the right.
+ * Flipping this on clears the selected customer id (stored as 0).
+ */
+export const DefaultCustomerCashierRow: React.FC< RowProps > = ( { element } ) => {
+	const { values, updateValue } = useSettings();
+	const isCashier =
+		values[ CASHIER_KEY ] === 'yes' || values[ CASHIER_KEY ] === true;
+
+	const handleToggle = ( checked: boolean ) => {
+		updateValue( CASHIER_KEY, checked ? 'yes' : 'no' );
+		if ( checked ) {
+			updateValue( CUSTOMER_KEY, 0 );
 		}
 	};
 
-	if ( loading ) {
-		return (
-			<div className="flex items-center gap-2 text-muted-foreground text-sm py-4">
-				<LoaderCircle className="size-4 animate-spin" />
-				{ __( 'Loading default customer…', 'wepos' ) }
-			</div>
-		);
-	}
-
 	return (
-		<div className="space-y-4">
-			<DefaultCustomerField
-				value={ value }
-				isCashier={ isCashier }
-				onChange={ handleChange }
-				description={ __(
-					'Customer assigned to new POS orders when no customer is selected. Per-outlet overrides take precedence.',
-					'wepos'
-				) }
+		<FieldRow element={ element }>
+			<Switch
+				checked={ isCashier }
+				onCheckedChange={ handleToggle }
+				disabled={ !! element.disabled }
 			/>
-			<div>
-				<Button onClick={ handleSave } disabled={ ! dirty || saving }>
-					{ saving ? (
-						<LoaderCircle className="size-4 mr-2 animate-spin" />
-					) : (
-						<Save className="size-4 mr-2" />
-					) }
-					{ __( 'Save Default Customer', 'wepos' ) }
-				</Button>
-			</div>
-		</div>
+		</FieldRow>
 	);
 };
 

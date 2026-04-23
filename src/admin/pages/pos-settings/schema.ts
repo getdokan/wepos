@@ -145,6 +145,37 @@ function buildGeneralTab(
 		label: __( 'General', 'wepos' ),
 		children: [
 			{
+				id: 'pos_general_configuration',
+				type: 'section',
+				label: __( 'General Configuration', 'wepos' ),
+				children: [
+					// Two separate rows, each using the sibling Currency
+					// section's `FieldRow` layout (label + description on
+					// the left, control on the right). Renderers are
+					// registered via the `default_customer` and
+					// `default_customer_cashier` variant filters in
+					// Settings.tsx. Both participate in plugin-ui's save
+					// flow, so the tab's main "Save Changes" button
+					// persists them together.
+					customField(
+						'woo_general.default_customer',
+						'default_customer',
+						__( 'Default Customer', 'wepos' ),
+						{
+							description: __(
+								'Customer assigned to new POS orders when no customer is selected. Per-outlet overrides take precedence.',
+								'wepos'
+							),
+						}
+					),
+					customField(
+						'woo_general.default_customer_is_cashier',
+						'default_customer_cashier',
+						__( 'Default Customer is Cashier', 'wepos' )
+					),
+				],
+			},
+			{
 				id: 'pos_general_currency',
 				type: 'section',
 				label: __( 'Currency', 'wepos' ),
