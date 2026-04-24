@@ -131,18 +131,20 @@ class Dokan {
      * @return bool
      */
     public function manager_permission( $valid ) {
-        // Vendors manage their own POS, but only when admin has not revoked
-        // access_wepos. The cap is the source of truth — role alone is not.
-        if ( current_user_can( 'dokandar' ) && current_user_can( 'access_wepos' ) ) {
+        // Vendor dashboard access is cap-independent of access_wepos —
+        // access_wepos gates only the POS register frontend, not the
+        // vendor dashboard pages (outlets, settings, reports, receipts).
+        if ( current_user_can( 'dokandar' ) ) {
             $user_id = get_current_user_id();
             if ( $user_id && dokan_is_seller_enabled( $user_id ) ) {
                 return true;
             }
         }
 
-        // Cashiers and Vendor Staff with POS access can use POS API endpoints only if
-        // their parent vendor is enabled.
-        if ( ( current_user_can( 'cashier' ) || apply_filters( 'wepos_is_vendor_staff', false ) ) && current_user_can( 'access_wepos' ) ) {
+        // Cashiers and Vendor Staff can use wePOS dashboard REST endpoints
+        // as long as their parent vendor is enabled. Frontend POS access
+        // is gated separately via access_wepos.
+        if ( current_user_can( 'cashier' ) || apply_filters( 'wepos_is_vendor_staff', false ) ) {
             $vendor_id = wepos_get_vendor_id_for_user();
             if ( $vendor_id && dokan_is_seller_enabled( $vendor_id ) ) {
                 return true;

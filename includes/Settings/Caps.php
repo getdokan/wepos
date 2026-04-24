@@ -255,15 +255,13 @@ class Caps {
             return true;
         }
 
-        if ( ! self::effective_access_pos( $user_id ) ) {
-            return false;
-        }
-
-        // Personal sections require only POS access and map to the same user.
+        // Personal sections (cashier/theme prefs) tie to POS frontend access.
         if ( ! empty( $config['personal'] ) ) {
-            return (bool) $user_id;
+            return self::effective_access_pos( $user_id );
         }
 
+        // Store-level settings are dashboard-scoped — access_wepos (POS
+        // frontend cap) must not gate them.
         return self::resolve_section_cap( $user_id, $config['view'] );
     }
 
@@ -284,6 +282,7 @@ class Caps {
             return self::resolve_admin_cap( $user_id );
         }
 
+        // Personal sections (cashier/theme prefs) tie to POS frontend access.
         if ( ! empty( $config['personal'] ) ) {
             return self::effective_access_pos( $user_id );
         }
