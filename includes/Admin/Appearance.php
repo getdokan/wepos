@@ -241,12 +241,31 @@ class Appearance {
      * React Router (or the Vue router) handle navigation without a full
      * page reload.
      *
+     * Routes registered via the `wepos_react_only_hash_routes` filter have
+     * no Vue equivalent and are always pinned to the React dashboard slug.
+     *
      * @param string $url      Original submenu URL.
      * @param bool   $use_react True when the React admin UI is active.
      *
      * @return string
      */
     private function rewrite_submenu_url( $url, $use_react ) {
+        /**
+         * Hash routes that only exist in the React admin and must never be
+         * routed to the Vue shell.
+         *
+         * @since 1.5.0
+         *
+         * @param string[] $routes Array of hash paths, e.g. ['/license'].
+         */
+        $react_only_routes = apply_filters( 'wepos_react_only_hash_routes', [] );
+
+        foreach ( $react_only_routes as $route ) {
+            if ( false !== strpos( $url, '#' . $route ) ) {
+                return str_replace( 'page=wepos#', 'page=wepos-dashboard#', $url );
+            }
+        }
+
         $source = $use_react ? 'page=wepos#' : 'page=wepos-dashboard#';
         $target = $use_react ? 'page=wepos-dashboard#' : 'page=wepos#';
 
