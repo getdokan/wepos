@@ -413,7 +413,9 @@ class SettingController extends \WP_REST_Controller {
 
 		$user_id  = get_current_user_id();
 		$settings = array_merge( $settings, $this->get_personal_settings( $user_id ) );
-		$settings = $this->apply_view_gating( $settings, $user_id );
+		// Settings data is always returned so the POS cart (currency, tax, barcode) keeps working
+		// even when the signed-in user lacks view/edit permission on a given section. Admin
+		// settings UI hides restricted tabs/fields using the `_permissions` payload below.
 		$settings['_permissions'] = $this->build_permissions_payload( $user_id );
 
 		return rest_ensure_response( $settings );

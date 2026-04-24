@@ -265,8 +265,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background">
-      {settings.wepos_general && (
-        <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col">
           {/* Cart Header - Fixed Top */}
           <div className="border-b border-border p-3">
             <div className="mb-2 flex items-center justify-between">
@@ -832,7 +831,6 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
           </div>
         </div>
-      )}
 
       <CartSettingsModal
         isOpen={showSettingsModal}
