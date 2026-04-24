@@ -156,6 +156,20 @@ const getCustomerDisplayName = (customer: Customer): string => {
   return fullName || customer.username || customer.email || String(customer.id);
 };
 
+// Detect "invalid order id" errors from WC/WP REST (stale serverOrder pointing to a deleted/trashed order).
+const isInvalidOrderIdError = (err: any): boolean => {
+  if (!err) return false;
+  const code = err.code || err?.data?.code || '';
+  const status = err?.data?.status ?? err?.status;
+  return (
+    code === 'woocommerce_rest_invalid_order_id'
+    || code === 'woocommerce_rest_shop_order_invalid_id'
+    || code === 'rest_order_invalid_id'
+    || code === 'rest_post_invalid_id'
+    || status === 404
+  );
+};
+
 const buildRestoredCartState = (
   order: Order,
   settings: any,
@@ -339,7 +353,7 @@ const HomePage: React.FC = () => {
     };
   }, []);
 
-  const { addToCart, clearCart, setCustomer, setServerOrder, hydrateCart } = useDispatch(CART_STORE_NAME) as any;
+  const { addToCart, clearCart, setCustomer, setServerOrder, clearServerOrder, hydrateCart } = useDispatch(CART_STORE_NAME) as any;
 
   // UI State
   const [showHelp, setShowHelp] = useState(false);
@@ -504,11 +518,17 @@ const HomePage: React.FC = () => {
         await posAPI.orders.deleteOrder(serverOrder.order_id, true);
         toast.success(deletingMessage || successMessage);
       } catch (error: any) {
-        toast.error(
-          <RawHTML>{error?.message || failureMessage}</RawHTML>
-        );
-        console.error('Failed to delete server order:', error);
-        return false;
+        if (isInvalidOrderIdError(error)) {
+          // Stale serverOrder — order already removed/trashed on the server. Proceed with local clear.
+          console.warn('Stale server order id; clearing local cart anyway.', error);
+          toast.success(successMessage);
+        } else {
+          toast.error(
+            <RawHTML>{error?.message || failureMessage}</RawHTML>
+          );
+          console.error('Failed to delete server order:', error);
+          return false;
+        }
       } finally {
         setVoiding(false);
       }
@@ -639,8 +659,19 @@ const HomePage: React.FC = () => {
 
       if (serverOrder?.order_id) {
         // Update the existing pos-open order with payment info
-        const payload = buildOrderPayload(paymentFields);
-        orderResponse = await posAPI.orders.updateOrder(serverOrder.order_id, payload);
+        try {
+          const payload = buildOrderPayload(paymentFields);
+          orderResponse = await posAPI.orders.updateOrder(serverOrder.order_id, payload);
+        } catch (updateError: any) {
+          if (!isInvalidOrderIdError(updateError)) {
+            throw updateError;
+          }
+          // Stale server order id — create a new order with payment info instead.
+          console.warn('Stale server order id during checkout; creating a new order.', updateError);
+          clearServerOrder();
+          const payload = buildOrderPayload(paymentFields, { forceCreate: true });
+          orderResponse = await posAPI.orders.createOrder(payload);
+        }
       } else {
         // Create a new order with payment info
         const payload = buildOrderPayload(paymentFields);
@@ -725,8 +756,11 @@ const HomePage: React.FC = () => {
   // When updating an existing order (serverOrder exists), we must:
   //   - Include the server-side `id` on each line item so WC updates it in place
   //   - Mark removed server line items with `id` + `quantity: 0` so WC deletes them
-  const buildOrderPayload = (extraFields: Record<string, any> = {}) => {
-    const isUpdate = !!serverOrder;
+  const buildOrderPayload = (
+    extraFields: Record<string, any> = {},
+    options: { forceCreate?: boolean } = {},
+  ) => {
+    const isUpdate = !options.forceCreate && !!serverOrder;
     const orderCustomer = normalizeCustomerForOrder(selectedCustomer);
 
     // --- line_items ---
@@ -978,8 +1012,19 @@ const HomePage: React.FC = () => {
 
       if (serverOrder?.order_id) {
         // Update the existing pos-open order
-        const payload = buildOrderPayload({ status: 'pos-open' });
-        orderResponse = await posAPI.orders.updateOrder(serverOrder.order_id, payload);
+        try {
+          const payload = buildOrderPayload({ status: 'pos-open' });
+          orderResponse = await posAPI.orders.updateOrder(serverOrder.order_id, payload);
+        } catch (updateError: any) {
+          if (!isInvalidOrderIdError(updateError)) {
+            throw updateError;
+          }
+          // Stale server order id (deleted/trashed). Drop the server reference and create anew.
+          console.warn('Stale server order id on update; creating a new pos-open order.', updateError);
+          clearServerOrder();
+          const payload = buildOrderPayload({ status: 'pos-open' }, { forceCreate: true });
+          orderResponse = await posAPI.orders.createOrder(payload);
+        }
       } else {
         // Create a new pos-open order
         const payload = buildOrderPayload({ status: 'pos-open' });
