@@ -31,6 +31,7 @@ class Products {
         // admin requests, while those hooks must run on the frontend and REST.
         add_action( 'post_submitbox_misc_actions', [ $this, 'add_pos_visibility_field' ] );
         add_action( 'woocommerce_process_product_meta', [ $this, 'save_pos_visibility' ] );
+        add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_pos_visibility_script' ] );
 
         // POS Visibility — WooCommerce Quick Edit on the products list table.
         add_action( 'quick_edit_custom_box', [ $this, 'quick_edit_pos_visibility_field' ], 10, 2 );
@@ -193,55 +194,42 @@ class Products {
                 </p>
             </div>
         </div>
-        <script>
-        (function () {
-            var display = document.getElementById('wepos-pos-visibility-display'),
-                show    = document.getElementById('wepos-pos-visibility-show'),
-                select  = document.getElementById('wepos-pos-visibility-select'),
-                cancel  = document.getElementById('wepos-pos-visibility-cancel'),
-                save    = document.getElementById('wepos-pos-visibility-save'),
-                radioName = <?php echo wp_json_encode( $radio_name ); ?>;
-
-            if ( ! display || ! show || ! select || ! cancel || ! save ) {
-                return;
-            }
-
-            var current = document.querySelector('input[name="' + radioName + '"]:checked');
-
-            function toggle() {
-                var hidden = select.style.display === 'none' || select.style.display === '';
-                select.style.display = hidden ? 'block' : 'none';
-                show.style.display   = hidden ? 'none'  : 'inline';
-            }
-
-            function updateDisplay() {
-                var checked = document.querySelector('input[name="' + radioName + '"]:checked');
-                if ( checked ) {
-                    display.textContent = checked.parentNode.textContent.trim();
-                }
-            }
-
-            show.addEventListener('click', function (e) { e.preventDefault(); toggle(); });
-
-            cancel.addEventListener('click', function (e) {
-                e.preventDefault();
-                if ( current ) { current.checked = true; }
-                updateDisplay();
-                toggle();
-            });
-
-            save.addEventListener('click', function (e) {
-                e.preventDefault();
-                // The radio is the actual form field — it will submit with the
-                // post regardless of whether the user clicks OK. The OK click
-                // only updates the label and hides the editor.
-                current = document.querySelector('input[name="' + radioName + '"]:checked');
-                updateDisplay();
-                toggle();
-            });
-        })();
-        </script>
         <?php
+
+    }
+
+    /**
+     * Enqueue the Publish-metabox mini-editor enhancement for POS
+     * visibility. Scoped to product edit screens and gated on the
+     * "Enable POS only products" toggle so it never loads elsewhere.
+     *
+     * @since 1.5.0
+     *
+     * @param string $hook Current admin page hook.
+     *
+     * @return void
+     */
+    public function enqueue_pos_visibility_script( $hook ) {
+        if ( ! in_array( $hook, [ 'post.php', 'post-new.php' ], true ) ) {
+            return;
+        }
+
+        $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+        if ( ! $screen || 'product' !== $screen->post_type ) {
+            return;
+        }
+
+        if ( 'yes' !== wepos_get_option( 'enable_pos_only_products', 'wepos_general', 'no' ) ) {
+            return;
+        }
+
+        wp_enqueue_script(
+            'wepos-pos-visibility',
+            plugins_url( 'assets/vendors/wepos-pos-visibility.js', WEPOS_FILE ),
+            [],
+            WEPOS_VERSION,
+            true
+        );
     }
 
     /**
@@ -342,6 +330,12 @@ class Products {
     /**
      * Persist the POS visibility value submitted from Quick Edit.
      *
+     * WooCommerce's `WC_Admin_List_Table_Products::quick_edit_save()` calls
+     * `$product->save()` BEFORE firing the `woocommerce_product_quick_edit_save`
+     * action, so meta mutated inside this handler will not be flushed to the
+     * database unless we save again. `save_meta_data()` is enough — it
+     * persists the dirty meta without re-running the full product save.
+     *
      * @since 1.5.0
      *
      * @param \WC_Product $product
@@ -363,6 +357,7 @@ class Products {
         }
 
         $product->update_meta_data( self::POS_VISIBILITY_META, $value );
+        $product->save_meta_data();
     }
 
     /**
