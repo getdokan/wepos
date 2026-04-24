@@ -233,13 +233,16 @@ function buildStandardSchema(
 
 		const sectionFields = fields[ section.id ] || {};
 		Object.values( sectionFields ).forEach( ( field, j ) => {
+			const variant = VARIANT_MAP[ field.type ] || 'text';
+			const isSwitch = variant === 'switch';
+
 			elements.push( {
 				id: field.name,
 				type: 'field',
 				label: field.label,
 				description: field.desc ? stripHtml( field.desc ) : '',
 				dependency_key: field.name,
-				variant: VARIANT_MAP[ field.type ] || 'text',
+				variant,
 				value: field.default ?? '',
 				default: field.default ?? '',
 				placeholder: field.placeholder ?? '',
@@ -253,6 +256,15 @@ function buildStandardSchema(
 							} )
 						)
 					: [],
+				// Plugin-ui's switch variant needs explicit on/off values —
+				// otherwise it treats the default string `'no'` as truthy and
+				// renders stuck-ON.
+				...( isSwitch
+					? {
+							enable_state: { value: 'yes', title: __( 'Enabled', 'wepos' ) },
+							disable_state: { value: 'no', title: __( 'Disabled', 'wepos' ) },
+						}
+					: {} ),
 				...( field.min !== undefined ? { min: field.min } : {} ),
 				...( field.max !== undefined ? { max: field.max } : {} ),
 			} as SettingsElement );
@@ -749,13 +761,7 @@ const Settings = () => {
 					applyFilters={ wpApplyFilters }
 					renderSaveButton={ ( { scopeId, dirty, onSave: save } ) => {
 						if ( scopeId === POS_SETTINGS_SUBPAGE_ID ) {
-							const posSections = [
-								'woo_general',
-								'woo_tax',
-								'wepos_barcode',
-								'wepos_general',
-							];
-							const canEditAny = posSections.some(
+							const canEditAny = POS_SETTINGS_SECTIONS.some(
 								( s ) => permissions.can_edit[ s ] !== false
 							);
 							if ( ! canEditAny ) {

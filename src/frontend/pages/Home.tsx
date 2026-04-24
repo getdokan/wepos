@@ -579,12 +579,12 @@ const HomePage: React.FC = () => {
     if (!settings?.woo_general || defaultCustomerLoadedRef.current || selectedCustomer) return;
     defaultCustomerLoadedRef.current = true;
 
-    // Outlet meta (set by wepos-pro) takes priority over global settings
-    const outlet = getFromLocalStorage<any>('wepos_outlet', null);
-    const outletMeta = outlet?.meta || {};
-
-    const isCashier = outletMeta.default_customer_is_cashier ?? settings.woo_general.default_customer_is_cashier;
-    const defaultCustomerId = outletMeta.default_customer ?? settings.woo_general.default_customer;
+    // The server now computes the effective default customer via the
+    // Admin ← Vendor ← Outlet merge chain (`wepos_settings_for_user`
+    // filter in wepos-pro/Dokan.php + merge_outlet_settings in wepos),
+    // so we read directly from the merged settings response.
+    const isCashier = settings.woo_general.default_customer_is_cashier;
+    const defaultCustomerId = settings.woo_general.default_customer;
 
     if (isCashier === 'yes') {
       // Set the logged-in cashier as the default customer
@@ -1519,20 +1519,22 @@ const HomePage: React.FC = () => {
               {__('Products', 'wepos')}
             </button>
             <button
-              className={`relative flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium transition-colors ${
+              className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-medium transition-colors ${
                 mobileActiveTab === 'cart'
                   ? 'text-primary'
                   : 'text-muted-foreground'
               }`}
               onClick={() => setMobileActiveTab('cart')}
             >
-              <ShoppingCart className="h-5 w-5" />
+              <span className="relative inline-flex">
+                <ShoppingCart className="h-5 w-5" />
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-1.5 -right-2.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-primary-foreground">
+                    {cartItems.length}
+                  </span>
+                )}
+              </span>
               {__('Cart', 'wepos')}
-              {cartItems.length > 0 && (
-                <span className="absolute top-1 right-1/4 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
-                  {cartItems.length}
-                </span>
-              )}
             </button>
           </div>
         </div>

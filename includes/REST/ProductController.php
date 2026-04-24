@@ -100,6 +100,20 @@ class ProductController extends \WC_REST_Products_Controller {
             }
         }
 
+        // Exclude products marked as "Online Only" from the POS product list
+        // when the POS Visibility feature is turned on.
+        if ( 'yes' === wepos_get_option( 'enable_pos_only_products', 'wepos_general', 'no' ) ) {
+            if ( ! isset( $args['meta_query'] ) || ! is_array( $args['meta_query'] ) ) {
+                $args['meta_query'] = array();
+            }
+
+            $args['meta_query'][] = array(
+                'relation' => 'OR',
+                array( 'key' => '_wepos_pos_visibility', 'compare' => 'NOT EXISTS' ),
+                array( 'key' => '_wepos_pos_visibility', 'value' => 'online_only', 'compare' => '!=' ),
+            );
+        }
+
         /**
          * Filter wePOS product query arguments before fetching products.
          *

@@ -52,6 +52,7 @@ export interface Product {
   status: 'draft' | 'pending' | 'private' | 'publish';
   featured: boolean;
   catalog_visibility: 'visible' | 'catalog' | 'search' | 'hidden';
+  pos_visibility?: 'pos_and_online' | 'pos_only' | 'online_only';
   description: string;
   short_description: string;
   sku: string;
@@ -560,10 +561,22 @@ export interface POSGateway {
 }
 
 export interface POSSettings {
-  wepos_general: any;
+  wepos_general: {
+    enable_pos_only_products?: 'yes' | 'no';
+    enable_decimal_quantities?: 'yes' | 'no';
+    enable_fee_tax?: 'yes' | 'no';
+    barcode_scanner_field?: string;
+    pos_layout_style?: string;
+    [key: string]: any;
+  };
   wepos_receipts?: {
     receipt_header: string;
     receipt_footer: string;
+  };
+  woo_general?: {
+    default_customer?: number;
+    default_customer_is_cashier?: 'yes' | 'no';
+    [key: string]: any;
   };
   woo_tax: {
     wc_tax_display_cart: string;

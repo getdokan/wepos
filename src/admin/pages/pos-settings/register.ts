@@ -6,6 +6,10 @@ import CountryStateField from './fields/CountryStateField';
 import CustomerSearchField from './fields/CustomerSearchField';
 import CurrencySelectField from './fields/CurrencySelectField';
 import TaxClassSelectField from './fields/TaxClassSelectField';
+import {
+	DefaultCustomerCashierRow,
+	DefaultCustomerSelectRow,
+} from '../../components/DefaultCustomerField';
 
 interface FieldRenderArgs {
 	element: SettingsElement;
@@ -27,6 +31,16 @@ export function registerPosSettingsFields() {
 	registerVariant( 'customer_search', CustomerSearchField );
 	registerVariant( 'currency_select', CurrencySelectField );
 	registerVariant( 'tax_class_select', TaxClassSelectField );
+	// Paired fields for the "General Configuration" section. Both row
+	// components read/write via `useSettings()` — they ignore the onChange
+	// arg that `registerVariant` forwards, so registering them through the
+	// same helper is harmless. Done here (rather than in Settings.tsx)
+	// so the Dokan vendor POS Settings page — which imports and calls
+	// `registerPosSettingsFields` from `@wepos/components` — also picks
+	// them up. Without this, the variants fall through to plugin-ui's
+	// "Unsupported field type" fallback in the vendor UI.
+	registerVariant( 'default_customer', DefaultCustomerSelectRow );
+	registerVariant( 'default_customer_cashier', DefaultCustomerCashierRow );
 }
 
 function registerVariant( variant: string, Component: FieldComponent ) {
