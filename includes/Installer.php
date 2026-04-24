@@ -39,7 +39,7 @@ class Installer {
      *
      * @var int
      */
-    const CAPABILITIES_SCHEMA_REVISION = 2;
+    const CAPABILITIES_SCHEMA_REVISION = 3;
 
     /**
      * Option key tracking the most recent cap-schema revision applied.
@@ -229,7 +229,15 @@ class Installer {
                 $settings_caps
             ),
             'vendor_staff'  => array_merge(
-                [ 'access_wepos' ],
+                [
+                    'access_wepos',
+                    // Required so vendor staff can create/update/read orders placed at the POS.
+                    // Without these, the first sale succeeds on the server but the follow-up
+                    // order fetch returns "Sorry, you cannot access this resource".
+                    'publish_shop_orders',
+                    'edit_shop_orders',
+                    'read_private_shop_orders',
+                ],
                 $settings_caps
             ),
         ];
