@@ -359,7 +359,7 @@ class Dokan {
         if ( 'yes' === $settings ) {
             $url['pos'] = [
                 'title'      => __( 'wePos', 'wepos' ),
-                'icon'       => '<i class="fas fa-desktop"></i>',
+                'icon'       => '<img alt="wePOS" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciLz4=" style="display:inline-block;width:20px;height:20px;background-color:currentColor;-webkit-mask:url(\'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMiAyNiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMCAxMC43ODg5VjI1LjUyMzVMNS4xNzEyNCAxNi45MzI4QzYuMjQ2NzMgMTUuMTQ2MSA4LjE3OTU2IDE0LjA1MzYgMTAuMjY0OCAxNC4wNTM2SDE0LjU1QzE4LjQzMDUgMTQuMDUzNiAyMS41NzYzIDEwLjkwNzYgMjEuNTc2MyA3LjAyNjhDMjEuNTc2MyAzLjE0NiAxOC40MzA1IDAgMTQuNTUgMEgxMC43ODgyQzQuODMwMDMgMCAwIDQuODMwMzggMCAxMC43ODg5WiIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==\') center/contain no-repeat;mask:url(\'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMiAyNiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMCAxMC43ODg5VjI1LjUyMzVMNS4xNzEyNCAxNi45MzI4QzYuMjQ2NzMgMTUuMTQ2MSA4LjE3OTU2IDE0LjA1MzYgMTAuMjY0OCAxNC4wNTM2SDE0LjU1QzE4LjQzMDUgMTQuMDUzNiAyMS41NzYzIDEwLjkwNzYgMjEuNTc2MyA3LjAyNjhDMjEuNTc2MyAzLjE0NiAxOC40MzA1IDAgMTQuNTUgMEgxMC43ODgyQzQuODMwMDMgMCAwIDQuODMwMzggMCAxMC43ODg5WiIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==\') center/contain no-repeat;" />',
                 'url'        => dokan_get_navigation_url( 'pos' ),
                 'pos'        => 55,
                 'permission' => 'dokandar',

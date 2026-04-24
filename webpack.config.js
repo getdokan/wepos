@@ -28,7 +28,7 @@ module.exports = (env, argv) => {
             // React entry points
             'wepos-react': path.resolve(__dirname, 'src/frontend/index.tsx'),
             'wepos-admin-react': path.resolve(__dirname, 'src/admin/index.tsx'),
-            'wepos-admin-switching': path.resolve(__dirname, 'src/admin/panel-switcher/index.tsx'),
+            'wepos-appearance': path.resolve(__dirname, 'src/appearance/index.tsx'),
             'wepos-components': path.resolve(__dirname, 'src/index.ts'),
 
             // Old Vue/Legacy entry points
@@ -44,7 +44,7 @@ module.exports = (env, argv) => {
             // Default path is build/
             filename: (pathData) => {
                 const name = pathData.chunk.name;
-                if (name === 'wepos-react' || name === 'wepos-admin-react' || name === 'wepos-admin-switching' || name === 'wepos-components') {
+                if (name === 'wepos-react' || name === 'wepos-admin-react' || name === 'wepos-appearance' || name === 'wepos-components') {
                     return '[name].js';
                 }
                 // For legacy assets, we use the mode suffix (.min) if in production

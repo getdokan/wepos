@@ -251,6 +251,16 @@ class SettingController extends \WP_REST_Controller {
 			? array_merge( $this->barcode_defaults, $barcode )
 			: $this->barcode_defaults;
 
+		// Appearance: controls which UI (React/Vue) renders on frontend + admin.
+		$appearance = get_option( 'wepos_appearance', [] );
+		$settings['wepos_appearance'] = array_merge(
+			[
+				'pos_layout_style' => 'latest',
+				'admin_ui_style'   => 'new',
+			],
+			is_array( $appearance ) ? $appearance : []
+		);
+
 		return $settings;
 	}
 
@@ -824,6 +834,30 @@ class SettingController extends \WP_REST_Controller {
 			$existing = get_option( 'wepos_receipts', [] );
 			$updated = array_merge( $existing, $params['wepos_receipts'] );
 			update_option( 'wepos_receipts', $updated );
+		}
+
+		if ( isset( $params['wepos_appearance'] ) && is_array( $params['wepos_appearance'] ) ) {
+			$existing = get_option( 'wepos_appearance', [] );
+			if ( ! is_array( $existing ) ) {
+				$existing = [];
+			}
+
+			$incoming = $params['wepos_appearance'];
+			$clean    = [];
+
+			if ( isset( $incoming['pos_layout_style'] ) ) {
+				$clean['pos_layout_style'] = in_array( $incoming['pos_layout_style'], [ 'latest', 'legacy' ], true )
+					? $incoming['pos_layout_style']
+					: 'latest';
+			}
+
+			if ( isset( $incoming['admin_ui_style'] ) ) {
+				$clean['admin_ui_style'] = in_array( $incoming['admin_ui_style'], [ 'new', 'legacy' ], true )
+					? $incoming['admin_ui_style']
+					: 'new';
+			}
+
+			update_option( 'wepos_appearance', array_merge( $existing, $clean ) );
 		}
 
 		if ( isset( $params['wepos_barcode'] ) && is_array( $params['wepos_barcode'] ) ) {
