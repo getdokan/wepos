@@ -118,34 +118,61 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
     };
   }, []);
 
+  // Wait for the hidden receipt DOM to be populated before cloning it for print.
+  // Pro plugins may replace the receipt via `wepos_react_receipt_content`, and that
+  // replacement often fetches receipt settings asynchronously — rendering null until
+  // the fetch resolves. Without this wait, we'd clone an empty node and print blank.
+  const waitForReceiptReady = (
+    callback: () => void,
+    { maxWaitMs = 5000, intervalMs = 100 }: { maxWaitMs?: number; intervalMs?: number } = {},
+  ) => {
+    const started = Date.now();
+    const tick = () => {
+      const el = document.getElementById('wepos-print-receipt');
+      const hasContent = !!el && el.childElementCount > 0 && (el.textContent || '').trim().length > 0;
+      if (hasContent || Date.now() - started >= maxWaitMs) {
+        callback();
+        return;
+      }
+      window.setTimeout(tick, intervalMs);
+    };
+    tick();
+  };
+
+  const cloneAndPrint = () => {
+    const receiptEl = document.getElementById('wepos-print-receipt');
+    if (!receiptEl) return;
+
+    let container = document.getElementById('wepos-receipt-print-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'wepos-receipt-print-container';
+      document.body.appendChild(container);
+    }
+    container.innerHTML = receiptEl.innerHTML;
+
+    // Small delay to ensure DOM is ready, matching Vue behavior
+    setTimeout(() => {
+      window.print();
+    }, 300);
+  };
+
   // Auto-print: trigger printing automatically when the modal is shown
   const autoPrintTriggeredRef = React.useRef(false);
   useEffect(() => {
     if (show && autoPrint && !autoPrintTriggeredRef.current) {
       autoPrintTriggeredRef.current = true;
-      // Delay to ensure the hidden receipt content is rendered in the DOM
-      const timer = setTimeout(() => {
-        const receiptEl = document.getElementById('wepos-print-receipt');
-        if (!receiptEl) return;
-
-        let container = document.getElementById('wepos-receipt-print-container');
-        if (!container) {
-          container = document.createElement('div');
-          container.id = 'wepos-receipt-print-container';
-          document.body.appendChild(container);
-        }
-        container.innerHTML = receiptEl.innerHTML;
-
-        setTimeout(() => {
-          window.print();
-          // If auto-show is off, dismiss the modal after printing
-          if (!autoShow) {
+      waitForReceiptReady(() => {
+        cloneAndPrint();
+        // If auto-show is off, dismiss the modal after printing
+        if (!autoShow) {
+          // Wait for the print dialog to fire before tearing the modal down
+          setTimeout(() => {
             onNewSale();
             onClose();
-          }
-        }, 300);
-      }, 500);
-      return () => clearTimeout(timer);
+          }, 500);
+        }
+      });
     }
     if (!show) {
       autoPrintTriggeredRef.current = false;
@@ -161,23 +188,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
    * The @media print CSS hides everything except #wepos-receipt-print-container.
    */
   const handlePrint = () => {
-    const receiptEl = document.getElementById('wepos-print-receipt');
-    if (!receiptEl) return;
-
-    // Clone receipt HTML into a body-level container
-    // (needed because the receipt is inside the WP modal portal)
-    let container = document.getElementById('wepos-receipt-print-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'wepos-receipt-print-container';
-      document.body.appendChild(container);
-    }
-    container.innerHTML = receiptEl.innerHTML;
-
-    // Small delay to ensure DOM is ready, matching Vue behavior
-    setTimeout(() => {
-      window.print();
-    }, 300);
+    waitForReceiptReady(cloneAndPrint);
   };
 
   const handleNewSale = () => {

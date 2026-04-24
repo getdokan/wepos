@@ -289,33 +289,6 @@ class SettingController extends \WP_REST_Controller {
 	}
 
 	/**
-	 * Strip sections the current user has no permission to view.
-	 *
-	 * Reference data (tax_classes, currencies, woo_defaults, has_outlet_currency_override)
-	 * is always kept — the POS UI needs it to render even for restricted roles.
-	 *
-	 * @param array $settings Full settings payload.
-	 * @param int   $user_id  Current user.
-	 *
-	 * @return array
-	 */
-	private function apply_view_gating( $settings, $user_id ) {
-		foreach ( array_keys( $settings ) as $section ) {
-			$config = Caps::section_config( $section );
-
-			if ( null === $config ) {
-				continue;
-			}
-
-			if ( ! Caps::can_view( $section, $user_id ) ) {
-				unset( $settings[ $section ] );
-			}
-		}
-
-		return $settings;
-	}
-
-	/**
 	 * Get outlet-specific overrides.
 	 *
 	 * @param int $outlet_id
