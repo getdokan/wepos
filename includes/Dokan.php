@@ -644,14 +644,37 @@ class Dokan {
             return $handled;
         }
 
-        // Mirror vendor store-info writes to Dokan's profile source of truth.
-        if ( isset( $params['woo_general'] ) && is_array( $params['woo_general'] ) ) {
-            $this->sync_store_info_to_dokan( $vendor_id, $params['woo_general'] );
-        }
+        // Restore flags are stripped from $params upstream — read them off
+        // the original request body. Mirrors wepos-pro's Dokan handler so
+        // vendors get the same restore-to-default semantics with lite alone.
+        $raw                      = $request instanceof \WP_REST_Request ? $request->get_json_params() : [];
+        $restore_pos_settings     = ! empty( $raw['_restore_pos_settings'] );
+        $restore_currency         = ! empty( $raw['_restore_currency'] );
+        $restore_tax              = ! empty( $raw['_restore_tax'] );
+        $restore_default_customer = ! empty( $raw['_restore_default_customer'] );
 
         $meta_key = $outlet_id
             ? "_wepos_outlet_settings_{$outlet_id}"
             : '_wepos_vendor_settings';
+
+        if ( $restore_pos_settings ) {
+            return $this->restore_vendor_pos_settings( $vendor_id, $meta_key );
+        }
+
+        if ( $restore_currency || $restore_tax || $restore_default_customer ) {
+            return $this->restore_vendor_section_settings(
+                $vendor_id,
+                $meta_key,
+                $restore_currency,
+                $restore_tax,
+                $restore_default_customer
+            );
+        }
+
+        // Mirror vendor store-info writes to Dokan's profile source of truth.
+        if ( isset( $params['woo_general'] ) && is_array( $params['woo_general'] ) ) {
+            $this->sync_store_info_to_dokan( $vendor_id, $params['woo_general'] );
+        }
 
         $existing = get_user_meta( $vendor_id, $meta_key, true );
         $merged   = $this->deep_merge_vendor_settings(
@@ -660,6 +683,109 @@ class Dokan {
         );
 
         update_user_meta( $vendor_id, $meta_key, $merged );
+
+        return true;
+    }
+
+    /**
+     * Drop every overridable POS section from the vendor's settings meta
+     * so the vendor falls back to the global (admin) defaults on next read.
+     *
+     * @since 1.5.1
+     *
+     * @param int    $vendor_id Vendor user ID.
+     * @param string $meta_key  Vendor- or outlet-scoped settings meta key.
+     *
+     * @return true
+     */
+    private function restore_vendor_pos_settings( $vendor_id, $meta_key ) {
+        $existing = get_user_meta( $vendor_id, $meta_key, true );
+
+        if ( ! is_array( $existing ) || empty( $existing ) ) {
+            return true;
+        }
+
+        foreach ( [ 'woo_general', 'woo_tax', 'wepos_general', 'wepos_barcode' ] as $section ) {
+            unset( $existing[ $section ] );
+        }
+
+        if ( empty( $existing ) ) {
+            delete_user_meta( $vendor_id, $meta_key );
+        } else {
+            update_user_meta( $vendor_id, $meta_key, $existing );
+        }
+
+        return true;
+    }
+
+    /**
+     * Drop only the keys covered by the narrower restore flags so the
+     * vendor falls back to the admin defaults for those slices while
+     * keeping the rest of their overrides intact.
+     *
+     * @since 1.5.1
+     *
+     * @param int    $vendor_id                Vendor user ID.
+     * @param string $meta_key                 Vendor- or outlet-scoped meta key.
+     * @param bool   $restore_currency         Drop currency keys.
+     * @param bool   $restore_tax              Drop tax keys.
+     * @param bool   $restore_default_customer Drop default-customer keys.
+     *
+     * @return true
+     */
+    private function restore_vendor_section_settings( $vendor_id, $meta_key, $restore_currency, $restore_tax, $restore_default_customer ) {
+        $existing = get_user_meta( $vendor_id, $meta_key, true );
+
+        if ( ! is_array( $existing ) || empty( $existing ) ) {
+            return true;
+        }
+
+        $tax_keys = [
+            'wc_tax_enabled', 'wc_prices_include_tax', 'wc_tax_based_on',
+            'wc_shipping_tax_class', 'wc_tax_round_at_subtotal',
+            'wc_tax_display_shop', 'wc_tax_display_cart',
+            'wc_tax_total_display', 'wc_price_display_suffix',
+        ];
+
+        $currency_keys = [
+            'currency', 'currency_pos', 'price_decimal_sep',
+            'price_num_decimals', 'price_thousand_sep', 'thousands_group_style',
+        ];
+
+        $default_customer_keys = [
+            'default_customer', 'default_customer_is_cashier',
+        ];
+
+        if ( $restore_tax && isset( $existing['woo_tax'] ) && is_array( $existing['woo_tax'] ) ) {
+            foreach ( $tax_keys as $key ) {
+                unset( $existing['woo_tax'][ $key ] );
+            }
+
+            if ( empty( $existing['woo_tax'] ) ) {
+                unset( $existing['woo_tax'] );
+            }
+        }
+
+        if ( ( $restore_currency || $restore_default_customer ) && isset( $existing['woo_general'] ) && is_array( $existing['woo_general'] ) ) {
+            $keys = array_merge(
+                $restore_currency ? $currency_keys : [],
+                $restore_default_customer ? $default_customer_keys : []
+            );
+
+            foreach ( $keys as $key ) {
+                unset( $existing['woo_general'][ $key ] );
+            }
+
+            if ( empty( $existing['woo_general'] ) ) {
+                unset( $existing['woo_general'] );
+            }
+        }
+
+        if ( empty( $existing ) ) {
+            delete_user_meta( $vendor_id, $meta_key );
+        } else {
+            update_user_meta( $vendor_id, $meta_key, $existing );
+        }
 
         return true;
     }
