@@ -61,34 +61,33 @@ No FAQ
 == Changelog ==
 
 = v2.0.0 -> 27th April, 2026 =
-- **feature:** wePOS has been completely rebuilt with React, replacing the legacy interface for a much faster and smoother experience on both the cashier screen and the WordPress admin dashboard.
-- **feature:** A refreshed design system brings a cleaner, more consistent look across every screen — buttons, dialogs, dropdowns, forms, and tables now share the same modern styling.
-- **feature:** Light, Dark, and System theme modes are now available, with a smooth animated transition when switching.
-- **feature:** Improved style isolation prevents your active WordPress theme or other plugins from breaking the wePOS interface.
-- **feature:** A new Appearance toggle lets you switch between the new React layout and the classic layout, so you can move at your own pace.
-- **feature:** wePOS is now compatible with the Dokan multivendor plugin — each Dokan vendor can use wePOS independently with their own products, customers, and orders, with no admin involvement for daily sales.
-- **feature:** Dokan vendor staff can use wePOS as cashiers and automatically inherit the right POS permissions from their vendor.
-- **feature:** Products, customers, and orders shown to a Dokan vendor (and their staff) are automatically filtered to that vendor only — no cross-vendor data leakage.
-- **feature:** The default customer for new sales can now be set at the admin level and overridden per Dokan vendor.
-- **feature:** A confirmation dialog now appears before voiding (discarding) an active cart, preventing accidental loss of work.
-- **feature:** Customer selection now supports keyboard navigation for faster checkouts.
-- **feature:** The customer search now shows additional details such as phone and company name for easier matching.
-- **feature:** Decimal stock quantities and a POS-only product visibility toggle are now supported.
-- **feature:** Shipping tax is now correctly included in receipts and order totals.
-- **feature:** Currency formatting now respects the thousands grouping style configured in WooCommerce.
-- **feature:** New "Restore defaults" buttons are available for global currency, tax, and POS settings, including per-section restore.
-- **feature:** New filter hooks for extending POS UI surfaces.
-- **update:** REST API permission checks consolidated under the new `access_wepos` capability and `wepos_current_user_can_manage` helper.
-- **fix:** Stock is no longer updated when the quantity has not actually changed.
-- **fix:** Cart item quantities are rounded to 4 decimal places to avoid floating-point display issues.
-- **fix:** Past orders with decimal quantities now display the original decimal value correctly.
-- **fix:** Order updates and deletions now handle stale (already-removed) server orders gracefully.
+- **feature:** A brand new wePOS — the entire cashier screen and the admin settings have been rebuilt from scratch, so everything feels faster and more responsive.
+- **feature:** A refreshed look and feel — buttons, popups, dropdowns, forms, and tables all share a cleaner, more modern design.
+- **feature:** Light, Dark, and System (matches your device) display modes, with a smooth fade when you switch between them.
+- **feature:** wePOS now keeps its own styling separate from your WordPress theme and other plugins, so the screen no longer breaks if another plugin loads conflicting styles.
+- **feature:** A new Appearance setting lets you switch between the new design and the old design at any time, so you can move at your own pace.
+- **feature:** wePOS now works with the Dokan multivendor plugin — if your store has multiple Dokan vendors, each vendor can run their own POS with their own products, customers, and orders, without needing the site admin for daily sales.
+- **feature:** Dokan vendor staff can sit at the counter and use wePOS — they automatically get the right access from their vendor, so you don't need to set permissions one by one.
+- **feature:** When a Dokan vendor (or their staff) is signed in, they only see their own products, customers, and orders — never another vendor's data.
+- **feature:** You can now choose a default customer for new sales at the site level, and each Dokan vendor can override it with their own preferred default.
+- **feature:** Voiding (discarding) an active cart now asks for confirmation, so you don't lose a sale by accident.
+- **feature:** You can now use the keyboard arrow keys to pick a customer during checkout — faster than clicking.
+- **feature:** Customer search now shows phone number and company name, making it easier to find the right person.
+- **feature:** Products with fractional quantities (for example 1.5 kg) are now supported, and you can hide individual products from the POS while keeping them on your online store.
+- **feature:** Shipping tax is now correctly included on receipts and in the order total.
+- **feature:** Prices now follow the thousand-separator style you set in WooCommerce (for example 1,000.00 vs 1.000,00).
+- **feature:** New "Restore defaults" buttons across currency, tax, and POS settings, including for individual sections, in case you want to undo your changes.
+- **feature:** New extension points for developers to add their own buttons and panels to the POS screen.
+- **fix:** The stock count is no longer updated when nothing actually changed.
+- **fix:** Cart quantities are now rounded cleanly so you don't see numbers like "1.0000000002".
+- **fix:** Old orders that were saved with fractional quantities now display correctly.
+- **fix:** If an order was already deleted on the server, updating or deleting it again no longer throws an error — it's handled silently.
 - **fix:** The default customer setting is now visible and editable from inside the Dokan vendor dashboard.
-- **fix:** Resolved style conflicts that occurred when Dokan styles were loaded on wePOS admin screens.
+- **fix:** Fixed a styling clash where Dokan's CSS was breaking the look of wePOS admin pages.
 - **fix:** Customer creation and permission checks have been corrected for non-admin users.
-- **fix:** Print receipt now waits for the content to be fully ready before printing.
-- **fix:** Cart icon badge position has been corrected.
-- **fix:** Empty address fields are now sent correctly to WooCommerce when no customer is selected.
+- **fix:** Printing a receipt now waits until the receipt is fully drawn before sending it to the printer, so you no longer get blank or half-printed receipts.
+- **fix:** The cart icon badge (the little number) is now positioned correctly.
+- **fix:** When no customer is selected, the order is now sent to WooCommerce with empty address fields instead of stale data from a previous customer.
 
 = v1.3.3 -> 11th Sep, 2025 =
 - **fix:** Product search results were showing in reverse order (Z → A). Updated to sort ascending (A → Z).
