@@ -437,6 +437,7 @@ class SettingController extends \WP_REST_Controller {
 		$restore_currency         = ! empty( $params['_restore_currency'] );
 		$restore_tax              = ! empty( $params['_restore_tax'] );
 		$restore_default_customer = ! empty( $params['_restore_default_customer'] );
+		$restore_barcode          = ! empty( $params['_restore_barcode'] );
 		$restore_pos_settings     = ! empty( $params['_restore_pos_settings'] );
 
 		// Remove meta keys so they don't get saved as setting values
@@ -445,6 +446,7 @@ class SettingController extends \WP_REST_Controller {
 			$params['_restore_currency'],
 			$params['_restore_tax'],
 			$params['_restore_default_customer'],
+			$params['_restore_barcode'],
 			$params['_restore_pos_settings'],
 			$params['_permissions']
 		);
@@ -504,7 +506,7 @@ class SettingController extends \WP_REST_Controller {
 			// (e.g. the General tab's "Restore to Default" button clears
 			// both currency and default_customer). A plain save runs only
 			// when no restore flag is present.
-			$is_restore = $restore_pos_settings || $restore_currency || $restore_tax || $restore_default_customer;
+			$is_restore = $restore_pos_settings || $restore_currency || $restore_tax || $restore_default_customer || $restore_barcode;
 
 			if ( $restore_pos_settings ) {
 				if ( $outlet_id ) {
@@ -532,6 +534,13 @@ class SettingController extends \WP_REST_Controller {
 						$this->restore_outlet_default_customer_defaults( $outlet_id );
 					} else {
 						$this->restore_global_default_customer_defaults();
+					}
+				}
+				if ( $restore_barcode ) {
+					if ( $outlet_id ) {
+						$this->restore_outlet_barcode_defaults( $outlet_id );
+					} else {
+						$this->restore_global_barcode_defaults();
 					}
 				}
 			}
@@ -706,6 +715,34 @@ class SettingController extends \WP_REST_Controller {
 		$existing = get_option( 'wepos_general', [] );
 		$existing['enable_fee_tax'] = 'yes';
 		update_option( 'wepos_general', $existing );
+	}
+
+	/**
+	 * Remove barcode keys from outlet-specific overrides so this outlet
+	 * re-inherits from vendor (Dokan) or admin defaults.
+	 *
+	 * @param int $outlet_id
+	 */
+	private function restore_outlet_barcode_defaults( $outlet_id ) {
+		$option_key = "wepos_outlet_settings_{$outlet_id}";
+		$existing   = get_option( $option_key, [] );
+
+		if ( isset( $existing['wepos_barcode'] ) ) {
+			unset( $existing['wepos_barcode'] );
+		}
+
+		if ( empty( $existing ) ) {
+			delete_option( $option_key );
+		} else {
+			update_option( $option_key, $existing );
+		}
+	}
+
+	/**
+	 * Reset global barcode option to ship defaults.
+	 */
+	private function restore_global_barcode_defaults() {
+		delete_option( 'wepos_barcode' );
 	}
 
 	/**

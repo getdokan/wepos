@@ -652,6 +652,7 @@ class Dokan {
         $restore_currency         = ! empty( $raw['_restore_currency'] );
         $restore_tax              = ! empty( $raw['_restore_tax'] );
         $restore_default_customer = ! empty( $raw['_restore_default_customer'] );
+        $restore_barcode          = ! empty( $raw['_restore_barcode'] );
 
         $meta_key = $outlet_id
             ? "_wepos_outlet_settings_{$outlet_id}"
@@ -661,13 +662,14 @@ class Dokan {
             return $this->restore_vendor_pos_settings( $vendor_id, $meta_key );
         }
 
-        if ( $restore_currency || $restore_tax || $restore_default_customer ) {
+        if ( $restore_currency || $restore_tax || $restore_default_customer || $restore_barcode ) {
             return $this->restore_vendor_section_settings(
                 $vendor_id,
                 $meta_key,
                 $restore_currency,
                 $restore_tax,
-                $restore_default_customer
+                $restore_default_customer,
+                $restore_barcode
             );
         }
 
@@ -733,7 +735,7 @@ class Dokan {
      *
      * @return true
      */
-    private function restore_vendor_section_settings( $vendor_id, $meta_key, $restore_currency, $restore_tax, $restore_default_customer ) {
+    private function restore_vendor_section_settings( $vendor_id, $meta_key, $restore_currency, $restore_tax, $restore_default_customer, $restore_barcode = false ) {
         $existing = get_user_meta( $vendor_id, $meta_key, true );
 
         if ( ! is_array( $existing ) || empty( $existing ) ) {
@@ -779,6 +781,10 @@ class Dokan {
             if ( empty( $existing['woo_general'] ) ) {
                 unset( $existing['woo_general'] );
             }
+        }
+
+        if ( $restore_barcode && isset( $existing['wepos_barcode'] ) ) {
+            unset( $existing['wepos_barcode'] );
         }
 
         if ( empty( $existing ) ) {
