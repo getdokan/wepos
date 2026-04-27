@@ -167,6 +167,14 @@ class Caps {
                 return $allcaps;
             }
 
+            // Apply the vendor's Access overlay first so vendor-set toggles
+            // (`add_cap` equivalent) take effect dynamically. Storing the
+            // overlay only in vendor user meta — not as per-user `add_cap`
+            // entries — means the toggles disappear cleanly when Dokan is
+            // deactivated and resume when Dokan is reactivated, since the
+            // filter that calls this method only registers under Dokan.
+            $allcaps = self::apply_vendor_overlay( $allcaps, $user_id, $parent_vendor );
+
             $parent_caps = self::parent_vendor_caps( $parent_vendor );
 
             foreach ( self::cascadable_caps() as $cap ) {
@@ -179,6 +187,68 @@ class Caps {
         } finally {
             self::$cascade_in_progress = false;
         }
+    }
+
+    /**
+     * Apply the parent vendor's Access overlay (`_wepos_vendor_role_caps`)
+     * to the user's cap map for their primary wePOS role.
+     *
+     * Overlay shape: `[ 'cashier' => [ cap => bool, ... ], 'vendor_staff' => [...] ]`.
+     *
+     * Only caps the vendor herself currently holds may be granted — vendors
+     * cannot promote a child user above themselves. Caps the vendor lacks
+     * are still forced off later by the cascade.
+     *
+     * @since 1.5.1
+     *
+     * @param array<string, bool> $allcaps        Cap map being filtered.
+     * @param int                 $user_id        Child user ID.
+     * @param int                 $parent_vendor  Parent vendor user ID.
+     *
+     * @return array<string, bool>
+     */
+    private static function apply_vendor_overlay( $allcaps, $user_id, $parent_vendor ) {
+        $user = \get_userdata( $user_id );
+
+        if ( ! $user || empty( $user->roles ) ) {
+            return $allcaps;
+        }
+
+        $role_slug = null;
+
+        foreach ( [ 'vendor_staff', 'cashier' ] as $candidate ) {
+            if ( in_array( $candidate, (array) $user->roles, true ) ) {
+                $role_slug = $candidate;
+                break;
+            }
+        }
+
+        if ( ! $role_slug ) {
+            return $allcaps;
+        }
+
+        $overlay = \get_user_meta( $parent_vendor, '_wepos_vendor_role_caps', true );
+
+        if ( ! is_array( $overlay ) || empty( $overlay[ $role_slug ] ) || ! is_array( $overlay[ $role_slug ] ) ) {
+            return $allcaps;
+        }
+
+        $vendor_caps = self::parent_vendor_caps( $parent_vendor );
+
+        foreach ( $overlay[ $role_slug ] as $cap => $grant ) {
+            $grant = (bool) $grant;
+
+            if ( $grant && empty( $vendor_caps[ $cap ] ) ) {
+                // Vendor cannot grant a cap they do not hold. Cascade
+                // would force this off anyway — make it explicit here.
+                $allcaps[ $cap ] = false;
+                continue;
+            }
+
+            $allcaps[ $cap ] = $grant;
+        }
+
+        return $allcaps;
     }
 
     /**
