@@ -563,11 +563,14 @@ const Settings = () => {
 	const {
 		settings_sections: rawSections,
 		settings_fields,
-		access_data: accessData,
 		ajaxurl,
 		nonce,
 		rest,
 	} = window.weposAdmin;
+
+	const [ accessData, setAccessData ] = useState<
+		WeposAdminData[ 'access_data' ]
+	>( () => window.weposAdmin.access_data );
 
 	// wp_localize_script can serialize PHP arrays as JS objects.
 	const settings_sections: WeposAdminData[ 'settings_sections' ] =
@@ -689,7 +692,46 @@ const Settings = () => {
 			flatValues: Record< string, unknown >
 		) => {
 			if ( scopeId === 'wepos_access' ) {
-				await saveAccessSettings( flatValues, rest, accessData );
+				const applied = await saveAccessSettings(
+					flatValues,
+					rest,
+					accessData
+				);
+				if ( applied ) {
+					setAccessData( ( prev ) => {
+						const next: WeposAdminData[ 'access_data' ] = {
+							...prev,
+						};
+						for ( const [ roleSlug, capsData ] of Object.entries(
+							applied
+						) ) {
+							const prevRole = next[ roleSlug ];
+							if ( ! prevRole ) continue;
+							const mergedCaps: typeof prevRole.capabilities = {
+								wepos: { ...prevRole.capabilities.wepos },
+								wc: { ...prevRole.capabilities.wc },
+								wp: { ...prevRole.capabilities.wp },
+								pages: { ...prevRole.capabilities.pages },
+								settings: {
+									...( prevRole.capabilities.settings || {} ),
+								},
+							};
+							for ( const [ group, caps ] of Object.entries(
+								capsData
+							) ) {
+								const target = mergedCaps[
+									group as keyof typeof mergedCaps
+								] as Record< string, boolean >;
+								Object.assign( target, caps );
+							}
+							next[ roleSlug ] = {
+								...prevRole,
+								capabilities: mergedCaps,
+							};
+						}
+						return next;
+					} );
+				}
 				return;
 			}
 
@@ -799,7 +841,7 @@ async function saveAccessSettings(
 	scopeValues: Record< string, unknown >,
 	restConfig: { root: string; nonce: string },
 	originalAccessData: WeposAdminData[ 'access_data' ]
-) {
+): Promise< Record< string, Record< string, Record< string, boolean > > > | null > {
 	// Group values by role
 	const roleUpdates: Record<
 		string,
@@ -870,7 +912,7 @@ async function saveAccessSettings(
 
 	if ( Object.keys( changedRoles ).length === 0 ) {
 		toast.info( __( 'No changes to save.', 'wepos' ) );
-		return;
+		return null;
 	}
 
 	try {
@@ -894,8 +936,10 @@ async function saveAccessSettings(
 		}
 
 		toast.success( __( 'Access settings saved successfully.', 'wepos' ) );
+		return changedRoles;
 	} catch {
 		toast.error( __( 'Failed to save access settings.', 'wepos' ) );
+		return null;
 	}
 }
 
