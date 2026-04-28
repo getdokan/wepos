@@ -309,9 +309,10 @@ function wepos_map_meta_cap( $caps, $cap, $user_id ) {
             }
         }
 
-        // Fallback: grant access if user has manage_options, manage_woocommerce, or edit_others_posts
-        // (covers admin, shop manager, and editor when not configured via Access settings).
-        if ( $user->has_cap( 'manage_options' ) || $user->has_cap( 'manage_woocommerce' ) || $user->has_cap( 'edit_others_posts' ) ) {
+        // Fallback: grant access if user has manage_options or manage_woocommerce
+        // (covers admin and shop manager when not configured via Access settings).
+        // Editor must be explicitly assigned as a cashier to access POS — no cap fallback.
+        if ( $user->has_cap( 'manage_options' ) || $user->has_cap( 'manage_woocommerce' ) ) {
             return [ 'exist' ];
         }
     }
@@ -351,7 +352,78 @@ add_filter( 'woocommerce_prevent_admin_access', 'wepos_allow_admin_access', 10, 
  * @return bool
  */
 function wepos_current_user_can_manage() {
-    return current_user_can( 'manage_wepos' ) || current_user_can( 'manage_woocommerce' ) || apply_filters( 'wepos_rest_manager_permissions', false );
+    if (
+        current_user_can( 'manage_wepos' )
+        || current_user_can( 'manage_woocommerce' )
+        || wepos_user_is_assigned_cashier()
+        || apply_filters( 'wepos_rest_manager_permissions', false )
+    ) {
+        return true;
+    }
+
+    // Vendor staff: scoped via vendor relation, not the cashier_outlet table.
+    if ( apply_filters( 'wepos_is_vendor_staff', false, get_current_user_id() ) ) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Check whether the given user is assigned to at least one outlet
+ * via the wepos_cashier_outlet junction table.
+ *
+ * Used to gate POS access for non-admin users (e.g. editor, cashier)
+ * who must be explicitly assigned before they can enter the POS.
+ *
+ * @since 2.0.1
+ *
+ * @param int $user_id Optional. Defaults to current user.
+ *
+ * @return bool
+ */
+function wepos_user_is_assigned_cashier( $user_id = 0 ) {
+    global $wpdb;
+
+    $user_id = $user_id ? absint( $user_id ) : get_current_user_id();
+
+    if ( ! $user_id ) {
+        return false;
+    }
+
+    $table = "{$wpdb->prefix}wepos_cashier_outlet";
+
+    // Suppress warnings when the pro junction table doesn't exist on
+    // wePOS-only installs — the query just yields null and we report false.
+    $suppress = $wpdb->suppress_errors( true );
+    $count    = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(1) FROM `{$table}` WHERE user_id = %d", $user_id ) );
+    $wpdb->suppress_errors( $suppress );
+
+    return null !== $count && (int) $count > 0;
+}
+
+/**
+ * Check whether the given user is allowed to enter the POS frontend.
+ *
+ * `access_wepos` capability is the single gate — granted to a role via
+ * Access settings or to a specific user, it allows POS entry. Cashiers
+ * still need outlet assignments to operate the register, but that check
+ * is handled inside the register UI itself, not here.
+ *
+ * @since 2.0.1
+ *
+ * @param int $user_id Optional. Defaults to current user.
+ *
+ * @return bool
+ */
+function wepos_user_can_access_pos( $user_id = 0 ) {
+    $user_id = $user_id ? absint( $user_id ) : get_current_user_id();
+
+    if ( ! $user_id ) {
+        return false;
+    }
+
+    return user_can( $user_id, 'access_wepos' );
 }
 
 /**
@@ -473,7 +545,7 @@ function wepos_is_frontend() {
     $hasPermission = false;
 
     if ( wp_validate_boolean( get_query_var( 'wepos' ) ) ) {
-        if ( current_user_can( 'access_wepos' ) || apply_filters( 'wepos_frontend_permissions', false ) ) {
+        if ( wepos_user_can_access_pos() || apply_filters( 'wepos_frontend_permissions', false ) ) {
             $hasPermission = true;
         }
     }

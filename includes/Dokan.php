@@ -209,7 +209,8 @@ class Dokan {
      * @return array
      */
     public function filter_vendor_products( $args, $request ) {
-        if ( current_user_can( 'manage_woocommerce' ) ) {
+        // Site admins see everything (admin + all vendors).
+        if ( current_user_can( 'manage_options' ) ) {
             return $args;
         }
 
@@ -228,25 +229,37 @@ class Dokan {
             }
         }
 
-        // Logic for cashiers in neutral or admin-owned outlets.
-        // We want to show admin products and exclude all vendor products.
-        if ( current_user_can( 'cashier' ) && ( $outlet_id > 0 || current_user_can( 'access_wepos' ) ) ) {
-            // Get all vendors (users with the 'seller' role).
+        // Shop managers and any non-vendor user assigned to an admin outlet
+        // (cashier, editor, etc.) sell admin products only — exclude every
+        // vendor's products from the listing.
+        if ( current_user_can( 'manage_woocommerce' ) || wepos_user_is_assigned_cashier() ) {
             $vendor_ids = get_users( [
                 'role'   => 'seller',
                 'fields' => 'ID',
             ] );
 
             if ( ! empty( $vendor_ids ) ) {
-                // Exclude all vendor products so only admin/neutral products remain.
-                $args['author__not_in'] = $vendor_ids;
+                // Pass exclusions via the `author` query var as a negative,
+                // comma-separated list (WP_Query translates this to
+                // author__not_in). `author__not_in` itself is stripped by
+                // WC_REST_Posts_Controller::prepare_items_query because it
+                // isn't in the public query-var whitelist.
+                $args['author'] = implode(
+                    ',',
+                    array_map(
+                        static function ( $id ) {
+                            return '-' . absint( $id );
+                        },
+                        $vendor_ids
+                    )
+                );
             }
 
             return $args;
         }
 
-        // Legacy or explicitly admin-owned outlets (for non-cashiers)
-        if ( $outlet_id > 0 || ( current_user_can( 'cashier' ) && current_user_can( 'access_wepos' ) ) ) {
+        // Legacy fallback: outlet_id supplied for a non-cashier non-vendor user.
+        if ( $outlet_id > 0 ) {
             return $args;
         }
 
