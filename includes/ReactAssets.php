@@ -65,6 +65,7 @@ class ReactAssets
                 $comp_asset_data['version'],
                 true
             );
+            wp_set_script_translations( 'wepos-react-components', 'wepos', WEPOS_PATH . '/languages' );
         }
 
         $asset_file = WEPOS_PATH . '/build/wepos-react.asset.php';
@@ -124,6 +125,7 @@ class ReactAssets
                 $version,
                 true
             );
+            wp_set_script_translations( 'wepos-react', 'wepos', WEPOS_PATH . '/languages' );
         }
 
         $accounting_script = array(

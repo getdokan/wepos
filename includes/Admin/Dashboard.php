@@ -84,6 +84,7 @@ class Dashboard {
                 $comp_asset_data['version'],
                 true
             );
+            wp_set_script_translations( 'wepos-react-components', 'wepos', WEPOS_PATH . '/languages' );
             $dependencies[] = 'wepos-react-components';
         }
 
@@ -106,6 +107,7 @@ class Dashboard {
             $version,
             true
         );
+        wp_set_script_translations( 'wepos-admin-react', 'wepos', WEPOS_PATH . '/languages' );
 
         // CSS is loaded in TWO places:
         // 1. Inside the Shadow DOM via <link> tags (main app isolation)

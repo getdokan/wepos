@@ -42,6 +42,7 @@ class Assets {
 
             if ( ! empty( $script['src'] ) && ( strpos( $script['src'], 'http' ) === 0 || file_exists( $this->get_file_path_from_url( $script['src'] ) ) ) ) {
                 wp_register_script( $handle, $script['src'], $deps, $version, $in_footer );
+                wp_set_script_translations( $handle, 'wepos', WEPOS_PATH . '/languages' );
             }
         }
     }

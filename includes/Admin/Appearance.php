@@ -165,6 +165,7 @@ class Appearance {
                 $comp_asset_data['version'],
                 true
             );
+            wp_set_script_translations( 'wepos-react-components', 'wepos', WEPOS_PATH . '/languages' );
             // Carrier exposes `@wedevs/plugin-ui` + `react-router-dom` on
             // `window` — main appearance bundle externalizes them.
             $dependencies[] = 'wepos-react-components';
@@ -188,6 +189,7 @@ class Appearance {
             $version,
             true
         );
+        wp_set_script_translations( 'wepos-appearance', 'wepos', WEPOS_PATH . '/languages' );
 
         $css_filename = is_rtl() ? 'wepos-appearance-rtl.css' : 'wepos-appearance.css';
         $css_file     = WEPOS_PATH . '/build/' . $css_filename;
