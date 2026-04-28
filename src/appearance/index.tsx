@@ -1,7 +1,5 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import * as ReactRouterDOM from 'react-router-dom';
-import * as PluginUI from '@wedevs/plugin-ui';
 import { ThemeProvider, Toaster, type ThemeTokens } from '@wedevs/plugin-ui';
 import { SlotFillProvider } from '@wordpress/components';
 import App from './App';
@@ -11,8 +9,8 @@ import ShadowContainer from '../components/ShadowContainer';
 // Loaded inside the Shadow DOM via <link> (not in <head>).
 import '../admin/styles/main.css';
 
-Object.assign( ( window as any ).__weposReactRouterDOM || {}, ReactRouterDOM );
-Object.assign( ( window as any ).__weposPluginUI || {}, PluginUI );
+// `@wedevs/plugin-ui` is externalized in webpack and reads from the global
+// populated by the `wepos-components` carrier bundle.
 
 const weposTokens: ThemeTokens = {
 	background: 'oklch(1 0 0)',
