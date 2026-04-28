@@ -61,23 +61,23 @@ No FAQ
 == Changelog ==
 
 = v2.0.0 -> 27th April, 2026 =
-- **feature:** A brand new wePOS — the entire cashier screen and the admin settings have been rebuilt from scratch, so everything feels faster and more responsive.
-- **feature:** A refreshed look and feel — buttons, popups, dropdowns, forms, and tables all share a cleaner, more modern design.
-- **feature:** Light, Dark, and System (matches your device) display modes, with a smooth fade when you switch between them.
-- **feature:** wePOS now keeps its own styling separate from your WordPress theme and other plugins, so the screen no longer breaks if another plugin loads conflicting styles.
-- **feature:** A new Appearance setting lets you switch between the new design and the old design at any time, so you can move at your own pace.
-- **feature:** wePOS now works with the Dokan multivendor plugin — if your store has multiple Dokan vendors, each vendor can run their own POS with their own products, customers, and orders, without needing the site admin for daily sales.
-- **feature:** Dokan vendor staff can sit at the counter and use wePOS — they automatically get the right access from their vendor, so you don't need to set permissions one by one.
-- **feature:** When a Dokan vendor (or their staff) is signed in, they only see their own products, customers, and orders — never another vendor's data.
-- **feature:** You can now choose a default customer for new sales at the site level, and each Dokan vendor can override it with their own preferred default.
-- **feature:** Voiding (discarding) an active cart now asks for confirmation, so you don't lose a sale by accident.
-- **feature:** You can now use the keyboard arrow keys to pick a customer during checkout — faster than clicking.
-- **feature:** Customer search now shows phone number and company name, making it easier to find the right person.
-- **feature:** Products with fractional quantities (for example 1.5 kg) are now supported, and you can hide individual products from the POS while keeping them on your online store.
-- **feature:** Shipping tax is now correctly included on receipts and in the order total.
-- **feature:** Prices now follow the thousand-separator style you set in WooCommerce (for example 1,000.00 vs 1.000,00).
-- **feature:** New "Restore defaults" buttons across currency, tax, and POS settings, including for individual sections, in case you want to undo your changes.
-- **feature:** New extension points for developers to add their own buttons and panels to the POS screen.
+- **new:** A brand new wePOS — the entire cashier screen and the admin settings have been rebuilt from scratch, so everything feels faster and more responsive.
+- **new:** A refreshed look and feel — buttons, popups, dropdowns, forms, and tables all share a cleaner, more modern design.
+- **new:** Light, Dark, and System (matches your device) display modes, with a smooth fade when you switch between them.
+- **new:** wePOS now keeps its own styling separate from your WordPress theme and other plugins, so the screen no longer breaks if another plugin loads conflicting styles.
+- **new:** A new Appearance setting lets you switch between the new design and the old design at any time, so you can move at your own pace.
+- **new:** wePOS now works with the Dokan multivendor plugin — if your store has multiple Dokan vendors, each vendor can run their own POS with their own products, customers, and orders, without needing the site admin for daily sales.
+- **new:** Dokan vendor staff can sit at the counter and use wePOS — they automatically get the right access from their vendor, so you don't need to set permissions one by one.
+- **new:** When a Dokan vendor (or their staff) is signed in, they only see their own products, customers, and orders — never another vendor's data.
+- **new:** You can now choose a default customer for new sales at the site level, and each Dokan vendor can override it with their own preferred default.
+- **new:** Voiding (discarding) an active cart now asks for confirmation, so you don't lose a sale by accident.
+- **new:** You can now use the keyboard arrow keys to pick a customer during checkout — faster than clicking.
+- **new:** Customer search now shows phone number and company name, making it easier to find the right person.
+- **new:** Products with fractional quantities (for example 1.5 kg) are now supported, and you can hide individual products from the POS while keeping them on your online store.
+- **new:** Shipping tax is now correctly included on receipts and in the order total.
+- **new:** Prices now follow the thousand-separator style you set in WooCommerce (for example 1,000.00 vs 1.000,00).
+- **new:** New "Restore defaults" buttons across currency, tax, and POS settings, including for individual sections, in case you want to undo your changes.
+- **new:** New extension points for developers to add their own buttons and panels to the POS screen.
 - **fix:** The stock count is no longer updated when nothing actually changed.
 - **fix:** Cart quantities are now rounded cleanly so you don't see numbers like "1.0000000002".
 - **fix:** Old orders that were saved with fractional quantities now display correctly.
