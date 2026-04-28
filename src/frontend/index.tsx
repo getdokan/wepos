@@ -1,9 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import * as ReactRouterDOM from 'react-router-dom';
 import { HashRouter } from 'react-router-dom';
-import * as PluginUI from '@wedevs/plugin-ui';
-import { ThemeProvider, Toaster, type ThemeTokens, toast } from '@wedevs/plugin-ui';
+import { ThemeProvider, Toaster, type ThemeTokens } from '@wedevs/plugin-ui';
 import { SlotFillProvider } from '@wordpress/components';
 import App from './App';
 import { weposHooks } from './hooks/useExtensions';
@@ -12,12 +10,8 @@ import './store'; // Import to register all stores
 import domReady from '@wordpress/dom-ready';
 
 domReady( function () {
-	// Populate the pre-declared global objects (created by PHP inline script before
-// any bundles load) with the real module exports. Using Object.assign keeps the
-// same object reference that wepos-pro already captured via webpack externals.
-Object.assign( ( window as any ).__weposReactRouterDOM, ReactRouterDOM );
-Object.assign( ( window as any ).__weposPluginUI, PluginUI );
-Object.assign( ( window as any ).__weposToast, toast );
+// `react-router-dom` and `@wedevs/plugin-ui` are externalized in webpack and
+// read from globals populated by the `wepos-components` carrier bundle.
 
 // Get the root element
 const container = document.getElementById('wepos-react-app');

@@ -165,6 +165,9 @@ class Appearance {
                 $comp_asset_data['version'],
                 true
             );
+            // Carrier exposes `@wedevs/plugin-ui` + `react-router-dom` on
+            // `window` — main appearance bundle externalizes them.
+            $dependencies[] = 'wepos-react-components';
         }
 
         wp_enqueue_script( 'wp-hooks' );

@@ -71,6 +71,11 @@ class ReactAssets
         $asset_data = file_exists($asset_file) ? include $asset_file : [];
 
         $dependencies = isset($asset_data['dependencies']) ? $asset_data['dependencies'] : [];
+        // The carrier bundle exposes `@wedevs/plugin-ui` + `react-router-dom`
+        // on `window` — main bundle externalizes both, so it MUST load after.
+        if ( $is_dev || file_exists( $comp_script_file ) ) {
+            $dependencies[] = 'wepos-react-components';
+        }
         $version = isset($asset_data['version']) ? $asset_data['version'] : WEPOS_VERSION;
         $script_url = $is_dev ? 'http://localhost:8887/wepos-react.js' : WEPOS_URL . '/build/wepos-react.js';
         $script_file = WEPOS_PATH . '/build/wepos-react.js';

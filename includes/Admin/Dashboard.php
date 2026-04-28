@@ -68,7 +68,9 @@ class Dashboard {
         $dependencies = isset( $asset_data['dependencies'] ) ? $asset_data['dependencies'] : [];
         $version      = isset( $asset_data['version'] ) ? $asset_data['version'] : WEPOS_VERSION;
 
-        // Shared components
+        // Shared components carrier — bundles `@wedevs/plugin-ui` +
+        // `react-router-dom` once and exposes them on `window`. The main
+        // admin bundle externalizes those imports so this MUST load first.
         $comp_asset_file = WEPOS_PATH . '/build/wepos-components.asset.php';
         $comp_asset_data = file_exists( $comp_asset_file ) ? include $comp_asset_file : [ 'dependencies' => [], 'version' => $version ];
         $comp_script_url = WEPOS_URL . '/build/wepos-components.js';
@@ -82,6 +84,7 @@ class Dashboard {
                 $comp_asset_data['version'],
                 true
             );
+            $dependencies[] = 'wepos-react-components';
         }
 
         // Set up shared hooks instance (same pattern as ReactAssets.php).
