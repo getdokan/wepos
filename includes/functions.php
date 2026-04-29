@@ -537,6 +537,43 @@ function wepos_check_page_access_on_rest( $result, $server, $request ) {
 add_filter( 'rest_pre_dispatch', 'wepos_check_page_access_on_rest', 10, 3 );
 
 /**
+ * Detects if the current request is acting on behalf of the wePOS frontend.
+ *
+ * Used to scope WooCommerce filters (e.g. `woocommerce_available_payment_gateways`)
+ * to POS context only — without this, gateway overrides would leak into
+ * the storefront checkout.
+ *
+ * Returns true for:
+ *  - REST routes under `/wepos/v1/`
+ *  - The pay-for-order iframe template (constant set in Templates\Payment).
+ *  - The POS frontend page itself.
+ *
+ * @since 2.1.0
+ *
+ * @return bool
+ */
+function wepos_is_pos_request() {
+    if ( defined( 'WEPOS_PAY_FOR_ORDER_REQUEST' ) && WEPOS_PAY_FOR_ORDER_REQUEST ) {
+        return true;
+    }
+
+    if ( wp_validate_boolean( get_query_var( 'wepos' ) ) ) {
+        return true;
+    }
+
+    if ( ! empty( $_GET['wepos_pay_for_order'] ) ) {
+        return true;
+    }
+
+    $uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+    if ( '' !== $uri && false !== strpos( $uri, '/wepos/v1/' ) ) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * Detects if current page is wePOS frontend page
  *
  * @return bool

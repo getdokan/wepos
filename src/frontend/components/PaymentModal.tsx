@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useSelect } from '@wordpress/data';
 import { LoaderCircle, ArrowLeft, CreditCard } from 'lucide-react';
@@ -33,6 +33,7 @@ interface PaymentModalProps {
   onProcessPayment: () => void;
   changeAmount: number;
   cashAmountRef: React.RefObject<HTMLInputElement>;
+  iframeOrderId?: number | null;
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({
@@ -47,7 +48,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   onProcessPayment,
   changeAmount,
   cashAmountRef,
+  iframeOrderId = null,
 }) => {
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  // Expose the iframe to the parent via a window-level handle so processPayment
+  // can postMessage into it without prop-drilling a ref upward.
+  useEffect(() => {
+    (window as any).__weposPayIframe = iframeRef.current;
+    return () => {
+      if ((window as any).__weposPayIframe === iframeRef.current) {
+        (window as any).__weposPayIframe = null;
+      }
+    };
+  }, [iframeOrderId]);
   // Get cart data from cart store
   const { cartItems, subtotal, total, discountLines, feeLines, shippingLines, totalTax, orderCurrencySymbol } =
     useSelect((select) => {
@@ -94,13 +108,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     if (!show) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter') {
+        // Don't intercept Enter while the iframe owns submit handling.
+        const gateway = availableGateways.find((g: POSGateway) => g.id === selectedGateway);
+        if (gateway?.needs_iframe && iframeOrderId) return;
         e.preventDefault();
         onProcessPayment();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [show, onProcessPayment]);
+  }, [show, onProcessPayment, availableGateways, selectedGateway, iframeOrderId]);
 
   // Get discount display text (e.g. "-10.00৳" or "-5%")
   const getDiscountDisplay = (discount: POSDiscountLine): string => {
@@ -327,6 +344,26 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 ))}
               </div>
 
+              {/* Iframe Payment Section — for any non-native WC gateway */}
+              {(() => {
+                const gateway = availableGateways.find((g: POSGateway) => g.id === selectedGateway);
+                if (!gateway?.needs_iframe || !iframeOrderId) return null;
+
+                const homeUrl = (window as any).wepos?.home_url || '';
+                const iframeSrc = `${homeUrl.replace(/\/$/, '')}/?wepos_pay_for_order=${iframeOrderId}&gateway=${encodeURIComponent(selectedGateway)}`;
+
+                return (
+                  <div className="mt-6 overflow-hidden rounded-lg border border-border">
+                    <iframe
+                      ref={iframeRef}
+                      src={iframeSrc}
+                      title={__('Pay', 'wepos')}
+                      className="h-[480px] w-full border-0"
+                    />
+                  </div>
+                );
+              })()}
+
               {/* Cash Payment Section */}
               {selectedGateway === 'wepos_cash' && (
                 <div className="mt-6 overflow-hidden rounded-lg border border-border">
@@ -382,10 +419,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           <ArrowLeft className="mr-2 h-4 w-4" />
           {__('Back to Sale', 'wepos')}
         </Button>
-        <Button
-          onClick={onProcessPayment}
-          disabled={!ableToProcess}
-        >
+        <Button onClick={onProcessPayment} disabled={!ableToProcess}>
           <CreditCard className="mr-2 h-4 w-4" />
           {__('Process Payment', 'wepos')}
         </Button>

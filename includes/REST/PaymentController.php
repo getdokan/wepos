@@ -70,21 +70,45 @@ class PaymentController extends \WC_REST_Orders_Controller {
     }
 
     /**
-     * Get available gateways
+     * Get available gateways for the POS frontend.
+     *
+     * Returns gateways already filtered through WooCommerce's standard
+     * availability pipeline so the POS settings (enable/order/title/default
+     * applied via Manager::available_payment_gateways) take effect.
      *
      * @since 1.0.0
+     * @since 2.1.0 Switched to WC's available-gateways pipeline so POS settings apply.
      *
-     * @return \WP_Error|\WP_HTTP_Response|\WP_REST_Response
+     * @return \WP_REST_Response
      */
     public function get_available_gateways( $request ) {
-        $available_gateways = wepos()->gateways->available_gateway();
-        $gateways = [];
+        $native_ids        = \WeDevs\WePOS\Gateways\Manager::$native_gateways;
+        $iframe_skip_ids   = apply_filters( 'wepos_iframe_gateway_ids_skip', $native_ids );
+        $available         = WC()->payment_gateways()->get_available_payment_gateways();
+        $settings          = wepos()->gateways->get_settings();
+        $default_id        = $settings['default_gateway'];
 
-        foreach ( $available_gateways as $class => $path ) {
-            $gateways[] = new $class;
+        $payload = [];
+        $position = 0;
+
+        foreach ( $available as $id => $gateway ) {
+            $config = isset( $settings['gateways'][ $id ] ) ? $settings['gateways'][ $id ] : [];
+
+            $payload[] = [
+                'id'           => $id,
+                'title'        => $gateway->get_title(),
+                'description'  => $gateway->get_description(),
+                'icon'         => $gateway->get_icon(),
+                'order'        => isset( $config['order'] ) ? (int) $config['order'] : $position,
+                'default'      => ( $id === $default_id ),
+                'is_native'    => in_array( $id, $native_ids, true ),
+                'needs_iframe' => ! in_array( $id, $iframe_skip_ids, true ),
+            ];
+
+            $position++;
         }
 
-        return rest_ensure_response( $gateways );
+        return rest_ensure_response( $payload );
     }
 
     /**

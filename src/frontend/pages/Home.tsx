@@ -370,6 +370,7 @@ const HomePage: React.FC = () => {
   const [filterOnSale, setFilterOnSale] = useState(false);
   const [selectedGateway, setSelectedGateway] = useState('');
   const [cashAmount, setCashAmount] = useState('');
+  const [iframeOrderId, setIframeOrderId] = useState<number | null>(null);
   const [printdata, setPrintdata] = useState<POSPrintData>({
     gateway: { id: '', title: '' },
   });
@@ -631,14 +632,26 @@ const HomePage: React.FC = () => {
   const processPayment = async () => {
     if (!ableToProcess()) return;
 
+    const gatewayObj = availableGateways.find((g: POSGateway) => g.id === selectedGateway);
+    const isIframeGateway = !!gatewayObj?.needs_iframe;
+
+    // Iframe gateway, second click: order already created and the WC pay form
+    // is mounted inside the iframe — tell it to submit. Completion comes back
+    // via the `wepos:payment_complete` postMessage handler.
+    if (isIframeGateway && iframeOrderId) {
+      const frame = (window as any).__weposPayIframe as HTMLIFrameElement | null;
+      if (frame?.contentWindow) {
+        frame.contentWindow.postMessage({ type: 'wepos:process-payment' }, '*');
+      }
+      return;
+    }
+
     try {
       setPaymentProcessing(true);
 
       const paymentFields = {
         payment_method: selectedGateway,
-        payment_method_title:
-          availableGateways.find((g: POSGateway) => g.id === selectedGateway)
-            ?.title || '',
+        payment_method_title: gatewayObj?.title || '',
         meta_data: [
           { key: '_wepos_is_pos_order', value: true },
           { key: '_wepos_tax_based_on', value: settings?.woo_tax?.wc_tax_based_on || 'base' },
@@ -678,12 +691,35 @@ const HomePage: React.FC = () => {
         orderResponse = await posAPI.orders.createOrder(payload);
       }
 
+      // Iframe gateways finalise inside the embedded WC pay-page; we just open
+      // the iframe with the order id. The postMessage listener below picks it up.
+      if (isIframeGateway) {
+        setIframeOrderId(orderResponse.id);
+        setPaymentProcessing(false);
+        return;
+      }
+
       // Process payment
       const paymentResponse =
         await posAPI.payment.processPayment(orderResponse);
 
       if (paymentResponse.result === 'success') {
-        const printDataToSet = {
+        finalizeSuccessfulPayment(orderResponse);
+      }
+
+      setPaymentProcessing(false);
+    } catch (error: any) {
+      setPaymentProcessing(false);
+      alert(error?.message || 'Payment processing failed');
+      console.error('Payment processing error:', error);
+    }
+  };
+
+  // Build print data + close modal + reset cart. Used by both inline and
+  // iframe payment paths so the post-payment UX stays identical.
+  const finalizeSuccessfulPayment = useCallback(
+    (orderResponse: any) => {
+      const printDataToSet = {
           line_items: cartItems.map((cartItem: POSCartItem) => ({
             ...cartItem,
             total_tax: 0,
@@ -742,15 +778,49 @@ const HomePage: React.FC = () => {
         if (autoShow || autoPrint) {
           setShowPaymentReceipt(true);
         }
-      }
+    },
+    [
+      cartItems,
+      feeLines,
+      discountLines,
+      shippingLines,
+      subtotal,
+      totalShipping,
+      total,
+      cashAmount,
+      selectedCustomer,
+      customerNote,
+      orderCurrencySymbol,
+      cartSettings.autoShowReceipt,
+      cartSettings.autoPrintReceipt,
+      changeAmount,
+      clearCart,
+      setPrintdata,
+    ],
+  );
 
-      setPaymentProcessing(false);
-    } catch (error: any) {
-      setPaymentProcessing(false);
-      alert(error?.message || 'Payment processing failed');
-      console.error('Payment processing error:', error);
-    }
-  };
+  // Listen for the postMessage emitted by the pay-for-order iframe template.
+  // Once the gateway captures payment, the iframe shouts back; we fetch the
+  // fresh order and run the same finalize flow used by inline gateways.
+  useEffect(() => {
+    if (!iframeOrderId) return;
+
+    const handler = async (event: MessageEvent) => {
+      if (event.data?.type !== 'wepos:payment_complete') return;
+      if (event.data.orderId !== iframeOrderId) return;
+
+      try {
+        const fresh = await posAPI.orders.getOrder(iframeOrderId);
+        setIframeOrderId(null);
+        finalizeSuccessfulPayment(fresh);
+      } catch (err) {
+        console.error('Failed to load order after iframe payment', err);
+      }
+    };
+
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [iframeOrderId, finalizeSuccessfulPayment]);
 
   // Helper to build the order payload from current cart state.
   // When updating an existing order (serverOrder exists), we must:
@@ -1063,8 +1133,13 @@ const HomePage: React.FC = () => {
     if (!saved) return;
 
     setShowModal(true);
+    setIframeOrderId(null);
     if (availableGateways.length > 0) {
-      setSelectedGateway(availableGateways[0].id);
+      // Honor server-defined default; fall back to first gateway.
+      const defaultGateway =
+        availableGateways.find((g: POSGateway) => g.default) ||
+        availableGateways[0];
+      setSelectedGateway(defaultGateway.id);
     }
   }, [cartItems.length, availableGateways, saveToServer]);
 
@@ -1549,12 +1624,20 @@ const HomePage: React.FC = () => {
         cashAmount={cashAmount}
         ableToProcess={ableToProcess()}
         processing={paymentProcessing}
-        onGatewayChange={setSelectedGateway}
+        onGatewayChange={(id) => {
+          setSelectedGateway(id);
+          // Reset iframe state when cashier changes their mind mid-checkout.
+          setIframeOrderId(null);
+        }}
         onCashAmountChange={setCashAmount}
-        onBackToSale={backToSale}
+        onBackToSale={() => {
+          setIframeOrderId(null);
+          backToSale();
+        }}
         onProcessPayment={processPayment}
         changeAmount={changeAmount()}
         cashAmountRef={cashAmountRef}
+        iframeOrderId={iframeOrderId}
       />
 
       <ReceiptModal

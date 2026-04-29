@@ -422,6 +422,44 @@ function buildAccessSchema(
 }
 
 /**
+ * Build the Payment Gateways subpage — a single full-width slot that the
+ * `payment_gateways_table` field variant fills with its own React UI.
+ * The component owns its REST roundtrips, so the SettingsUI value/onChange
+ * plumbing isn't used.
+ */
+function buildPaymentGatewaysSubpage( priority: number ): SettingsElement {
+	const subpageId = 'wepos_payment_gateways';
+	const sectionId = `${ subpageId }_section`;
+
+	return {
+		id: subpageId,
+		type: 'subpage',
+		label: __( 'Payment Gateways', 'wepos' ),
+		icon: 'CreditCard',
+		priority,
+		children: [
+			{
+				id: sectionId,
+				type: 'section',
+				label: '',
+				priority: 10,
+				children: [
+					{
+						id: 'wepos_payment_gateways_table',
+						type: 'field',
+						variant: 'payment_gateways_table',
+						label: '',
+						dependency_key: 'wepos_payment_gateways_table',
+						value: '',
+						priority: 10,
+					} as unknown as SettingsElement,
+				],
+			} as SettingsElement,
+		],
+	} as unknown as SettingsElement;
+}
+
+/**
  * Build full schema as hierarchical structure (page with children).
  * This ensures the formatter passes it through unchanged, preserving dependency_key.
  */
@@ -444,6 +482,11 @@ function buildSchema(
 	const flatElements = buildStandardSchema( sections, fields );
 	const standardSubpages = convertFlatToHierarchical( flatElements );
 	rootPage.children!.push( ...standardSubpages );
+
+	// Payment Gateways subpage — slotted between standard tabs and Access.
+	rootPage.children!.push(
+		buildPaymentGatewaysSubpage( ( standardSubpages.length + 1 ) * 10 )
+	);
 
 	// Get access schema (already hierarchical) — hidden for Dokan vendors
 	// and their staff (vendors get a Dokan staff permissions matrix instead).
@@ -802,6 +845,12 @@ const Settings = () => {
 					hookPrefix="wepos"
 					applyFilters={ wpApplyFilters }
 					renderSaveButton={ ( { scopeId, dirty, onSave: save } ) => {
+						// Payment Gateways tab owns its own Save button —
+						// hide the SettingsUI one to avoid two competing controls.
+						if ( scopeId === 'wepos_payment_gateways' ) {
+							return null;
+						}
+
 						if ( scopeId === POS_SETTINGS_SUBPAGE_ID ) {
 							const canEditAny = POS_SETTINGS_SECTIONS.some(
 								( s ) => permissions.can_edit[ s ] !== false

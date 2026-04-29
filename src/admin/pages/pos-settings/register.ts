@@ -10,6 +10,7 @@ import {
 	DefaultCustomerCashierRow,
 	DefaultCustomerSelectRow,
 } from '../../components/DefaultCustomerField';
+import PaymentGatewaysTable from '../payment-gateways/PaymentGatewaysTable';
 
 interface FieldRenderArgs {
 	element: SettingsElement;
@@ -41,6 +42,9 @@ export function registerPosSettingsFields() {
 	// "Unsupported field type" fallback in the vendor UI.
 	registerVariant( 'default_customer', DefaultCustomerSelectRow );
 	registerVariant( 'default_customer_cashier', DefaultCustomerCashierRow );
+	// Payment Gateways tab — self-contained component that owns its REST
+	// reads/writes; the SettingsUI value/onChange plumbing is unused.
+	registerVariant( 'payment_gateways_table', PaymentGatewaysTable as FieldComponent );
 }
 
 function registerVariant( variant: string, Component: FieldComponent ) {

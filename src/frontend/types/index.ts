@@ -558,6 +558,12 @@ export interface POSOrderData {
 export interface POSGateway {
   id: string;
   title: string;
+  description?: string;
+  icon?: string;
+  order?: number;
+  default?: boolean;
+  is_native?: boolean;
+  needs_iframe?: boolean;
 }
 
 export interface POSSettings {

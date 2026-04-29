@@ -83,15 +83,12 @@ class Cash extends \WC_Payment_Gateway {
      * @return bool
      */
     public function is_available() {
-        $order          = null;
-        $needs_shipping = false;
-
-        // Test if shipping is needed first.
+        // Storefront checkout: never expose POS-only gateway.
         if ( is_page( wc_get_page_id( 'checkout' ) ) ) {
-            return true;
+            return false;
         }
 
-        return parent::is_available() && wepos_is_frontend();
+        return parent::is_available() && ( wepos_is_frontend() || wepos_is_pos_request() );
     }
 
     /**

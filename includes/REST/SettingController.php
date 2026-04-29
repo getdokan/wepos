@@ -135,6 +135,19 @@ class SettingController extends \WP_REST_Controller {
                 'permission_callback'  => [ $this, 'read_setting_permission_check' ]
             ),
         ) );
+
+        register_rest_route( $this->namespace, '/' . $this->base . '/payment-gateways', array(
+            array(
+                'methods'             => \WP_REST_Server::READABLE,
+                'callback'            => array( $this, 'get_payment_gateways' ),
+                'permission_callback' => [ $this, 'manage_payment_gateways_permission_check' ],
+            ),
+            array(
+                'methods'             => \WP_REST_Server::CREATABLE,
+                'callback'            => array( $this, 'update_payment_gateways' ),
+                'permission_callback' => [ $this, 'manage_payment_gateways_permission_check' ],
+            ),
+        ) );
     }
 
 	/**
@@ -928,6 +941,116 @@ class SettingController extends \WP_REST_Controller {
 		$meta_key = '_' . $section . '_settings';
 
 		update_user_meta( $user_id, $meta_key, $data );
+	}
+
+	/**
+	 * Permission check for the payment-gateways settings endpoint.
+	 *
+	 * Only users who can manage WooCommerce should adjust gateway availability,
+	 * since this affects how money flows through the POS.
+	 *
+	 * @since 2.1.0
+	 *
+	 * @return bool|\WP_Error
+	 */
+	public function manage_payment_gateways_permission_check() {
+		if ( current_user_can( 'manage_woocommerce' ) || wepos_current_user_can_manage() ) {
+			return true;
+		}
+
+		return new \WP_Error( 'wepos_rest_cannot_manage_gateways', __( 'Sorry, you are not allowed to manage POS payment gateways.', 'wepos' ), array( 'status' => rest_authorization_required_code() ) );
+	}
+
+	/**
+	 * Return saved POS gateway settings merged with all installed WC gateways.
+	 *
+	 * Each gateway includes display metadata so the admin UI can render
+	 * a row without re-querying WooCommerce.
+	 *
+	 * @since 2.1.0
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function get_payment_gateways() {
+		$manager  = wepos()->gateways;
+		$settings = $manager->get_settings();
+		$rows     = [];
+
+		$wc_gateways = WC()->payment_gateways()->payment_gateways();
+
+		foreach ( $settings['gateways'] as $id => $config ) {
+			if ( ! isset( $wc_gateways[ $id ] ) ) {
+				continue;
+			}
+
+			$gateway = $wc_gateways[ $id ];
+
+			$rows[] = [
+				'id'                  => $id,
+				'order'               => (int) $config['order'],
+				'enabled'             => (bool) $config['enabled'],
+				'title'               => $config['title'],
+				'description'         => $config['description'],
+				'method_title'        => $gateway->get_method_title(),
+				'method_description'  => $gateway->get_method_description(),
+				'wc_enabled'          => 'yes' === $gateway->enabled,
+				'is_native'           => in_array( $id, \WeDevs\WePOS\Gateways\Manager::$native_gateways, true ),
+				'icon'                => $gateway->get_icon(),
+				'admin_settings_url'  => admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . $id ),
+			];
+		}
+
+		return rest_ensure_response( [
+			'default_gateway' => $settings['default_gateway'],
+			'gateways'        => $rows,
+		] );
+	}
+
+	/**
+	 * Persist POS gateway settings.
+	 *
+	 * Expected body shape:
+	 *   {
+	 *     "default_gateway": "wepos_cash",
+	 *     "gateways": [
+	 *       { "id": "wepos_cash", "enabled": true, "order": 0, "title": "Cash", "description": "..." },
+	 *       …
+	 *     ]
+	 *   }
+	 *
+	 * @since 2.1.0
+	 *
+	 * @param \WP_REST_Request $request
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function update_payment_gateways( $request ) {
+		$body = $request->get_json_params();
+
+		$incoming = isset( $body['gateways'] ) && is_array( $body['gateways'] ) ? $body['gateways'] : [];
+		$gateways = [];
+
+		foreach ( $incoming as $row ) {
+			if ( empty( $row['id'] ) ) {
+				continue;
+			}
+
+			$gateways[ $row['id'] ] = [
+				'order'       => isset( $row['order'] ) ? (int) $row['order'] : 0,
+				'enabled'     => ! empty( $row['enabled'] ),
+				'title'       => isset( $row['title'] ) ? (string) $row['title'] : '',
+				'description' => isset( $row['description'] ) ? (string) $row['description'] : '',
+			];
+		}
+
+		$payload = [
+			'default_gateway' => isset( $body['default_gateway'] ) ? (string) $body['default_gateway'] : 'wepos_cash',
+			'gateways'        => $gateways,
+		];
+
+		wepos()->gateways->save_settings( $payload );
+
+		return $this->get_payment_gateways();
 	}
 
 	/**

@@ -348,6 +348,9 @@ final class WePOS {
         add_action( 'init', [ $this, 'init_classes' ] );
         add_action( 'init', [ $this, 'localization_setup' ] );
         add_action( 'wepos_loaded', [ $this, 'load_payment_gateways' ] );
+
+        // Pay-for-order iframe template — needs query var registered before WP parses the request.
+        WeDevs\WePOS\Templates\Payment::bootstrap();
     }
 
     /**
