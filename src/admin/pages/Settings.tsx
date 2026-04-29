@@ -354,15 +354,8 @@ function buildAccessSchema(
 				( [ cap, enabled ]: [ string, boolean ], capIdx: number ) => {
 					const fieldKey = `access__${ roleSlug }__${ cap }`;
 
-					// Lock essential caps for administrator — always ON, not toggleable
-					const isLockedForAdmin =
-						roleSlug === 'administrator' &&
-						( cap === 'access_wepos' ||
-							cap === 'manage_wepos' ||
-							cap === 'wepos_view_all_outlets' ||
-							cap === 'read' ||
-							cap.startsWith( 'wepos_page_' ) ||
-							cap.endsWith( '_settings' ) );
+					// Administrator caps are always ON and not toggleable.
+					const isLockedForAdmin = roleSlug === 'administrator';
 
 					fieldChildren.push( {
 						id: fieldKey,
