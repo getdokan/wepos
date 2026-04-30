@@ -195,6 +195,9 @@ class ReactAssets
                 'app_mode' => 'react',
                 'debug' => defined('WP_DEBUG') && WP_DEBUG,
                 'dev_mode' => $is_dev,
+                'permissions' => [
+                    'create_customers' => current_user_can( 'create_customers' ),
+                ],
             ]
         );
 

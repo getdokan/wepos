@@ -49,6 +49,8 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
+  const canCreateCustomers = !! (window as any).wepos?.permissions?.create_customers;
+
   useImperativeHandle(ref, () => ({
     focus: () => {
       // Programmatically click the SmartSelect trigger to open it
@@ -56,6 +58,7 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
       trigger?.click();
     },
     openNewCustomer: () => {
+      if ( ! canCreateCustomers ) return;
       setEditingCustomer(null);
       setShowCustomerModal(true);
     },
@@ -136,6 +139,7 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
 
   // Edit customer
   const handleEditCustomer = () => {
+    if ( ! canCreateCustomers ) return;
     if (selectedCustomer) {
       setEditingCustomer(selectedCustomer);
       setShowCustomerModal(true);
@@ -181,7 +185,7 @@ const CustomerSearch = forwardRef<CustomerSearchHandle, CustomerSearchProps>(({
       />
 
       {/* Edit button - outside to the right, only when customer is selected */}
-      {selectedCustomer && (
+      {selectedCustomer && canCreateCustomers && (
         <Button
           variant="ghost"
           size="icon-sm"

@@ -97,6 +97,8 @@ const Cart = forwardRef<CartHandle, CartProps>(({
   const noteRef = useRef<CustomerNoteHandle>(null);
   const customerSearchRef = useRef<CustomerSearchHandle>(null);
 
+  const canCreateCustomers = !! (window as any).wepos?.permissions?.create_customers;
+
   useImperativeHandle(ref, () => ({
     openDiscount: () => discountRef.current?.open(),
     openFee: () => setShowFeeModal(true),
@@ -311,15 +313,17 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 {__('Customer:', 'wepos')}
               </span>
               <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="h-7 w-7 text-muted-foreground hover:text-primary"
-                  onClick={() => customerSearchRef.current?.openNewCustomer()}
-                  title={__('Add New Customer', 'wepos')}
-                >
-                  <UserPlus className="h-4 w-4" />
-                </Button>
+                { canCreateCustomers && (
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="h-7 w-7 text-muted-foreground hover:text-primary"
+                    onClick={() => customerSearchRef.current?.openNewCustomer()}
+                    title={__('Add New Customer', 'wepos')}
+                  >
+                    <UserPlus className="h-4 w-4" />
+                  </Button>
+                ) }
                 <Button
                   variant="ghost"
                   size="icon-sm"
