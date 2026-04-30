@@ -69,7 +69,7 @@
 /* Sonner toast styles — sonner injects CSS at runtime into document.head,
    but inside Shadow DOM those styles don't reach intercepted toast containers.
    Import directly so the CSS is bundled into the shadow root stylesheet. */
-@import '../../../../plugin-ui/node_modules/sonner/dist/styles.css';
+@import '../../../node_modules/sonner/dist/styles.css';
 
 /**
  * Theme tokens — set on :host (shadow root) so all elements
