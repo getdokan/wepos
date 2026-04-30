@@ -37,6 +37,14 @@ import {
 
 // Import components
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   Avatar,
   AvatarFallback,
   AvatarImage,
@@ -48,7 +56,7 @@ import {
 } from '@wedevs/plugin-ui';
 import { Slot } from '@wordpress/components';
 import { PluginArea } from '@wordpress/plugins';
-import { ChevronDown, CircleHelp, LayoutGrid, LogOut, ShoppingCart, ExternalLink } from 'lucide-react';
+import { ChevronDown, CircleHelp, LayoutGrid, LogOut, ShoppingCart, ExternalLink, Trash2 } from 'lucide-react';
 import Cart, { CartHandle } from '../components/Cart';
 import CategoryFilter from '../components/CategoryFilter';
 import StockStatusFilter, { StockStatus } from '../components/StockStatusFilter';
@@ -385,7 +393,34 @@ const HomePage: React.FC = () => {
   const handleAddToCart = useCallback(
     (product: POSProduct) => {
       if (!hasStock(product)) {
-        alert('Product is out of stock!');
+        toast.error(sprintf(__('%s is out of stock', 'wepos'), product.name));
+        return;
+      }
+
+      const existing = cartItems.find(
+        (ci: POSCartItem) =>
+          ci.product_id === product.id && (ci.variation_id || 0) === 0,
+      );
+      const currentCartQty = existing?.quantity || 0;
+
+      if (product.sold_individually && currentCartQty >= 1) {
+        toast.error(
+          sprintf(
+            __('%s can only be purchased one at a time.', 'wepos'),
+            product.name,
+          ),
+        );
+        return;
+      }
+
+      if (!hasStock(product, currentCartQty)) {
+        toast.error(
+          sprintf(
+            __('Not enough stock for %1$s. Only %2$s available.', 'wepos'),
+            product.name,
+            String(product.stock_quantity ?? 0),
+          ),
+        );
         return;
       }
 
@@ -408,20 +443,61 @@ const HomePage: React.FC = () => {
         type: product.type,
         attribute: [],
         editQuantity: false,
+        manage_stock: product.manage_stock,
+        stock_status: product.stock_status,
+        backorders_allowed: product.backorders_allowed,
+        stock_quantity: product.stock_quantity ?? undefined,
+        sold_individually: product.sold_individually,
       };
 
       addToCart(cartItem);
       toast.success(sprintf(__('%s added to cart', 'wepos'), product.name));
     },
-    [addToCart],
+    [addToCart, cartItems],
   );
 
   const handleAddToCartItem = useCallback(
     (cartItem: POSCartItem) => {
+      const existing = cartItems.find(
+        (ci: POSCartItem) =>
+          ci.product_id === cartItem.product_id &&
+          (ci.variation_id || 0) === (cartItem.variation_id || 0),
+      );
+      const currentCartQty = existing?.quantity || 0;
+      const incomingQty = cartItem.quantity || 1;
+
+      if (cartItem.sold_individually && currentCartQty + incomingQty > 1) {
+        toast.error(
+          sprintf(
+            __('%s can only be purchased one at a time.', 'wepos'),
+            cartItem.name,
+          ),
+        );
+        return;
+      }
+
+      if (cartItem.manage_stock && !cartItem.backorders_allowed) {
+        const available = cartItem.stock_quantity ?? 0;
+        const requested = Math.round((currentCartQty + incomingQty) * 10000) / 10000;
+        if (requested > Math.round(available * 10000) / 10000) {
+          toast.error(
+            sprintf(
+              __('Not enough stock for %1$s. Only %2$s available.', 'wepos'),
+              cartItem.name,
+              String(available),
+            ),
+          );
+          return;
+        }
+      } else if (cartItem.stock_status === 'outofstock') {
+        toast.error(sprintf(__('%s is out of stock', 'wepos'), cartItem.name));
+        return;
+      }
+
       addToCart(cartItem);
       toast.success(sprintf(__('%s added to cart', 'wepos'), cartItem.name));
     },
-    [addToCart],
+    [addToCart, cartItems],
   );
 
   // Memoized filtered products to prevent recalculation on every render
@@ -606,6 +682,17 @@ const HomePage: React.FC = () => {
   const backToSale = useCallback(() => {
     setShowModal(false);
     setShowHelp(false);
+  }, []);
+
+  const [showClearDataConfirm, setShowClearDataConfirm] = useState(false);
+
+  const confirmClearLocalData = useCallback(() => {
+    try {
+      localStorage.clear();
+    } catch (error) {
+      console.error('Failed to clear local data:', error);
+    }
+    window.location.reload();
   }, []);
 
   // Computed values
@@ -1354,6 +1441,13 @@ const HomePage: React.FC = () => {
                       )}
                       <DropdownMenuItem
                         variant="destructive"
+                        onClick={() => setShowClearDataConfirm(true)}
+                      >
+                        <Trash2 className="mr-1 size-4" />
+                        {__('Clear All Local Data', 'wepos')}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        variant="destructive"
                         onClick={() =>
                           (window.location.href = (window as any).wepos?.logout_url)
                         }
@@ -1542,6 +1636,26 @@ const HomePage: React.FC = () => {
       </div>
 
       <HelpModal show={showHelp} onClose={() => setShowHelp(false)} />
+
+      <AlertDialog open={showClearDataConfirm} onOpenChange={setShowClearDataConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{__('Clear All Local Data', 'wepos')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {__(
+                'This will clear all locally stored POS data and reload the page. This action cannot be undone.',
+                'wepos',
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{__('Cancel', 'wepos')}</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={confirmClearLocalData}>
+              {__('Clear Data', 'wepos')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <PaymentModal
         show={showModal}

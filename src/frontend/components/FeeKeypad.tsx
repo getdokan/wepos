@@ -14,6 +14,7 @@ interface FeeKeypadProps {
   onInputFee: (value: number, type: 'percent' | 'fixed') => void;
   className?: string;
   isDiscount?: boolean;
+  disabled?: boolean;
 }
 
 export interface FeeKeypadHandle {
@@ -25,6 +26,7 @@ const FeeKeypad = forwardRef<FeeKeypadHandle, FeeKeypadProps>(({
   onInputFee,
   className,
   isDiscount = false,
+  disabled = false,
 }, ref) => {
   const [isVisible, setIsVisible] = useState(false);
   const [displayValue, setDisplayValue] = useState('');
@@ -108,6 +110,7 @@ const FeeKeypad = forwardRef<FeeKeypadHandle, FeeKeypadProps>(({
           <Button
             variant="outline"
             className="border-border bg-muted text-muted-foreground hover:bg-accent"
+            disabled={disabled}
           >
             {__('Add', 'wepos')} {name}
           </Button>

@@ -1,5 +1,5 @@
 import React, { useRef, useState, forwardRef, useImperativeHandle } from 'react';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { useSelect, useDispatch } from '@wordpress/data';
 import {
   Plus,
@@ -27,6 +27,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  toast,
 } from '@wedevs/plugin-ui';
 import { POSCartItem, POSFeeLine, POSShippingLine, POSOrderMetaItem } from '../types';
 import FeeKeypad, { FeeKeypadHandle } from './FeeKeypad';
@@ -188,8 +189,34 @@ const Cart = forwardRef<CartHandle, CartProps>(({
   // always gives a clean result without affecting normal decimal inputs.
   const roundQuantity = (n: number) => Math.round(n * 10000) / 10000;
 
+  const exceedsStock = (item: POSCartItem, requestedQty: number): boolean => {
+    if (!item.manage_stock || item.backorders_allowed) return false;
+    const available = item.stock_quantity ?? 0;
+    return roundQuantity(requestedQty) > roundQuantity(available);
+  };
+
   const addQuantity = (item: POSCartItem, index: number) => {
-    updateCartItem(index, { quantity: roundQuantity(item.quantity + 1) });
+    const nextQty = roundQuantity(item.quantity + 1);
+    if (item.sold_individually && nextQty > 1) {
+      toast.error(
+        sprintf(
+          __('%s can only be purchased one at a time.', 'wepos'),
+          item.name,
+        ),
+      );
+      return;
+    }
+    if (exceedsStock(item, nextQty)) {
+      toast.error(
+        sprintf(
+          __('Not enough stock for %1$s. Only %2$s available.', 'wepos'),
+          item.name,
+          String(item.stock_quantity ?? 0),
+        ),
+      );
+      return;
+    }
+    updateCartItem(index, { quantity: nextQty });
   };
 
   const removeQuantity = (item: POSCartItem, index: number) => {
@@ -398,7 +425,24 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                                       onBlur={(e) => {
                                         const val = parseFloat(e.target.value);
                                         if (!isNaN(val) && val > 0) {
-                                          updateCartItem(index, { quantity: val });
+                                          if (item.sold_individually && val > 1) {
+                                            toast.error(
+                                              sprintf(
+                                                __('%s can only be purchased one at a time.', 'wepos'),
+                                                item.name,
+                                              ),
+                                            );
+                                          } else if (exceedsStock(item, val)) {
+                                            toast.error(
+                                              sprintf(
+                                                __('Not enough stock for %1$s. Only %2$s available.', 'wepos'),
+                                                item.name,
+                                                String(item.stock_quantity ?? 0),
+                                              ),
+                                            );
+                                          } else {
+                                            updateCartItem(index, { quantity: val });
+                                          }
                                         }
                                         setEditingQtyIndex(null);
                                       }}
@@ -762,6 +806,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     name={__('Discount', 'wepos')}
                     onInputFee={handleDiscountInput}
                     isDiscount={true}
+                    disabled={cartItems.length === 0}
                   />
                   {!customerNote && (
                     <CustomerNote ref={noteRef} onAddNote={handleAddNote} />
@@ -780,6 +825,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     variant="outline"
                     className="border-border bg-muted text-muted-foreground hover:bg-accent"
                     onClick={() => setShowFeeModal(true)}
+                    disabled={cartItems.length === 0}
                   >
                     {__('Add Fee', 'wepos')}
                   </Button>
@@ -788,6 +834,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     variant="outline"
                     className="border-border bg-muted text-muted-foreground hover:bg-accent"
                     onClick={() => setShowShippingModal(true)}
+                    disabled={cartItems.length === 0}
                   >
                     {__('Shipping', 'wepos')}
                   </Button>
@@ -796,6 +843,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     variant="outline"
                     className="border-border bg-muted text-muted-foreground hover:bg-accent"
                     onClick={() => setShowOrderMetaModal(true)}
+                    disabled={cartItems.length === 0}
                   >
                     {__('Order Meta', 'wepos')}
                   </Button>
