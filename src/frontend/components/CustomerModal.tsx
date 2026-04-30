@@ -11,6 +11,7 @@ import {
   Button,
   Input,
   SmartSelect,
+  toast,
 } from '@wedevs/plugin-ui';
 import { Customer, BillingAddress } from '../types';
 import { posAPI } from '../api';
@@ -198,11 +199,15 @@ const CustomerModal: React.FC<CustomerModalProps> = ({
       }
 
       handleClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error(
         `Error ${isEditMode ? 'updating' : 'creating'} customer:`,
         error,
       );
+      const fallback = isEditMode
+        ? __('Failed to update customer', 'wepos')
+        : __('Failed to create customer', 'wepos');
+      toast.error(error?.message || fallback);
     } finally {
       setIsLoading(false);
     }
