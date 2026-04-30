@@ -1,0 +1,129 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# wePos - WooCommerce Point of Sale Plugin Rules
+
+## 🏗️ Architecture Overview
+
+wePos is a **WordPress plugin** that extends WooCommerce with Point of Sale (POS) functionality. It combines:
+- **Backend PHP**: WordPress/WooCommerce integration using PSR-4 autoloading
+- **Frontend Vue.js SPA**: Modern JavaScript interface for POS operations
+- **REST API**: Custom endpoints extending WooCommerce REST API
+- **Build System**: Webpack-based compilation with Babel, LESS, and Vue support
+
+## 📁 Project Structure
+
+### 🚀 Entry Points
+- **Main Plugin**: [wepos.php](mdc:wepos.php) - WordPress plugin entry point with core wePOS class
+- **Frontend App**: [assets/src/frontend/main.js](mdc:assets/src/frontend/main.js) - Vue.js frontend application
+- **Admin App**: [assets/src/admin/main.js](mdc:assets/src/admin/main.js) - Vue.js admin interface
+
+### 🧩 Core Backend (PHP)
+- **Main Class**: [wepos.php](mdc:wepos.php) - Core plugin functionality, hooks, and initialization
+- **Includes Directory**: [includes/](mdc:includes) - PSR-4 autoloaded classes under `WeDevs\WePOS\` namespace
+  - **Assets**: [includes/Assets.php](mdc:includes/Assets.php) - Asset management (CSS/JS enqueuing)
+  - **Frontend**: [includes/Frontend.php](mdc:includes/Frontend.php) - Frontend functionality
+  - **Common**: [includes/Common.php](mdc:includes/Common.php) - Shared utilities
+  - **Functions**: [includes/functions.php](mdc:includes/functions.php) - Global helper functions
+  - **Admin**: [includes/Admin/](mdc:includes/Admin) - Admin-specific classes
+  - **REST**: [includes/REST/](mdc:includes/REST) - Custom REST API endpoints
+  - **Gateways**: [includes/Gateways/](mdc:includes/Gateways) - Payment gateway implementations
+
+### 🎨 Frontend (Vue.js)
+- **Source Directory**: [assets/src/](mdc:assets/src) - All Vue.js source code
+- **Frontend App**: [assets/src/frontend/](mdc:assets/src/frontend) - POS interface components
+- **Admin App**: [assets/src/admin/](mdc:assets/src/admin) - Admin dashboard components
+- **Utilities**: [assets/src/utils/](mdc:assets/src/utils) - Shared JavaScript utilities and Vuex store
+
+### 🔧 Build & Configuration
+- **Webpack**: [webpack.config.js](mdc:webpack.config.js) - Build configuration for Vue.js apps
+- **Package.json**: [package.json](mdc:package.json) - NPM dependencies and build scripts
+- **Composer**: [composer.json](mdc:composer.json) - PHP dependencies and PSR-4 autoloading
+- **Babel**: [.babelrc](mdc:.babelrc) - JavaScript transpilation settings
+
+## 🛠️ Development Workflow
+
+### Build Commands
+```bash
+# Development mode with file watching
+npm run dev
+
+# Development build without watching
+npm run dev:build
+
+# Production build
+npm run build
+
+# Version replacement for releases
+npm run version-replace
+
+# Create distribution zip
+npm run zip
+```
+
+### PHP Development
+- **Namespace**: All PHP classes use `WeDevs\WePOS\` namespace
+- **Autoloading**: PSR-4 autoloading configured in [composer.json](mdc:composer.json)
+- **Coding Standards**: WordPress coding standards with PHPCS configuration
+- **Dependencies**: Managed via Composer with Mozart for dependency scoping
+
+### JavaScript Development
+- **Framework**: Vue.js 2.7 with Vue Router and Vuex
+- **Build Process**: Webpack with Babel transpilation
+- **Styling**: LESS preprocessor for CSS
+- **Components**: Located in respective `components/` directories
+
+## 🔌 Key Integrations
+
+### WordPress/WooCommerce
+- **Plugin Integration**: Extends WooCommerce with POS functionality
+- **Hooks & Filters**: Uses WordPress action/filter system
+- **Custom Post Types**: May use WooCommerce orders and products
+- **User Capabilities**: Integrates with WordPress user system
+
+### Third-Party Services
+- **Appsero**: Analytics and licensing ([appsero.json](mdc:appsero.json))
+- **Dokan**: Multi-vendor marketplace integration ([includes/Dokan.php](mdc:includes/Dokan.php))
+
+## 📦 Assets & Resources
+- **Compiled Assets**: [assets/js/](mdc:assets/js) and [assets/css/](mdc:assets/css) - Built files
+- **Images**: [assets/images/](mdc:assets/images) - Plugin graphics and icons
+- **Fonts**: [assets/fonts/](mdc:assets/fonts) - Custom fonts
+- **Templates**: [templates/](mdc:templates) - PHP template files
+- **Languages**: [languages/](mdc:languages) - Translation files
+
+## 🧪 Testing
+- **Playwright Tests**: [tests/pw/](mdc:tests/pw) - End-to-end testing with Playwright
+- **Test Structure**:
+  - **E2E Tests**: [tests/pw/tests/e2e/](mdc:tests/pw/tests/e2e)
+  - **API Tests**: [tests/pw/tests/api/](mdc:tests/pw/tests/api)
+  - **Page Objects**: [tests/pw/pages/](mdc:tests/pw/pages)
+  - **Utilities**: [tests/pw/utils/](mdc:tests/pw/utils)
+
+## 🔄 Release Process
+- **Version Management**: Centralized in [wepos.php](mdc:wepos.php), [package.json](mdc:package.json), and [composer.json](mdc:composer.json)
+- **Build Pipeline**: Production builds minify assets and optimize for distribution
+- **Distribution**: Zip creation excludes development files and dependencies
+
+## 🛡️ Security & Best Practices
+- **Nonce Verification**: WordPress security nonces for AJAX requests
+- **Capability Checks**: User permission verification
+- **Data Sanitization**: Input validation and output escaping
+- **REST API Security**: WooCommerce authentication integration
+
+## 📚 Documentation
+- **README**: [README.md](mdc:README.md) - Installation and usage instructions
+- **WordPress README**: [readme.txt](mdc:readme.txt) - WordPress.org plugin repository format
+- **Changelog**: Detailed version history in README files
+
+## 🎯 Core Features
+- **Point of Sale Interface**: Touch-friendly Vue.js frontend
+- **Product Management**: Integration with WooCommerce catalog
+- **Order Processing**: Real-time order creation and management
+- **Payment Gateways**: Multiple payment method support
+- **Inventory Tracking**: Stock level management
+- **Barcode Scanning**: Product lookup via barcode
+- **Receipt Printing**: Thermal and standard printer support
+- **Multi-user Support**: Concurrent cashier sessions

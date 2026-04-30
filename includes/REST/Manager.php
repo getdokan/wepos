@@ -24,6 +24,7 @@ class Manager {
         $this->class_map = apply_filters( 'wepos_rest_api_class_map', array(
             WEPOS_INCLUDES . '/REST/PaymentController.php'  => '\WeDevs\WePOS\REST\PaymentController',
             WEPOS_INCLUDES . '/REST/SettingController.php'  => '\WeDevs\WePOS\REST\SettingController',
+            WEPOS_INCLUDES . '/REST/AccessController.php'   => '\WeDevs\WePOS\REST\AccessController',
             WEPOS_INCLUDES . '/REST/TaxController.php'      => '\WeDevs\WePOS\REST\TaxController',
             WEPOS_INCLUDES . '/REST/CustomerController.php' => '\WeDevs\WePOS\REST\CustomerController',
             WEPOS_INCLUDES . '/REST/ProductController.php'  => '\WeDevs\WePOS\REST\ProductController',

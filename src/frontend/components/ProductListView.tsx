@@ -1,0 +1,379 @@
+import React, { useState } from 'react';
+import { __ } from '@wordpress/i18n';
+import { ChevronRight, Plus } from 'lucide-react';
+import {
+  Badge,
+  Button,
+  Thumbnail,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@wedevs/plugin-ui';
+import { POSProduct, CartItem } from '../types';
+import { decodeHtmlEntities } from '../utils/helpers';
+import ProductVariationSelector from './ProductVariationSelector';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface ProductListViewProps {
+  products: POSProduct[];
+  onAddToCart: (product: POSProduct) => void;
+  onAddToCartItem: (cartItem: CartItem) => void;
+  formatPrice: (amount: number | string | undefined | null) => string;
+  hasStock: (product: POSProduct) => boolean;
+  getProductImage: (product: POSProduct) => string;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+
+function getVariablePriceRange(
+  product: POSProduct,
+  formatPrice: (amount: number | string | undefined | null) => string,
+): string {
+  const fallback = formatPrice(
+    product.on_sale ? product.sale_price : product.regular_price,
+  ) as string;
+
+  const variations: any[] = product.variations ?? [];
+  if (variations.length === 0) return fallback;
+
+  const prices = variations
+    .map((v) => parseFloat(v.price || v.regular_price || '0'))
+    .filter((p) => !isNaN(p));
+
+  if (prices.length === 0) return fallback;
+
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  return min === max
+    ? (formatPrice(min) as string)
+    : `${formatPrice(min)} - ${formatPrice(max)}`;
+}
+
+// ─── Column layout ────────────────────────────────────────────────────────────
+// grid-cols: [product] [type] [stock] [price] [action]
+
+const ROW_GRID = 'grid grid-cols-[1fr_110px_80px_150px_60px] items-center gap-4 px-4';
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+const ListHeader: React.FC = () => (
+  <div className={`${ROW_GRID} py-3 border-b border-border bg-muted sticky top-0 z-10`}>
+    <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+      {__('Product', 'wepos')}
+    </span>
+    <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground text-center">
+      {__('Type', 'wepos')}
+    </span>
+    <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground text-center">
+      {__('Stock', 'wepos')}
+    </span>
+    <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground text-right">
+      {__('Price', 'wepos')}
+    </span>
+    <span />
+  </div>
+);
+
+// ─── Product info cell (left column) ─────────────────────────────────────────
+
+interface ProductInfoProps {
+  product: POSProduct;
+  getProductImage: (p: POSProduct) => string;
+  formatPrice: (amount: number | string | undefined | null) => string;
+  onAddToCartItem: (cartItem: CartItem) => void;
+  hasStock: boolean;
+}
+
+const ProductInfo: React.FC<ProductInfoProps> = ({
+  product,
+  getProductImage,
+  formatPrice,
+  onAddToCartItem,
+  hasStock,
+}) => {
+  const categories = product.categories ?? [];
+  const [firstCategory, ...extraCategories] = categories;
+  const variationAttributes = product.attributes?.filter((a) => a.variation) ?? [];
+
+  return (
+    <div className="flex items-start gap-3 min-w-0">
+      <Thumbnail
+        src={getProductImage(product)}
+        alt={product.name}
+        size={64}
+        className="rounded-lg border border-border shrink-0"
+      />
+
+      <div className="flex flex-col gap-1 min-w-0">
+        {/* Name */}
+        <span className="text-sm font-semibold text-foreground leading-snug line-clamp-2">
+          {decodeHtmlEntities(product.name)}
+        </span>
+
+        {/* Category badges — first always visible, extras shown on hover */}
+        {firstCategory && (
+          <div className="flex flex-wrap items-center gap-1">
+            <Badge
+              className="h-auto break-words whitespace-normal rounded-sm bg-muted px-2 py-1 text-[10px] leading-tight font-semibold uppercase tracking-wider text-muted-foreground"
+              title={decodeHtmlEntities(firstCategory.name)}
+            >
+              {decodeHtmlEntities(firstCategory.name)}
+            </Badge>
+
+            {extraCategories.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger>
+                  <span className="inline-flex cursor-default items-center rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-accent">
+                    +{extraCategories.length}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <div className="flex flex-wrap gap-1">
+                    {extraCategories.map((cat) => (
+                      <span key={cat.id} className="whitespace-nowrap">
+                        {decodeHtmlEntities(cat.name)}
+                      </span>
+                    ))}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        )}
+
+        {/* Variable product: list attribute options */}
+        {product.type === 'variable' && variationAttributes.length > 0 && (
+          <div className="flex flex-col gap-0.5 mt-0.5">
+            {variationAttributes.map((attr) => (
+              <span key={attr.name} className="text-xs text-muted-foreground leading-relaxed">
+                <span className="font-medium text-foreground">{decodeHtmlEntities(attr.name)}:</span>{' '}
+                {attr.options.map(decodeHtmlEntities).join(', ')}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── Price cell ───────────────────────────────────────────────────────────────
+
+interface PriceCellProps {
+  product: POSProduct;
+  formatPrice: (amount: number | string | undefined | null) => string;
+}
+
+const PriceCell: React.FC<PriceCellProps> = ({ product, formatPrice }) => {
+  const hasRegularPrice =
+    product.on_sale &&
+    product.regular_price &&
+    parseFloat(product.regular_price as string) > 0;
+
+  const currentPrice =
+    product.type === 'variable'
+      ? getVariablePriceRange(product, formatPrice)
+      : (formatPrice(product.on_sale ? product.sale_price : product.regular_price) as string);
+
+  return (
+    <div className="flex flex-col items-end gap-0.5">
+      {hasRegularPrice && (
+        <span className="text-xs text-muted-foreground line-through">
+          {formatPrice(product.regular_price)}
+        </span>
+      )}
+      <span className="text-sm font-bold text-foreground leading-snug">
+        {currentPrice}
+      </span>
+    </div>
+  );
+};
+
+// ─── Action button ────────────────────────────────────────────────────────────
+
+interface ActionButtonProps {
+  product: POSProduct;
+  hasStock: boolean;
+  onAddToCart: (product: POSProduct) => void;
+  onAddToCartItem: (cartItem: CartItem) => void;
+  variationSelectorOpen?: boolean;
+  onVariationSelectorOpenChange?: (open: boolean) => void;
+}
+
+const ActionButton: React.FC<ActionButtonProps> = ({
+  product,
+  hasStock,
+  onAddToCart,
+  onAddToCartItem,
+  variationSelectorOpen,
+  onVariationSelectorOpenChange,
+}) => {
+  if (!hasStock) {
+    return (
+      <Button
+        variant="default"
+        size="icon"
+        disabled
+        className="h-10 w-10 rounded-full opacity-40 cursor-not-allowed"
+        aria-label={__('Out of stock', 'wepos')}
+      >
+        <Plus className="h-5 w-5" />
+      </Button>
+    );
+  }
+
+  if (product.type === 'variable') {
+    return (
+      <ProductVariationSelector
+        product={product}
+        onAddToCart={onAddToCartItem}
+        open={variationSelectorOpen}
+        onOpenChange={onVariationSelectorOpenChange}
+      >
+        <Button
+          variant="default"
+          size="icon"
+          className="h-10 w-10 rounded-full shadow-sm"
+          aria-label={__('Select variation', 'wepos')}
+        >
+          <ChevronRight className="h-5 w-5" />
+        </Button>
+      </ProductVariationSelector>
+    );
+  }
+
+  return (
+    <Button
+      variant="default"
+      size="icon"
+      className="h-10 w-10 rounded-full shadow-sm"
+      aria-label={__('Add to cart', 'wepos')}
+      onClick={(e) => {
+        e.stopPropagation();
+        onAddToCart(product);
+      }}
+    >
+      <Plus className="h-5 w-5" />
+    </Button>
+  );
+};
+
+// ─── Single list row ──────────────────────────────────────────────────────────
+
+interface ProductListRowProps {
+  product: POSProduct;
+  onAddToCart: (product: POSProduct) => void;
+  onAddToCartItem: (cartItem: CartItem) => void;
+  formatPrice: (amount: number | string | undefined | null) => string;
+  hasStock: boolean;
+  getProductImage: (p: POSProduct) => string;
+}
+
+const ProductListRow: React.FC<ProductListRowProps> = ({
+  product,
+  onAddToCart,
+  onAddToCartItem,
+  formatPrice,
+  hasStock,
+  getProductImage,
+}) => {
+  const isVariableProduct = product.type === 'variable';
+  const [isVariationSelectorOpen, setIsVariationSelectorOpen] = useState(false);
+
+  return (
+    <div
+      className={`${ROW_GRID} py-4 border-b border-border transition-colors hover:bg-muted/50 ${
+        !hasStock ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+      }`}
+      onClick={
+        hasStock
+          ? () => {
+              if (isVariableProduct) {
+                setIsVariationSelectorOpen(true);
+                return;
+              }
+
+              onAddToCart(product);
+            }
+          : undefined
+      }
+    >
+      {/* Product info */}
+      <ProductInfo
+        product={product}
+        getProductImage={getProductImage}
+        formatPrice={formatPrice}
+        onAddToCartItem={onAddToCartItem}
+        hasStock={hasStock}
+      />
+
+      {/* Type */}
+      <div className="text-center">
+        <span className="text-sm text-muted-foreground capitalize">
+          {isVariableProduct ? __('Variable', 'wepos') : __('Simple', 'wepos')}
+        </span>
+      </div>
+
+      {/* Stock */}
+      <div className="text-center">
+        <span
+          className={`text-sm font-medium ${
+            (product.stock_quantity ?? 0) === 0 && product.manage_stock
+              ? 'text-destructive'
+              : 'text-foreground'
+          }`}
+        >
+          {product.manage_stock ? (product.stock_quantity ?? 0) : '-'}
+        </span>
+      </div>
+
+      {/* Price */}
+      <PriceCell product={product} formatPrice={formatPrice} />
+
+      {/* Action */}
+      <div className="flex justify-end">
+        <ActionButton
+          product={product}
+          hasStock={hasStock}
+          onAddToCart={onAddToCart}
+          onAddToCartItem={onAddToCartItem}
+          variationSelectorOpen={isVariationSelectorOpen}
+          onVariationSelectorOpenChange={setIsVariationSelectorOpen}
+        />
+      </div>
+    </div>
+  );
+};
+
+// ─── Main export ──────────────────────────────────────────────────────────────
+
+export const ProductListHeader: React.FC = () => <ListHeader />;
+
+export const ProductListView: React.FC<ProductListViewProps> = ({
+  products,
+  onAddToCart,
+  onAddToCartItem,
+  formatPrice,
+  hasStock,
+  getProductImage,
+}) => (
+  <div className="bg-background">
+    <div className="divide-y divide-border">
+      {products.map((product) => (
+        <ProductListRow
+          key={product.id}
+          product={product}
+          onAddToCart={onAddToCart}
+          onAddToCartItem={onAddToCartItem}
+          formatPrice={formatPrice}
+          hasStock={hasStock(product)}
+          getProductImage={getProductImage}
+        />
+      ))}
+    </div>
+  </div>
+);
+
+export default ProductListView;
