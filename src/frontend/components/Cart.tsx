@@ -1,5 +1,5 @@
 import React, { useRef, useState, forwardRef, useImperativeHandle } from 'react';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { useSelect, useDispatch } from '@wordpress/data';
 import {
   Plus,
@@ -27,6 +27,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  toast,
 } from '@wedevs/plugin-ui';
 import { POSCartItem, POSFeeLine, POSShippingLine, POSOrderMetaItem } from '../types';
 import FeeKeypad, { FeeKeypadHandle } from './FeeKeypad';
@@ -188,8 +189,25 @@ const Cart = forwardRef<CartHandle, CartProps>(({
   // always gives a clean result without affecting normal decimal inputs.
   const roundQuantity = (n: number) => Math.round(n * 10000) / 10000;
 
+  const exceedsStock = (item: POSCartItem, requestedQty: number): boolean => {
+    if (!item.manage_stock || item.backorders_allowed) return false;
+    const available = item.stock_quantity ?? 0;
+    return requestedQty > available;
+  };
+
   const addQuantity = (item: POSCartItem, index: number) => {
-    updateCartItem(index, { quantity: roundQuantity(item.quantity + 1) });
+    const nextQty = roundQuantity(item.quantity + 1);
+    if (exceedsStock(item, nextQty)) {
+      toast.error(
+        sprintf(
+          __('Not enough stock for %s. Only %d available.', 'wepos'),
+          item.name,
+          item.stock_quantity ?? 0,
+        ),
+      );
+      return;
+    }
+    updateCartItem(index, { quantity: nextQty });
   };
 
   const removeQuantity = (item: POSCartItem, index: number) => {
@@ -398,7 +416,17 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                                       onBlur={(e) => {
                                         const val = parseFloat(e.target.value);
                                         if (!isNaN(val) && val > 0) {
-                                          updateCartItem(index, { quantity: val });
+                                          if (exceedsStock(item, val)) {
+                                            toast.error(
+                                              sprintf(
+                                                __('Not enough stock for %s. Only %d available.', 'wepos'),
+                                                item.name,
+                                                item.stock_quantity ?? 0,
+                                              ),
+                                            );
+                                          } else {
+                                            updateCartItem(index, { quantity: val });
+                                          }
                                         }
                                         setEditingQtyIndex(null);
                                       }}

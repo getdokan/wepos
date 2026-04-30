@@ -385,7 +385,24 @@ const HomePage: React.FC = () => {
   const handleAddToCart = useCallback(
     (product: POSProduct) => {
       if (!hasStock(product)) {
-        alert('Product is out of stock!');
+        toast.error(sprintf(__('%s is out of stock', 'wepos'), product.name));
+        return;
+      }
+
+      const existing = cartItems.find(
+        (ci: POSCartItem) =>
+          ci.product_id === product.id && (ci.variation_id || 0) === 0,
+      );
+      const currentCartQty = existing?.quantity || 0;
+
+      if (!hasStock(product, currentCartQty)) {
+        toast.error(
+          sprintf(
+            __('Not enough stock for %s. Only %d available.', 'wepos'),
+            product.name,
+            product.stock_quantity || 0,
+          ),
+        );
         return;
       }
 
@@ -408,20 +425,49 @@ const HomePage: React.FC = () => {
         type: product.type,
         attribute: [],
         editQuantity: false,
+        manage_stock: product.manage_stock,
+        stock_status: product.stock_status,
+        backorders_allowed: product.backorders_allowed,
+        stock_quantity: product.stock_quantity ?? undefined,
       };
 
       addToCart(cartItem);
       toast.success(sprintf(__('%s added to cart', 'wepos'), product.name));
     },
-    [addToCart],
+    [addToCart, cartItems],
   );
 
   const handleAddToCartItem = useCallback(
     (cartItem: POSCartItem) => {
+      const existing = cartItems.find(
+        (ci: POSCartItem) =>
+          ci.product_id === cartItem.product_id &&
+          (ci.variation_id || 0) === (cartItem.variation_id || 0),
+      );
+      const currentCartQty = existing?.quantity || 0;
+      const incomingQty = cartItem.quantity || 1;
+
+      if (cartItem.manage_stock && !cartItem.backorders_allowed) {
+        const available = cartItem.stock_quantity ?? 0;
+        if (currentCartQty + incomingQty > available) {
+          toast.error(
+            sprintf(
+              __('Not enough stock for %s. Only %d available.', 'wepos'),
+              cartItem.name,
+              available,
+            ),
+          );
+          return;
+        }
+      } else if (cartItem.stock_status === 'outofstock') {
+        toast.error(sprintf(__('%s is out of stock', 'wepos'), cartItem.name));
+        return;
+      }
+
       addToCart(cartItem);
       toast.success(sprintf(__('%s added to cart', 'wepos'), cartItem.name));
     },
-    [addToCart],
+    [addToCart, cartItems],
   );
 
   // Memoized filtered products to prevent recalculation on every render
