@@ -48,15 +48,11 @@ Extract the zip file and just drop the contents in the wp-content/plugins/ direc
 No FAQ
 
 == Screenshots ==
-1. Overview
-2. Product Search and Barcode Scan
-3. Product list view
-4. Customer Search
-5. Add New Customer
-6. Add discount and fees
-7. Payment Page
-8. Payment Receipt Page
-9. Admin Dashboard Settings
+1. Intuitive POS
+2. Quicker Product List View
+3. Light/Dark Theme
+4. On The Fly Discount Calculation
+5. Intuitive Checkout
 
 == Changelog ==
 
