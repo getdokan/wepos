@@ -9,28 +9,7 @@ import {
 import { LoaderCircle, Save } from 'lucide-react';
 import { applyFilters as wpApplyFilters } from '@wordpress/hooks';
 import { applyFilters } from '@react/hooks/useExtensions';
-import {
-	buildPosSettingsSubpage,
-	POS_SETTINGS_SUBPAGE_ID,
-	type SectionPermissions,
-} from './pos-settings/schema';
-import {
-	ReferenceDataContext,
-	type ReferenceData,
-} from './pos-settings/reference-data';
-import { registerPosSettingsFields } from './pos-settings/register';
-
-// Register custom POS Settings field variants (country_state, customer_search,
-// currency_select, tax_class_select) once at module load so they're available
-// the first time the Settings page mounts.
-registerPosSettingsFields();
-
-const POS_SETTINGS_SECTIONS = [
-	'woo_general',
-	'woo_tax',
-	'wepos_general',
-	'wepos_barcode',
-];
+import type { ReactNode } from 'react';
 
 /**
  * Shape of the `weposAdmin` global set by Dashboard.php via wp_localize_script.
@@ -70,13 +49,7 @@ interface WeposAdminData {
 		string,
 		{
 			name: string;
-			capabilities: {
-				wepos: Record< string, boolean >;
-				wc: Record< string, boolean >;
-				wp: Record< string, boolean >;
-				pages: Record< string, boolean >;
-				settings?: Record< string, boolean >;
-			};
+			capabilities: Record< string, Record< string, boolean > >;
 		}
 	>;
 	// Dokan vendor context (present when Dokan is active)
@@ -91,6 +64,30 @@ declare global {
 		weposAdmin: WeposAdminData;
 	}
 }
+
+/**
+ * Save handler signature for extensions registered via the
+ * `wepos_react_settings_save_handlers` filter. Returning `null` (or
+ * `{ handled: false }`) lets the next handler — and ultimately the lite
+ * default flow — run. Returning `{ handled: true }` short-circuits the
+ * save and lets the handler push values/response back into lite state.
+ */
+export type SettingsSaveHandlerArgs = {
+	scopeId: string;
+	flatValues: Record< string, unknown >;
+	rest: { root: string; nonce: string };
+	setSaving: ( saving: boolean ) => void;
+};
+
+export type SettingsSaveHandlerResult = {
+	handled: boolean;
+	values?: Record< string, unknown >;
+	response?: Record< string, unknown >;
+} | null;
+
+export type SettingsSaveHandler = (
+	args: SettingsSaveHandlerArgs
+) => Promise< SettingsSaveHandlerResult > | SettingsSaveHandlerResult;
 
 /* ─── Mappers ──────────────────────────────────────────────────────────── */
 
@@ -140,33 +137,30 @@ const DEFAULT_DISPLAY_ROLES = [
 ];
 
 /**
- * Capability group labels and ordering.
+ * Lite-owned capability groups.
+ *
+ * Extensions add their own groups via `wepos_react_access_cap_groups`
+ * (e.g. wepos-pro pushes the "Settings" group).
  */
-const CAP_GROUPS: Array< { key: string; label: string } > = [
+const CAP_GROUPS_LITE: Array< { key: string; label: string } > = [
 	{ key: 'wepos', label: __( 'wePOS', 'wepos' ) },
-	{ key: 'settings', label: __( 'Settings', 'wepos' ) },
 	{ key: 'pages', label: __( 'wePOS Pages', 'wepos' ) },
 	{ key: 'wc', label: __( 'WooCommerce', 'wepos' ) },
 	{ key: 'wp', label: __( 'WordPress', 'wepos' ) },
 ];
 
 /**
- * Human-readable labels for capabilities.
- * The keys must match the raw capability slugs used in AccessController.
+ * Lite-owned capability labels.
+ *
+ * Caps without a registered label are skipped during render — extensions
+ * that introduce new caps (e.g. wepos-pro's `wepos_view_all_outlets`,
+ * `view_general_settings`, …) must register labels via
+ * `wepos_react_access_cap_labels`.
  */
-const CAP_LABELS: Record< string, string > = {
+const CAP_LABELS_LITE: Record< string, string > = {
 	// wePOS
 	access_wepos: __( 'Access POS', 'wepos' ),
 	manage_wepos: __( 'Manage POS', 'wepos' ),
-	wepos_view_all_outlets: __( 'View All Outlets', 'wepos' ),
-
-	// Settings sections
-	view_general_settings: __( 'View General Settings', 'wepos' ),
-	edit_general_settings: __( 'Edit General Settings', 'wepos' ),
-	view_tax_settings: __( 'View Tax Settings', 'wepos' ),
-	edit_tax_settings: __( 'Edit Tax Settings', 'wepos' ),
-	view_barcode_settings: __( 'View Barcode Settings', 'wepos' ),
-	edit_barcode_settings: __( 'Edit Barcode Settings', 'wepos' ),
 
 	// WooCommerce
 	create_customers: __( 'Create Customers', 'wepos' ),
@@ -312,7 +306,10 @@ function convertFlatToHierarchical(
 
 /**
  * Build hierarchical schema for the Access subpage.
- * Returns hierarchical structure with children arrays to preserve dependency_key values.
+ *
+ * Cap groups & labels are filterable so extensions can register their own.
+ * A cap is rendered only when a label is registered for it (lite-owned or
+ * Pro-extension), keeping unfamiliar caps out of the UI.
  */
 function buildAccessSchema(
 	accessData: WeposAdminData[ 'access_data' ],
@@ -331,6 +328,16 @@ function buildAccessSchema(
 		( slug: string ) => accessData[ slug ]
 	);
 
+	const capGroups = applyFilters< Array< { key: string; label: string } > >(
+		'wepos_react_access_cap_groups',
+		CAP_GROUPS_LITE
+	);
+
+	const capLabels = applyFilters< Record< string, string > >(
+		'wepos_react_access_cap_labels',
+		CAP_LABELS_LITE
+	);
+
 	const tabChildren: SettingsElement[] = [];
 
 	roles.forEach( ( roleSlug: string, roleIdx: number ) => {
@@ -338,20 +345,26 @@ function buildAccessSchema(
 		const tabId = `access_tab_${ roleSlug }`;
 		const sectionChildren: SettingsElement[] = [];
 
-		CAP_GROUPS.forEach( ( group, groupIdx ) => {
-			const caps =
-				role.capabilities[
-					group.key as keyof typeof role.capabilities
-				];
-			if ( ! caps || Object.keys( caps ).length === 0 ) {
+		capGroups.forEach( ( group: { key: string; label: string }, groupIdx: number ) => {
+			const rawCaps = role.capabilities[ group.key ];
+			if ( ! rawCaps || Object.keys( rawCaps ).length === 0 ) {
 				return;
 			}
 
 			const sectionId = `access_${ roleSlug }_${ group.key }`;
 			const fieldChildren: SettingsElement[] = [];
 
-			Object.entries( caps ).forEach(
-				( [ cap, enabled ]: [ string, boolean ], capIdx: number ) => {
+			Object.entries( rawCaps ).forEach(
+				(
+					[ cap, enabled ]: [ string, boolean ],
+					capIdx: number
+				) => {
+					// Hide caps without a registered label — keeps unrecognized
+					// (e.g. inactive-extension) caps out of the UI.
+					if ( ! capLabels[ cap ] ) {
+						return;
+					}
+
 					const fieldKey = `access__${ roleSlug }__${ cap }`;
 
 					// Administrator caps are always ON and not toggleable.
@@ -361,7 +374,7 @@ function buildAccessSchema(
 						id: fieldKey,
 						type: 'field',
 						variant: 'switch',
-						label: CAP_LABELS[ cap ] || cap,
+						label: capLabels[ cap ],
 						dependency_key: fieldKey,
 						value: isLockedForAdmin ? 'yes' : enabled ? 'yes' : 'no',
 						default: isLockedForAdmin ? 'yes' : enabled ? 'yes' : 'no',
@@ -379,6 +392,10 @@ function buildAccessSchema(
 					} as unknown as SettingsElement );
 				}
 			);
+
+			if ( fieldChildren.length === 0 ) {
+				return;
+			}
 
 			sectionChildren.push( {
 				id: sectionId,
@@ -416,13 +433,16 @@ function buildAccessSchema(
 
 /**
  * Build full schema as hierarchical structure (page with children).
- * This ensures the formatter passes it through unchanged, preserving dependency_key.
+ *
+ * Extensions add subpages via `wepos_react_settings_schema`. The filter
+ * receives `{ accessData, response }` so handlers can use response data
+ * (currencies, permissions, etc.) when constructing their schema.
  */
 function buildSchema(
 	sections: WeposAdminData[ 'settings_sections' ],
 	fields: WeposAdminData[ 'settings_fields' ],
 	accessData: WeposAdminData[ 'access_data' ],
-	perms?: SectionPermissions
+	response: Record< string, unknown >
 ): SettingsElement[] {
 	const rootPage = {
 		id: 'wepos_settings',
@@ -451,58 +471,11 @@ function buildSchema(
 		rootPage.children!.push( ...accessSubpages );
 	}
 
-	// POS Settings subpage — always last, after Access. Hidden when
-	// view perms strip every section.
-	const posPriority =
-		( rootPage.children!.length + 1 ) * 10 + 100;
-	const posSubpage = buildPosSettingsSubpage( posPriority, perms );
-
-	if ( posSubpage ) {
-		rootPage.children!.push( posSubpage );
-	}
-
-	return [ rootPage ];
-}
-
-/**
- * Split `{ section.field: value }` back into REST-payload shape
- * `{ section: { field: value } }`, keeping only known POS Settings sections.
- */
-function groupPosSettingsBySection(
-	flat: Record< string, unknown >
-): Record< string, Record< string, unknown > > {
-	const grouped: Record< string, Record< string, unknown > > = {};
-	for ( const [ key, value ] of Object.entries( flat ) ) {
-		const dot = key.indexOf( '.' );
-		if ( dot < 0 ) continue;
-		const section = key.slice( 0, dot );
-		if ( ! POS_SETTINGS_SECTIONS.includes( section ) ) continue;
-		const field = key.slice( dot + 1 );
-		if ( ! grouped[ section ] ) grouped[ section ] = {};
-		grouped[ section ][ field ] = value;
-	}
-	return grouped;
-}
-
-/**
- * Flatten POS Settings sections from the REST response into dot-keyed map
- * (`woo_general.store_name`) for the plugin-ui values state.
- */
-function flattenPosSettings(
-	response: Record< string, unknown >
-): Record< string, unknown > {
-	const flat: Record< string, unknown > = {};
-	for ( const section of POS_SETTINGS_SECTIONS ) {
-		const bucket = response[ section ];
-		if ( bucket && typeof bucket === 'object' ) {
-			for ( const [ field, value ] of Object.entries(
-				bucket as Record< string, unknown >
-			) ) {
-				flat[ `${ section }.${ field }` ] = value;
-			}
-		}
-	}
-	return flat;
+	return applyFilters< SettingsElement[] >(
+		'wepos_react_settings_schema',
+		[ rootPage ],
+		{ accessData, response }
+	);
 }
 
 /* ─── Value helpers ────────────────────────────────────────────────────── */
@@ -544,14 +517,10 @@ const Settings = () => {
 	const [ values, setValues ] = useState< Record< string, unknown > >( {} );
 	const [ loading, setLoading ] = useState( true );
 	const [ saving, setSaving ] = useState( false );
-	const [ referenceData, setReferenceData ] = useState< ReferenceData >( {
-		currencies: {},
-		tax_classes: {},
-	} );
-	const [ permissions, setPermissions ] = useState< SectionPermissions >( {
-		can_view: {},
-		can_edit: {},
-	} );
+	// Raw REST response — passed to filter callbacks so extensions can
+	// extract response-specific data (reference data, permissions, …)
+	// without re-fetching.
+	const [ response, setResponse ] = useState< Record< string, unknown > >( {} );
 
 	const {
 		settings_sections: rawSections,
@@ -571,20 +540,17 @@ const Settings = () => {
 			? rawSections
 			: Object.values( rawSections || {} );
 
-	// Build the flat schema from PHP-provided data.
-	const schema = useMemo( () => {
-		const base = buildSchema(
-			settings_sections,
-			settings_fields,
-			accessData,
-			permissions
-		);
-
-		return applyFilters< SettingsElement[] >(
-			'wepos_react_settings_schema',
-			base
-		);
-	}, [ settings_sections, settings_fields, accessData, permissions ] );
+	// Build the schema from PHP-provided data + extension contributions.
+	const schema = useMemo(
+		() =>
+			buildSchema(
+				settings_sections,
+				settings_fields,
+				accessData,
+				response
+			),
+		[ settings_sections, settings_fields, accessData, response ]
+	);
 
 	// Load current settings values on mount via REST.
 	useEffect( () => {
@@ -593,7 +559,9 @@ const Settings = () => {
 			headers: { 'X-WP-Nonce': rest.nonce },
 		} )
 			.then( ( res ) => res.json() )
-			.then( ( response ) => {
+			.then( ( rawResponse ) => {
+				setResponse( rawResponse );
+
 				const defaults: Record< string, unknown > = {};
 
 				for ( const sectionFields of Object.values(
@@ -607,31 +575,8 @@ const Settings = () => {
 				}
 
 				const saved = flattenValues(
-					response as Record< string, Record< string, unknown > >
+					rawResponse as Record< string, Record< string, unknown > >
 				);
-
-				// Dot-keyed POS Settings values (woo_general.*, woo_tax.*, etc.)
-				const posSettings = flattenPosSettings(
-					response as Record< string, unknown >
-				);
-
-				// Reference data needed by custom POS Settings fields.
-				const typed = response as {
-					currencies?: ReferenceData[ 'currencies' ];
-					tax_classes?: ReferenceData[ 'tax_classes' ];
-					_permissions?: SectionPermissions;
-				};
-				setReferenceData( {
-					currencies: typed.currencies || {},
-					tax_classes: typed.tax_classes || {},
-				} );
-
-				if ( typed._permissions ) {
-					setPermissions( {
-						can_view: typed._permissions.can_view || {},
-						can_edit: typed._permissions.can_edit || {},
-					} );
-				}
 
 				// Merge access values from the pre-loaded access_data
 				const accessValues: Record< string, unknown > = {};
@@ -653,12 +598,19 @@ const Settings = () => {
 					}
 				}
 
-				setValues( {
-					...defaults,
-					...saved,
-					...posSettings,
-					...accessValues,
-				} );
+				// Extensions (e.g. Pro POS Settings) merge in their own values
+				// derived from the raw response.
+				const initial = applyFilters< Record< string, unknown > >(
+					'wepos_react_settings_initial_values',
+					{
+						...defaults,
+						...saved,
+						...accessValues,
+					},
+					rawResponse
+				);
+
+				setValues( initial );
 			} )
 			.catch( ( err ) => {
 				console.error( 'wePos: failed to load settings', err );
@@ -674,9 +626,9 @@ const Settings = () => {
 	);
 
 	/**
-	 * Save handler — routes access settings to their dedicated REST endpoint,
-	 * all other sections to the unified /wepos/v1/settings endpoint with
-	 * their section payload keyed by the admin section id.
+	 * Save handler — extension save handlers run first; if none claims the
+	 * scope, lite handles `wepos_access` via the dedicated access endpoint
+	 * and any other scope via `/wepos/v1/settings`.
 	 */
 	const handleSave = useCallback(
 		async (
@@ -684,6 +636,32 @@ const Settings = () => {
 			_treeValues: Record< string, unknown >,
 			flatValues: Record< string, unknown >
 		) => {
+			// Collect handlers contributed by extensions and try each in turn.
+			const handlers = applyFilters< SettingsSaveHandler[] >(
+				'wepos_react_settings_save_handlers',
+				[]
+			);
+			for ( const handler of handlers ) {
+				const result = await handler( {
+					scopeId,
+					flatValues,
+					rest,
+					setSaving,
+				} );
+				if ( result && result.handled ) {
+					if ( result.values ) {
+						setValues( ( prev ) => ( {
+							...prev,
+							...result.values!,
+						} ) );
+					}
+					if ( result.response ) {
+						setResponse( result.response );
+					}
+					return;
+				}
+			}
+
 			if ( scopeId === 'wepos_access' ) {
 				const applied = await saveAccessSettings(
 					flatValues,
@@ -700,22 +678,22 @@ const Settings = () => {
 						) ) {
 							const prevRole = next[ roleSlug ];
 							if ( ! prevRole ) continue;
-							const mergedCaps: typeof prevRole.capabilities = {
-								wepos: { ...prevRole.capabilities.wepos },
-								wc: { ...prevRole.capabilities.wc },
-								wp: { ...prevRole.capabilities.wp },
-								pages: { ...prevRole.capabilities.pages },
-								settings: {
-									...( prevRole.capabilities.settings || {} ),
-								},
-							};
+							const mergedCaps: Record<
+								string,
+								Record< string, boolean >
+							> = {};
+							for ( const [ g, caps ] of Object.entries(
+								prevRole.capabilities
+							) ) {
+								mergedCaps[ g ] = { ...caps };
+							}
 							for ( const [ group, caps ] of Object.entries(
 								capsData
 							) ) {
-								const target = mergedCaps[
-									group as keyof typeof mergedCaps
-								] as Record< string, boolean >;
-								Object.assign( target, caps );
+								if ( ! mergedCaps[ group ] ) {
+									mergedCaps[ group ] = {};
+								}
+								Object.assign( mergedCaps[ group ], caps );
 							}
 							next[ roleSlug ] = {
 								...prevRole,
@@ -731,13 +709,9 @@ const Settings = () => {
 			setSaving( true );
 
 			try {
-				let payload: Record< string, Record< string, unknown > > = {};
-
-				if ( scopeId === POS_SETTINGS_SUBPAGE_ID ) {
-					payload = groupPosSettingsBySection( flatValues );
-				} else {
-					payload[ scopeId ] = flatValues;
-				}
+				const payload: Record< string, Record< string, unknown > > = {
+					[ scopeId ]: flatValues,
+				};
 
 				const res = await fetch( `${ rest.root }wepos/v1/settings`, {
 					method: 'POST',
@@ -752,24 +726,6 @@ const Settings = () => {
 					throw new Error( 'save_failed' );
 				}
 
-				if ( scopeId === POS_SETTINGS_SUBPAGE_ID ) {
-					const updated = await res.clone().json();
-					setValues( ( prev ) => ( {
-						...prev,
-						...flattenPosSettings(
-							updated as Record< string, unknown >
-						),
-					} ) );
-					const typed = updated as {
-						currencies?: ReferenceData[ 'currencies' ];
-						tax_classes?: ReferenceData[ 'tax_classes' ];
-					};
-					setReferenceData( {
-						currencies: typed.currencies || {},
-						tax_classes: typed.tax_classes || {},
-					} );
-				}
-
 				toast.success(
 					__( 'Settings saved successfully.', 'wepos' )
 				);
@@ -782,44 +738,60 @@ const Settings = () => {
 		[ rest, accessData ]
 	);
 
+	const settingsUI = (
+		<SettingsUI
+			schema={ schema }
+			values={ values }
+			onChange={ handleChange }
+			onSave={ handleSave }
+			loading={ loading }
+			title={ __( 'Settings', 'wepos' ) }
+			hookPrefix="wepos"
+			applyFilters={ wpApplyFilters }
+			renderSaveButton={ ( { scopeId, dirty, onSave: save } ) => {
+				// Extensions can override the save button per scope.
+				// Returning `false` suppresses the button entirely;
+				// returning `null`/`undefined` falls through to lite's default.
+				const overridden = applyFilters< ReactNode | false | null >(
+					'wepos_react_settings_save_button',
+					null,
+					{ scopeId, dirty, save, saving, response }
+				);
+				if ( overridden === false ) {
+					return null;
+				}
+				if ( overridden !== null && overridden !== undefined ) {
+					return overridden as ReactNode;
+				}
+
+				return (
+					<Button
+						onClick={ save }
+						disabled={ ! dirty || saving }
+					>
+						{ saving ? (
+							<LoaderCircle className="size-4 mr-2 animate-spin" />
+						) : (
+							<Save className="size-4 mr-2" />
+						) }
+						{ __( 'Save Changes', 'wepos' ) }
+					</Button>
+				);
+			} }
+		/>
+	);
+
+	// Extensions can wrap the settings UI with their own context providers
+	// (e.g. wepos-pro injects the POS Settings reference-data context).
+	const wrappedSettingsUI = applyFilters< ReactNode >(
+		'wepos_react_settings_root_wrapper',
+		settingsUI,
+		{ response }
+	);
+
 	return (
 		<div className="wepos-admin-settings -mx-[20px] -mt-[10px]">
-			<ReferenceDataContext.Provider value={ referenceData }>
-				<SettingsUI
-					schema={ schema }
-					values={ values }
-					onChange={ handleChange }
-					onSave={ handleSave }
-					loading={ loading }
-					title={ __( 'Settings', 'wepos' ) }
-					hookPrefix="wepos"
-					applyFilters={ wpApplyFilters }
-					renderSaveButton={ ( { scopeId, dirty, onSave: save } ) => {
-						if ( scopeId === POS_SETTINGS_SUBPAGE_ID ) {
-							const canEditAny = POS_SETTINGS_SECTIONS.some(
-								( s ) => permissions.can_edit[ s ] !== false
-							);
-							if ( ! canEditAny ) {
-								return null;
-							}
-						}
-
-						return (
-							<Button
-								onClick={ save }
-								disabled={ ! dirty || saving }
-							>
-								{ saving ? (
-									<LoaderCircle className="size-4 mr-2 animate-spin" />
-								) : (
-									<Save className="size-4 mr-2" />
-								) }
-								{ __( 'Save Changes', 'wepos' ) }
-							</Button>
-						);
-					} }
-				/>
-			</ReferenceDataContext.Provider>
+			{ wrappedSettingsUI }
 		</div>
 	);
 };
@@ -828,7 +800,10 @@ const Settings = () => {
 
 /**
  * Save access capability changes via REST API.
- * Compares against the original data and only sends roles that have actual changes.
+ *
+ * Resolves each cap's group from the loaded `accessData` rather than
+ * pattern-matching cap names — this keeps the routing agnostic to which
+ * extension contributed any given group/cap (lite or Pro).
  */
 async function saveAccessSettings(
 	scopeValues: Record< string, unknown >,
@@ -848,23 +823,18 @@ async function saveAccessSettings(
 		const { role, cap } = parsed;
 		const enabled = value === 'yes' || value === true;
 
-		// Determine which group this cap belongs to
-		let group = 'wp';
-		if (
-			cap === 'access_wepos' ||
-			cap === 'manage_wepos' ||
-			cap === 'wepos_view_all_outlets'
-		) {
-			group = 'wepos';
-		} else if ( cap.startsWith( 'wepos_page_' ) ) {
-			group = 'pages';
-		} else if (
-			/^(view|edit)_(general|tax|barcode)_settings$/.test( cap )
-		) {
-			group = 'settings';
-		} else if ( cap !== 'read' ) {
-			group = 'wc';
+		const originalRole = originalAccessData?.[ role ];
+		if ( ! originalRole ) continue;
+
+		// Resolve the cap's group from the source-of-truth structure.
+		let group: string | null = null;
+		for ( const [ g, caps ] of Object.entries( originalRole.capabilities ) ) {
+			if ( Object.prototype.hasOwnProperty.call( caps, cap ) ) {
+				group = g;
+				break;
+			}
 		}
+		if ( ! group ) continue;
 
 		if ( ! roleUpdates[ role ] ) {
 			roleUpdates[ role ] = {};
@@ -886,11 +856,12 @@ async function saveAccessSettings(
 
 		for ( const [ group, caps ] of Object.entries( capsData ) ) {
 			const originalCaps =
-				originalRole.capabilities[
-					group as keyof typeof originalRole.capabilities
-				] || {};
+				( originalRole.capabilities[ group ] as Record<
+					string,
+					boolean
+				> ) || {};
 			for ( const [ cap, enabled ] of Object.entries( caps ) ) {
-				if ( ( originalCaps as Record< string, boolean > )[ cap ] !== enabled ) {
+				if ( originalCaps[ cap ] !== enabled ) {
 					hasChanges = true;
 					break;
 				}
