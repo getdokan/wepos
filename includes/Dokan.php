@@ -387,11 +387,11 @@ class Dokan {
                 'submenu'    => [],
             ];
 
-            $is_vendor_staff = (bool) apply_filters( 'wepos_is_vendor_staff', false );
-
-            // Vendor staff: hide View POS when access_wepos is revoked via the
-            // vendor's Access overlay. Vendors and admins always see it.
-            if ( ! $is_vendor_staff || current_user_can( 'access_wepos' ) ) {
+            // Hide View POS when access_wepos is revoked. For vendors the cap
+            // is set on the seller role by the admin Access matrix; for vendor
+            // staff it comes from the vendor's `_wepos_vendor_role_caps`
+            // overlay via the cap cascade. Same check covers both.
+            if ( current_user_can( 'access_wepos' ) ) {
                 $url['pos']['submenu']['view-pos'] = [
                     'title'  => __( 'View POS', 'wepos' ),
                     'icon'   => '<i class="fas fa-desktop"></i>',
