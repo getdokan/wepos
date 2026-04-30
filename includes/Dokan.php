@@ -384,16 +384,22 @@ class Dokan {
                 'url'        => dokan_get_navigation_url( 'pos' ),
                 'pos'        => 55,
                 'permission' => 'dokandar',
-                'submenu'    => [
-                    'view-pos' => [
-                        'title' => __( 'View POS', 'wepos' ),
-                        'icon'  => '<i class="fas fa-desktop"></i>',
-                        'url'   => untrailingslashit( get_site_url() ) . '/wepos/#',
-                        'pos'   => 50,
-                        'target' => '_blank',
-                    ],
-                ],
+                'submenu'    => [],
             ];
+
+            // Hide View POS when access_wepos is revoked. For vendors the cap
+            // is set on the seller role by the admin Access matrix; for vendor
+            // staff it comes from the vendor's `_wepos_vendor_role_caps`
+            // overlay via the cap cascade. Same check covers both.
+            if ( current_user_can( 'access_wepos' ) ) {
+                $url['pos']['submenu']['view-pos'] = [
+                    'title'  => __( 'View POS', 'wepos' ),
+                    'icon'   => '<i class="fas fa-desktop"></i>',
+                    'url'    => untrailingslashit( get_site_url() ) . '/wepos/#',
+                    'pos'    => 50,
+                    'target' => '_blank',
+                ];
+            }
         }
 
         return $url;
