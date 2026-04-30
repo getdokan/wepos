@@ -9,7 +9,7 @@ Author URI: https://wedevs.com/
 Text Domain: wepos
 Requires Plugins: woocommerce
 Domain Path: /languages
-WC requires at least: 8.5.0
+WC requires at least: 10.5.0
 WC tested up to: 10.7.0
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html

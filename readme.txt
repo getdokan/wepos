@@ -2,9 +2,9 @@
 Contributors: tareq1988, wedevs, nizamuddinbabu
 Donate Link: http://tareq.co/donate/
 Tags: WooCommerce POS, point of sale, free pos, pos plugin, woocommerce point of sale
-Requires at least: 6.5
+Requires at least: 6.8
 Tested up to: 6.9.4
-WC requires at least: 8.5.0
+WC requires at least: 10.5.0
 WC tested up to: 10.7.0
 Requires PHP: 7.4
 Stable tag: 2.0.0
