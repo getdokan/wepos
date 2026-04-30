@@ -3,14 +3,14 @@
 Plugin Name: wePOS - Point Of Sale (POS) for WooCommerce
 Plugin URI: https://wedevs.com/wepos
 Description: A beautiful and fast Point of Sale (POS) system for WooCommerce
-Version: 1.3.3
+Version: 2.0.0
 Author: weDevs
 Author URI: https://wedevs.com/
 Text Domain: wepos
 Requires Plugins: woocommerce
 Domain Path: /languages
-WC requires at least: 8.5.0
-WC tested up to: 10.1.2
+WC requires at least: 10.5.0
+WC tested up to: 10.7.0
 License: GPL2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 */
@@ -47,9 +47,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * WePOS class
+ * wePOS class
  *
- * @class WePOS The class that holds the entire WePOS plugin
+ * @class wePOS The class that holds the entire wePOS plugin
  */
 final class WePOS {
 
@@ -58,7 +58,7 @@ final class WePOS {
      *
      * @var string
      */
-    public $version = '1.3.3';
+    public $version = '2.0.0';
 
     /**
      * Holds various class instances
@@ -68,7 +68,7 @@ final class WePOS {
     private $container = [];
 
     /**
-     * Constructor for the WePOS class
+     * Constructor for the wePOS class
      *
      * Sets up all the appropriate hooks and actions
      * within our plugin.
@@ -212,9 +212,9 @@ final class WePOS {
     }
 
     /**
-     * Initializes the WePOS() class
+     * Initializes the wePOS() class
      *
-     * Checks for an existing WePOS() instance
+     * Checks for an existing wePOS() instance
      * and if it doesn't find one, creates it.
      *
      * @return \WePOS
@@ -275,6 +275,11 @@ final class WePOS {
      * @return void
      */
     public function init_plugin() {
+        // Manual unzip/file-replacement updates bypass activation hooks, so
+        // backfill default role capabilities here as a safe, idempotent sync.
+        $installer = new WeDevs\WePOS\Installer();
+        $installer->maybe_sync_capabilities();
+
         $this->init_hooks();
 
         do_action( 'wepos_loaded' );
@@ -301,6 +306,17 @@ final class WePOS {
      * @return void
      */
     public function deactivate() {
+        // Remove wepos capabilities from roles that received them on activation
+        $roles_to_clean = [ 'administrator', 'shop_manager', 'editor' ];
+        foreach ( $roles_to_clean as $role_slug ) {
+            $role = get_role( $role_slug );
+            if ( $role ) {
+                $role->remove_cap( 'access_wepos' );
+                $role->remove_cap( 'manage_wepos' );
+            }
+        }
+
+        // Legacy Dokan cleanup
         $users_query = new WP_User_Query( [
             'role__in' => [ 'seller', 'vendor_staff' ]
         ] );
@@ -340,9 +356,11 @@ final class WePOS {
      * @return void
      */
     public function init_classes() {
-        if ( is_admin() ) {
-            $this->container['admin']    = new WeDevs\WePOS\Admin\Admin();
-            $this->container['settings'] = new WeDevs\WePOS\Admin\Settings();
+        if (is_admin()) {
+            $this->container['admin']          = new WeDevs\WePOS\Admin\Admin();
+            $this->container['settings']       = new WeDevs\WePOS\Admin\Settings();
+            $this->container['dashboard']      = new WeDevs\WePOS\Admin\Dashboard();
+            $this->container['appearance']     = new WeDevs\WePOS\Admin\Appearance();
 
             new WeDevs\WePOS\Admin\Products();
             new WeDevs\WePOS\Admin\Updates();
@@ -358,7 +376,56 @@ final class WePOS {
 
         $this->container['common'] = new WeDevs\WePOS\Common();
         $this->container['rest']   = new WeDevs\WePOS\REST\Manager();
-        $this->container['assets'] = new WeDevs\WePOS\Assets();
+
+        // Use React assets instead of Vue.js assets
+        $layout_style = wepos_get_option( 'pos_layout_style', 'wepos_appearance', 'latest' );
+
+        if (is_admin()) {
+            $this->container['assets'] = new WeDevs\WePOS\Assets();
+        } else {
+            if ('latest' === $layout_style) {
+                $this->container['assets'] = new WeDevs\WePOS\ReactAssets();
+            } else {
+                $this->container['assets'] = new WeDevs\WePOS\Assets();
+
+                // Register the shared React components handle even when the
+                // legacy Vue frontend is active. Extensions (e.g. wepos-pro)
+                // may still enqueue their own React bundles that declare
+                // `wepos-react-components` as a dependency — without this
+                // registration WP_Scripts logs "called incorrectly" notices.
+                add_action( 'wepos_enqueue_scripts', [ $this, 'register_shared_react_handle' ], 5 );
+            }
+        }
+    }
+
+    /**
+     * Register the shared wepos-react-components script handle on the
+     * frontend so extensions that depend on it can enqueue cleanly even
+     * when the legacy Vue UI is the primary renderer.
+     *
+     * @return void
+     */
+    public function register_shared_react_handle() {
+        if ( wp_script_is( 'wepos-react-components', 'registered' ) ) {
+            return;
+        }
+
+        $asset_file = WEPOS_PATH . '/build/wepos-components.asset.php';
+        $script_file = WEPOS_PATH . '/build/wepos-components.js';
+
+        if ( ! file_exists( $script_file ) ) {
+            return;
+        }
+
+        $asset_data = file_exists( $asset_file ) ? include $asset_file : [ 'dependencies' => [], 'version' => WEPOS_VERSION ];
+
+        wp_register_script(
+            'wepos-react-components',
+            WEPOS_URL . '/build/wepos-components.js',
+            isset( $asset_data['dependencies'] ) ? $asset_data['dependencies'] : [],
+            isset( $asset_data['version'] ) ? $asset_data['version'] : WEPOS_VERSION,
+            true
+        );
     }
 
     /**
@@ -464,7 +531,7 @@ final class WePOS {
             add_action( 'shutdown', [ wc()->customer, 'save' ], 10 );
         }
     }
-} // WePOS
+} // wePOS
 
 function wepos() {
     return WePOS::init();

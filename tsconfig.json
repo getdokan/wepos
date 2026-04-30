@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "es6"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "declaration": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/frontend/*"],
+      "@/components/*": ["src/frontend/components/*"],
+      "@/pages/*": ["src/frontend/pages/*"],
+      "@/hooks/*": ["src/frontend/hooks/*"],
+      "@/utils/*": ["src/frontend/utils/*"],
+      "@/types/*": ["src/frontend/types/*"],
+      "@/api/*": ["src/frontend/api/*"],
+      "@/store/*": ["src/frontend/store/*"],
+      "@/styles/*": ["src/frontend/styles/*"],
+      "@admin/*": ["src/admin/*"],
+      "@wepos/components": ["src/index.ts"],
+      "@wepos/utils": ["src/index.ts"]
+    }
+  },
+  "include": ["src"],
+  "exclude": [
+    "node_modules",
+    "assets/src",
+    "vendor",
+    "tests"
+  ]
+}

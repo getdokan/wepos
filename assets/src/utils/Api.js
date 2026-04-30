@@ -1,4 +1,4 @@
-class WePos_API  {
+class wePos_API  {
 
     headers() {
         return {
@@ -45,4 +45,4 @@ class WePos_API  {
     }
 }
 
-export default WePos_API;
+export default wePos_API;

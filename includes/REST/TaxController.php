@@ -43,7 +43,7 @@ class TaxController extends \WC_REST_Taxes_V2_Controller {
      *
      */
     public function get_taxes_permissions_check() {
-        if ( ! ( current_user_can( 'manage_woocommerce' ) || apply_filters( 'wepos_rest_manager_permissions', false ) ) ) {
+        if ( ! ( wepos_current_user_can_manage() ) ) {
             return new \WP_Error( 'wepos_rest_cannot_batch', __( 'Sorry, you are not allowed view this resource.', 'wepos' ), array( 'status' => rest_authorization_required_code() ) );
         }
 

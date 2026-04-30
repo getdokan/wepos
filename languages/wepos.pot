@@ -1,480 +1,74 @@
-# Copyright (C) 2025 weDevs
-# This file is distributed under the GPL2.
+# Copyright (c) 2026 weDevs. All Rights Reserved.
 msgid ""
 msgstr ""
-"Project-Id-Version: wePOS - Point Of Sale (POS) for WooCommerce 1.3.3\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wepos\n"
-"POT-Creation-Date: 2025-09-12 03:53:36+00:00\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2025-MO-DA HO:MI+ZONE\n"
+"Project-Id-Version: wePOS - Point Of Sale (POS) for WooCommerce 2.0.0\n"
+"Report-Msgid-Bugs-To: https://wedevs.com/\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"X-Generator: wp-vue-i18n 1.1.4\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-04-30T12:57:34+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: wepos\n"
 
-#: assets/src/admin/components/ColorPicker.vue:9
-msgid "Select Color"
+#. Plugin Name of the plugin
+#: wepos.php
+msgid "wePOS - Point Of Sale (POS) for WooCommerce"
 msgstr ""
 
-#: assets/src/admin/components/ColorPicker.vue:25
-msgid "Clear"
+#. Plugin URI of the plugin
+#: wepos.php
+msgid "https://wedevs.com/wepos"
 msgstr ""
 
-#: assets/src/admin/components/ColorPicker.vue:31
-msgid "Close"
+#. Description of the plugin
+#: wepos.php
+msgid "A beautiful and fast Point of Sale (POS) system for WooCommerce"
 msgstr ""
 
-#: assets/src/admin/components/Fields.vue:167
-msgid "Active"
+#. Author of the plugin
+#: wepos.php
+msgid "weDevs"
 msgstr ""
 
-#: assets/src/admin/components/Fields.vue:171
-#: assets/src/admin/components/Settings.vue:136
-msgid "Select"
-msgstr ""
-
-#: assets/src/admin/components/Settings.vue:3 includes/Admin/Admin.php:32
-msgid "Settings"
-msgstr ""
-
-#: assets/src/admin/components/Settings.vue:8
-msgid "Dismiss this notice."
-msgstr ""
-
-#: assets/src/admin/components/Settings.vue:38
-msgid "Save Changes"
-msgstr ""
-
-#: assets/src/admin/components/Settings.vue:134
-msgid "Choose your file"
-msgstr ""
-
-#: assets/src/admin/components/TextEditor.vue:125
-#: assets/src/admin/components/TextEditor.vue:132
-#: assets/src/admin/components/TextEditor.vue:137
-msgid "Select an image"
-msgstr ""
-
-#: assets/src/admin/components/TextEditor.vue:180
-msgid "Please select an image,"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerNote.vue:4
-#: assets/src/frontend/components/CustomerNote.vue:8
-msgid "Add Note"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:27
-msgid "Search customer"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:44
-msgid "No customer found"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:48
-#: assets/src/frontend/components/ProductSearch.vue:39
-msgid "to navigate"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:51
-#: assets/src/frontend/components/ProductSearch.vue:42
-msgid "to select"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:54
-#: assets/src/frontend/components/ProductSearch.vue:45
-msgid "to dismiss"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:60
-msgid "Add New Customer"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:71
-msgid "First Name*"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:72
-msgid "Last Name"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:75
-msgid "Email*"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:78
-msgid "Address 1"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:79
-msgid "Address 2 (optional)"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:89
-msgid "Select a country"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:103
-#: assets/src/frontend/components/CustomerSearch.vue:128
-msgid "No country found"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:106
-msgid "Country (optional)"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:115
-msgid "Select a state"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:133
-msgid "States (optional)"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:137
-msgid "City (optional)"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:138
-msgid "Zip/Postal Code (optional)"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:141
-msgid "Phone (optional)"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:148
-msgid "Add Customer"
-msgstr ""
-
-#: assets/src/frontend/components/CustomerSearch.vue:335
-msgid "Please enter an email address for customer"
-msgstr ""
-
-#: assets/src/frontend/components/FeeKeypad.vue:4
-msgid "Add"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:16
-msgid "Select a category"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:35
-msgid "Not found"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:69
-#: assets/src/frontend/components/Home.vue:82
-#: assets/src/frontend/components/Home.vue:100
-#: assets/src/frontend/components/Home.vue:108
-msgid "Price :"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:78
-msgid "Sku :"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:118
-#: assets/src/frontend/components/ProductSearch.vue:50
-msgid "Select Variations"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:138
-#: assets/src/frontend/components/ProductSearch.vue:70
-msgid "Add Product"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:146
-msgid "No Product Found"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:168
-#: assets/src/frontend/components/Home.vue:245
-msgid "Empty Cart"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:169
-msgid "Help"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:176
-msgid "Logout"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:193
-#: assets/src/frontend/components/PrintReceiptHtml.vue:13
-msgid "Product"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:194
-msgid "Qty"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:195
-msgid "Price"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:231
-#: assets/src/frontend/components/PrintReceiptHtml.vue:14
-msgid "Quantity"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:258
-#: assets/src/frontend/components/Home.vue:487
-#: assets/src/frontend/components/PrintReceiptHtml.vue:50
-msgid "Subtotal"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:260
-#: assets/src/frontend/components/Home.vue:489
-#: assets/src/frontend/components/PrintReceiptHtml.vue:52
-msgid "Including Tax"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:270
-#: assets/src/frontend/components/Home.vue:302
-#: assets/src/frontend/components/Home.vue:337
-#: assets/src/frontend/components/Home.vue:498
-#: assets/src/frontend/components/Home.vue:511
-#: assets/src/frontend/components/Home.vue:1015
-#: assets/src/frontend/components/PrintReceiptHtml.vue:58
-msgid "Discount"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:277
-#: assets/src/frontend/components/Home.vue:309
-msgid "Fee Name"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:278
-#: assets/src/frontend/components/Home.vue:310
-#: assets/src/frontend/components/PrintReceiptHtml.vue:15
-msgid "Total"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:280
-#: assets/src/frontend/components/Home.vue:312
-msgid "Taxable"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:285
-#: assets/src/frontend/components/Home.vue:317
-msgid "Apply"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:286
-#: assets/src/frontend/components/Home.vue:318
-msgid "Cancel"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:291
-#: assets/src/frontend/components/Home.vue:323
-#: assets/src/frontend/components/Home.vue:338
-#: assets/src/frontend/components/Home.vue:502
-#: assets/src/frontend/components/Home.vue:515
-#: assets/src/frontend/components/Home.vue:1037
-#: assets/src/frontend/components/PrintReceiptHtml.vue:62
-msgid "Fee"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:331
-#: assets/src/frontend/components/PrintReceiptHtml.vue:66
-msgid "Fee Tax"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:331
-#: assets/src/frontend/components/Home.vue:521
-msgid "Tax"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:349
-msgid "Pay Now"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:365
-msgid "Sale Completed"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:372
-msgid "New Sale"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:382
-msgid "Shortcut Keys"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:386
-msgid "Search Product"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:390
-msgid "Scan Product"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:394
-msgid "Toggle Product View"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:398
-msgid "Add Fee in cart"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:402
-msgid "Add Discount in cart"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:406
-msgid "Add Customer note"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:410
-msgid "Customer Search"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:414
-msgid "Add new Customer"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:418
-msgid "Create New Sale"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:422
-msgid "Empty your cart"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:426
-msgid "Go to payment receipt"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:430
-#: assets/src/frontend/components/Home.vue:596
-msgid "Process Payment"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:434
-#: assets/src/frontend/components/PrintReceipt.vue:5
-msgid "Print Receipt"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:438
-msgid "Show/Close(Toggle) Help"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:442
-msgid "Close anything"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:454
-msgid "Sale Summary"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:525
-#: assets/src/frontend/components/PrintReceiptHtml.vue:73
-msgid "Order Total"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:529
-#: assets/src/frontend/components/Home.vue:537
-msgid "Pay"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:557
-msgid "No gateway found"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:565 includes/Gateways/Cash.php:42
-#: includes/Gateways/Cash.php:67
-msgid "Cash"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:573
-msgid "Change money"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:777
-#: assets/src/frontend/components/Home.vue:1216
-#: assets/src/frontend/components/Home.vue:1244
-msgid "All categories"
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:942
-msgid "Failed to process the payment."
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:947
-msgid "Failed to process the order."
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:1139
-msgid "This product is out of stock."
-msgstr ""
-
-#: assets/src/frontend/components/Home.vue:1155
-msgid "Product is out of stock!"
-msgstr ""
-
-#: assets/src/frontend/components/PrintReceiptHtml.vue:5
-msgid "Order ID"
-msgstr ""
-
-#: assets/src/frontend/components/PrintReceiptHtml.vue:6
-msgid "Order Date"
-msgstr ""
-
-#: assets/src/frontend/components/PrintReceiptHtml.vue:25
-msgid "Tax includes"
-msgstr ""
-
-#: assets/src/frontend/components/PrintReceiptHtml.vue:66
-msgid "Tax Total"
-msgstr ""
-
-#: assets/src/frontend/components/PrintReceiptHtml.vue:77
-msgid "Payment method"
-msgstr ""
-
-#: assets/src/frontend/components/PrintReceiptHtml.vue:82
-msgid "Cash Given"
-msgstr ""
-
-#: assets/src/frontend/components/PrintReceiptHtml.vue:86
-msgid "Change Money"
-msgstr ""
-
-#: assets/src/frontend/components/ProductSearch.vue:35
-msgid "No product found"
-msgstr ""
-
-#: assets/src/frontend/components/ProductSearch.vue:120
-msgid "Scan your product"
-msgstr ""
-
-#: assets/src/frontend/components/ProductSearch.vue:120
-msgid "Search product by typing"
-msgstr ""
-
-#: assets/src/utils/Mixin.js:98
-msgid "Confirm"
-msgstr ""
-
-#: dependencies/Appsero/Insights.php:725
-#: vendor/appsero/client/src/Insights.php:725
-msgid "Once Weekly"
+#. Author URI of the plugin
+#: wepos.php
+msgid "https://wedevs.com/"
 msgstr ""
 
 #: includes/Admin/Admin.php:27
-msgid "WePOS"
+#: build/wepos-admin-react.js:1
+msgid "wePOS"
 msgstr ""
 
-#: includes/Admin/Admin.php:37 includes/Dokan.php:134 includes/Frontend.php:130
+#: includes/Admin/Admin.php:37
+#: languages/wepos.php:8
+#: assets/js/admin.js:1578
+#: build/wepos-admin-react.js:1
+msgid "Settings"
+msgstr ""
+
+#: includes/Admin/Admin.php:43
+#: includes/Dokan.php:396
+#: includes/Frontend.php:139
 msgid "View POS"
 msgstr ""
 
-#: includes/Admin/Admin.php:101
+#: includes/Admin/Admin.php:123
 msgid "Is POS"
+msgstr ""
+
+#: includes/Admin/Appearance.php:39
+#: includes/Admin/Appearance.php:40
+#: build/wepos-appearance.js:1
+msgid "Appearance"
+msgstr ""
+
+#: includes/Admin/Dashboard.php:34
+#: includes/Admin/Dashboard.php:35
+msgid "Dashboard"
 msgstr ""
 
 #: includes/Admin/LimitedTimePromotion.php:77
@@ -485,17 +79,59 @@ msgstr ""
 msgid "You have no permission to do that"
 msgstr ""
 
-#: includes/Admin/LimitedTimePromotion.php:166 includes/Admin/Settings.php:39
+#: includes/Admin/LimitedTimePromotion.php:166
+#: includes/Admin/Settings.php:39
 #: includes/Admin/Settings.php:66
 msgid "Invalid nonce"
 msgstr ""
 
-#: includes/Admin/Products.php:38 includes/Admin/Products.php:69
+#: includes/Admin/Products.php:67
+#: includes/Admin/Products.php:98
 msgid "Barcode"
 msgstr ""
 
-#: includes/Admin/Products.php:41 includes/Admin/Products.php:72
+#: includes/Admin/Products.php:70
+#: includes/Admin/Products.php:101
 msgid "Enter your unique barcode number or text for this product"
+msgstr ""
+
+#: includes/Admin/Products.php:175
+msgid "POS visibility:"
+msgstr ""
+
+#: includes/Admin/Products.php:178
+msgid "Edit"
+msgstr ""
+
+#: includes/Admin/Products.php:192
+msgid "OK"
+msgstr ""
+
+#: includes/Admin/Products.php:193
+#: languages/wepos.php:58
+#: assets/js/frontend.js:3618
+#: assets/js/frontend.js:3802
+#: build/wepos-react.js:1
+msgid "Cancel"
+msgstr ""
+
+#: includes/Admin/Products.php:290
+msgid "POS Visibility"
+msgstr ""
+
+#: includes/Admin/Products.php:467
+#: includes/Common.php:32
+msgid "POS & Online"
+msgstr ""
+
+#: includes/Admin/Products.php:468
+#: includes/Common.php:33
+msgid "POS Only"
+msgstr ""
+
+#: includes/Admin/Products.php:469
+#: includes/Common.php:34
+msgid "Online Only"
 msgstr ""
 
 #: includes/Admin/Settings.php:33
@@ -515,7 +151,7 @@ msgid "Setting has been saved successfully."
 msgstr ""
 
 #: includes/Admin/Updates.php:74
-msgid "WePOS Data Update Required"
+msgid "wePOS Data Update Required"
 msgstr ""
 
 #: includes/Admin/Updates.php:74
@@ -527,29 +163,196 @@ msgid "Run the updater"
 msgstr ""
 
 #: includes/Admin/Updates.php:80
-msgid ""
-"It is strongly recommended that you backup your database before proceeding. "
-"Are you sure you wish to run the updater now?"
+msgid "It is strongly recommended that you backup your database before proceeding. Are you sure you wish to run the updater now?"
 msgstr ""
 
-#: includes/Dokan.php:154
+#: includes/Common.php:125
+#: includes/Common.php:147
+msgctxt "Order status"
+msgid "POS - Open"
+msgstr ""
+
+#: includes/Common.php:130
+#, php-format
+msgid "POS - Open <span class=\"count\">(%s)</span>"
+msgid_plural "POS - Open <span class=\"count\">(%s)</span>"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/Dokan.php:382
+msgid "wePos"
+msgstr ""
+
+#: includes/Dokan.php:418
 msgid "Show POS menu"
 msgstr ""
 
-#: includes/Dokan.php:155
+#: includes/Dokan.php:419
 msgid "Show POS menu in vendor dashboard"
 msgstr ""
 
-#: includes/Dokan.php:159 includes/functions.php:185
+#: includes/Dokan.php:423
+#: includes/functions.php:194
 msgid "Yes"
 msgstr ""
 
-#: includes/Dokan.php:160 includes/functions.php:186
+#: includes/Dokan.php:424
+#: includes/functions.php:195
 msgid "No"
 msgstr ""
 
-#: includes/Frontend.php:111
+#: includes/Dokan.php:999
+#: build/wepos-admin-react.js:1
+msgid "Access POS"
+msgstr ""
+
+#: includes/Dokan.php:1000
+#: build/wepos-admin-react.js:1
+msgid "Manage POS"
+msgstr ""
+
+#: includes/Dokan.php:1001
+msgid "View General Settings"
+msgstr ""
+
+#: includes/Dokan.php:1002
+msgid "Edit General Settings"
+msgstr ""
+
+#: includes/Dokan.php:1003
+msgid "View Tax Settings"
+msgstr ""
+
+#: includes/Dokan.php:1004
+msgid "Edit Tax Settings"
+msgstr ""
+
+#: includes/Dokan.php:1005
+msgid "View Barcode Settings"
+msgstr ""
+
+#: includes/Dokan.php:1006
+msgid "Edit Barcode Settings"
+msgstr ""
+
+#: includes/Dokan.php:1043
+msgid "wePOS Permissions"
+msgstr ""
+
+#: includes/Dokan.php:1181
+msgid "Your store currently does not have POS access. Staff toggles under wePOS Permissions will stay disabled until the site administrator enables POS access for your store."
+msgstr ""
+
+#: includes/Dokan.php:1182
+msgid "Your store cannot manage POS settings. Staff members granted Manage POS here will only be able to view POS content until POS management is enabled for your store."
+msgstr ""
+
+#: includes/Frontend.php:50
+msgid "You do not have sufficient permissions to access this page."
+msgstr ""
+
+#: includes/Frontend.php:51
+msgid "Access Denied"
+msgstr ""
+
+#: includes/Frontend.php:120
 msgid "Point of Sale"
+msgstr ""
+
+#: includes/functions.php:132
+msgid "- select -"
+msgstr ""
+
+#: includes/functions.php:155
+#: build/wepos-appearance.js:1
+msgid "General"
+msgstr ""
+
+#: includes/functions.php:160
+msgid "Receipts"
+msgstr ""
+
+#: includes/functions.php:169
+#: build/wepos-admin-react.js:1
+msgid "Access"
+msgstr ""
+
+#: includes/functions.php:189
+msgid "Calculate tax for Fee"
+msgstr ""
+
+#: includes/functions.php:190
+msgid "Choose if tax caluclate for fee in POS cart and checkout"
+msgstr ""
+
+#: includes/functions.php:200
+msgid "Barcode Scanner field"
+msgstr ""
+
+#: includes/functions.php:201
+msgid "Choose your barcode field. If you select <code>Custom Field</code> then you need to set barcode number manually in product edit page"
+msgstr ""
+
+#: includes/functions.php:205
+#: build/wepos-react.js:1
+msgid "ID"
+msgstr ""
+
+#: includes/functions.php:206
+#: build/wepos-react.js:1
+msgid "SKU"
+msgstr ""
+
+#: includes/functions.php:207
+msgid "Custom field"
+msgstr ""
+
+#: includes/functions.php:212
+msgid "Enable POS only products"
+msgstr ""
+
+#: includes/functions.php:213
+msgid "Enable per-product POS visibility control (POS & Online / POS Only / Online Only)."
+msgstr ""
+
+#: includes/functions.php:219
+msgid "Enable decimal quantities"
+msgstr ""
+
+#: includes/functions.php:220
+msgid "Allow cashiers to enter fractional product quantities in the POS cart and admin stock inputs."
+msgstr ""
+
+#: includes/functions.php:228
+msgid "Order receipt header"
+msgstr ""
+
+#: includes/functions.php:229
+msgid "Enter your order receipt header"
+msgstr ""
+
+#: includes/functions.php:235
+msgid "Order receipt footer"
+msgstr ""
+
+#: includes/functions.php:236
+msgid "Enter your order receipt footer text"
+msgstr ""
+
+#: includes/functions.php:238
+msgid "Thank you"
+msgstr ""
+
+#: includes/functions.php:527
+msgid "You do not have access to this resource."
+msgstr ""
+
+#: includes/Gateways/Cash.php:42
+#: includes/Gateways/Cash.php:67
+#: languages/wepos.php:85
+#: assets/js/frontend.js:4165
+#: build/wepos-react.js:1
+msgid "Cash"
 msgstr ""
 
 #: includes/Gateways/Cash.php:43
@@ -588,8 +391,9 @@ msgstr ""
 msgid "Payment collected via cash"
 msgstr ""
 
-#: includes/Gateways/Cash.php:116
 #. translators: 1: Cash tendered amount 2: Cash change amount.
+#: includes/Gateways/Cash.php:116
+#, php-format
 msgid "Cash tendered amount: %1$s, Change amount: %2$s"
 msgstr ""
 
@@ -597,9 +401,27 @@ msgstr ""
 msgid "Refund failed."
 msgstr ""
 
-#: includes/Gateways/Cash.php:150
 #. translators: 1: Refund amount, 2: Refund reason
+#: includes/Gateways/Cash.php:150
+#, php-format
 msgid "Refunded %1$s - Reason: %2$s"
+msgstr ""
+
+#: includes/REST/AccessController.php:168
+#: includes/REST/SettingController.php:159
+msgid "Sorry, you are not allowed to view this resource."
+msgstr ""
+
+#: includes/REST/AccessController.php:189
+msgid "Sorry, you are not allowed to update access settings."
+msgstr ""
+
+#: includes/REST/AccessController.php:231
+msgid "Please update one role at a time."
+msgstr ""
+
+#: includes/REST/AccessController.php:242
+msgid "Invalid role."
 msgstr ""
 
 #: includes/REST/CustomerController.php:42
@@ -614,14 +436,25 @@ msgstr ""
 msgid "New user password."
 msgstr ""
 
-#: includes/REST/CustomerController.php:69
-#: includes/REST/CustomerController.php:85
-#: includes/REST/ProductController.php:47
-#: includes/REST/SettingController.php:51 includes/REST/TaxController.php:47
-msgid "Sorry, you are not allowed view this resource."
+#: includes/REST/CustomerController.php:67
+#: includes/REST/CustomerController.php:81
+msgid "Unique identifier for the resource."
 msgstr ""
 
-#: includes/REST/Manager.php:183
+#: includes/REST/CustomerController.php:118
+msgid "Sorry, you are not allowed to create customers."
+msgstr ""
+
+#: includes/REST/CustomerController.php:135
+msgid "Sorry, you are not allowed to update customers."
+msgstr ""
+
+#: includes/REST/CustomerController.php:151
+msgid "Sorry, you are not allowed to view customers."
+msgstr ""
+
+#: includes/REST/Manager.php:184
+#, php-format
 msgid "The item %s already out of stock. Please remove this from cart"
 msgstr ""
 
@@ -637,106 +470,1350 @@ msgstr ""
 msgid "No payment gateway found for processing this payment"
 msgstr ""
 
-#: includes/functions.php:132
-msgid "- select -"
+#: includes/REST/ProductController.php:47
+msgid "Limit result set to products that are low in stock."
 msgstr ""
 
-#: includes/functions.php:155
-msgid "General"
+#: includes/REST/ProductController.php:65
+#: includes/REST/TaxController.php:47
+msgid "Sorry, you are not allowed view this resource."
 msgstr ""
 
-#: includes/functions.php:160
-msgid "Receipts"
+#: includes/REST/SettingController.php:177
+msgid "Sorry, you are not allowed to update this resource."
 msgstr ""
 
-#: includes/functions.php:180
-msgid "Calculate tax for Fee"
+#: includes/REST/SettingController.php:231
+msgid "Standard"
 msgstr ""
 
-#: includes/functions.php:181
-msgid "Choose if tax caluclate for fee in POS cart and checkout"
+#: includes/REST/SettingController.php:953
+msgid "Standard rate"
 msgstr ""
 
-#: includes/functions.php:191
-msgid "Barcode Scanner field"
+#: languages/wepos.php:3
+#: assets/js/admin.js:886
+msgid "Select Color"
 msgstr ""
 
-#: includes/functions.php:192
-msgid ""
-"Choose your barcode field. If you select <code>Custom Field</code> then you "
-"need to set barcode number manually in product edit page"
+#: languages/wepos.php:4
+#: assets/js/admin.js:911
+msgid "Clear"
 msgstr ""
 
-#: includes/functions.php:196
-msgid "ID"
+#: languages/wepos.php:5
+#: assets/js/admin.js:919
+#: build/wepos-react.js:1
+msgid "Close"
 msgstr ""
 
-#: includes/functions.php:197
-msgid "SKU"
+#: languages/wepos.php:6
+#: assets/js/admin.js:1531
+msgid "Active"
 msgstr ""
 
-#: includes/functions.php:198
-msgid "Custom field"
+#: languages/wepos.php:7
+#: assets/js/admin.js:783
+#: assets/js/admin.js:1548
+msgid "Select"
 msgstr ""
 
-#: includes/functions.php:205
-msgid "Order receipt header"
+#: languages/wepos.php:9
+#: assets/js/admin.js:1604
+msgid "Dismiss this notice."
 msgstr ""
 
-#: includes/functions.php:206
-msgid "Enter your order receipt header"
+#: languages/wepos.php:10
+#: assets/js/admin.js:1685
+#: build/wepos-admin-react.js:1
+#: build/wepos-appearance.js:1
+msgid "Save Changes"
 msgstr ""
 
-#: includes/functions.php:212
-msgid "Order receipt footer"
+#: languages/wepos.php:11
+#: assets/js/admin.js:781
+msgid "Choose your file"
 msgstr ""
 
-#: includes/functions.php:213
-msgid "Enter your order receipt footer text"
+#: languages/wepos.php:12
+#: assets/js/bootstrap.js:645
+#: assets/js/bootstrap.js:650
+#: assets/js/bootstrap.js:655
+msgid "Select an image"
 msgstr ""
 
-#: includes/functions.php:215
-msgid "Thank you"
+#: languages/wepos.php:13
+#: assets/js/bootstrap.js:688
+msgid "Please select an image,"
+msgstr ""
+
+#: languages/wepos.php:14
+#: assets/js/frontend.js:2243
+#: assets/js/frontend.js:2280
+#: build/wepos-react.js:1
+msgid "Add Note"
+msgstr ""
+
+#: languages/wepos.php:15
+#: assets/js/frontend.js:2421
+#: build/wepos-react.js:1
+msgid "Search customer"
+msgstr ""
+
+#: languages/wepos.php:16
+#: assets/js/frontend.js:2502
+#: build/wepos-react.js:1
+msgid "No customer found"
+msgstr ""
+
+#: languages/wepos.php:17
+#: assets/js/frontend.js:2508
+#: assets/js/frontend.js:4773
+#: build/wepos-react.js:1
+msgid "to navigate"
+msgstr ""
+
+#: languages/wepos.php:18
+#: assets/js/frontend.js:2512
+#: assets/js/frontend.js:4777
+#: build/wepos-react.js:1
+msgid "to select"
+msgstr ""
+
+#: languages/wepos.php:19
+#: assets/js/frontend.js:2514
+#: assets/js/frontend.js:4779
+#: build/wepos-react.js:1
+msgid "to dismiss"
+msgstr ""
+
+#: languages/wepos.php:20
+#: assets/js/frontend.js:2516
+#: build/wepos-react.js:1
+msgid "Add New Customer"
+msgstr ""
+
+#: languages/wepos.php:21
+#: assets/js/frontend.js:2545
+#: build/wepos-react.js:1
+msgid "First Name*"
+msgstr ""
+
+#: languages/wepos.php:22
+#: assets/js/frontend.js:2565
+#: build/wepos-react.js:1
+msgid "Last Name"
+msgstr ""
+
+#: languages/wepos.php:23
+#: assets/js/frontend.js:2587
+#: build/wepos-react.js:1
+msgid "Email*"
+msgstr ""
+
+#: languages/wepos.php:24
+#: assets/js/frontend.js:2609
+#: build/wepos-react.js:1
+msgid "Address 1"
+msgstr ""
+
+#: languages/wepos.php:25
+#: assets/js/frontend.js:2629
+#: build/wepos-react.js:1
+msgid "Address 2 (optional)"
+msgstr ""
+
+#: languages/wepos.php:26
+#: assets/js/frontend.js:2653
+#: build/wepos-react.js:1
+msgid "Select a country"
+msgstr ""
+
+#: languages/wepos.php:27
+#: assets/js/frontend.js:2691
+#: assets/js/frontend.js:2738
+msgid "No country found"
+msgstr ""
+
+#: languages/wepos.php:28
+msgid "Country (optional)"
+msgstr ""
+
+#: languages/wepos.php:29
+#: assets/js/frontend.js:2701
+#: build/wepos-react.js:1
+msgid "Select a state"
+msgstr ""
+
+#: languages/wepos.php:30
+#: assets/js/frontend.js:2747
+#: build/wepos-react.js:1
+msgid "States (optional)"
+msgstr ""
+
+#: languages/wepos.php:31
+#: assets/js/frontend.js:2769
+#: build/wepos-react.js:1
+msgid "City (optional)"
+msgstr ""
+
+#: languages/wepos.php:32
+#: assets/js/frontend.js:2789
+#: build/wepos-react.js:1
+msgid "Zip/Postal Code (optional)"
+msgstr ""
+
+#: languages/wepos.php:33
+#: assets/js/frontend.js:2811
+#: build/wepos-react.js:1
+msgid "Phone (optional)"
+msgstr ""
+
+#: languages/wepos.php:34
+#: assets/js/frontend.js:2834
+#: build/wepos-react.js:1
+msgid "Add Customer"
+msgstr ""
+
+#: languages/wepos.php:35
+#: assets/js/frontend.js:771
+msgid "Please enter an email address for customer"
+msgstr ""
+
+#: languages/wepos.php:36
+#: assets/js/frontend.js:2880
+#: build/wepos-react.js:1
+msgid "Add"
+msgstr ""
+
+#: languages/wepos.php:37
+#: assets/js/frontend.js:2973
+#: build/wepos-react.js:1
+msgid "Select a category"
+msgstr ""
+
+#: languages/wepos.php:38
+#: assets/js/frontend.js:3005
+msgid "Not found"
+msgstr ""
+
+#: languages/wepos.php:39
+#: assets/js/frontend.js:3084
+#: assets/js/frontend.js:3101
+#: assets/js/frontend.js:3137
+#: assets/js/frontend.js:3150
+msgid "Price :"
+msgstr ""
+
+#: languages/wepos.php:40
+#: assets/js/frontend.js:3097
+msgid "Sku :"
+msgstr ""
+
+#: languages/wepos.php:41
+#: assets/js/frontend.js:3162
+#: assets/js/frontend.js:4781
+#: build/wepos-react.js:1
+msgid "Select Variations"
+msgstr ""
+
+#: languages/wepos.php:42
+#: assets/js/frontend.js:3205
+#: assets/js/frontend.js:4837
+#: build/wepos-react.js:1
+msgid "Add Product"
+msgstr ""
+
+#: languages/wepos.php:43
+#: assets/js/frontend.js:3214
+#: build/wepos-react.js:1
+msgid "No Product Found"
+msgstr ""
+
+#: languages/wepos.php:44
+#: assets/js/frontend.js:3266
+#: assets/js/frontend.js:3447
+#: build/wepos-react.js:1
+msgid "Empty Cart"
+msgstr ""
+
+#: languages/wepos.php:45
+#: assets/js/frontend.js:3278
+#: build/wepos-react.js:1
+msgid "Help"
+msgstr ""
+
+#: languages/wepos.php:46
+#: assets/js/frontend.js:3297
+#: build/wepos-react.js:1
+msgid "Logout"
+msgstr ""
+
+#: languages/wepos.php:47
+#: assets/js/frontend.js:3312
+#: assets/js/frontend.js:4448
+#: assets/js/frontend.js:4688
+#: build/wepos-react.js:1
+msgid "Product"
+msgstr ""
+
+#: languages/wepos.php:48
+#: assets/js/frontend.js:3316
+#: build/wepos-react.js:1
+msgid "Qty"
+msgstr ""
+
+#: languages/wepos.php:49
+#: assets/js/frontend.js:3320
+#: build/wepos-react.js:1
+msgid "Price"
+msgstr ""
+
+#: languages/wepos.php:50
+#: assets/js/frontend.js:3387
+#: assets/js/frontend.js:4450
+msgid "Quantity"
+msgstr ""
+
+#: languages/wepos.php:51
+#: assets/js/frontend.js:3459
+#: assets/js/frontend.js:4059
+#: assets/js/frontend.js:4483
+#: build/wepos-react.js:1
+msgid "Subtotal"
+msgstr ""
+
+#: languages/wepos.php:52
+#: assets/js/frontend.js:3461
+#: assets/js/frontend.js:4061
+#: assets/js/frontend.js:4485
+#: build/wepos-react.js:1
+msgid "Including Tax"
+msgstr ""
+
+#: languages/wepos.php:53
+#: assets/js/frontend.js:1322
+#: assets/js/frontend.js:3470
+#: assets/js/frontend.js:3654
+#: assets/js/frontend.js:3849
+#: assets/js/frontend.js:4068
+#: assets/js/frontend.js:4084
+#: assets/js/frontend.js:4495
+#: build/wepos-react.js:1
+msgid "Discount"
+msgstr ""
+
+#: languages/wepos.php:54
+#: assets/js/frontend.js:3500
+#: assets/js/frontend.js:3684
+#: build/wepos-react.js:1
+msgid "Fee Name"
+msgstr ""
+
+#: languages/wepos.php:55
+#: assets/js/frontend.js:3525
+#: assets/js/frontend.js:3709
+#: assets/js/frontend.js:4452
+#: build/wepos-react.js:1
+msgid "Total"
+msgstr ""
+
+#: languages/wepos.php:56
+#: assets/js/frontend.js:3575
+#: assets/js/frontend.js:3759
+#: build/wepos-react.js:1
+msgid "Taxable"
+msgstr ""
+
+#: languages/wepos.php:57
+#: assets/js/frontend.js:3610
+#: assets/js/frontend.js:3794
+msgid "Apply"
+msgstr ""
+
+#: languages/wepos.php:59
+#: assets/js/frontend.js:1347
+#: assets/js/frontend.js:3635
+#: assets/js/frontend.js:3819
+#: assets/js/frontend.js:3857
+#: assets/js/frontend.js:4074
+#: assets/js/frontend.js:4090
+#: assets/js/frontend.js:4508
+#: build/wepos-react.js:1
+msgid "Fee"
+msgstr ""
+
+#: languages/wepos.php:60
+#: assets/js/frontend.js:3837
+#: assets/js/frontend.js:4518
+#: build/wepos-react.js:1
+msgid "Fee Tax"
+msgstr ""
+
+#: languages/wepos.php:61
+#: assets/js/frontend.js:3837
+#: assets/js/frontend.js:4099
+#: build/wepos-react.js:1
+msgid "Tax"
+msgstr ""
+
+#: languages/wepos.php:62
+#: assets/js/frontend.js:3891
+msgid "Pay Now"
+msgstr ""
+
+#: languages/wepos.php:63
+#: assets/js/frontend.js:3915
+#: build/wepos-react.js:1
+msgid "Sale Completed"
+msgstr ""
+
+#: languages/wepos.php:64
+#: assets/js/frontend.js:3929
+#: build/wepos-react.js:1
+msgid "New Sale"
+msgstr ""
+
+#: languages/wepos.php:65
+#: assets/js/frontend.js:3943
+#: build/wepos-react.js:1
+msgid "Shortcut Keys"
+msgstr ""
+
+#: languages/wepos.php:66
+#: assets/js/frontend.js:3947
+msgid "Search Product"
+msgstr ""
+
+#: languages/wepos.php:67
+#: assets/js/frontend.js:3951
+msgid "Scan Product"
+msgstr ""
+
+#: languages/wepos.php:68
+#: assets/js/frontend.js:3955
+msgid "Toggle Product View"
+msgstr ""
+
+#: languages/wepos.php:69
+#: assets/js/frontend.js:3959
+msgid "Add Fee in cart"
+msgstr ""
+
+#: languages/wepos.php:70
+#: assets/js/frontend.js:3963
+msgid "Add Discount in cart"
+msgstr ""
+
+#: languages/wepos.php:71
+#: assets/js/frontend.js:3967
+msgid "Add Customer note"
+msgstr ""
+
+#: languages/wepos.php:72
+#: assets/js/frontend.js:3971
+msgid "Customer Search"
+msgstr ""
+
+#: languages/wepos.php:73
+#: assets/js/frontend.js:3975
+msgid "Add new Customer"
+msgstr ""
+
+#: languages/wepos.php:74
+#: assets/js/frontend.js:3979
+msgid "Create New Sale"
+msgstr ""
+
+#: languages/wepos.php:75
+#: assets/js/frontend.js:3983
+msgid "Empty your cart"
+msgstr ""
+
+#: languages/wepos.php:76
+#: assets/js/frontend.js:3987
+msgid "Go to payment receipt"
+msgstr ""
+
+#: languages/wepos.php:77
+#: assets/js/frontend.js:3991
+#: assets/js/frontend.js:4233
+#: build/wepos-react.js:1
+msgid "Process Payment"
+msgstr ""
+
+#: languages/wepos.php:78
+#: assets/js/frontend.js:3995
+#: assets/js/frontend.js:4402
+#: build/wepos-react.js:1
+msgid "Print Receipt"
+msgstr ""
+
+#: languages/wepos.php:79
+#: assets/js/frontend.js:3999
+msgid "Show/Close(Toggle) Help"
+msgstr ""
+
+#: languages/wepos.php:80
+#: assets/js/frontend.js:4003
+msgid "Close anything"
+msgstr ""
+
+#: languages/wepos.php:81
+#: assets/js/frontend.js:4027
+#: build/wepos-react.js:1
+msgid "Sale Summary"
+msgstr ""
+
+#: languages/wepos.php:82
+#: assets/js/frontend.js:4105
+#: assets/js/frontend.js:4525
+#: build/wepos-react.js:1
+msgid "Order Total"
+msgstr ""
+
+#: languages/wepos.php:83
+#: assets/js/frontend.js:4111
+#: assets/js/frontend.js:4119
+#: build/wepos-react.js:1
+msgid "Pay"
+msgstr ""
+
+#: languages/wepos.php:84
+#: assets/js/frontend.js:4157
+msgid "No gateway found"
+msgstr ""
+
+#: languages/wepos.php:86
+#: assets/js/frontend.js:4192
+#: build/wepos-react.js:1
+msgid "Change money"
+msgstr ""
+
+#: languages/wepos.php:87
+#: assets/js/frontend.js:1103
+#: assets/js/frontend.js:1520
+#: assets/js/frontend.js:1550
+msgid "All categories"
+msgstr ""
+
+#: languages/wepos.php:88
+#: assets/js/frontend.js:1262
+msgid "Failed to process the payment."
+msgstr ""
+
+#: languages/wepos.php:89
+#: assets/js/frontend.js:1267
+msgid "Failed to process the order."
+msgstr ""
+
+#: languages/wepos.php:90
+#: assets/js/frontend.js:1437
+msgid "This product is out of stock."
+msgstr ""
+
+#: languages/wepos.php:92
+#: assets/js/frontend.js:4436
+#: build/wepos-react.js:1
+msgid "Order ID"
+msgstr ""
+
+#: languages/wepos.php:93
+#: assets/js/frontend.js:4438
+#: build/wepos-react.js:1
+msgid "Order Date"
+msgstr ""
+
+#: languages/wepos.php:94
+#: assets/js/frontend.js:4457
+#: build/wepos-react.js:1
+msgid "Tax includes"
+msgstr ""
+
+#: languages/wepos.php:95
+#: assets/js/frontend.js:4518
+msgid "Tax Total"
+msgstr ""
+
+#: languages/wepos.php:96
+#: assets/js/frontend.js:4531
+#: build/wepos-react.js:1
+msgid "Payment method"
+msgstr ""
+
+#: languages/wepos.php:97
+#: assets/js/frontend.js:4537
+#: build/wepos-react.js:1
+msgid "Cash Given"
+msgstr ""
+
+#: languages/wepos.php:98
+#: assets/js/frontend.js:4543
+#: build/wepos-react.js:1
+msgid "Change Money"
+msgstr ""
+
+#: languages/wepos.php:99
+#: assets/js/frontend.js:4767
+#: build/wepos-react.js:1
+msgid "No product found"
+msgstr ""
+
+#: languages/wepos.php:100
+#: assets/js/frontend.js:2031
+#: build/wepos-react.js:1
+msgid "Scan your product"
+msgstr ""
+
+#: languages/wepos.php:101
+#: assets/js/frontend.js:2031
+#: build/wepos-react.js:1
+msgid "Search product by typing"
+msgstr ""
+
+#: languages/wepos.php:102
+#: assets/js/bootstrap.js:180
+#: assets/src/utils/Mixin.js:98
+msgid "Confirm"
 msgstr ""
 
 #: templates/woocommerce-dependency-notice.php:20
 msgid "WooCommerce Missing"
 msgstr ""
 
+#. translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags, takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags, leads to plugins.php in admin
 #: templates/woocommerce-dependency-notice.php:29
-#. translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags,
-#. takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags,
-#. leads to plugins.php in admin
-msgid ""
-"%1$swePOS is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active "
-"for wePOS to work. Please %5$sinstall WooCommerce &raquo;%6$s"
+#, php-format
+msgid "%1$swePOS is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active for wePOS to work. Please %5$sinstall WooCommerce &raquo;%6$s"
 msgstr ""
 
+#. translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags, takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags, leads to plugins.php in admin
 #: templates/woocommerce-dependency-notice.php:39
-#. translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags,
-#. takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags,
-#. leads to plugins.php in admin
-msgid ""
-"%1$swePOS is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active "
-"for wePOS to work. Please %5$sactivate WooCommerce &raquo;%6$s"
+#, php-format
+msgid "%1$swePOS is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active for wePOS to work. Please %5$sactivate WooCommerce &raquo;%6$s"
 msgstr ""
 
-#. Plugin Name of the plugin/theme
-msgid "wePOS - Point Of Sale (POS) for WooCommerce"
+#: assets/js/frontend.js:4222
+#: build/wepos-react.js:1
+msgid "Back to Sale"
 msgstr ""
 
-#. Plugin URI of the plugin/theme
-msgid "https://wedevs.com/wepos"
+#: assets/js/frontend.js:4701
+#: build/wepos-react.js:1
+msgid "Scan"
 msgstr ""
 
-#. Description of the plugin/theme
-msgid "A beautiful and fast Point of Sale (POS) system for WooCommerce"
+#: build/wepos-admin-react.js:1
+msgid "wePOS Pages"
 msgstr ""
 
-#. Author of the plugin/theme
-msgid "weDevs"
+#: build/wepos-admin-react.js:1
+msgid "WooCommerce"
 msgstr ""
 
-#. Author URI of the plugin/theme
-msgid "https://wedevs.com/"
+#: build/wepos-admin-react.js:1
+msgid "WordPress"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Create Customers"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Read Private Products"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Edit Products"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Edit Others' Products"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Edit Published Products"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Read Private Shop Orders"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Publish Shop Orders"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Edit Shop Orders"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Edit Others' Shop Orders"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Edit Users"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "List Users"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Manage Product Terms"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Read Private Shop Coupons"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Read"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Settings Page"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "View POS Page"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Dashboard Page"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Outlets Page"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Receipts Page"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "License Page"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Enabled"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Disabled"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "By default, access to the POS is limited to Administrator, Editor, Shop Manager and Cashier roles. It is recommended that you do not change the default settings unless you are fully aware of the consequences."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "No changes to save."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Access settings saved successfully."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Failed to save access settings."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Settings saved successfully."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Failed to save settings."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Ownership"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Admin-owned"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Outlet is managed by site administrators."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Assign to vendor"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Give ownership to a Dokan vendor store."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Search vendor by name..."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Type to search vendors..."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "No vendors found."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Type at least 2 characters to search."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Select a vendor to transfer ownership."
+msgstr ""
+
+#: build/wepos-appearance.js:1
+msgid "New UI"
+msgstr ""
+
+#: build/wepos-appearance.js:1
+msgid "Legacy UI"
+msgstr ""
+
+#: build/wepos-appearance.js:1
+msgid "Choose which user interface wePOS uses on the POS frontend and inside the WordPress admin."
+msgstr ""
+
+#: build/wepos-appearance.js:1
+msgid "POS Layout Style"
+msgstr ""
+
+#: build/wepos-appearance.js:1
+msgid "Controls the interface customers and cashiers see on the frontend POS."
+msgstr ""
+
+#: build/wepos-appearance.js:1
+msgid "Admin Dashboard UI"
+msgstr ""
+
+#: build/wepos-appearance.js:1
+msgid "Controls the interface of every wePOS page inside the WordPress admin."
+msgstr ""
+
+#: build/wepos-appearance.js:1
+msgid "Appearance saved. Reloading…"
+msgstr ""
+
+#: build/wepos-appearance.js:1
+msgid "Could not save appearance settings."
+msgstr ""
+
+#: build/wepos-appearance.js:1
+msgid "REST configuration missing."
+msgstr ""
+
+#: build/wepos-appearance.js:1
+msgid "Saving…"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Customer Note"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Enter note for this order..."
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Press Ctrl+Enter to add note"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Add Miscellaneous Product"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Name"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Tax Class"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Select Tax Class"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Tax Status"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "None"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Add to Cart"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Add Shipping"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Shipping Method Title"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Shipping Method"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Select Shipping Method"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Amount"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Amount Includes Tax"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Add Fee"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Percentage of Cart Total"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Default currency"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Order Meta"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Currency"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Select currency"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "No currency found."
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Transaction ID"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Meta Data"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Key"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Value"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Add meta data"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Save"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Edit Customer"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "No country found."
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "No state found."
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Failed to update customer"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Failed to create customer"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Update Customer"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Start typing to search"
+msgstr ""
+
+#: build/wepos-react.js:1
+#, js-format
+msgid "Customer %s created"
+msgstr ""
+
+#: build/wepos-react.js:1
+#, js-format
+msgid "Customer %s updated"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Cart Settings"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Automatically show receipt after checkout"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Automatically print receipt after checkout"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Columns"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Display Options"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Restore Default Settings"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Customer:"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Regular Price"
+msgstr ""
+
+#: build/wepos-react.js:1
+#, js-format
+msgid "%s can only be purchased one at a time."
+msgstr ""
+
+#: build/wepos-react.js:1
+#, js-format
+msgid "Not enough stock for %1$s. Only %2$s available."
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Click to edit"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Misc"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "incl. tax"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "excl. tax"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "incl."
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "tax"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Remove item"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Remove discount"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "taxable"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Remove fee"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Remove shipping"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "incl. shipping tax"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Misc Product"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Shipping"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Update to Server"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Save to Server"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Note:"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Remove note"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Void"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Void Cart"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Are you sure you want to void this cart? This action cannot be undone."
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Checkout"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Category"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "No category found."
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Stock Status"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "In Stock"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Out of Stock"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "On Backorder"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "No option found."
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "No items found."
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Home"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Main"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Primary navigation"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "App"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Processing payment..."
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Price:"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "In stock"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Out of stock"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "This variation is not available"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Type"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Stock"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Select variation"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Add to cart"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Variable"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Simple"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Shipping Tax"
+msgstr ""
+
+#: build/wepos-react.js:1
+#, js-format
+msgid "%s is out of stock"
+msgstr ""
+
+#: build/wepos-react.js:1
+#, js-format
+msgid "%s added to cart"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Order voided successfully"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Cart voided"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Failed to void order"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "New sale started"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Failed to remove saved order"
+msgstr ""
+
+#: build/wepos-react.js:1
+#, js-format
+msgid "Customer %s selected"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Customer removed"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Order updated successfully"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Order saved to server"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Failed to save order to server"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Restored saved cart from server"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Tax based on: Billing address"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Tax based on: Shipping address"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Tax based on: Shop base address"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "POS"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "WordPress Admin"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Clear All Local Data"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Select a tag"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Tag"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "No tag found."
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Select a brand"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Brand"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "No brand found."
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Featured"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "On Sale"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Products"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Cart"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "This will clear all locally stored POS data and reload the page. This action cannot be undone."
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "Clear Data"
 msgstr ""

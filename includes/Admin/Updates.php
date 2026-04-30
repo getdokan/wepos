@@ -71,7 +71,7 @@ class Updates {
             $url = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
             ?>
                 <div id="message" class="updated">
-                    <p><?php printf( '<strong>%s  &#8211; %s</strong>', esc_attr__( 'WePOS Data Update Required', 'wepos' ), esc_attr__( 'We need to update your install to the latest version', 'wepos' ) ); ?></p>
+                    <p><?php printf( '<strong>%s  &#8211; %s</strong>', esc_attr__( 'wePOS Data Update Required', 'wepos' ), esc_attr__( 'We need to update your install to the latest version', 'wepos' ) ); ?></p>
                     <p class="submit"><a href="<?php echo esc_url( add_query_arg( [ 'wepos_do_update' => true ], $url ) ); ?>" class="wepos-update-btn button-primary"><?php esc_attr_e( 'Run the updater', 'wepos' ); ?></a></p>
                 </div>
 
@@ -82,6 +82,7 @@ class Updates {
                 </script>
             <?php
         } else {
+            self::set_default_layout_style();
             update_option( 'we_pos_version', WEPOS_VERSION );
         }
     }
@@ -122,12 +123,43 @@ class Updates {
             }
         }
 
+        self::set_default_layout_style();
         update_option( 'we_pos_version', WEPOS_VERSION );
 
         $url = wp_unslash( add_query_arg( [ 'page' => 'wepos' ], admin_url( 'admin.php' ) ) );
         $location = esc_url( $url ) . '#/settings';
         wp_redirect( $location );
         exit();
+    }
+
+    /**
+     * Set default POS layout style to React UI on plugin update.
+     *
+     * @since 1.3.3
+     *
+     * @return void
+     */
+    private static function set_default_layout_style() {
+        $options = get_option( 'wepos_appearance', [] );
+
+        if ( empty( $options['pos_layout_style'] ) ) {
+            $legacy = get_option( 'wepos_general', [] );
+            if ( ! empty( $legacy['pos_layout_style'] ) ) {
+                $options['pos_layout_style'] = $legacy['pos_layout_style'];
+                unset( $legacy['pos_layout_style'] );
+                update_option( 'wepos_general', $legacy );
+            }
+        }
+
+        if ( empty( $options['pos_layout_style'] ) ) {
+            $options['pos_layout_style'] = 'latest';
+        }
+
+        if ( empty( $options['admin_ui_style'] ) ) {
+            $options['admin_ui_style'] = 'new';
+        }
+
+        update_option( 'wepos_appearance', $options );
     }
 
 }

@@ -1,0 +1,7 @@
+# pnpm configuration file
+auto-install-peers=true
+strict-peer-dependencies=false
+prefer-workspace-packages=true
+hoist-pattern[]=*eslint*
+hoist-pattern[]=*prettier*
+shamefully-hoist=false
