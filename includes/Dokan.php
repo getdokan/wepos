@@ -231,8 +231,14 @@ class Dokan {
 
         // Shop managers and any non-vendor user assigned to an admin outlet
         // (cashier, editor, etc.) sell admin products only — exclude every
-        // vendor's products from the listing.
-        if ( current_user_can( 'manage_woocommerce' ) || wepos_user_is_assigned_cashier() ) {
+        // vendor's products from the listing. `wepos_view_all_outlets` covers
+        // admin-side roles (editor, custom) that lack manage_woocommerce but
+        // are granted full POS scope by the Access settings.
+        if (
+            current_user_can( 'manage_woocommerce' )
+            || current_user_can( 'wepos_view_all_outlets' )
+            || wepos_user_is_assigned_cashier()
+        ) {
             $vendor_ids = get_users( [
                 'role'   => 'seller',
                 'fields' => 'ID',
