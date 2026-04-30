@@ -192,7 +192,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
   const exceedsStock = (item: POSCartItem, requestedQty: number): boolean => {
     if (!item.manage_stock || item.backorders_allowed) return false;
     const available = item.stock_quantity ?? 0;
-    return requestedQty > available;
+    return roundQuantity(requestedQty) > roundQuantity(available);
   };
 
   const addQuantity = (item: POSCartItem, index: number) => {
@@ -200,9 +200,9 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     if (exceedsStock(item, nextQty)) {
       toast.error(
         sprintf(
-          __('Not enough stock for %s. Only %d available.', 'wepos'),
+          __('Not enough stock for %1$s. Only %2$s available.', 'wepos'),
           item.name,
-          item.stock_quantity ?? 0,
+          String(item.stock_quantity ?? 0),
         ),
       );
       return;
@@ -419,9 +419,9 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                                           if (exceedsStock(item, val)) {
                                             toast.error(
                                               sprintf(
-                                                __('Not enough stock for %s. Only %d available.', 'wepos'),
+                                                __('Not enough stock for %1$s. Only %2$s available.', 'wepos'),
                                                 item.name,
-                                                item.stock_quantity ?? 0,
+                                                String(item.stock_quantity ?? 0),
                                               ),
                                             );
                                           } else {

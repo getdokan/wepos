@@ -398,9 +398,9 @@ const HomePage: React.FC = () => {
       if (!hasStock(product, currentCartQty)) {
         toast.error(
           sprintf(
-            __('Not enough stock for %s. Only %d available.', 'wepos'),
+            __('Not enough stock for %1$s. Only %2$s available.', 'wepos'),
             product.name,
-            product.stock_quantity || 0,
+            String(product.stock_quantity ?? 0),
           ),
         );
         return;
@@ -449,12 +449,13 @@ const HomePage: React.FC = () => {
 
       if (cartItem.manage_stock && !cartItem.backorders_allowed) {
         const available = cartItem.stock_quantity ?? 0;
-        if (currentCartQty + incomingQty > available) {
+        const requested = Math.round((currentCartQty + incomingQty) * 10000) / 10000;
+        if (requested > Math.round(available * 10000) / 10000) {
           toast.error(
             sprintf(
-              __('Not enough stock for %s. Only %d available.', 'wepos'),
+              __('Not enough stock for %1$s. Only %2$s available.', 'wepos'),
               cartItem.name,
-              available,
+              String(available),
             ),
           );
           return;
