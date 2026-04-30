@@ -193,6 +193,7 @@ export interface POSCartItem {
   stock_status?: string;
   backorders_allowed?: boolean;
   stock_quantity?: number;
+  sold_individually?: boolean;
   total_tax?: number;
 }
 
@@ -645,6 +646,7 @@ export interface POSProduct {
   stock_status: string;
   purchasable?: boolean;
   backorders_allowed?: boolean;
+  sold_individually?: boolean;
   attributes?: Array<{
     name: string;
     options: string[];

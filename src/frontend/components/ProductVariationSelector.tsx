@@ -95,7 +95,8 @@ export const ProductVariationSelector: React.FC<
       manage_stock: matchingVariation.manage_stock,
       stock_status: matchingVariation.stock_status,
       backorders_allowed: matchingVariation.backorders_allowed,
-      stock_quantity: matchingVariation.stock_quantity,
+      stock_quantity: matchingVariation.stock_quantity ?? undefined,
+      sold_individually: product.sold_individually,
     };
 
     onAddToCart(cartItem);

@@ -197,6 +197,15 @@ const Cart = forwardRef<CartHandle, CartProps>(({
 
   const addQuantity = (item: POSCartItem, index: number) => {
     const nextQty = roundQuantity(item.quantity + 1);
+    if (item.sold_individually && nextQty > 1) {
+      toast.error(
+        sprintf(
+          __('%s can only be purchased one at a time.', 'wepos'),
+          item.name,
+        ),
+      );
+      return;
+    }
     if (exceedsStock(item, nextQty)) {
       toast.error(
         sprintf(
@@ -416,7 +425,14 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                                       onBlur={(e) => {
                                         const val = parseFloat(e.target.value);
                                         if (!isNaN(val) && val > 0) {
-                                          if (exceedsStock(item, val)) {
+                                          if (item.sold_individually && val > 1) {
+                                            toast.error(
+                                              sprintf(
+                                                __('%s can only be purchased one at a time.', 'wepos'),
+                                                item.name,
+                                              ),
+                                            );
+                                          } else if (exceedsStock(item, val)) {
                                             toast.error(
                                               sprintf(
                                                 __('Not enough stock for %1$s. Only %2$s available.', 'wepos'),

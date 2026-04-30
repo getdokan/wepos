@@ -395,6 +395,16 @@ const HomePage: React.FC = () => {
       );
       const currentCartQty = existing?.quantity || 0;
 
+      if (product.sold_individually && currentCartQty >= 1) {
+        toast.error(
+          sprintf(
+            __('%s can only be purchased one at a time.', 'wepos'),
+            product.name,
+          ),
+        );
+        return;
+      }
+
       if (!hasStock(product, currentCartQty)) {
         toast.error(
           sprintf(
@@ -429,6 +439,7 @@ const HomePage: React.FC = () => {
         stock_status: product.stock_status,
         backorders_allowed: product.backorders_allowed,
         stock_quantity: product.stock_quantity ?? undefined,
+        sold_individually: product.sold_individually,
       };
 
       addToCart(cartItem);
@@ -446,6 +457,16 @@ const HomePage: React.FC = () => {
       );
       const currentCartQty = existing?.quantity || 0;
       const incomingQty = cartItem.quantity || 1;
+
+      if (cartItem.sold_individually && currentCartQty + incomingQty > 1) {
+        toast.error(
+          sprintf(
+            __('%s can only be purchased one at a time.', 'wepos'),
+            cartItem.name,
+          ),
+        );
+        return;
+      }
 
       if (cartItem.manage_stock && !cartItem.backorders_allowed) {
         const available = cartItem.stock_quantity ?? 0;
