@@ -806,6 +806,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     name={__('Discount', 'wepos')}
                     onInputFee={handleDiscountInput}
                     isDiscount={true}
+                    disabled={cartItems.length === 0}
                   />
                   {!customerNote && (
                     <CustomerNote ref={noteRef} onAddNote={handleAddNote} />
@@ -824,6 +825,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     variant="outline"
                     className="border-border bg-muted text-muted-foreground hover:bg-accent"
                     onClick={() => setShowFeeModal(true)}
+                    disabled={cartItems.length === 0}
                   >
                     {__('Add Fee', 'wepos')}
                   </Button>
@@ -832,6 +834,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     variant="outline"
                     className="border-border bg-muted text-muted-foreground hover:bg-accent"
                     onClick={() => setShowShippingModal(true)}
+                    disabled={cartItems.length === 0}
                   >
                     {__('Shipping', 'wepos')}
                   </Button>
@@ -840,6 +843,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     variant="outline"
                     className="border-border bg-muted text-muted-foreground hover:bg-accent"
                     onClick={() => setShowOrderMetaModal(true)}
+                    disabled={cartItems.length === 0}
                   >
                     {__('Order Meta', 'wepos')}
                   </Button>
