@@ -384,16 +384,22 @@ class Dokan {
                 'url'        => dokan_get_navigation_url( 'pos' ),
                 'pos'        => 55,
                 'permission' => 'dokandar',
-                'submenu'    => [
-                    'view-pos' => [
-                        'title' => __( 'View POS', 'wepos' ),
-                        'icon'  => '<i class="fas fa-desktop"></i>',
-                        'url'   => untrailingslashit( get_site_url() ) . '/wepos/#',
-                        'pos'   => 50,
-                        'target' => '_blank',
-                    ],
-                ],
+                'submenu'    => [],
             ];
+
+            $is_vendor_staff = (bool) apply_filters( 'wepos_is_vendor_staff', false );
+
+            // Vendor staff: hide View POS when access_wepos is revoked via the
+            // vendor's Access overlay. Vendors and admins always see it.
+            if ( ! $is_vendor_staff || current_user_can( 'access_wepos' ) ) {
+                $url['pos']['submenu']['view-pos'] = [
+                    'title'  => __( 'View POS', 'wepos' ),
+                    'icon'   => '<i class="fas fa-desktop"></i>',
+                    'url'    => untrailingslashit( get_site_url() ) . '/wepos/#',
+                    'pos'    => 50,
+                    'target' => '_blank',
+                ];
+            }
         }
 
         return $url;
