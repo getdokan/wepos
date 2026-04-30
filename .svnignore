@@ -20,12 +20,11 @@ src
 CONTRIBUTING.md
 config.json
 phpcs.xml.dist
-build
+dist
 webpack.config.js
 webpack-dependency-mapping.js
 webpack-entries.js
 base-tailwind.config.js
-vendor
 composer.lock
 composer.json
 .editorconfig
