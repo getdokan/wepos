@@ -257,6 +257,8 @@ const Cart = forwardRef<CartHandle, CartProps>(({
       quantity: 1,
       regular_price: product.price,
       sale_price: product.price,
+      raw_regular_price: product.price,
+      raw_sale_price: product.price,
       on_sale: false,
       type: 'simple',
       attribute: [],

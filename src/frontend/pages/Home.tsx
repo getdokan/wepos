@@ -470,6 +470,8 @@ const HomePage: React.FC = () => {
         quantity: 1,
         regular_price: pickDisplayPrice(product, 'regular'),
         sale_price: pickDisplayPrice(product, 'sale'),
+        raw_regular_price: toFiniteNumber(product.regular_price),
+        raw_sale_price: toFiniteNumber(product.sale_price),
         on_sale: product.on_sale,
         type: product.type,
         attribute: [],
@@ -889,7 +891,9 @@ const HomePage: React.FC = () => {
       const matchedServerIds = new Set<number>();
 
       cartItems.forEach((item: POSCartItem) => {
-        const unitPrice = item.on_sale ? item.sale_price : item.regular_price;
+        const rawRegular = item.raw_regular_price ?? item.regular_price;
+        const rawSale = item.raw_sale_price ?? item.sale_price;
+        const unitPrice = item.on_sale ? rawSale : rawRegular;
         const lineItem: any = {
           quantity: item.quantity,
           subtotal: (unitPrice * item.quantity).toFixed(2),
@@ -898,7 +902,7 @@ const HomePage: React.FC = () => {
         if (item.product_id === 0) {
           // Misc/custom product: send name + price, no product_id
           lineItem.name = item.name;
-          lineItem.price = item.regular_price;
+          lineItem.price = unitPrice;
           if (item.sku) {
             lineItem.sku = item.sku;
           }

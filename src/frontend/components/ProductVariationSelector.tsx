@@ -85,6 +85,8 @@ export const ProductVariationSelector: React.FC<
       quantity: 1,
       regular_price: pickDisplayPrice(matchingVariation, 'regular'),
       sale_price: pickDisplayPrice(matchingVariation, 'sale'),
+      raw_regular_price: toFiniteNumber(matchingVariation.regular_price),
+      raw_sale_price: toFiniteNumber(matchingVariation.sale_price),
       on_sale: matchingVariation.on_sale,
       type: 'variable',
       attribute: variationAttributes,

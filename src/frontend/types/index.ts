@@ -186,6 +186,8 @@ export interface POSCartItem {
   on_sale: boolean;
   sale_price: number;
   regular_price: number;
+  raw_regular_price?: number;
+  raw_sale_price?: number;
   editQuantity?: boolean;
   attribute: Array<{
     id?: number;
