@@ -15,6 +15,7 @@ import {
   POSTag,
   POSBrand,
 } from '../types';
+import type { TaxRate } from '../store/cart/types';
 
 // Configure api-fetch with wePOS endpoints
 apiFetch.use(apiFetch.createNonceMiddleware(window.wepos.rest.nonce));
@@ -532,6 +533,18 @@ const settingsAPI = {
   },
 };
 
+// Taxes API — mirrors the legacy Vue `fetchTaxes()` so we can compute
+// fee tax and coupon tax adjustment locally before the server confirms the order.
+const taxesAPI = {
+  getTaxes: async (): Promise<TaxRate[]> => {
+    const response = await apiFetch({
+      path: `/${API_BASE.WEPOS}/taxes`,
+      method: 'GET',
+    });
+    return response as TaxRate[];
+  },
+};
+
 // Reports API
 const reportsAPI = {
   getSalesReport: async (period: string = 'today'): Promise<any> => {
@@ -561,5 +574,6 @@ export const posAPI = {
   customers: customersAPI,
   payment: paymentAPI,
   settings: settingsAPI,
+  taxes: taxesAPI,
   reports: reportsAPI,
 };

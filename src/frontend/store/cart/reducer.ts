@@ -14,6 +14,7 @@ export const initialState: CartState = {
   server_order_dirty: false,
   currency: '',
   currency_symbol: '',
+  available_tax: [],
 };
 
 // Factory to create a reducer with a custom initial state (for localStorage persistence)
@@ -193,6 +194,23 @@ export const createReducer = (preloadedState: CartState = initialState) => (
         ...state,
         server_order: null,
         server_order_dirty: false,
+      };
+
+    case 'SET_TAX_DISPLAY_MODE':
+      // Tax-display mode reflects a WC store setting and never affects what
+      // the server calculates for a saved order, so do NOT mark the order dirty.
+      if (state.tax_display_cart === action.mode) return state;
+      return {
+        ...state,
+        tax_display_cart: action.mode,
+      };
+
+    case 'SET_AVAILABLE_TAX':
+      // Same reasoning as SET_TAX_DISPLAY_MODE: reference data, not cart edit.
+      if (state.available_tax === action.rates) return state;
+      return {
+        ...state,
+        available_tax: action.rates,
       };
 
     default:

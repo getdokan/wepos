@@ -38,7 +38,7 @@ import AddFeeModal from './AddFeeModal';
 import OrderMetaModal from './OrderMetaModal';
 import { Slot } from '@wordpress/components';
 import { PluginArea } from '@wordpress/plugins';
-import { formatPrice } from '../utils/helpers';
+import { formatPrice, toFiniteNumber } from '../utils/helpers';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
 import CustomerSearch, { CustomerSearchHandle } from '../components/CustomerSearch';
@@ -122,6 +122,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     totalFee,
     totalShipping,
     totalTax,
+    totalLineTax,
     total,
     serverOrder,
     isServerOrderDirty,
@@ -141,6 +142,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
       totalFee: store.getTotalFee(),
       totalShipping: store.getTotalShipping(),
       totalTax: store.getTotalTax(),
+      totalLineTax: store.getTotalLineTax(),
       total: store.getTotal(),
       serverOrder: store.getServerOrder(),
       isServerOrderDirty: store.isServerOrderDirty(),
@@ -395,13 +397,17 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       const itemTotal = item.quantity * (item.on_sale ? item.sale_price : item.regular_price);
                       const itemSubtotal = item.quantity * item.regular_price;
 
-                      // Get server-calculated tax for this line item if available and not stale
+                      // Get server-calculated tax for this line item if available and not stale;
+                      // fall back to the per-unit tax_amount injected by the product REST response
+                      // so the breakdown is visible immediately after adding to cart.
                       const serverLineItem = serverOrder && !isServerOrderDirty
                         ? serverOrder.line_items?.find(
                             (li: any) => li.product_id === item.product_id && li.variation_id === (item.variation_id || 0)
                           )
                         : null;
-                      const lineItemTax = serverLineItem ? parseFloat(serverLineItem.total_tax) || 0 : 0;
+                      const lineItemTax = serverLineItem
+                        ? toFiniteNumber(serverLineItem.total_tax)
+                        : toFiniteNumber(item.tax_amount) * item.quantity;
 
                       return (
                         <React.Fragment key={item.id}>
@@ -648,7 +654,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               <div className="flex items-center justify-between border-b border-border p-[9px_12px]">
                 <div className="flex-1 text-sm">
                   {__('Subtotal', 'wepos')}
-                  {isTaxInclusive && totalTax > 0 && (
+                  {isTaxInclusive && totalLineTax > 0 && (
                     <span className="block text-xs font-normal text-muted-foreground">
                       {__('Including Tax', 'wepos')}
                     </span>
@@ -791,13 +797,16 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               {/* Total Tax (fallback when no detailed tax lines) */}
               {totalTax > 0 && (!serverOrder || isServerOrderDirty || serverOrder.tax_lines.length === 0) && (
                 <div className="flex items-center justify-between border-b border-border p-[9px_12px]">
-                  <div className="text-sm font-medium text-foreground">
+                  <div className="flex-1 text-sm font-medium text-foreground">
                     {isTaxInclusive
                       ? __('Fee Tax', 'wepos')
                       : __('Tax', 'wepos')}
                   </div>
                   <div className="text-sm font-bold text-foreground">
                     {cartFormatPrice(totalTax)}
+                  </div>
+                  <div className="ml-2 h-4 w-4">
+                    &nbsp;
                   </div>
                 </div>
               )}

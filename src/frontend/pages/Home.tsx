@@ -32,6 +32,8 @@ import {
   getProductImage,
   hasStock,
   parseCurrencyAmount,
+  pickDisplayPrice,
+  toFiniteNumber,
   truncateTitle,
 } from '../utils/helpers';
 
@@ -361,7 +363,42 @@ const HomePage: React.FC = () => {
     };
   }, []);
 
-  const { addToCart, clearCart, setCustomer, setServerOrder, clearServerOrder, hydrateCart } = useDispatch(CART_STORE_NAME) as any;
+  const {
+    addToCart,
+    clearCart,
+    setCustomer,
+    setServerOrder,
+    clearServerOrder,
+    hydrateCart,
+    setTaxDisplayMode,
+    setAvailableTax,
+  } = useDispatch(CART_STORE_NAME) as any;
+
+  // Mirror WC's `woocommerce_tax_display_cart` into the cart store so selectors
+  // can match the legacy Vue behaviour for inclusive-tax stores.
+  useEffect(() => {
+    const mode = settings?.woo_tax?.wc_tax_display_cart === 'incl' ? 'incl' : 'excl';
+    setTaxDisplayMode(mode);
+  }, [settings?.woo_tax?.wc_tax_display_cart, setTaxDisplayMode]);
+
+  // Mirror the legacy Vue `fetchTaxes()` so the selector can compute fee tax
+  // and coupon tax adjustment locally (Cart.module.js:67-99).
+  useEffect(() => {
+    let cancelled = false;
+    posAPI.taxes
+      .getTaxes()
+      .then((rates) => {
+        if (!cancelled) {
+          setAvailableTax(rates || []);
+        }
+      })
+      .catch(() => {
+        // Non-fatal: the server still calculates accurate tax on save.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [setAvailableTax]);
 
   // UI State
   const [showHelp, setShowHelp] = useState(false);
@@ -431,14 +468,8 @@ const HomePage: React.FC = () => {
         name: product.name,
         sku: product.sku || '',
         quantity: 1,
-        regular_price:
-          typeof product.regular_price === 'string'
-            ? parseFloat(product.regular_price)
-            : product.regular_price,
-        sale_price:
-          typeof product.sale_price === 'string'
-            ? parseFloat(product.sale_price)
-            : product.sale_price,
+        regular_price: pickDisplayPrice(product, 'regular'),
+        sale_price: pickDisplayPrice(product, 'sale'),
         on_sale: product.on_sale,
         type: product.type,
         attribute: [],
@@ -448,6 +479,7 @@ const HomePage: React.FC = () => {
         backorders_allowed: product.backorders_allowed,
         stock_quantity: product.stock_quantity ?? undefined,
         sold_individually: product.sold_individually,
+        tax_amount: toFiniteNumber(product.tax_amount),
       };
 
       addToCart(cartItem);

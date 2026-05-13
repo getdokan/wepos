@@ -153,6 +153,41 @@ export const parseCurrencyAmount = (amount: string): number => {
 };
 
 /**
+ * Coerce an unknown value to a finite number, with 0 as the fallback.
+ * Strings go through `parseFloat` (matches WC decimal-string conventions);
+ * everything else through `Number`.
+ */
+export const toFiniteNumber = (value: unknown): number => {
+  const n = typeof value === 'string' ? parseFloat(value) : Number(value);
+  return isFinite(n) ? n : 0;
+};
+
+/**
+ * Pick the server-computed display price for a product/variation, falling back
+ * to the raw stored price. `regular_display_price` / `sales_display_price` are
+ * injected by `Manager.php::product_response` and respect `wc_tax_display_cart`.
+ * Matches legacy Vue `Cart.module.js:139-140`.
+ */
+export const pickDisplayPrice = (
+  source: {
+    regular_price?: string | number | null;
+    sale_price?: string | number | null;
+    regular_display_price?: string | number | null;
+    sales_display_price?: string | number | null;
+  },
+  kind: 'regular' | 'sale',
+): number => {
+  const display = kind === 'regular' ? source.regular_display_price : source.sales_display_price;
+  const raw = kind === 'regular' ? source.regular_price : source.sale_price;
+  const displayNum = toFiniteNumber(display);
+  if (displayNum > 0) return displayNum;
+  const rawNum = toFiniteNumber(raw);
+  if (rawNum > 0) return rawNum;
+  // For `sale_price`, the legacy fallback chain ends at `regular_price`.
+  return kind === 'sale' ? toFiniteNumber(source.regular_price) : 0;
+};
+
+/**
  * Create a delay for async operations
  */
 export const delay = (ms: number): Promise<void> => {
