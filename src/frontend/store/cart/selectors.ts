@@ -98,11 +98,7 @@ export const selectors = {
     return applyFilters<number>(
       'wepos_cart_total_tax',
       lineTax + feeTax - couponTaxReduction,
-      state,
-      lineTax,
-      feeTax,
-      findRate,
-      couponTaxReduction
+      { state, lineTax, feeTax, couponTaxReduction }
     );
   },
 
