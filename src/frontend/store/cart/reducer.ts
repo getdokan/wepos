@@ -75,7 +75,13 @@ export const createReducer = (preloadedState: CartState = initialState) => (
       };
 
     case 'CLEAR_CART':
-      return initialState;
+      // Preserve store-wide reference data (tax rates, display mode) — these
+      // aren't part of a cart snapshot. Use SET_AVAILABLE_TAX / SET_TAX_DISPLAY_MODE.
+      return {
+        ...initialState,
+        available_tax: state.available_tax,
+        tax_display_cart: state.tax_display_cart,
+      };
 
     case 'ADD_DISCOUNT': {
       const discountId = Date.now();
