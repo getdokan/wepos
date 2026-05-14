@@ -64,7 +64,22 @@ export const selectors = {
 
   getTotalTax: (state: CartState): number => {
     if (state.server_order && !state.server_order_dirty) {
-      return toFiniteNumber(state.server_order.total_tax);
+      const serverTax = toFiniteNumber(state.server_order.total_tax);
+      if (serverTax > 0) return serverTax;
+
+      // Server explicitly reported zero tax. WC sometimes leaves `total_tax=0`
+      // on pos-open orders when it can't resolve a tax rate from the order
+      // location (e.g. guest with no billing address). The line totals already
+      // bundle the tax in that case, so derive the tax from the gap between
+      // `server.total` and the sum of non-tax components. Keeps the summary
+      // self-consistent: Subtotal + Tax = Order Total.
+      const subtotalForGap = selectors.getSubtotal(state);
+      const discountForGap = selectors.getTotalDiscount(state);
+      const feeForGap = selectors.getTotalFee(state);
+      const shippingForGap = selectors.getTotalShipping(state);
+      const serverTotal = toFiniteNumber(state.server_order.total);
+      const gap = serverTotal - (subtotalForGap - discountForGap + feeForGap + shippingForGap);
+      return gap > 0.01 ? gap : 0;
     }
 
     // `incl` mode: line price already includes tax; fees and coupons still apply.

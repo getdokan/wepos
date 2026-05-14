@@ -108,11 +108,35 @@ Three selectors in [`store/cart/selectors.ts`](./../src/frontend/store/cart/sele
 |---|---|---|
 | `getTaxDisplayMode` | `'incl' \| 'excl'` from the store | Cart UI label switches (single source of truth — Cart components must not re-read from `settings`) |
 | `getTotalLineTax` | `Σ tax_amount × qty` over every line | "Including Tax" hint under Subtotal. Never zeroed, even in `incl` mode. |
-| `getTotalTax` | Line tax (zeroed when `tax_display_cart === 'incl'` to avoid double-counting) + fee tax + coupon tax adjustment. Falls back to `server_order.total_tax` once the order is saved. | Headline "Tax" row. Direct port of legacy `Cart.module.js:52-102`. |
+| `getTotalTax` | Line tax (zeroed when `tax_display_cart === 'incl'` to avoid double-counting) + fee tax + coupon tax adjustment. After save, switches to `server_order.total_tax`; if the server reports `0`, falls back to the **total/sub gap** (see [WC-silent gap fallback](#wc-silent-gap-fallback)). | Headline "Tax" row. Direct port of legacy `Cart.module.js:52-102`. |
 
 The line-tax / total-tax split exists because in `incl` mode the Subtotal row already contains tax — adding line tax to the visible total would double-count. The "Including Tax" hint still needs the raw figure, so `getTotalLineTax` stays unconditional.
 
 **Coupon adjustment in `incl` mode.** Because `lineTax` is forced to `0` in `incl` mode, `couponTaxReduction = (discountAmount / subtotal) * 0 = 0`. This is mathematically correct: the incl-mode subtotal already bakes tax into the line price, so a coupon reducing `$X` simultaneously reduces both the price and the tax bundled inside it — no separate reduction line is needed.
+
+### WC-silent gap fallback
+
+After `saveToServer` runs, WC sometimes returns the order with `total_tax = "0"` even though the line totals already bundle the tax. This happens when WC's `WC_Tax::find_rates()` can't resolve a tax rate from the order's location — typically a guest order with no billing address, where the standard rate has a country restriction that doesn't match the shop base.
+
+Without a fallback the cart would display `Subtotal $90.91` and `Order Total $100` with the Tax row hidden — a math contradiction visible to the cashier and a real loss of tax info in the printed receipt (`Tax Total $0.00`).
+
+`getTotalTax` handles this by deriving tax from the gap between `server.total` and the sum of non-tax components:
+
+```ts
+gap = server.total - (subtotal − totalDiscount + totalFee + totalShipping)
+return gap > 0.01 ? gap : 0
+```
+
+Properties:
+
+- **Normal case** (server reports tax): `serverTax > 0`, used as-is. Gap path never triggers.
+- **WC-silent case** (server reports `0` but bundled tax exists): gap is positive, returned. Cashier sees `Subtotal + Tax = Order Total`.
+- **True zero-tax case** (server reports `0`, no bundled tax): gap is `0`, returned. No Tax row.
+- **`incl` mode**: `subtotal` already includes tax, so `subtotal == server.total` and gap is `0`. No Tax row, which is correct (tax is bundled into the displayed price).
+
+The print receipt mirrors the same logic in [`Home::processPayment`](./../src/frontend/pages/Home.tsx) when building `printdata.taxtotal`, so the printed `Tax Total` value matches the cart's Tax row in every case.
+
+> **Note:** the gap fallback is a display safety net. The order saved in WC still has `total_tax = "0"` in the database — accounting / tax reports will not see this tax. The root fix is to ensure WC can resolve a rate (set a shop base country, or supply a billing country on the order). The fallback only prevents UI inconsistency.
 
 **Extension point.** `getTotalTax` runs the result through the `wepos_cart_total_tax` filter. The payload is `{ lineTax, feeTax, couponTaxReduction }` — derived totals only, never the live store reference — so a filter callback cannot mutate cart state from inside the filter.
 
@@ -352,6 +376,13 @@ Setup: variable product with a variation `regular_price=$100`, 10% tax.
 
 - **Cart total snaps to a different number after "Save to Server"**
   - Expected — `getTotalTax` switches from the local computation to `server_order.total_tax`. If the snap is more than rounding noise, the local computation drifted from WC; reconcile by reading the row that fired in `getTotalTax` and comparing to WC's `tax_lines` in the saved order.
+
+- **Tax row hidden after Save to Server / Back to Sale (even though it was visible before)**
+  - WC returned `total_tax = "0"` because it couldn't resolve a tax rate from the order's location (guest order with no billing country, or shop base country missing). The selector now falls back to the [total/sub gap](#wc-silent-gap-fallback) so the row reappears — verify the cart Order Total truly equals `subtotal + fees + shipping − discounts + visible_tax`.
+  - Permanent fix: set a country on the shop base (`WooCommerce → Settings → General → Store address`), or supply a billing country on the order so `WC_Tax::find_rates()` can match. Otherwise the saved order will still record `total_tax = 0` in the database even though the UI displays the correct breakdown.
+
+- **Printed receipt shows `Tax Total $0.00` while Order Total includes tax**
+  - Same root cause as above — `parseFloat(orderResponse.total_tax)` returns `0`. The receipt builder in `Home::processPayment` now applies the same gap fallback as the selector, so `printdata.taxtotal` matches what the cashier sees in the cart.
 
 
 ## References

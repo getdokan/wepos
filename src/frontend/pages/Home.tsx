@@ -345,7 +345,7 @@ const HomePage: React.FC = () => {
     [],
   );
 
-  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines, shippingLines, metaData, customerNote, totalShipping, totalTax, serverOrder, orderCurrency, orderCurrencySymbol } = useSelect((select) => {
+  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines, shippingLines, metaData, customerNote, totalShipping, totalFee, totalDiscount, totalTax, serverOrder, orderCurrency, orderCurrencySymbol } = useSelect((select) => {
     const cartStore = select(CART_STORE_NAME) as any;
     return {
       cartItems: cartStore.getCartItems(),
@@ -358,6 +358,8 @@ const HomePage: React.FC = () => {
       metaData: cartStore.getMetaData(),
       customerNote: cartStore.getCustomerNote(),
       totalShipping: cartStore.getTotalShipping(),
+      totalFee: cartStore.getTotalFee(),
+      totalDiscount: cartStore.getTotalDiscount(),
       totalTax: cartStore.getTotalTax(),
       serverOrder: cartStore.getServerOrder(),
       orderCurrency: cartStore.getOrderCurrency(),
@@ -807,19 +809,33 @@ const HomePage: React.FC = () => {
         await posAPI.payment.processPayment(orderResponse);
 
       if (paymentResponse.result === 'success') {
+        // Receipt tax — same fallback as the `getTotalTax` selector: trust the
+        // server's reported tax when positive; otherwise derive it from the
+        // total/sub gap so the printed receipt is self-consistent even when WC
+        // leaves `total_tax=0` on orders without a resolvable rate location.
+        const orderTotal = toFiniteNumber(orderResponse.total) || total;
+        const serverReportedTax = toFiniteNumber(orderResponse.total_tax);
+        const taxGap = orderTotal - (subtotal - totalDiscount + totalFee + totalShipping);
+        const effectiveTax = serverReportedTax > 0
+          ? serverReportedTax
+          : Math.max(0, taxGap > 0.01 ? taxGap : 0);
+
         const printDataToSet = {
           line_items: cartItems.map((cartItem: POSCartItem) => ({
             ...cartItem,
-            total_tax: 0,
+            // Per-line tax for receipts that show a per-row breakdown.
+            // Pre-fix this was hardcoded to 0, hiding the value even when the
+            // product response carried `tax_amount`.
+            total_tax: toFiniteNumber(cartItem.tax_amount) * cartItem.quantity,
           })),
           fee_lines: feeLines,
           coupon_lines: discountLines,
           shipping_lines: shippingLines,
           subtotal: subtotal,
-          taxtotal: parseFloat(orderResponse.total_tax) || 0,
+          taxtotal: effectiveTax,
           shippingtotal: totalShipping,
-          shippingtaxtotal: parseFloat(orderResponse.shipping_tax) || 0,
-          ordertotal: parseFloat(orderResponse.total) || total,
+          shippingtaxtotal: toFiniteNumber(orderResponse.shipping_tax),
+          ordertotal: orderTotal,
           gateway: {
             id: orderResponse.payment_method,
             title: orderResponse.payment_method_title,
