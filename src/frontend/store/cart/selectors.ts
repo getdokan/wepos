@@ -37,24 +37,28 @@ export const selectors = {
     const subtotal = selectors.getSubtotal(state);
     return state.fee_lines.reduce((total: number, fee: POSFeeLine) => {
       if (fee.fee_type === 'percent') {
-        return total + (subtotal * parseFloat(fee.value)) / 100;
+        return total + (subtotal * toFiniteNumber(fee.value)) / 100;
       } else {
-        return total + parseFloat(fee.value);
+        return total + toFiniteNumber(fee.value);
       }
     }, 0);
   },
 
   getTotalShipping: (state: CartState): number => {
     return state.shipping_lines.reduce((total: number, shipping: POSShippingLine) => {
-      return total + parseFloat(shipping.total || '0');
+      return total + toFiniteNumber(shipping.total);
     }, 0);
   },
 
+  getTaxDisplayMode: (state: CartState): 'incl' | 'excl' =>
+    state.tax_display_cart === 'incl' ? 'incl' : 'excl',
+
   // Raw line-item tax — NOT zeroed in `incl` mode. Drives the "Including Tax" UI hint.
+  // `tax_amount` is `wc_get_price_including_tax - wc_get_price_excluding_tax`, always
+  // non-negative for positive prices, so no `Math.abs` is needed.
   getTotalLineTax: (state: CartState): number => {
     return state.line_items.reduce((total: number, item: POSCartItem) => {
-      const perUnitTax = toFiniteNumber(item.tax_amount);
-      return total + Math.abs(perUnitTax * item.quantity);
+      return total + toFiniteNumber(item.tax_amount) * item.quantity;
     }, 0);
   },
 
@@ -79,9 +83,9 @@ export const selectors = {
       const rate = findRate(fee.tax_class);
       if (!rate) return sum;
       const feeAmount = fee.fee_type === 'percent'
-        ? (subtotal * parseFloat(fee.value)) / 100
-        : parseFloat(fee.value);
-      return sum + (Math.abs(feeAmount) * Math.abs(rate)) / 100;
+        ? (subtotal * toFiniteNumber(fee.value)) / 100
+        : toFiniteNumber(fee.value);
+      return sum + (feeAmount * rate) / 100;
     }, 0);
 
     // Sign flips vs. legacy Vue (stored coupon.total negative); here discountAmount is positive.
@@ -95,10 +99,12 @@ export const selectors = {
       return sum + (discountAmount / subtotal) * lineTax;
     }, 0);
 
+    // Filter payload exposes derived totals only — never the live store state — so
+    // a misbehaving extension cannot mutate cart internals from inside the filter.
     return applyFilters<number>(
       'wepos_cart_total_tax',
       lineTax + feeTax - couponTaxReduction,
-      { state, lineTax, feeTax, couponTaxReduction }
+      { lineTax, feeTax, couponTaxReduction }
     );
   },
 
@@ -134,9 +140,9 @@ export const selectors = {
   getFeeAmount: (state: CartState, fee: POSFeeLine): number => {
     const subtotal = selectors.getSubtotal(state);
     if (fee.fee_type === 'percent') {
-      return (subtotal * parseFloat(fee.value)) / 100;
+      return (subtotal * toFiniteNumber(fee.value)) / 100;
     } else {
-      return parseFloat(fee.value);
+      return toFiniteNumber(fee.value);
     }
   },
 };

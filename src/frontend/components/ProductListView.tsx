@@ -10,8 +10,20 @@ import {
   TooltipContent,
 } from '@wedevs/plugin-ui';
 import { POSProduct, CartItem } from '../types';
-import { decodeHtmlEntities } from '../utils/helpers';
+import {
+  decodeHtmlEntities,
+  pickRegularDisplayPrice,
+  pickSaleDisplayPrice,
+} from '../utils/helpers';
 import ProductVariationSelector from './ProductVariationSelector';
+
+// Cart-display price — matches whatever the cart row will render so the cashier
+// sees the same number on both surfaces.
+function getDisplayPrice(product: POSProduct): number {
+  return product.on_sale
+    ? pickSaleDisplayPrice(product)
+    : pickRegularDisplayPrice(product);
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,16 +43,14 @@ function getVariablePriceRange(
   product: POSProduct,
   formatPrice: (amount: number | string | undefined | null) => string,
 ): string {
-  const fallback = formatPrice(
-    product.on_sale ? product.sale_price : product.regular_price,
-  ) as string;
+  const fallback = formatPrice(getDisplayPrice(product)) as string;
 
   const variations: any[] = product.variations ?? [];
   if (variations.length === 0) return fallback;
 
   const prices = variations
-    .map((v) => parseFloat(v.price || v.regular_price || '0'))
-    .filter((p) => !isNaN(p));
+    .map((v) => (v.on_sale ? pickSaleDisplayPrice(v) : pickRegularDisplayPrice(v)))
+    .filter((p) => p > 0);
 
   if (prices.length === 0) return fallback;
 
@@ -167,21 +177,19 @@ interface PriceCellProps {
 }
 
 const PriceCell: React.FC<PriceCellProps> = ({ product, formatPrice }) => {
-  const hasRegularPrice =
-    product.on_sale &&
-    product.regular_price &&
-    parseFloat(product.regular_price as string) > 0;
+  const regularDisplay = pickRegularDisplayPrice(product);
+  const hasRegularPrice = product.on_sale && regularDisplay > 0;
 
   const currentPrice =
     product.type === 'variable'
       ? getVariablePriceRange(product, formatPrice)
-      : (formatPrice(product.on_sale ? product.sale_price : product.regular_price) as string);
+      : (formatPrice(getDisplayPrice(product)) as string);
 
   return (
     <div className="flex flex-col items-end gap-0.5">
       {hasRegularPrice && (
         <span className="text-xs text-muted-foreground line-through">
-          {formatPrice(product.regular_price)}
+          {formatPrice(regularDisplay)}
         </span>
       )}
       <span className="text-sm font-bold text-foreground leading-snug">

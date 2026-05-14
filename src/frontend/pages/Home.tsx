@@ -948,11 +948,12 @@ const HomePage: React.FC = () => {
       const matchedServerIds = new Set<number>();
 
       feeLines.forEach((fee: any, index: number) => {
+        const feeValue = toFiniteNumber(fee.value);
         const feeItem: any = {
           name: fee.name,
           total: fee.fee_type === 'percent'
-            ? ((subtotal * parseFloat(fee.value)) / 100).toFixed(2)
-            : parseFloat(fee.value).toFixed(2),
+            ? ((subtotal * feeValue) / 100).toFixed(2)
+            : feeValue.toFixed(2),
           tax_status: fee.tax_status,
           tax_class: fee.tax_class,
         };

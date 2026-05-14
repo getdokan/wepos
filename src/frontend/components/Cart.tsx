@@ -126,6 +126,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     total,
     serverOrder,
     isServerOrderDirty,
+    taxDisplayMode,
   } = useSelect((select) => {
     const store = select(CART_STORE_NAME) as any;
     return {
@@ -146,6 +147,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
       total: store.getTotal(),
       serverOrder: store.getServerOrder(),
       isServerOrderDirty: store.isServerOrderDirty(),
+      taxDisplayMode: store.getTaxDisplayMode(),
     };
   }, []);
 
@@ -302,7 +304,9 @@ const Cart = forwardRef<CartHandle, CartProps>(({
   const cartFormatPrice = (price: number | string): string | number =>
     formatPrice(price, orderCurrencySymbol || '');
 
-  const isTaxInclusive = settings?.woo_tax?.wc_tax_display_cart === 'incl';
+  // Read from the cart store (single source of truth) — kept in sync with
+  // `woocommerce_tax_display_cart` by the `setTaxDisplayMode` effect in `Home.tsx`.
+  const isTaxInclusive = taxDisplayMode === 'incl';
 
   // Count visible columns for colSpan
   const visibleColumnCount = cartSettings.columns.filter((c) => c.enabled).length || 1;
