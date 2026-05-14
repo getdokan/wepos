@@ -152,14 +152,32 @@ export const parseCurrencyAmount = (amount: string): number => {
   return parseFloat(amount.replace(/[^\d.-]/g, '')) || 0;
 };
 
+// Parse a value to a finite number, or null if not parseable. Strings go
+// through parseFloat (matches WC decimal-string conventions); everything else
+// through Number. NaN, Infinity, and unparseable strings return null.
+const tryParseFinite = (value: unknown): number | null => {
+  const n = typeof value === 'string' ? parseFloat(value) : Number(value);
+  return isFinite(n) ? n : null;
+};
+
 /**
  * Coerce an unknown value to a finite number, with 0 as the fallback.
- * Strings go through `parseFloat` (matches WC decimal-string conventions);
- * everything else through `Number`.
  */
-export const toFiniteNumber = (value: unknown): number => {
-  const n = typeof value === 'string' ? parseFloat(value) : Number(value);
-  return isFinite(n) ? n : 0;
+export const toFiniteNumber = (value: unknown): number => tryParseFinite(value) ?? 0;
+
+/**
+ * Return the first value in the chain that is present (not null/undefined/'')
+ * and parseable as a finite number. A legitimate zero counts as present; an
+ * empty string or unparseable value is skipped so the chain continues. Returns
+ * `null` if nothing in the chain qualifies.
+ */
+export const firstPresentNumber = (...values: unknown[]): number | null => {
+  for (const value of values) {
+    if (value == null || value === '') continue;
+    const n = tryParseFinite(value);
+    if (n !== null) return n;
+  }
+  return null;
 };
 
 interface PricedSource {
@@ -169,29 +187,20 @@ interface PricedSource {
   sales_display_price?: string | number | null;
 }
 
-// Return the first value in the chain that coerces to a positive finite number.
-const firstPositive = (...values: unknown[]): number => {
-  for (const value of values) {
-    const n = toFiniteNumber(value);
-    if (n > 0) return n;
-  }
-  return 0;
-};
-
 /**
  * Pick the regular price to use in the cart. Prefers the server-computed
  * `regular_display_price` (injected by `Manager.php::product_response`, which
  * respects `wc_tax_display_cart`) and falls back to the raw `regular_price`.
  */
 export const pickRegularDisplayPrice = (source: PricedSource): number =>
-  firstPositive(source.regular_display_price, source.regular_price);
+  firstPresentNumber(source.regular_display_price, source.regular_price) ?? 0;
 
 /**
  * Pick the sale price to use in the cart. Falls through display → raw sale →
  * regular price so a product without a real sale still gets a usable number.
  */
 export const pickSaleDisplayPrice = (source: PricedSource): number =>
-  firstPositive(source.sales_display_price, source.sale_price, source.regular_price);
+  firstPresentNumber(source.sales_display_price, source.sale_price, source.regular_price) ?? 0;
 
 /**
  * Create a delay for async operations

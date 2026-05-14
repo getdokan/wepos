@@ -313,6 +313,7 @@ const buildRestoredCartState = (
     server_order_dirty: false,
     currency: order.currency || '',
     currency_symbol: getCurrencySymbolForOrder(order, settings),
+    available_tax: [],
   };
 };
 

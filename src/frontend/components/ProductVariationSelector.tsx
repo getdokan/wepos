@@ -10,7 +10,7 @@ import {
 } from '@wedevs/plugin-ui';
 import { __ } from '@wordpress/i18n';
 import { POSProduct, ProductVariation, CartItem } from '../types';
-import { pickRegularDisplayPrice, pickSaleDisplayPrice, toFiniteNumber } from '../utils/helpers';
+import { firstPresentNumber, pickRegularDisplayPrice, pickSaleDisplayPrice } from '../utils/helpers';
 
 interface ProductVariationSelectorProps {
   product: POSProduct;
@@ -89,9 +89,7 @@ export const ProductVariationSelector: React.FC<
       type: 'variable',
       attribute: variationAttributes,
       editQuantity: false,
-      tax_amount:
-        toFiniteNumber(matchingVariation.tax_amount) ||
-        toFiniteNumber(product.tax_amount),
+      tax_amount: firstPresentNumber(matchingVariation.tax_amount, product.tax_amount) ?? 0,
       manage_stock: matchingVariation.manage_stock,
       stock_status: matchingVariation.stock_status,
       backorders_allowed: matchingVariation.backorders_allowed,
