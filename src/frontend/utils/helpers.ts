@@ -152,24 +152,20 @@ export const parseCurrencyAmount = (amount: string): number => {
   return parseFloat(amount.replace(/[^\d.-]/g, '')) || 0;
 };
 
-// Parse a value to a finite number, or null if not parseable. Strings go
-// through parseFloat (matches WC decimal-string conventions); everything else
-// through Number. NaN, Infinity, and unparseable strings return null.
+// Parse to a finite number, or null when non-finite. Strings go through parseFloat
+// (matches WC's decimal-string convention); everything else through Number.
 const tryParseFinite = (value: unknown): number | null => {
   const n = typeof value === 'string' ? parseFloat(value) : Number(value);
   return isFinite(n) ? n : null;
 };
 
-/**
- * Coerce an unknown value to a finite number, with 0 as the fallback.
- */
+/** Coerce an unknown value to a finite number, with 0 as the fallback. */
 export const toFiniteNumber = (value: unknown): number => tryParseFinite(value) ?? 0;
 
 /**
- * Return the first value in the chain that is present (not null/undefined/'')
- * and parseable as a finite number. A legitimate zero counts as present; an
- * empty string or unparseable value is skipped so the chain continues. Returns
- * `null` if nothing in the chain qualifies.
+ * First value in the chain that is present (not null/undefined/'') and parseable.
+ * A legitimate zero counts as present; empty/unparseable values are skipped so
+ * the chain continues. Returns `null` if nothing qualifies.
  */
 export const firstPresentNumber = (...values: unknown[]): number | null => {
   for (const value of values) {
@@ -188,16 +184,16 @@ interface PricedSource {
 }
 
 /**
- * Pick the regular price to use in the cart. Prefers the server-computed
- * `regular_display_price` (injected by `Manager.php::product_response`, which
- * respects `wc_tax_display_cart`) and falls back to the raw `regular_price`.
+ * Cart-display regular price: prefers the server-computed `regular_display_price`
+ * (injected by `Manager.php::product_response`, respects `wc_tax_display_cart`)
+ * and falls back to the raw `regular_price`.
  */
 export const pickRegularDisplayPrice = (source: PricedSource): number =>
   firstPresentNumber(source.regular_display_price, source.regular_price) ?? 0;
 
 /**
- * Pick the sale price to use in the cart. Falls through display → raw sale →
- * regular price so a product without a real sale still gets a usable number.
+ * Cart-display sale price: display → raw sale → regular price, so a product
+ * without a real sale still resolves to a usable number.
  */
 export const pickSaleDisplayPrice = (source: PricedSource): number =>
   firstPresentNumber(source.sales_display_price, source.sale_price, source.regular_price) ?? 0;

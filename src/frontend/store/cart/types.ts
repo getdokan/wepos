@@ -1,7 +1,6 @@
 import { POSCartItem, POSDiscountLine, POSFeeLine, POSShippingLine, POSOrderMetaItem, Customer } from '../../types';
 
-// Shape of a tax record returned from /wepos/v1/taxes (WC_REST_Taxes_V2_Controller).
-// Mirrors the legacy Vue `availableTax` records.
+// Tax record from /wepos/v1/taxes (WC_REST_Taxes_V2_Controller) — mirrors the legacy Vue `availableTax`.
 export interface TaxRate {
   id: number;
   class: string;
@@ -71,11 +70,9 @@ export interface CartState {
   server_order_dirty: boolean;
   currency: string;
   currency_symbol: string;
-  // Mirrors WC's `woocommerce_tax_display_cart` so the selector can match the
-  // legacy Vue logic that zeros line-item tax when display is inclusive.
+  // Mirrors WC's `woocommerce_tax_display_cart` — drives the inclusive-tax path in `getTotalTax`.
   tax_display_cart?: 'incl' | 'excl';
-  // Tax rates indexed by class. Powers local fee tax and coupon tax adjustment
-  // (legacy Cart.module.js `availableTax`).
+  // Available tax rates — powers local fee tax and coupon tax adjustment pre-save.
   available_tax: TaxRate[];
 }
 

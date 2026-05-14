@@ -1,6 +1,7 @@
 import { CartState, ServerOrderData } from './types';
 import { POSCartItem, POSDiscountLine, POSFeeLine, POSShippingLine, POSOrderMetaItem, Customer } from '../../types';
 import { toFiniteNumber } from '../../utils/helpers';
+import { applyFilters } from '../../hooks/useExtensions';
 
 export const selectors = {
   getCartItems: (state: CartState): POSCartItem[] => state.line_items,
@@ -49,8 +50,7 @@ export const selectors = {
     }, 0);
   },
 
-  // Raw line-item tax that is NOT zeroed in `incl` mode. Used by the UI to
-  // show the "Including Tax" hint (mirrors the legacy Vue Cart store).
+  // Raw line-item tax — NOT zeroed in `incl` mode. Drives the "Including Tax" UI hint.
   getTotalLineTax: (state: CartState): number => {
     return state.line_items.reduce((total: number, item: POSCartItem) => {
       const perUnitTax = toFiniteNumber(item.tax_amount);
@@ -95,7 +95,15 @@ export const selectors = {
       return sum + (discountAmount / subtotal) * lineTax;
     }, 0);
 
-    return lineTax + feeTax - couponTaxReduction;
+    return applyFilters<number>(
+      'wepos_cart_total_tax',
+      lineTax + feeTax - couponTaxReduction,
+      state,
+      lineTax,
+      feeTax,
+      findRate,
+      couponTaxReduction
+    );
   },
 
   getTotal: (state: CartState): number => {
