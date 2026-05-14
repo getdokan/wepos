@@ -399,9 +399,8 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       const itemTotal = item.quantity * (item.on_sale ? item.sale_price : item.regular_price);
                       const itemSubtotal = item.quantity * item.regular_price;
 
-                      // Get server-calculated tax for this line item if available and not stale;
-                      // fall back to the per-unit tax_amount injected by the product REST response
-                      // so the breakdown is visible immediately after adding to cart.
+                      // Fall back to the per-unit tax_amount from the product REST response
+                      // so the breakdown is visible before the first server round-trip.
                       const serverLineItem = serverOrder && !isServerOrderDirty
                         ? serverOrder.line_items?.find(
                             (li: any) => li.product_id === item.product_id && li.variation_id === (item.variation_id || 0)
@@ -665,9 +664,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 <div className="text-sm">
                   {cartFormatPrice(subtotal)}
                 </div>
-                <div className="ml-2 h-4 w-4">
-                  &nbsp;
-                </div>
+                <div className="ml-2 h-4 w-4" aria-hidden />
               </div>
 
               {/* Discount Lines */}
@@ -788,9 +785,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       <div className="text-sm">
                         {cartFormatPrice(parseFloat(taxLine.tax_total) + parseFloat(taxLine.shipping_tax_total))}
                       </div>
-                      <div className="ml-2 h-4 w-4">
-                        &nbsp;
-                      </div>
+                      <div className="ml-2 h-4 w-4" aria-hidden />
                     </div>
                   ))}
                 </>
@@ -807,9 +802,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                   <div className="text-sm font-bold text-foreground">
                     {cartFormatPrice(totalTax)}
                   </div>
-                  <div className="ml-2 h-4 w-4">
-                    &nbsp;
-                  </div>
+                  <div className="ml-2 h-4 w-4" aria-hidden />
                 </div>
               )}
 

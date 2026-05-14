@@ -66,8 +66,12 @@ export const createReducer = (preloadedState: CartState = initialState) => (
     }
 
     case 'HYDRATE_CART':
+      // Preserve store-wide reference data (tax rates, display mode) — these
+      // aren't part of a cart snapshot. Use SET_AVAILABLE_TAX / SET_TAX_DISPLAY_MODE.
       return {
         ...action.state,
+        available_tax: state.available_tax,
+        tax_display_cart: state.tax_display_cart,
       };
 
     case 'CLEAR_CART':
@@ -197,8 +201,7 @@ export const createReducer = (preloadedState: CartState = initialState) => (
       };
 
     case 'SET_TAX_DISPLAY_MODE':
-      // Tax-display mode reflects a WC store setting and never affects what
-      // the server calculates for a saved order, so do NOT mark the order dirty.
+      // Reference data — does not mark the order dirty.
       if (state.tax_display_cart === action.mode) return state;
       return {
         ...state,
@@ -206,8 +209,7 @@ export const createReducer = (preloadedState: CartState = initialState) => (
       };
 
     case 'SET_AVAILABLE_TAX':
-      // Same reasoning as SET_TAX_DISPLAY_MODE: reference data, not cart edit.
-      if (state.available_tax === action.rates) return state;
+      // Reference data — does not mark the order dirty.
       return {
         ...state,
         available_tax: action.rates,

@@ -152,40 +152,51 @@ export const parseCurrencyAmount = (amount: string): number => {
   return parseFloat(amount.replace(/[^\d.-]/g, '')) || 0;
 };
 
-/**
- * Coerce an unknown value to a finite number, with 0 as the fallback.
- * Strings go through `parseFloat` (matches WC decimal-string conventions);
- * everything else through `Number`.
- */
-export const toFiniteNumber = (value: unknown): number => {
+// Parse to a finite number, or null when non-finite. Strings go through parseFloat
+// (matches WC's decimal-string convention); everything else through Number.
+const tryParseFinite = (value: unknown): number | null => {
   const n = typeof value === 'string' ? parseFloat(value) : Number(value);
-  return isFinite(n) ? n : 0;
+  return isFinite(n) ? n : null;
 };
 
+/** Coerce an unknown value to a finite number, with 0 as the fallback. */
+export const toFiniteNumber = (value: unknown): number => tryParseFinite(value) ?? 0;
+
 /**
- * Pick the server-computed display price for a product/variation, falling back
- * to the raw stored price. `regular_display_price` / `sales_display_price` are
- * injected by `Manager.php::product_response` and respect `wc_tax_display_cart`.
- * Matches legacy Vue `Cart.module.js:139-140`.
+ * First value in the chain that is present (not null/undefined/'') and parseable.
+ * A legitimate zero counts as present; empty/unparseable values are skipped so
+ * the chain continues. Returns `null` if nothing qualifies.
  */
-export const pickDisplayPrice = (
-  source: {
-    regular_price?: string | number | null;
-    sale_price?: string | number | null;
-    regular_display_price?: string | number | null;
-    sales_display_price?: string | number | null;
-  },
-  kind: 'regular' | 'sale',
-): number => {
-  const display = kind === 'regular' ? source.regular_display_price : source.sales_display_price;
-  const raw = kind === 'regular' ? source.regular_price : source.sale_price;
-  const displayNum = toFiniteNumber(display);
-  if (displayNum > 0) return displayNum;
-  const rawNum = toFiniteNumber(raw);
-  if (rawNum > 0) return rawNum;
-  // For `sale_price`, the legacy fallback chain ends at `regular_price`.
-  return kind === 'sale' ? toFiniteNumber(source.regular_price) : 0;
+export const firstPresentNumber = (...values: unknown[]): number | null => {
+  for (const value of values) {
+    if (value == null || value === '') continue;
+    const n = tryParseFinite(value);
+    if (n !== null) return n;
+  }
+  return null;
 };
+
+interface PricedSource {
+  regular_price?: string | number | null;
+  sale_price?: string | number | null;
+  regular_display_price?: string | number | null;
+  sales_display_price?: string | number | null;
+}
+
+/**
+ * Cart-display regular price: prefers the server-computed `regular_display_price`
+ * (injected by `Manager.php::product_response`, respects `wc_tax_display_cart`)
+ * and falls back to the raw `regular_price`.
+ */
+export const pickRegularDisplayPrice = (source: PricedSource): number =>
+  firstPresentNumber(source.regular_display_price, source.regular_price) ?? 0;
+
+/**
+ * Cart-display sale price: display → raw sale → regular price, so a product
+ * without a real sale still resolves to a usable number.
+ */
+export const pickSaleDisplayPrice = (source: PricedSource): number =>
+  firstPresentNumber(source.sales_display_price, source.sale_price, source.regular_price) ?? 0;
 
 /**
  * Create a delay for async operations

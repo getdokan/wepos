@@ -533,8 +533,7 @@ const settingsAPI = {
   },
 };
 
-// Taxes API — mirrors the legacy Vue `fetchTaxes()` so we can compute
-// fee tax and coupon tax adjustment locally before the server confirms the order.
+// Taxes API — pre-fetches rates so fee/coupon tax can be computed locally before save.
 const taxesAPI = {
   getTaxes: async (): Promise<TaxRate[]> => {
     const response = await apiFetch({

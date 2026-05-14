@@ -32,7 +32,8 @@ import {
   getProductImage,
   hasStock,
   parseCurrencyAmount,
-  pickDisplayPrice,
+  pickRegularDisplayPrice,
+  pickSaleDisplayPrice,
   toFiniteNumber,
   truncateTitle,
 } from '../utils/helpers';
@@ -312,6 +313,7 @@ const buildRestoredCartState = (
     server_order_dirty: false,
     currency: order.currency || '',
     currency_symbol: getCurrencySymbolForOrder(order, settings),
+    available_tax: [],
   };
 };
 
@@ -374,15 +376,14 @@ const HomePage: React.FC = () => {
     setAvailableTax,
   } = useDispatch(CART_STORE_NAME) as any;
 
-  // Mirror WC's `woocommerce_tax_display_cart` into the cart store so selectors
-  // can match the legacy Vue behaviour for inclusive-tax stores.
+  // Mirror WC's `woocommerce_tax_display_cart` into the cart store — drives the
+  // inclusive-tax path in `getTotalTax`.
   useEffect(() => {
     const mode = settings?.woo_tax?.wc_tax_display_cart === 'incl' ? 'incl' : 'excl';
     setTaxDisplayMode(mode);
   }, [settings?.woo_tax?.wc_tax_display_cart, setTaxDisplayMode]);
 
-  // Mirror the legacy Vue `fetchTaxes()` so the selector can compute fee tax
-  // and coupon tax adjustment locally (Cart.module.js:67-99).
+  // Pre-fetch tax rates so selectors can compute fee/coupon tax locally before save.
   useEffect(() => {
     let cancelled = false;
     posAPI.taxes
@@ -392,8 +393,10 @@ const HomePage: React.FC = () => {
           setAvailableTax(rates || []);
         }
       })
-      .catch(() => {
-        // Non-fatal: the server still calculates accurate tax on save.
+      .catch((error) => {
+        // Non-fatal: server still computes accurate tax on save. Logged so a
+        // broken endpoint is visible while debugging cart totals.
+        console.warn('wePOS: failed to fetch tax rates', error);
       });
     return () => {
       cancelled = true;
@@ -468,8 +471,8 @@ const HomePage: React.FC = () => {
         name: product.name,
         sku: product.sku || '',
         quantity: 1,
-        regular_price: pickDisplayPrice(product, 'regular'),
-        sale_price: pickDisplayPrice(product, 'sale'),
+        regular_price: pickRegularDisplayPrice(product),
+        sale_price: pickSaleDisplayPrice(product),
         raw_regular_price: toFiniteNumber(product.regular_price),
         raw_sale_price: toFiniteNumber(product.sale_price),
         on_sale: product.on_sale,
