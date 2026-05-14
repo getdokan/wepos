@@ -50,7 +50,7 @@ export const selectors = {
   },
 
   // Raw line-item tax that is NOT zeroed in `incl` mode. Used by the UI to
-  // show the "Including Tax" hint (legacy Cart.module.js:42-51, Home.vue:259).
+  // show the "Including Tax" hint (mirrors the legacy Vue Cart store).
   getTotalLineTax: (state: CartState): number => {
     return state.line_items.reduce((total: number, item: POSCartItem) => {
       const perUnitTax = toFiniteNumber(item.tax_amount);
@@ -99,9 +99,8 @@ export const selectors = {
   },
 
   getTotal: (state: CartState): number => {
-    // Use server-calculated total only if available and cart hasn't been modified locally
     if (state.server_order && !state.server_order_dirty) {
-      return parseFloat(state.server_order.total) || 0;
+      return toFiniteNumber(state.server_order.total);
     }
 
     const subtotal = selectors.getSubtotal(state);

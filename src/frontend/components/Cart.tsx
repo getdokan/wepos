@@ -662,9 +662,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 <div className="text-sm">
                   {cartFormatPrice(subtotal)}
                 </div>
-                <div className="ml-2 h-4 w-4">
-                  &nbsp;
-                </div>
+                <div className="ml-2 h-4 w-4" aria-hidden />
               </div>
 
               {/* Discount Lines */}
@@ -785,9 +783,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       <div className="text-sm">
                         {cartFormatPrice(parseFloat(taxLine.tax_total) + parseFloat(taxLine.shipping_tax_total))}
                       </div>
-                      <div className="ml-2 h-4 w-4">
-                        &nbsp;
-                      </div>
+                      <div className="ml-2 h-4 w-4" aria-hidden />
                     </div>
                   ))}
                 </>
@@ -804,9 +800,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                   <div className="text-sm font-bold text-foreground">
                     {cartFormatPrice(totalTax)}
                   </div>
-                  <div className="ml-2 h-4 w-4">
-                    &nbsp;
-                  </div>
+                  <div className="ml-2 h-4 w-4" aria-hidden />
                 </div>
               )}
 

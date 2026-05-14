@@ -213,8 +213,7 @@ export const createReducer = (preloadedState: CartState = initialState) => (
       };
 
     case 'SET_AVAILABLE_TAX':
-      // Same reasoning as SET_TAX_DISPLAY_MODE: reference data, not cart edit.
-      if (state.available_tax === action.rates) return state;
+      // Reference data, not a cart edit — does not mark the order dirty.
       return {
         ...state,
         available_tax: action.rates,

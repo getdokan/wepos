@@ -384,7 +384,7 @@ const HomePage: React.FC = () => {
   }, [settings?.woo_tax?.wc_tax_display_cart, setTaxDisplayMode]);
 
   // Mirror the legacy Vue `fetchTaxes()` so the selector can compute fee tax
-  // and coupon tax adjustment locally (Cart.module.js:67-99).
+  // and coupon tax adjustment locally.
   useEffect(() => {
     let cancelled = false;
     posAPI.taxes
@@ -394,8 +394,10 @@ const HomePage: React.FC = () => {
           setAvailableTax(rates || []);
         }
       })
-      .catch(() => {
-        // Non-fatal: the server still calculates accurate tax on save.
+      .catch((error) => {
+        // Non-fatal: the server still calculates accurate tax on save. Logged
+        // so a misbehaving endpoint is visible while debugging cart totals.
+        console.warn('wePOS: failed to fetch tax rates', error);
       });
     return () => {
       cancelled = true;

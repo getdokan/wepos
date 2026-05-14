@@ -1,7 +1,7 @@
 import { POSCartItem, POSDiscountLine, POSFeeLine, POSShippingLine, POSOrderMetaItem, Customer } from '../../types';
 
 // Shape of a tax record returned from /wepos/v1/taxes (WC_REST_Taxes_V2_Controller).
-// Mirrors the legacy Vue `availableTax` records used in Cart.module.js:73,88.
+// Mirrors the legacy Vue `availableTax` records.
 export interface TaxRate {
   id: number;
   class: string;
