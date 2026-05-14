@@ -162,30 +162,36 @@ export const toFiniteNumber = (value: unknown): number => {
   return isFinite(n) ? n : 0;
 };
 
-/**
- * Pick the server-computed display price for a product/variation, falling back
- * to the raw stored price. `regular_display_price` / `sales_display_price` are
- * injected by `Manager.php::product_response` and respect `wc_tax_display_cart`.
- * Matches legacy Vue `Cart.module.js:139-140`.
- */
-export const pickDisplayPrice = (
-  source: {
-    regular_price?: string | number | null;
-    sale_price?: string | number | null;
-    regular_display_price?: string | number | null;
-    sales_display_price?: string | number | null;
-  },
-  kind: 'regular' | 'sale',
-): number => {
-  const display = kind === 'regular' ? source.regular_display_price : source.sales_display_price;
-  const raw = kind === 'regular' ? source.regular_price : source.sale_price;
-  const displayNum = toFiniteNumber(display);
-  if (displayNum > 0) return displayNum;
-  const rawNum = toFiniteNumber(raw);
-  if (rawNum > 0) return rawNum;
-  // For `sale_price`, the legacy fallback chain ends at `regular_price`.
-  return kind === 'sale' ? toFiniteNumber(source.regular_price) : 0;
+interface PricedSource {
+  regular_price?: string | number | null;
+  sale_price?: string | number | null;
+  regular_display_price?: string | number | null;
+  sales_display_price?: string | number | null;
+}
+
+// Return the first value in the chain that coerces to a positive finite number.
+const firstPositive = (...values: unknown[]): number => {
+  for (const value of values) {
+    const n = toFiniteNumber(value);
+    if (n > 0) return n;
+  }
+  return 0;
 };
+
+/**
+ * Pick the regular price to use in the cart. Prefers the server-computed
+ * `regular_display_price` (injected by `Manager.php::product_response`, which
+ * respects `wc_tax_display_cart`) and falls back to the raw `regular_price`.
+ */
+export const pickRegularDisplayPrice = (source: PricedSource): number =>
+  firstPositive(source.regular_display_price, source.regular_price);
+
+/**
+ * Pick the sale price to use in the cart. Falls through display → raw sale →
+ * regular price so a product without a real sale still gets a usable number.
+ */
+export const pickSaleDisplayPrice = (source: PricedSource): number =>
+  firstPositive(source.sales_display_price, source.sale_price, source.regular_price);
 
 /**
  * Create a delay for async operations

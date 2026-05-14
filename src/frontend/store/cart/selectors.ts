@@ -59,49 +59,43 @@ export const selectors = {
   },
 
   getTotalTax: (state: CartState): number => {
-    // Use server-calculated tax only if available and cart hasn't been modified locally
     if (state.server_order && !state.server_order_dirty) {
-      return parseFloat(state.server_order.total_tax) || 0;
+      return toFiniteNumber(state.server_order.total_tax);
     }
 
-    // Mirrors legacy Cart.module.js:52-102.
-    // Inclusive display zeros line tax because the line price already
-    // includes it (legacy :63-65) — fee/coupon tax still apply on top.
-    const taxLineTotal = state.tax_display_cart === 'incl' ? 0 : selectors.getTotalLineTax(state);
-
+    // `incl` mode: line price already includes tax; fees and coupons still apply.
+    const lineTax = state.tax_display_cart === 'incl' ? 0 : selectors.getTotalLineTax(state);
     const subtotal = selectors.getSubtotal(state);
 
+    // Empty tax class maps to WC's 'standard'; returns 0 when no class matches.
     const findRate = (taxClass: string): number => {
       const slug = taxClass === '' ? 'standard' : taxClass;
       const match = state.available_tax.find((r) => r.class === slug);
       return match ? toFiniteNumber(match.rate) : 0;
     };
 
-    // Fee tax (legacy :67-80).
-    const taxFeeTotal = state.fee_lines.reduce((total: number, fee: POSFeeLine) => {
-      if (fee.tax_status !== 'taxable') return total;
+    const feeTax = state.fee_lines.reduce((sum: number, fee: POSFeeLine) => {
+      if (fee.tax_status !== 'taxable') return sum;
       const rate = findRate(fee.tax_class);
-      if (!rate) return total;
+      if (!rate) return sum;
       const feeAmount = fee.fee_type === 'percent'
         ? (subtotal * parseFloat(fee.value)) / 100
         : parseFloat(fee.value);
-      return total + (Math.abs(feeAmount) * Math.abs(rate)) / 100;
+      return sum + (Math.abs(feeAmount) * Math.abs(rate)) / 100;
     }, 0);
 
-    // Coupon tax adjustment (legacy :82-99). Subtracted (not added) because
-    // legacy stored `coupon.total` as negative; here `discountAmount` is positive.
-    const couponTaxDiscount = state.coupon_lines.reduce((total: number, coupon: POSDiscountLine) => {
-      if (coupon.tax_status !== 'taxable') return total;
+    // Sign flips vs. legacy Vue (stored coupon.total negative); here discountAmount is positive.
+    const couponTaxReduction = state.coupon_lines.reduce((sum: number, coupon: POSDiscountLine) => {
+      if (coupon.tax_status !== 'taxable' || !subtotal) return sum;
       const rate = findRate(coupon.tax_class);
-      if (!rate || !subtotal) return total;
+      if (!rate) return sum;
       const discountAmount = coupon.discount_type === 'percent'
         ? (subtotal * coupon.value) / 100
         : coupon.value;
-      const discountPct = (discountAmount / subtotal) * 100;
-      return total - (discountPct / 100) * taxLineTotal;
+      return sum + (discountAmount / subtotal) * lineTax;
     }, 0);
 
-    return taxLineTotal + couponTaxDiscount + taxFeeTotal;
+    return lineTax + feeTax - couponTaxReduction;
   },
 
   getTotal: (state: CartState): number => {
