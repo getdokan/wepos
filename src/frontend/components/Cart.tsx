@@ -397,8 +397,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       const itemTotal = item.quantity * (item.on_sale ? item.sale_price : item.regular_price);
                       const itemSubtotal = item.quantity * item.regular_price;
 
-                      // Fall back to the per-unit tax_amount from the product REST response
-                      // so the breakdown is visible before the first server round-trip.
+                      // Server tax when available; otherwise client-computed from product tax_amount so the breakdown shows pre-save.
                       const serverLineItem = serverOrder && !isServerOrderDirty
                         ? serverOrder.line_items?.find(
                             (li: any) => li.product_id === item.product_id && li.variation_id === (item.variation_id || 0)

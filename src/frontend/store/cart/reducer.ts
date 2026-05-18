@@ -65,9 +65,8 @@ export const createReducer = (preloadedState: CartState = initialState) => (
       return { ...state, line_items: updatedItems, server_order_dirty: true };
     }
 
+    // Preserve tax_display_cart and available_tax across both: store-wide reference data, not part of a cart snapshot.
     case 'HYDRATE_CART':
-      // Preserve store-wide reference data (tax rates, display mode) — these
-      // aren't part of a cart snapshot. Use SET_AVAILABLE_TAX / SET_TAX_DISPLAY_MODE.
       return {
         ...action.state,
         available_tax: state.available_tax,
@@ -75,8 +74,6 @@ export const createReducer = (preloadedState: CartState = initialState) => (
       };
 
     case 'CLEAR_CART':
-      // Preserve store-wide reference data (tax rates, display mode) — these
-      // aren't part of a cart snapshot. Use SET_AVAILABLE_TAX / SET_TAX_DISPLAY_MODE.
       return {
         ...initialState,
         available_tax: state.available_tax,
