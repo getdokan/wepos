@@ -304,8 +304,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
   const cartFormatPrice = (price: number | string): string | number =>
     formatPrice(price, orderCurrencySymbol || '');
 
-  // Read from the cart store (single source of truth) — kept in sync with
-  // `woocommerce_tax_display_cart` by the `setTaxDisplayMode` effect in `Home.tsx`.
+  // Single source of truth: store value, synced from woocommerce_tax_display_cart by Home.tsx.
   const isTaxInclusive = taxDisplayMode === 'incl';
 
   // Count visible columns for colSpan

@@ -17,8 +17,7 @@ import {
 } from '../utils/helpers';
 import ProductVariationSelector from './ProductVariationSelector';
 
-// Cart-display price — matches whatever the cart row will render so the cashier
-// sees the same number on both surfaces.
+// Use the cart-display price so the shop list matches the cart row across every prices_include_tax × tax_display_cart combo.
 function getDisplayPrice(product: POSProduct): number {
   return product.on_sale
     ? pickSaleDisplayPrice(product)

@@ -809,13 +809,10 @@ const HomePage: React.FC = () => {
         await posAPI.payment.processPayment(orderResponse);
 
       if (paymentResponse.result === 'success') {
-        // Receipt tax — same fallback as the `getTotalTax` selector: trust the
-        // server's reported tax when positive; otherwise derive it from the
-        // total/sub gap so the printed receipt is self-consistent even when WC
-        // leaves `total_tax=0` on orders without a resolvable rate location.
-        const orderTotal = toFiniteNumber(orderResponse.total) || total;
-        const serverReportedTax = toFiniteNumber(orderResponse.total_tax);
-        const taxGap = orderTotal - (subtotal - totalDiscount + totalFee + totalShipping);
+        // Mirror getTotalTax fallback so the printed receipt stays self-consistent when WC reports total_tax=0.
+        const orderTotal = toFiniteNumber(orderResponse.total) || total,
+          serverReportedTax = toFiniteNumber(orderResponse.total_tax),
+          taxGap = orderTotal - (subtotal - totalDiscount + totalFee + totalShipping);
         const effectiveTax = serverReportedTax > 0
           ? serverReportedTax
           : Math.max(0, taxGap > 0.01 ? taxGap : 0);
@@ -823,9 +820,6 @@ const HomePage: React.FC = () => {
         const printDataToSet = {
           line_items: cartItems.map((cartItem: POSCartItem) => ({
             ...cartItem,
-            // Per-line tax for receipts that show a per-row breakdown.
-            // Pre-fix this was hardcoded to 0, hiding the value even when the
-            // product response carried `tax_amount`.
             total_tax: toFiniteNumber(cartItem.tax_amount) * cartItem.quantity,
           })),
           fee_lines: feeLines,
@@ -910,8 +904,9 @@ const HomePage: React.FC = () => {
       const matchedServerIds = new Set<number>();
 
       cartItems.forEach((item: POSCartItem) => {
-        const rawRegular = item.raw_regular_price ?? item.regular_price;
-        const rawSale = item.raw_sale_price ?? item.sale_price;
+        // Raw prices (stored values) drive the order payload; falls back to display prices for legacy in-memory carts.
+        const rawRegular = item.raw_regular_price ?? item.regular_price,
+          rawSale = item.raw_sale_price ?? item.sale_price;
         const unitPrice = item.on_sale ? rawSale : rawRegular;
         const lineItem: any = {
           quantity: item.quantity,

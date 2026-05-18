@@ -53,9 +53,7 @@ export const selectors = {
   getTaxDisplayMode: (state: CartState): 'incl' | 'excl' =>
     state.tax_display_cart === 'incl' ? 'incl' : 'excl',
 
-  // Raw line-item tax — NOT zeroed in `incl` mode. Drives the "Including Tax" UI hint.
-  // `tax_amount` is `wc_get_price_including_tax - wc_get_price_excluding_tax`, always
-  // non-negative for positive prices, so no `Math.abs` is needed.
+  // Drives the "Including Tax" UI hint — never zeroed in incl mode.
   getTotalLineTax: (state: CartState): number => {
     return state.line_items.reduce((total: number, item: POSCartItem) => {
       return total + toFiniteNumber(item.tax_amount) * item.quantity;
@@ -67,17 +65,12 @@ export const selectors = {
       const serverTax = toFiniteNumber(state.server_order.total_tax);
       if (serverTax > 0) return serverTax;
 
-      // Server explicitly reported zero tax. WC sometimes leaves `total_tax=0`
-      // on pos-open orders when it can't resolve a tax rate from the order
-      // location (e.g. guest with no billing address). The line totals already
-      // bundle the tax in that case, so derive the tax from the gap between
-      // `server.total` and the sum of non-tax components. Keeps the summary
-      // self-consistent: Subtotal + Tax = Order Total.
-      const subtotalForGap = selectors.getSubtotal(state);
-      const discountForGap = selectors.getTotalDiscount(state);
-      const feeForGap = selectors.getTotalFee(state);
-      const shippingForGap = selectors.getTotalShipping(state);
-      const serverTotal = toFiniteNumber(state.server_order.total);
+      // Fallback when WC silently reports total_tax=0 (e.g. unresolvable rate location): derive tax from total − non-tax components so Subtotal + Tax = Order Total.
+      const subtotalForGap = selectors.getSubtotal(state),
+        discountForGap = selectors.getTotalDiscount(state),
+        feeForGap = selectors.getTotalFee(state),
+        shippingForGap = selectors.getTotalShipping(state),
+        serverTotal = toFiniteNumber(state.server_order.total);
       const gap = serverTotal - (subtotalForGap - discountForGap + feeForGap + shippingForGap);
       return gap > 0.01 ? gap : 0;
     }
@@ -114,8 +107,7 @@ export const selectors = {
       return sum + (discountAmount / subtotal) * lineTax;
     }, 0);
 
-    // Filter payload exposes derived totals only — never the live store state — so
-    // a misbehaving extension cannot mutate cart internals from inside the filter.
+    // Filter payload exposes derived totals only — never the live store — so callbacks can't mutate cart state.
     return applyFilters<number>(
       'wepos_cart_total_tax',
       lineTax + feeTax - couponTaxReduction,
