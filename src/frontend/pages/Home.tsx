@@ -378,8 +378,7 @@ const HomePage: React.FC = () => {
     setAvailableTax,
   } = useDispatch(CART_STORE_NAME) as any;
 
-  // Mirror WC's `woocommerce_tax_display_cart` into the cart store — drives the
-  // inclusive-tax path in `getTotalTax`.
+  // Mirror woocommerce_tax_display_cart into the store — drives the inclusive-tax path in getTotalTax.
   useEffect(() => {
     const mode = settings?.woo_tax?.wc_tax_display_cart === 'incl' ? 'incl' : 'excl';
     setTaxDisplayMode(mode);
@@ -396,8 +395,7 @@ const HomePage: React.FC = () => {
         }
       })
       .catch((error) => {
-        // Non-fatal: server still computes accurate tax on save. Logged so a
-        // broken endpoint is visible while debugging cart totals.
+        // Non-fatal: server still computes accurate tax on save; log to surface a broken endpoint.
         console.warn('wePOS: failed to fetch tax rates', error);
       });
     return () => {
