@@ -345,7 +345,7 @@ const HomePage: React.FC = () => {
     [],
   );
 
-  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines, shippingLines, metaData, customerNote, totalShipping, totalFee, totalDiscount, totalTax, serverOrder, orderCurrency, orderCurrencySymbol } = useSelect((select) => {
+  const { cartItems, total, subtotal, selectedCustomer, feeLines, discountLines, shippingLines, metaData, customerNote, totalShipping, totalTax, serverOrder, orderCurrency, orderCurrencySymbol } = useSelect((select) => {
     const cartStore = select(CART_STORE_NAME) as any;
     return {
       cartItems: cartStore.getCartItems(),
@@ -358,8 +358,6 @@ const HomePage: React.FC = () => {
       metaData: cartStore.getMetaData(),
       customerNote: cartStore.getCustomerNote(),
       totalShipping: cartStore.getTotalShipping(),
-      totalFee: cartStore.getTotalFee(),
-      totalDiscount: cartStore.getTotalDiscount(),
       totalTax: cartStore.getTotalTax(),
       serverOrder: cartStore.getServerOrder(),
       orderCurrency: cartStore.getOrderCurrency(),
@@ -807,14 +805,7 @@ const HomePage: React.FC = () => {
         await posAPI.payment.processPayment(orderResponse);
 
       if (paymentResponse.result === 'success') {
-        // Mirror getTotalTax fallback so the printed receipt stays self-consistent when WC reports total_tax=0.
-        const orderTotal = toFiniteNumber(orderResponse.total) || total,
-          serverReportedTax = toFiniteNumber(orderResponse.total_tax),
-          taxGap = orderTotal - (subtotal - totalDiscount + totalFee + totalShipping);
-        const effectiveTax = serverReportedTax > 0
-          ? serverReportedTax
-          : Math.max(0, taxGap > 0.01 ? taxGap : 0);
-
+        // Receipt mirrors cart selectors, so its tax/total carries the same WC-silent fallback — receipt matches the cart row in every prices_include_tax × tax_display_cart combination.
         const printDataToSet = {
           line_items: cartItems.map((cartItem: POSCartItem) => ({
             ...cartItem,
@@ -824,10 +815,10 @@ const HomePage: React.FC = () => {
           coupon_lines: discountLines,
           shipping_lines: shippingLines,
           subtotal: subtotal,
-          taxtotal: effectiveTax,
+          taxtotal: totalTax,
           shippingtotal: totalShipping,
           shippingtaxtotal: toFiniteNumber(orderResponse.shipping_tax),
-          ordertotal: orderTotal,
+          ordertotal: total,
           gateway: {
             id: orderResponse.payment_method,
             title: orderResponse.payment_method_title,

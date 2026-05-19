@@ -61,21 +61,23 @@ export const selectors = {
   },
 
   getTotalTax: (state: CartState): number => {
+    // Resolution order: 1) WC's authoritative server tax  2) tax bundled into server.total (gap)  3) legacy local formula.
     if (state.server_order && !state.server_order_dirty) {
       const serverTax = toFiniteNumber(state.server_order.total_tax);
       if (serverTax > 0) return serverTax;
 
-      // Fallback when WC silently reports total_tax=0 (e.g. unresolvable rate location): derive tax from total − non-tax components so Subtotal + Tax = Order Total.
-      const subtotalForGap = selectors.getSubtotal(state),
-        discountForGap = selectors.getTotalDiscount(state),
-        feeForGap = selectors.getTotalFee(state),
-        shippingForGap = selectors.getTotalShipping(state),
-        serverTotal = toFiniteNumber(state.server_order.total);
-      const gap = serverTotal - (subtotalForGap - discountForGap + feeForGap + shippingForGap);
-      return gap > 0.01 ? gap : 0;
+      // WC silently reports 0 when it cannot resolve a rate (e.g. guest order, no shop base country); recover bundled tax from total − non-tax.
+      const nonTax = selectors.getSubtotal(state)
+        - selectors.getTotalDiscount(state)
+        + selectors.getTotalFee(state)
+        + selectors.getTotalShipping(state);
+      const gap = toFiniteNumber(state.server_order.total) - nonTax;
+      if (gap > 0.01) return gap;
+
+      // No bundled tax — fall through. Excl mode then recovers per-line tax_amount; incl mode returns just feeTax (lineTax is zeroed below to avoid double-counting).
     }
 
-    // `incl` mode: line price already includes tax; fees and coupons still apply.
+    // Legacy local formula (port of Cart.module.js#getTotalTax lines 52–102) — also acts as the post-save fall-through above.
     const lineTax = state.tax_display_cart === 'incl' ? 0 : selectors.getTotalLineTax(state);
     const subtotal = selectors.getSubtotal(state);
 
@@ -116,17 +118,25 @@ export const selectors = {
   },
 
   getTotal: (state: CartState): number => {
+    // Always derive `computed` so the cart's "subtotal + tax = total" invariant survives a WC-silent saved order.
+    const computed = Math.max(
+      0,
+      selectors.getSubtotal(state)
+        - selectors.getTotalDiscount(state)
+        + selectors.getTotalFee(state)
+        + selectors.getTotalShipping(state)
+        + selectors.getTotalTax(state),
+    );
+
     if (state.server_order && !state.server_order_dirty) {
-      return toFiniteNumber(state.server_order.total);
+      const serverTotal = toFiniteNumber(state.server_order.total);
+      // serverTax > 0 ⇒ WC resolved the rate; its total is authoritative.
+      if (toFiniteNumber(state.server_order.total_tax) > 0) return serverTotal;
+      // Side-effect: when WC under-reported tax, returned total may exceed the DB-saved server_order.total — display-layer recovery only; accounting reports must still read server_order.total directly.
+      return Math.max(serverTotal, computed);
     }
 
-    const subtotal = selectors.getSubtotal(state);
-    const totalDiscount = selectors.getTotalDiscount(state);
-    const totalFee = selectors.getTotalFee(state);
-    const totalShipping = selectors.getTotalShipping(state);
-    const totalTax = selectors.getTotalTax(state);
-
-    return Math.max(0, subtotal - totalDiscount + totalFee + totalShipping + totalTax);
+    return computed;
   },
 
   getOrderCurrency: (state: CartState): string => state.currency,
