@@ -152,6 +152,40 @@ export const parseCurrencyAmount = (amount: string): number => {
   return parseFloat(amount.replace(/[^\d.-]/g, '')) || 0;
 };
 
+// Strings via parseFloat (WC stores decimals as strings); everything else via Number. Returns null when non-finite.
+const tryParseFinite = (value: unknown): number | null => {
+  const n = typeof value === 'string' ? parseFloat(value) : Number(value);
+  return isFinite(n) ? n : null;
+};
+
+// Coerce unknown to a finite number, with 0 as the fallback.
+export const toFiniteNumber = (value: unknown): number => tryParseFinite(value) ?? 0;
+
+// First present (not null/undefined/'') and parseable value in the chain; 0 counts as present. Returns null if none.
+export const firstPresentNumber = (...values: unknown[]): number | null => {
+  for (const value of values) {
+    if (value == null || value === '') continue;
+    const n = tryParseFinite(value);
+    if (n !== null) return n;
+  }
+  return null;
+};
+
+interface PricedSource {
+  regular_price?: string | number | null;
+  sale_price?: string | number | null;
+  regular_display_price?: string | number | null;
+  sales_display_price?: string | number | null;
+}
+
+// Cart-display regular price: server-computed regular_display_price (respects wc_tax_display_cart) → raw regular_price.
+export const pickRegularDisplayPrice = (source: PricedSource): number =>
+  firstPresentNumber(source.regular_display_price, source.regular_price) ?? 0;
+
+// Cart-display sale price: sales_display_price → sale_price → regular_price, so non-sale products still resolve.
+export const pickSaleDisplayPrice = (source: PricedSource): number =>
+  firstPresentNumber(source.sales_display_price, source.sale_price, source.regular_price) ?? 0;
+
 /**
  * Create a delay for async operations
  */

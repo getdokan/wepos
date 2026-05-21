@@ -1,5 +1,22 @@
 import { POSCartItem, POSDiscountLine, POSFeeLine, POSShippingLine, POSOrderMetaItem, Customer } from '../../types';
 
+// Tax record from /wepos/v1/taxes (WC_REST_Taxes_V2_Controller) — mirrors the legacy Vue `availableTax`.
+export interface TaxRate {
+  id: number;
+  class: string;
+  rate: string;
+  name?: string;
+  compound?: boolean;
+  shipping?: boolean;
+  priority?: number;
+  order?: number;
+  country?: string;
+  state?: string;
+  postcode?: string;
+  city?: string;
+  percentage_rate?: string;
+}
+
 // Server-synced order data (populated after saveToServer)
 export interface ServerOrderData {
   order_id: number;
@@ -53,6 +70,10 @@ export interface CartState {
   server_order_dirty: boolean;
   currency: string;
   currency_symbol: string;
+  // Mirrors WC's `woocommerce_tax_display_cart` — drives the inclusive-tax path in `getTotalTax`.
+  tax_display_cart?: 'incl' | 'excl';
+  // Available tax rates — powers local fee tax and coupon tax adjustment pre-save.
+  available_tax: TaxRate[];
 }
 
 // Action types
@@ -79,4 +100,6 @@ export type CartAction =
   | { type: 'SET_META_DATA'; meta_data: POSOrderMetaItem[] }
   | { type: 'SET_ORDER_CURRENCY'; currency: string; currency_symbol: string }
   | { type: 'SET_SERVER_ORDER'; server_order: ServerOrderData }
-  | { type: 'CLEAR_SERVER_ORDER' };
+  | { type: 'CLEAR_SERVER_ORDER' }
+  | { type: 'SET_TAX_DISPLAY_MODE'; mode: 'incl' | 'excl' }
+  | { type: 'SET_AVAILABLE_TAX'; rates: TaxRate[] };

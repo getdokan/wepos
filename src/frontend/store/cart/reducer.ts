@@ -14,6 +14,7 @@ export const initialState: CartState = {
   server_order_dirty: false,
   currency: '',
   currency_symbol: '',
+  available_tax: [],
 };
 
 // Factory to create a reducer with a custom initial state (for localStorage persistence)
@@ -64,13 +65,20 @@ export const createReducer = (preloadedState: CartState = initialState) => (
       return { ...state, line_items: updatedItems, server_order_dirty: true };
     }
 
+    // Preserve tax_display_cart and available_tax across both: store-wide reference data, not part of a cart snapshot.
     case 'HYDRATE_CART':
       return {
         ...action.state,
+        available_tax: state.available_tax,
+        tax_display_cart: state.tax_display_cart,
       };
 
     case 'CLEAR_CART':
-      return initialState;
+      return {
+        ...initialState,
+        available_tax: state.available_tax,
+        tax_display_cart: state.tax_display_cart,
+      };
 
     case 'ADD_DISCOUNT': {
       const discountId = Date.now();
@@ -193,6 +201,21 @@ export const createReducer = (preloadedState: CartState = initialState) => (
         ...state,
         server_order: null,
         server_order_dirty: false,
+      };
+
+    case 'SET_TAX_DISPLAY_MODE':
+      // Reference data — does not mark the order dirty.
+      if (state.tax_display_cart === action.mode) return state;
+      return {
+        ...state,
+        tax_display_cart: action.mode,
+      };
+
+    case 'SET_AVAILABLE_TAX':
+      // Reference data — does not mark the order dirty.
+      return {
+        ...state,
+        available_tax: action.rates,
       };
 
     default:

@@ -12,8 +12,19 @@ import {
   TooltipContent,
 } from '@wedevs/plugin-ui';
 import { POSProduct, CartItem } from '../types';
-import { decodeHtmlEntities } from '../utils/helpers';
+import {
+  decodeHtmlEntities,
+  pickRegularDisplayPrice,
+  pickSaleDisplayPrice,
+} from '../utils/helpers';
 import ProductVariationSelector from './ProductVariationSelector';
+
+// Use the cart-display price so the shop grid matches the cart row across every prices_include_tax × tax_display_cart combo.
+function getDisplayPrice(product: POSProduct): number {
+  return product.on_sale
+    ? pickSaleDisplayPrice(product)
+    : pickRegularDisplayPrice(product);
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -21,16 +32,14 @@ function getVariablePriceRange(
   product: POSProduct,
   formatPrice: (amount: number | string | undefined | null) => string,
 ): string {
-  const fallback = formatPrice(
-    product.on_sale ? product.sale_price : product.regular_price,
-  ) as string;
+  const fallback = formatPrice(getDisplayPrice(product)) as string;
 
   const variations: any[] = product.variations ?? [];
   if (variations.length === 0) return fallback;
 
   const prices = variations
-    .map((v) => parseFloat(v.price || v.regular_price || '0'))
-    .filter((p) => !isNaN(p));
+    .map((v) => (v.on_sale ? pickSaleDisplayPrice(v) : pickRegularDisplayPrice(v)))
+    .filter((p) => p > 0);
 
   if (prices.length === 0) return fallback;
 
@@ -202,11 +211,11 @@ const ProductGridCard: React.FC<ProductGridCardProps> = ({
             <>
               {product.on_sale && product.regular_price && (
                 <span className="mb-0.5 text-xs text-muted-foreground line-through">
-                  {formatPrice(product.regular_price)}
+                  {formatPrice(pickRegularDisplayPrice(product))}
                 </span>
               )}
               <span className="text-sm font-bold text-foreground">
-                {formatPrice(product.on_sale ? product.sale_price : product.regular_price)}
+                {formatPrice(getDisplayPrice(product))}
               </span>
             </>
           )}

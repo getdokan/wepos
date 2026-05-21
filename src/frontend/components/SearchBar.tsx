@@ -11,7 +11,7 @@ import {
   DialogFooter,
 } from '@wedevs/plugin-ui';
 import { POSProduct } from '../types';
-import { formatPrice } from '../utils/helpers';
+import { formatPrice, pickRegularDisplayPrice, pickSaleDisplayPrice } from '../utils/helpers';
 import { useBarcodeSettings } from '../hooks/useBarcodeSettings';
 import { useBarcodeScanner } from '../hooks/useBarcodeScanner';
 
@@ -342,7 +342,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
                   >
                     <span className={index === selectedIndex ? 'font-medium text-primary' : 'text-foreground'}>{product.name}</span>
                     <span className="flex items-center gap-3 shrink-0 ml-3">
-                      <span className="font-medium text-foreground">{formatPrice(product.regular_price)}</span>
+                      <span className="font-medium text-foreground">{formatPrice(product.on_sale ? pickSaleDisplayPrice(product) : pickRegularDisplayPrice(product))}</span>
                       {product.sku && <span className="max-w-45 truncate text-xs text-muted-foreground">{product.sku}</span>}
                       <CornerDownLeft className="h-3.5 w-3.5 text-muted-foreground/50" />
                     </span>

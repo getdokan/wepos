@@ -1,5 +1,5 @@
 import { POSCartItem, POSFeeLine, POSShippingLine, POSOrderMetaItem, Customer } from '../../types';
-import { CartState, ServerOrderData } from './types';
+import { CartState, ServerOrderData, TaxRate } from './types';
 
 export const actions = {
   addToCart(item: POSCartItem) {
@@ -133,6 +133,20 @@ export const actions = {
   clearServerOrder() {
     return {
       type: 'CLEAR_SERVER_ORDER' as const,
+    };
+  },
+
+  setTaxDisplayMode(mode: 'incl' | 'excl') {
+    return {
+      type: 'SET_TAX_DISPLAY_MODE' as const,
+      mode,
+    };
+  },
+
+  setAvailableTax(rates: TaxRate[]) {
+    return {
+      type: 'SET_AVAILABLE_TAX' as const,
+      rates,
     };
   },
 };

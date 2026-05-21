@@ -106,6 +106,10 @@ export interface Product {
   meta_data: MetaData[];
   date_created: string;
   date_modified: string;
+  // Server-computed display prices respecting wc_tax_display_cart (decimal string)
+  regular_display_price?: string | number;
+  sales_display_price?: string | number;
+  tax_amount?: string | number;
 }
 
 export interface ProductCategory {
@@ -182,6 +186,8 @@ export interface POSCartItem {
   on_sale: boolean;
   sale_price: number;
   regular_price: number;
+  raw_regular_price?: number;
+  raw_sale_price?: number;
   editQuantity?: boolean;
   attribute: Array<{
     id?: number;
@@ -288,6 +294,10 @@ export interface ProductVariation {
   attributes: ProductVariationAttribute[];
   menu_order: number;
   meta_data: MetaData[];
+  // Server-computed display prices respecting wc_tax_display_cart (decimal string)
+  regular_display_price?: string | number;
+  sales_display_price?: string | number;
+  tax_amount?: string | number;
 }
 
 export interface ProductVariationAttribute {
@@ -653,4 +663,8 @@ export interface POSProduct {
     variation: boolean;
   }>;
   variations?: any[];
+  // Server-computed display prices respecting wc_tax_display_cart (decimal string)
+  regular_display_price?: string | number;
+  sales_display_price?: string | number;
+  tax_amount?: string | number;
 }

@@ -38,7 +38,7 @@ import AddFeeModal from './AddFeeModal';
 import OrderMetaModal from './OrderMetaModal';
 import { Slot } from '@wordpress/components';
 import { PluginArea } from '@wordpress/plugins';
-import { formatPrice } from '../utils/helpers';
+import { formatPrice, toFiniteNumber } from '../utils/helpers';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
 import CustomerSearch, { CustomerSearchHandle } from '../components/CustomerSearch';
@@ -122,9 +122,11 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     totalFee,
     totalShipping,
     totalTax,
+    totalLineTax,
     total,
     serverOrder,
     isServerOrderDirty,
+    taxDisplayMode,
   } = useSelect((select) => {
     const store = select(CART_STORE_NAME) as any;
     return {
@@ -141,9 +143,11 @@ const Cart = forwardRef<CartHandle, CartProps>(({
       totalFee: store.getTotalFee(),
       totalShipping: store.getTotalShipping(),
       totalTax: store.getTotalTax(),
+      totalLineTax: store.getTotalLineTax(),
       total: store.getTotal(),
       serverOrder: store.getServerOrder(),
       isServerOrderDirty: store.isServerOrderDirty(),
+      taxDisplayMode: store.getTaxDisplayMode(),
     };
   }, []);
 
@@ -255,6 +259,8 @@ const Cart = forwardRef<CartHandle, CartProps>(({
       quantity: 1,
       regular_price: product.price,
       sale_price: product.price,
+      raw_regular_price: product.price,
+      raw_sale_price: product.price,
       on_sale: false,
       type: 'simple',
       attribute: [],
@@ -298,7 +304,8 @@ const Cart = forwardRef<CartHandle, CartProps>(({
   const cartFormatPrice = (price: number | string): string | number =>
     formatPrice(price, orderCurrencySymbol || '');
 
-  const isTaxInclusive = settings?.woo_tax?.wc_tax_display_cart === 'incl';
+  // Single source of truth: store value, synced from woocommerce_tax_display_cart by Home.tsx.
+  const isTaxInclusive = taxDisplayMode === 'incl';
 
   // Count visible columns for colSpan
   const visibleColumnCount = cartSettings.columns.filter((c) => c.enabled).length || 1;
@@ -395,13 +402,15 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       const itemTotal = item.quantity * (item.on_sale ? item.sale_price : item.regular_price);
                       const itemSubtotal = item.quantity * item.regular_price;
 
-                      // Get server-calculated tax for this line item if available and not stale
+                      // Server tax when available; otherwise client-computed from product tax_amount so the breakdown shows pre-save.
                       const serverLineItem = serverOrder && !isServerOrderDirty
                         ? serverOrder.line_items?.find(
                             (li: any) => li.product_id === item.product_id && li.variation_id === (item.variation_id || 0)
                           )
                         : null;
-                      const lineItemTax = serverLineItem ? parseFloat(serverLineItem.total_tax) || 0 : 0;
+                      const lineItemTax = serverLineItem
+                        ? toFiniteNumber(serverLineItem.total_tax)
+                        : toFiniteNumber(item.tax_amount) * item.quantity;
 
                       return (
                         <React.Fragment key={item.id}>
@@ -648,7 +657,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               <div className="flex items-center justify-between border-b border-border p-[9px_12px]">
                 <div className="flex-1 text-sm">
                   {__('Subtotal', 'wepos')}
-                  {isTaxInclusive && totalTax > 0 && (
+                  {isTaxInclusive && totalLineTax > 0 && (
                     <span className="block text-xs font-normal text-muted-foreground">
                       {__('Including Tax', 'wepos')}
                     </span>
@@ -657,9 +666,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 <div className="text-sm">
                   {cartFormatPrice(subtotal)}
                 </div>
-                <div className="ml-2 h-4 w-4">
-                  &nbsp;
-                </div>
+                <div className="ml-2 h-4 w-4" aria-hidden />
               </div>
 
               {/* Discount Lines */}
@@ -780,9 +787,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                       <div className="text-sm">
                         {cartFormatPrice(parseFloat(taxLine.tax_total) + parseFloat(taxLine.shipping_tax_total))}
                       </div>
-                      <div className="ml-2 h-4 w-4">
-                        &nbsp;
-                      </div>
+                      <div className="ml-2 h-4 w-4" aria-hidden />
                     </div>
                   ))}
                 </>
@@ -791,7 +796,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               {/* Total Tax (fallback when no detailed tax lines) */}
               {totalTax > 0 && (!serverOrder || isServerOrderDirty || serverOrder.tax_lines.length === 0) && (
                 <div className="flex items-center justify-between border-b border-border p-[9px_12px]">
-                  <div className="text-sm font-medium text-foreground">
+                  <div className="flex-1 text-sm font-medium text-foreground">
                     {isTaxInclusive
                       ? __('Fee Tax', 'wepos')
                       : __('Tax', 'wepos')}
@@ -799,6 +804,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                   <div className="text-sm font-bold text-foreground">
                     {cartFormatPrice(totalTax)}
                   </div>
+                  <div className="ml-2 h-4 w-4" aria-hidden />
                 </div>
               )}
 

@@ -1,5 +1,7 @@
 import { CartState, ServerOrderData } from './types';
 import { POSCartItem, POSDiscountLine, POSFeeLine, POSShippingLine, POSOrderMetaItem, Customer } from '../../types';
+import { toFiniteNumber } from '../../utils/helpers';
+import { applyFilters } from '../../hooks/useExtensions';
 
 export const selectors = {
   getCartItems: (state: CartState): POSCartItem[] => state.line_items,
@@ -35,40 +37,106 @@ export const selectors = {
     const subtotal = selectors.getSubtotal(state);
     return state.fee_lines.reduce((total: number, fee: POSFeeLine) => {
       if (fee.fee_type === 'percent') {
-        return total + (subtotal * parseFloat(fee.value)) / 100;
+        return total + (subtotal * toFiniteNumber(fee.value)) / 100;
       } else {
-        return total + parseFloat(fee.value);
+        return total + toFiniteNumber(fee.value);
       }
     }, 0);
   },
 
   getTotalShipping: (state: CartState): number => {
     return state.shipping_lines.reduce((total: number, shipping: POSShippingLine) => {
-      return total + parseFloat(shipping.total || '0');
+      return total + toFiniteNumber(shipping.total);
+    }, 0);
+  },
+
+  getTaxDisplayMode: (state: CartState): 'incl' | 'excl' =>
+    state.tax_display_cart === 'incl' ? 'incl' : 'excl',
+
+  // Drives the "Including Tax" UI hint — never zeroed in incl mode.
+  getTotalLineTax: (state: CartState): number => {
+    return state.line_items.reduce((total: number, item: POSCartItem) => {
+      return total + toFiniteNumber(item.tax_amount) * item.quantity;
     }, 0);
   },
 
   getTotalTax: (state: CartState): number => {
-    // Use server-calculated tax only if available and cart hasn't been modified locally
+    // Resolution order: 1) WC's authoritative server tax  2) tax bundled into server.total (gap)  3) legacy local formula.
     if (state.server_order && !state.server_order_dirty) {
-      return parseFloat(state.server_order.total_tax) || 0;
+      const serverTax = toFiniteNumber(state.server_order.total_tax);
+      if (serverTax > 0) return serverTax;
+
+      // WC silently reports 0 when it cannot resolve a rate (e.g. guest order, no shop base country); recover bundled tax from total − non-tax.
+      const nonTax = selectors.getSubtotal(state)
+        - selectors.getTotalDiscount(state)
+        + selectors.getTotalFee(state)
+        + selectors.getTotalShipping(state);
+      const gap = toFiniteNumber(state.server_order.total) - nonTax;
+      if (gap > 0.01) return gap;
+
+      // No bundled tax — fall through. Excl mode then recovers per-line tax_amount; incl mode returns just feeTax (lineTax is zeroed below to avoid double-counting).
     }
-    return 0;
+
+    // Legacy local formula (port of Cart.module.js#getTotalTax lines 52–102) — also acts as the post-save fall-through above.
+    const lineTax = state.tax_display_cart === 'incl' ? 0 : selectors.getTotalLineTax(state);
+    const subtotal = selectors.getSubtotal(state);
+
+    // Empty tax class maps to WC's 'standard'; returns 0 when no class matches.
+    const findRate = (taxClass: string): number => {
+      const slug = taxClass === '' ? 'standard' : taxClass;
+      const match = state.available_tax.find((r) => r.class === slug);
+      return match ? toFiniteNumber(match.rate) : 0;
+    };
+
+    const feeTax = state.fee_lines.reduce((sum: number, fee: POSFeeLine) => {
+      if (fee.tax_status !== 'taxable') return sum;
+      const rate = findRate(fee.tax_class);
+      if (!rate) return sum;
+      const feeAmount = fee.fee_type === 'percent'
+        ? (subtotal * toFiniteNumber(fee.value)) / 100
+        : toFiniteNumber(fee.value);
+      return sum + (feeAmount * rate) / 100;
+    }, 0);
+
+    // Sign flips vs. legacy Vue (stored coupon.total negative); here discountAmount is positive.
+    const couponTaxReduction = state.coupon_lines.reduce((sum: number, coupon: POSDiscountLine) => {
+      if (coupon.tax_status !== 'taxable' || !subtotal) return sum;
+      const rate = findRate(coupon.tax_class);
+      if (!rate) return sum;
+      const discountAmount = coupon.discount_type === 'percent'
+        ? (subtotal * coupon.value) / 100
+        : coupon.value;
+      return sum + (discountAmount / subtotal) * lineTax;
+    }, 0);
+
+    // Filter payload exposes derived totals only — never the live store — so callbacks can't mutate cart state.
+    return applyFilters<number>(
+      'wepos_cart_total_tax',
+      lineTax + feeTax - couponTaxReduction,
+      { lineTax, feeTax, couponTaxReduction }
+    );
   },
 
   getTotal: (state: CartState): number => {
-    // Use server-calculated total only if available and cart hasn't been modified locally
+    // Always derive `computed` so the cart's "subtotal + tax = total" invariant survives a WC-silent saved order.
+    const computed = Math.max(
+      0,
+      selectors.getSubtotal(state)
+        - selectors.getTotalDiscount(state)
+        + selectors.getTotalFee(state)
+        + selectors.getTotalShipping(state)
+        + selectors.getTotalTax(state),
+    );
+
     if (state.server_order && !state.server_order_dirty) {
-      return parseFloat(state.server_order.total) || 0;
+      const serverTotal = toFiniteNumber(state.server_order.total);
+      // serverTax > 0 ⇒ WC resolved the rate; its total is authoritative.
+      if (toFiniteNumber(state.server_order.total_tax) > 0) return serverTotal;
+      // Side-effect: when WC under-reported tax, returned total may exceed the DB-saved server_order.total — display-layer recovery only; accounting reports must still read server_order.total directly.
+      return Math.max(serverTotal, computed);
     }
 
-    const subtotal = selectors.getSubtotal(state);
-    const totalDiscount = selectors.getTotalDiscount(state);
-    const totalFee = selectors.getTotalFee(state);
-    const totalShipping = selectors.getTotalShipping(state);
-    const totalTax = selectors.getTotalTax(state);
-
-    return Math.max(0, subtotal - totalDiscount + totalFee + totalShipping + totalTax);
+    return computed;
   },
 
   getOrderCurrency: (state: CartState): string => state.currency,
@@ -89,9 +157,9 @@ export const selectors = {
   getFeeAmount: (state: CartState, fee: POSFeeLine): number => {
     const subtotal = selectors.getSubtotal(state);
     if (fee.fee_type === 'percent') {
-      return (subtotal * parseFloat(fee.value)) / 100;
+      return (subtotal * toFiniteNumber(fee.value)) / 100;
     } else {
-      return parseFloat(fee.value);
+      return toFiniteNumber(fee.value);
     }
   },
 };
