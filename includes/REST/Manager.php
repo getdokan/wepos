@@ -65,9 +65,7 @@ class Manager {
         $data           = $response->get_data();
         $type           = isset( $data['type'] ) ? $data['type'] : '';
         $variation_data = [];
-        $tax_display_on_shop = get_option( 'woocommerce_tax_display_shop', 'excl' );
         $tax_display_on_cart = get_option( 'woocommerce_tax_display_cart', 'excl' );
-        $tax_calculations    = get_option( 'woocommerce_prices_include_tax', 'no' );
 
         if ( 'variable' == $type ) {
             foreach( $data['variations'] as $variation ) {
@@ -83,32 +81,29 @@ class Manager {
             }
         }
 
-        $price_excl_tax                = wc_get_price_excluding_tax( $product );
-        $price_incl_tax                = wc_get_price_including_tax( $product );
-        $tax_amount                    = (float)$price_incl_tax - (float)$price_excl_tax;
+        $regular_price = $product->get_regular_price();
+        $sale_price    = $product->get_sale_price();
+        $decimals      = wc_get_price_decimals();
+        $show_incl_tax = 'incl' === $tax_display_on_cart;
 
-        $data['variations']            = [];
+        // Compute tax per-price so sale and regular lines each report their own tax.
+        $regular_excl_tax = (float) wc_get_price_excluding_tax( $product, [ 'price' => $regular_price ] );
+        $regular_incl_tax = (float) wc_get_price_including_tax( $product, [ 'price' => $regular_price ] );
+        $regular_tax      = $regular_incl_tax - $regular_excl_tax;
+
+        // Sale price may be empty when the product is not on sale.
+        $sale_excl_tax = '' === $sale_price ? 0.0 : (float) wc_get_price_excluding_tax( $product, [ 'price' => $sale_price ] );
+        $sale_incl_tax = '' === $sale_price ? 0.0 : (float) wc_get_price_including_tax( $product, [ 'price' => $sale_price ] );
+        $sale_tax      = $sale_incl_tax - $sale_excl_tax;
+
+        $effective_tax   = $product->is_on_sale() ? $sale_tax : $regular_tax;
+        $regular_display = $show_incl_tax ? $regular_excl_tax + $regular_tax : $regular_excl_tax;
+        $sale_display    = $show_incl_tax ? $sale_excl_tax + $sale_tax : $sale_excl_tax;
+
         $data['variations']            = $variation_data;
-        $data['tax_amount']            = wc_format_decimal( $tax_amount, wc_get_price_decimals() );
-
-        if ( 'no' == $tax_calculations ) {
-            if ( 'incl' == $tax_display_on_cart ) {
-                $data['regular_display_price'] = wc_format_decimal( (float)wc_get_price_excluding_tax( $product, [ 'price' => $product->get_regular_price() ] ) + $tax_amount, wc_get_price_decimals() );
-                $data['sales_display_price']   = wc_format_decimal( (float)wc_get_price_excluding_tax( $product, [ 'price' => $product->get_sale_price() ] ) + $tax_amount, wc_get_price_decimals() );
-            } else {
-                $data['regular_display_price'] = wc_format_decimal( (float)wc_get_price_excluding_tax( $product, [ 'price' => $product->get_regular_price() ] ), wc_get_price_decimals() );
-                $data['sales_display_price']   = wc_format_decimal( (float)wc_get_price_excluding_tax( $product, ['price' => $product->get_sale_price() ] ), wc_get_price_decimals() );
-            }
-        } else {
-            if ( 'incl' == $tax_display_on_cart ) {
-                $data['regular_display_price'] = wc_format_decimal( (float)wc_get_price_excluding_tax( $product, [ 'price' => $product->get_regular_price() ] ) + $tax_amount, wc_get_price_decimals() );
-                $data['sales_display_price']   = wc_format_decimal( (float)wc_get_price_excluding_tax( $product, [ 'price' => $product->get_sale_price() ] ) + $tax_amount, wc_get_price_decimals() );
-            } else {
-                $data['regular_display_price'] = wc_format_decimal( (float)wc_get_price_excluding_tax( $product, [ 'price' => $product->get_regular_price() ] ), wc_get_price_decimals() );
-                $data['sales_display_price']   = wc_format_decimal( (float)wc_get_price_excluding_tax( $product, ['price' => $product->get_sale_price() ] ), wc_get_price_decimals() );
-            }
-        }
-
+        $data['tax_amount']            = wc_format_decimal( $effective_tax, $decimals );
+        $data['regular_display_price'] = wc_format_decimal( $regular_display, $decimals );
+        $data['sales_display_price']   = wc_format_decimal( $sale_display, $decimals );
         $data['barcode']               = $product->get_meta( '_wepos_barcode' );
 
         if ( ! empty( $data['images'] ) ) {

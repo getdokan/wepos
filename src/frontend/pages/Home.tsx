@@ -471,6 +471,8 @@ const HomePage: React.FC = () => {
         quantity: 1,
         regular_price: pickRegularDisplayPrice(product),
         sale_price: pickSaleDisplayPrice(product),
+        raw_regular_price: toFiniteNumber(product.regular_price),
+        raw_sale_price: toFiniteNumber(product.sale_price),
         on_sale: product.on_sale,
         type: product.type,
         attribute: [],
@@ -803,19 +805,20 @@ const HomePage: React.FC = () => {
         await posAPI.payment.processPayment(orderResponse);
 
       if (paymentResponse.result === 'success') {
+        // Receipt mirrors cart selectors, so its tax/total carries the same WC-silent fallback — receipt matches the cart row in every prices_include_tax × tax_display_cart combination.
         const printDataToSet = {
           line_items: cartItems.map((cartItem: POSCartItem) => ({
             ...cartItem,
-            total_tax: 0,
+            total_tax: toFiniteNumber(cartItem.tax_amount) * cartItem.quantity,
           })),
           fee_lines: feeLines,
           coupon_lines: discountLines,
           shipping_lines: shippingLines,
           subtotal: subtotal,
-          taxtotal: parseFloat(orderResponse.total_tax) || 0,
+          taxtotal: totalTax,
           shippingtotal: totalShipping,
-          shippingtaxtotal: parseFloat(orderResponse.shipping_tax) || 0,
-          ordertotal: parseFloat(orderResponse.total) || total,
+          shippingtaxtotal: toFiniteNumber(orderResponse.shipping_tax),
+          ordertotal: total,
           gateway: {
             id: orderResponse.payment_method,
             title: orderResponse.payment_method_title,
@@ -890,7 +893,10 @@ const HomePage: React.FC = () => {
       const matchedServerIds = new Set<number>();
 
       cartItems.forEach((item: POSCartItem) => {
-        const unitPrice = item.on_sale ? item.sale_price : item.regular_price;
+        // Raw prices (stored values) drive the order payload; falls back to display prices for legacy in-memory carts.
+        const rawRegular = item.raw_regular_price ?? item.regular_price,
+          rawSale = item.raw_sale_price ?? item.sale_price;
+        const unitPrice = item.on_sale ? rawSale : rawRegular;
         const lineItem: any = {
           quantity: item.quantity,
           subtotal: (unitPrice * item.quantity).toFixed(2),
@@ -899,7 +905,7 @@ const HomePage: React.FC = () => {
         if (item.product_id === 0) {
           // Misc/custom product: send name + price, no product_id
           lineItem.name = item.name;
-          lineItem.price = item.regular_price;
+          lineItem.price = unitPrice;
           if (item.sku) {
             lineItem.sku = item.sku;
           }
@@ -942,11 +948,12 @@ const HomePage: React.FC = () => {
       const matchedServerIds = new Set<number>();
 
       feeLines.forEach((fee: any, index: number) => {
+        const feeValue = toFiniteNumber(fee.value);
         const feeItem: any = {
           name: fee.name,
           total: fee.fee_type === 'percent'
-            ? ((subtotal * parseFloat(fee.value)) / 100).toFixed(2)
-            : parseFloat(fee.value).toFixed(2),
+            ? ((subtotal * feeValue) / 100).toFixed(2)
+            : feeValue.toFixed(2),
           tax_status: fee.tax_status,
           tax_class: fee.tax_class,
         };
