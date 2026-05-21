@@ -7,7 +7,7 @@ Tested up to: 6.9.4
 WC requires at least: 10.5.0
 WC tested up to: 10.7.0
 Requires PHP: 7.4
-Stable tag: 2.0.0
+Stable tag: 2.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -55,6 +55,11 @@ No FAQ
 5. Intuitive Checkout
 
 == Changelog ==
+
+= v2.0.1 ( May 21, 2026 ) =
+- **fix:** Tax breakdown (per-line tax, subtotal "Including Tax" hint, and total tax row) is now displayed in the new POS cart UI.
+- **fix:** Order totals saved on the server now match the cart total when WooCommerce "Prices entered with tax" and "Display prices in cart" settings differ.
+- **fix:** Per-row tax on sale-priced products now reports the correct amount for both the regular and sale prices.
 
 = v2.0.0 ( April 27, 2026 ) =
 - **new:** A brand new wePOS — the entire cashier screen and the admin settings have been rebuilt from scratch, so everything feels faster and more responsive.

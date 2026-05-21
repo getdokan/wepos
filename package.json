@@ -1,6 +1,6 @@
 {
   "name": "wepos",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Point of Sale plugin for WooCommerce",
   "main": "webpack.config.js",
   "author": "weDevs <info@wedevs.com>",

@@ -1,16 +1,16 @@
 # Copyright (c) 2026 weDevs. All Rights Reserved.
 msgid ""
 msgstr ""
-"Project-Id-Version: wePOS - Point Of Sale (POS) for WooCommerce 2.0.0\n"
+"Project-Id-Version: wePOS - Point Of Sale (POS) for WooCommerce 2.0.1\n"
 "Report-Msgid-Bugs-To: https://wedevs.com/\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-30T12:57:34+00:00\n"
+"POT-Creation-Date: 2026-05-21T05:16:46+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.12.0\n"
+"X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: wepos\n"
 
 #. Plugin Name of the plugin
@@ -173,7 +173,6 @@ msgid "POS - Open"
 msgstr ""
 
 #: includes/Common.php:130
-#, php-format
 msgid "POS - Open <span class=\"count\">(%s)</span>"
 msgid_plural "POS - Open <span class=\"count\">(%s)</span>"
 msgstr[0] ""
@@ -393,7 +392,6 @@ msgstr ""
 
 #. translators: 1: Cash tendered amount 2: Cash change amount.
 #: includes/Gateways/Cash.php:116
-#, php-format
 msgid "Cash tendered amount: %1$s, Change amount: %2$s"
 msgstr ""
 
@@ -403,7 +401,6 @@ msgstr ""
 
 #. translators: 1: Refund amount, 2: Refund reason
 #: includes/Gateways/Cash.php:150
-#, php-format
 msgid "Refunded %1$s - Reason: %2$s"
 msgstr ""
 
@@ -453,8 +450,7 @@ msgstr ""
 msgid "Sorry, you are not allowed to view customers."
 msgstr ""
 
-#: includes/REST/Manager.php:184
-#, php-format
+#: includes/REST/Manager.php:179
 msgid "The item %s already out of stock. Please remove this from cart"
 msgstr ""
 
@@ -1083,13 +1079,11 @@ msgstr ""
 
 #. translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags, takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags, leads to plugins.php in admin
 #: templates/woocommerce-dependency-notice.php:29
-#, php-format
 msgid "%1$swePOS is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active for wePOS to work. Please %5$sinstall WooCommerce &raquo;%6$s"
 msgstr ""
 
 #. translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags, takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags, leads to plugins.php in admin
 #: templates/woocommerce-dependency-notice.php:39
-#, php-format
 msgid "%1$swePOS is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active for wePOS to work. Please %5$sactivate WooCommerce &raquo;%6$s"
 msgstr ""
 
@@ -1456,12 +1450,10 @@ msgid "Start typing to search"
 msgstr ""
 
 #: build/wepos-react.js:1
-#, js-format
 msgid "Customer %s created"
 msgstr ""
 
 #: build/wepos-react.js:1
-#, js-format
 msgid "Customer %s updated"
 msgstr ""
 
@@ -1498,12 +1490,10 @@ msgid "Regular Price"
 msgstr ""
 
 #: build/wepos-react.js:1
-#, js-format
 msgid "%s can only be purchased one at a time."
 msgstr ""
 
 #: build/wepos-react.js:1
-#, js-format
 msgid "Not enough stock for %1$s. Only %2$s available."
 msgstr ""
 
@@ -1692,12 +1682,10 @@ msgid "Shipping Tax"
 msgstr ""
 
 #: build/wepos-react.js:1
-#, js-format
 msgid "%s is out of stock"
 msgstr ""
 
 #: build/wepos-react.js:1
-#, js-format
 msgid "%s added to cart"
 msgstr ""
 
@@ -1722,7 +1710,6 @@ msgid "Failed to remove saved order"
 msgstr ""
 
 #: build/wepos-react.js:1
-#, js-format
 msgid "Customer %s selected"
 msgstr ""
 
