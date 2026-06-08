@@ -1,7 +1,7 @@
 # Copyright (c) 2026 weDevs. All Rights Reserved.
 msgid ""
 msgstr ""
-"Project-Id-Version: wePOS - Point Of Sale (POS) for WooCommerce 2.0.1\n"
+"Project-Id-Version: wePOS - Point Of Sale (POS) for WooCommerce & Dokan 2.0.1\n"
 "Report-Msgid-Bugs-To: https://wedevs.com/\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,7 +15,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: wepos.php
-msgid "wePOS - Point Of Sale (POS) for WooCommerce"
+msgid "wePOS - Point Of Sale (POS) for WooCommerce & Dokan"
 msgstr ""
 
 #. Plugin URI of the plugin

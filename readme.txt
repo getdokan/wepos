@@ -1,4 +1,4 @@
-=== wePOS - Point Of Sale (POS) for WooCommerce ===
+=== wePOS - Point Of Sale (POS) for WooCommerce & Dokan ===
 Contributors: tareq1988, wedevs, nizamuddinbabu
 Donate Link: http://tareq.co/donate/
 Tags: pos, point-of-sale, pos plugin, WooCommerce POS, free Pos
