@@ -78,7 +78,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
 
       - name: Setup PHP with tools
         uses: shivammathur/setup-php@v2
