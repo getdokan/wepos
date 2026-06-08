@@ -1,7 +1,7 @@
 === wePOS - Point Of Sale (POS) for WooCommerce ===
 Contributors: tareq1988, wedevs, nizamuddinbabu
 Donate Link: http://tareq.co/donate/
-Tags: WooCommerce POS, point of sale, free pos, pos plugin, woocommerce point of sale
+Tags: pos, point-of-sale, pos plugin, WooCommerce POS, free Pos
 Requires at least: 6.8
 Tested up to: 6.9.4
 WC requires at least: 10.5.0
@@ -11,7 +11,7 @@ Stable tag: 2.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-WooCommerce point of sale WordPress plugin.
+Free POS plugin for WooCommerce. Build a point of sale system to sell in-store and online, then manage every POS order from one POS dashboard.
 
 == Description ==
 
