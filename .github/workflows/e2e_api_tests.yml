@@ -77,7 +77,7 @@ jobs:
       - name: Use desired version of NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Setup PHP with tools
         uses: shivammathur/setup-php@v2
