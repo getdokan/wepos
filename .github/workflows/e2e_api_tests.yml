@@ -69,22 +69,21 @@ jobs:
         id: clone-wepos-lite
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
       - name: Use desired version of NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: pnpm
+          node-version: 22
 
       - name: Setup PHP with tools
         uses: shivammathur/setup-php@v2
         with:
           php-version: '7.4'
           tools: composer:v1
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 10
 
       - name: Install dependencies and build (Wepos-lite)
         run: |

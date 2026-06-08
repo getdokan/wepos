@@ -9,6 +9,11 @@
   "engines": {
     "node": ">=18"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@wedevs/plugin-ui"
+    ]
+  },
   "scripts": {
     "start": "NODE_ENV=development wp-scripts start --hot",
     "build": "wp-scripts build",
