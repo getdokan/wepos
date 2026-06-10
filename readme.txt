@@ -17,10 +17,10 @@ Free POS plugin for WooCommerce. Build a point of sale system to sell in-store a
 [Docs](https://dokan.co/docs/wepos/getting-started/) | [Videos](https://www.youtube.com/watch?v=xkX5vOvAZ9M&list=PLJorZsV2RVv9SCQF7mUli9-_Uu4JHJCsN) | [Support](https://dokan.co/contact/) | [Get Pro](https://dokan.co/wordpress/wepos/pricing/)
 ---
 ### Create and Manage In-Store Sales with Ease 
-[youtube https://www.youtube.com/watch?v=xkX5vOvAZ9M&list=PLJorZsV2RVv9SCQF7mUli9-_Uu4JHJCsN]
+[youtube https://youtu.be/9zURW3eo5y4]
 
 [wePOS](https://dokan.co/wordpress/wepos/) is a fast and responsive( Tablets & Desktop ) WooCommerce Point of Sales plugin. It lets you take orders and track your inventory using your WooCommerce store. 
-You can physically count your WooCommerce products by scanning Bar codes and add them directly to customer’s cart for processing the order.
+You can physically count your WooCommerce products by scanning barcodes and add them directly to customer’s cart for processing the order.
 
 ## Key Benefits 
 * Fast and responsive POS interface
