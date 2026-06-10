@@ -11,50 +11,146 @@ Stable tag: 2.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
+### Description 
 Free POS plugin for WooCommerce. Build a point of sale system to sell in-store and online, then manage every POS order from one POS dashboard.
 
-== Description ==
+## Useful Links
+[Docs](https://dokan.co/docs/wepos/getting-started/) | [Videos](https://www.youtube.com/watch?v=xkX5vOvAZ9M&list=PLJorZsV2RVv9SCQF7mUli9-_Uu4JHJCsN) | [Support](https://dokan.co/contact/) | [Get Pro](https://dokan.co/wordpress/wepos/pricing/)
+---
+### Create and Manage In-Store Sales with Ease 
+[youtube https://www.youtube.com/watch?v=xkX5vOvAZ9M&list=PLJorZsV2RVv9SCQF7mUli9-_Uu4JHJCsN]
 
-= WooCommerce Point of Sales (POS) =
-wePOS is a fast and responsive( Tablets & Desktop ) WooCommerce Point of Sales plugin. It lets you take orders and track your inventory using your WooCommerce store. You can physically count your WooCommerce products by scanning Bar codes and add them directly to customer’s cart for processing the order.
+[wePOS](https://dokan.co/wordpress/wepos/) is a fast and responsive( Tablets & Desktop ) WooCommerce Point of Sales plugin. It lets you take orders and track your inventory using your WooCommerce store. 
+You can physically count your WooCommerce products by scanning Bar codes and add them directly to customer’s cart for processing the order.
 
-= Based of REST API =
-wePOS is a single page application that works super fast. We have used WooCommerce REST API and some custom API to develop the plugin. This has made the plugin to response fast and gets your work done in time. In a physical store, you get a lot of customers who wait to checkout their products. So, a fast system like wePoS can be your one-way ticket to manage your inventory easily.
+## Key Benefits 
+* Fast and responsive POS interface
+* Built for WooCommerce stores
+* Barcode scanner support
+* Real-time inventory updates
+* Advanced reports and analytics
+* Outlet and cashier management
+* Receipt printing and customization
+* Light, Dark, and System display modes
+* Fractional quantity product support
+* Full Dokan multivendor POS support
+---
 
-= Attractive User Interface =
-A good UI can sometimes makes a system even more attractive. wePOS has an intuitive design that allows navigating easily. With it, you can manage your inventory and orders in an organized way.
+### Manage Your Store with Powerful Free Features 
 
-= Shortcut / Hotkey Support =
-wePOS has shortcut key support that lets you use its features faster. This is very important for any physical store so that the sales executive can read the Barcodes and process the orders with pace.
+The free version of wePOS includes everything needed to manage daily in-store sales efficiently.
 
-= Privacy Policy =
-wePOS uses [Appsero](https://appsero.com) SDK to collect some telemetry data upon user's confirmation. This helps us to troubleshoot problems faster & make product improvements.
+* **Modern POS Interface:** Completely rebuilt cashier screen for a faster and smoother checkout experience.
+* **WooCommerce Integration:** Manage online and offline sales from one centralized system.
+* **Customer Management:** Search customers by name, phone, or company for faster checkout.
+* **Product Management:** Add products quickly with clean cart management and inventory syncing.
+* **Fractional Quantity Support:** Sell products in decimal quantities like weight-based items.
+* **Barcode Support:** Search and manage products using barcode scanning.
+* **[Receipt Printing](https://dokan.co/docs/wepos/settings/reciept/):** Generate and print receipts directly from the POS screen.
+* **Appearance Modes:** Choose between Light, Dark, or System display modes.
+* **[Outlet Management](https://dokan.co/docs/wepos/outlets/managing-outlets/):** Create and manage multiple POS outlets.
+* **Cashier Roles & Permissions:** Assign cashiers with proper POS access controls.
+* **Order Management:** Create, update, and manage POS orders with WooCommerce compatibility.
+* **Modern UI & Faster Experience:** Redesigned buttons, forms, tables, popups, and dropdowns for better usability.
+---
 
-Appsero SDK **does not gather any data by default.** The SDK only starts gathering basic telemetry data **when a user allows it via the admin notice**. We collect the data to ensure great user experience for all our users.
+### wePOS Pro Helps You Run Advanced Retail & Multivendor Operations 
 
-Integrating Appsero SDK **DOES NOT IMMEDIATELY** start gathering data, **without confirmation from users in any case.**
+wePOS Pro unlocks advanced tools for businesses, chains, and multivendor marketplaces.
 
-= Contribute =
-This may have bugs and lack of many features. If you want to contribute on this project, you are more than welcome. Please fork the repository from [Github](https://github.com/weDevsOfficial/wepos).
+* **[Advanced Reports Dashboard](https://dokan.co/docs/wepos/outlets/wepos-payment-reports-for-admin/):** View sales summaries, charts, recent orders, payment reports, and inventory alerts.
+* **CSV Export:** Export orders directly from the POS dashboard.
+* **Save Carts:** Save active carts and continue checkout later across devices.
+* **Advanced Access Control:** Control which POS pages and actions cashiers can access.
+* **Receipt Customization:** Customize receipt headers, footers, and receipt fields.
+* **Low Stock Alerts:** Monitor low-stock and out-of-stock products easily.
+* **Quick Product Editing:** Update stock, categories, tags, and pricing instantly.
+* **Multi-Outlet Features:** Assign outlets to vendors and cashiers for better store management.
+* **Appearance Switching:** Switch between the classic and modern interface anytime.
 
-= Author =
-Brought to you by [weDevs](http://wedevs.com)
+[Get wePOS Pro](https://dokan.co/wordpress/wepos/pricing/)
+---
 
-== Installation ==
+### Run a Full Multivendor POS with Dokan 
 
-Extract the zip file and just drop the contents in the wp-content/plugins/ directory of your WordPress installation and then activate the Plugin from Plugins page.
+wePOS is the only WooCommerce POS solution built to work seamlessly with Dokan. Give every vendor their own point-of-sale system while maintaining complete control over your marketplace.
 
-== Frequently Asked Questions ==
-No FAQ
+* **[Per-Vendor POS Dashboard](https://dokan.co/docs/wepos/tutorials/how-to-use-wepos-with-dokan/):** Each vendor gets their own POS dashboard with access to their products, customers, orders, reports, and settings.
+* **Complete Data Isolation:** Vendors only see their own store data. Orders, products, customers, and reports stay completely separated from other vendors.
+* **Vendor Staff Management:** Allow vendor staff to operate POS counters with automatic permission handling. No manual role configuration required.
+* **Vendor-Level Settings:** Vendors can manage their own taxes, receipts, outlets, currency settings, and POS preferences independently.
+* **Multi-Outlet Assignment:** Assign specific outlets to vendors and their cashiers for better store and staff management.
+* **Advanced Access Control:** Decide exactly which POS sections, pages, and actions vendors and their staff can access.
+* **Marketplace-Wide Control:** Maintain full administrative control while letting vendors manage their in-store sales independently.
 
-== Screenshots ==
+## How It Works
+
+1. Install and activate wePOS from the Plugins screen in your WordPress dashboard, or upload the plugin files to the `/wp-content/plugins/` directory.
+2. Make sure WooCommerce is installed and active.
+3. Configure your WooCommerce POS settings.
+4. Create outlets and assign cashiers.
+5. Start managing in-store orders and inventory.
+6. To run a multivendor POS, make sure Dokan is active, then enable the Dokan integration.
+
+
+## Checkout Our Other Products:
+
+* [Dokan](https://dokan.co/) – The pioneer WooCommerce multivendor marketplace solution for WordPress. Start your own marketplace like Amazon, eBay, or Etsy in minutes.
+* [weMail](https://getwemail.io/) – A simplified WordPress solution for email marketing, newsletters, opt-in forms, and subscriptions.
+* [weDocs](https://wedocs.co/) – AI-powered documentation and knowledge base solution for WordPress.
+* [WP Project Manager](https://wedevs.com/project-manager/) – Task scheduling, project management, and team collaboration with Kanban board and Gantt charts.
+* [Happy Addons for Elementor](https://happyaddons.com/) – An Elementor addon with Header Footer Builder, 500+ templates, and 143+ widgets.
+* [WP ERP](https://wperp.com/) – Complete HR, CRM, and accounting solution for WordPress.
+* [WP User Frontend](https://wedevs.com/wp-user-frontend-pro/) – All-in-one frontend solution with AI-powered post creation, membership, and subscriptions.
+---
+
+## Frequently Asked Questions 
+
+= Is wePOS free? =
+
+Yes. The core plugin is free and includes everything you need to run daily in-store sales. Advanced tools such as reports, save carts, access control, and full Dokan vendor dashboards come with wePOS Pro.
+
+= Does wePOS work with WooCommerce? =
+
+Yes. wePOS is built for WooCommerce and syncs your products, orders, and inventory in real time.
+
+= Does wePOS work with Dokan multivendor? =
+
+Yes. Each Dokan vendor can run their own POS with their own products, customers, and orders, while you keep full control of the marketplace.
+
+= Can I sell products by weight? =
+
+Yes. wePOS supports fractional quantities, so you can sell items like 1.5 kg, which suits grocery stores and cafés.
+
+= Does wePOS support barcode scanning? =
+
+Yes. You can search and manage products using barcode scanning at the counter.
+
+= Can I manage multiple outlets and cashiers? =
+
+Yes. You can create outlets and assign cashiers with the right POS access.
+
+= What display modes are available? =
+
+You can choose Light, Dark, or System mode, and switch between the new and classic design at any time.
+
+= Where can I get support? =
+
+Visit the support page on the wePOS website, or post in the plugin support forum.
+
+## Privacy Policy
+
+wePOS uses the Appsero SDK to collect telemetry data (only with user permission) to help improve product stability and performance.
+
+## Screenshots
+
 1. Intuitive POS
 2. Quicker Product List View
 3. Light/Dark Theme
 4. On The Fly Discount Calculation
 5. Intuitive Checkout
 
-== Changelog ==
+## Changelog
 
 = v2.0.1 ( May 21, 2026 ) =
 - **fix:** Tax breakdown (per-line tax, subtotal "Including Tax" hint, and total tax row) is now displayed in the new POS cart UI.
@@ -289,6 +385,6 @@ No FAQ
 = v1.0.0 ( February 22, 2019 ) =
 Initial version released
 
-== Upgrade Notice ==
+## Upgrade Notice
 = 1.3.0 =
 If you have wePos Pro installed, please ensure it is updated to version 1.2.1 or later before upgrading to this version.
