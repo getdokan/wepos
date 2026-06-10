@@ -11,7 +11,6 @@ Stable tag: 2.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-### Description 
 Free POS plugin for WooCommerce. Build a point of sale system to sell in-store and online, then manage every POS order from one POS dashboard.
 
 ## Useful Links
