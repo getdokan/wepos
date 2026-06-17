@@ -19,8 +19,16 @@ Free POS plugin for WooCommerce. Build a point of sale system to sell in-store a
 ### Create and Manage In-Store Sales with Ease 
 [youtube https://youtu.be/9zURW3eo5y4]
 
-[wePOS](https://dokan.co/wordpress/wepos/) is a fast and responsive( Tablets & Desktop ) WooCommerce Point of Sales plugin. It lets you take orders and track your inventory using your WooCommerce store. 
-You can physically count your WooCommerce products by scanning barcodes and add them directly to customer’s cart for processing the order.
+[wePOS](https://dokan.co/wordpress/wepos/) is a fast and free point of sale (POS) plugin for WooCommerce. It turns your WooCommerce store into a complete retail checkout counter, so you can take in-person orders, scan barcodes, track inventory, and print receipts, all from one screen on your tablet or desktop.
+If you run a single retail shop, a grocery store, or a multi-outlet business, wePOS gives you a modern cash register that stays in sync with your WooCommerce products, customers, and orders in real time.
+
+## Why choose wePOS?
+ 
+* **Free to start:** Run real in-store sales on the free plan, with no monthly platform fee.
+* **Built on WooCommerce:** Your products, prices, customers, and stock stay in sync automatically.
+* **Fast checkout:** A single-page app and barcode scanning keep your lines moving.
+* **Made for retail:** Sell physical products, handle discounts and fees, and print receipts.
+* **Multivendor ready:** Native Dokan integration gives every vendor their own point of sale.
 
 ## Key Benefits 
 * Fast and responsive POS interface
@@ -105,37 +113,37 @@ wePOS is the only WooCommerce POS solution built to work seamlessly with Dokan. 
 
 ## Frequently Asked Questions 
 
-= Is wePOS free? =
+= Is wePOS a free WooCommerce POS plugin? =
 
-Yes. The core plugin is free and includes everything you need to run daily in-store sales. Advanced tools such as reports, save carts, access control, and full Dokan vendor dashboards come with wePOS Pro.
+Yes. wePOS has a free version that lets you run real in-store sales, scan barcodes, manage customers, and print receipts. A Pro version is available for advanced features like reports, multi-outlet management, and access control.
 
-= Does wePOS work with WooCommerce? =
+= Does wePOS require WooCommerce? =
 
-Yes. wePOS is built for WooCommerce and syncs your products, orders, and inventory in real time.
+Yes. wePOS works on top of WooCommerce and uses your existing products, prices, customers, and inventory.
 
 = Does wePOS work with Dokan multivendor? =
 
 Yes. Each Dokan vendor can run their own POS with their own products, customers, and orders, while you keep full control of the marketplace.
 
-= Can I sell products by weight? =
+=  Can wePOS track my inventory? =
 
-Yes. wePOS supports fractional quantities, so you can sell items like 1.5 kg, which suits grocery stores and cafés.
+Yes. wePOS stays in sync with your WooCommerce stock. Out-of-stock products are shown but cannot be added to the cart, so your counts stay accurate
 
-= Does wePOS support barcode scanning? =
+= Can I scan barcodes with wePOS? =
 
-Yes. You can search and manage products using barcode scanning at the counter.
+Yes. wePOS supports fast product search and barcode scanning so you can add items to the cart quickly at the counter.
 
-= Can I manage multiple outlets and cashiers? =
+= Is wePOS good for retail and grocery stores? =
 
-Yes. You can create outlets and assign cashiers with the right POS access.
+Yes. wePOS is built for retail, and version 2.0 added fractional quantities, which is useful for grocery stores that sell items by weight.
 
-= What display modes are available? =
+=  Can I print receipts? =
 
-You can choose Light, Dark, or System mode, and switch between the new and classic design at any time.
+Yes. wePOS prints receipts for every order and supports thermal printers. wePOS Pro adds an advanced receipt builder for full customization.
 
-= Where can I get support? =
+= Does wePOS work on tablets? =
 
-Visit the support page on the wePOS website, or post in the plugin support forum.
+Yes. wePOS is fast and responsive on both tablets and desktops, with a rebuilt cashier screen in version 2.0.
 
 ## Privacy Policy
 
