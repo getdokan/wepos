@@ -61,6 +61,7 @@ class Common {
 
         // Tax overrides for POS orders.
         add_filter( 'woocommerce_order_get_tax_location', [ $this, 'get_tax_location' ], 10, 2 );
+        add_action( 'woocommerce_order_before_calculate_totals', [ $this, 'convert_inclusive_line_items_to_net' ], 10, 2 );
         add_action( 'woocommerce_order_item_after_calculate_taxes', [ $this, 'order_item_after_calculate_taxes' ] );
         add_action( 'woocommerce_order_item_shipping_after_calculate_taxes', [ $this, 'order_item_shipping_after_calculate_taxes' ], 10, 2 );
         add_action( 'woocommerce_order_item_fee_after_calculate_taxes', [ $this, 'order_item_fee_after_calculate_taxes' ], 10, 2 );
@@ -242,7 +243,99 @@ class Common {
     }
 
     /**
-     * Override item-level tax after WooCommerce calculates taxes.
+     * Convert inclusive-priced POS product lines to net BEFORE WooCommerce totals the order.
+     *
+     * WooCommerce's order tax calc always treats a line total as tax-exclusive
+     * (`WC_Tax::calc_tax( $total, $rates, false )`) and adds tax on top — it never
+     * honours "Prices entered with tax = Yes" at order level (WC relies on the cart
+     * having already stored net line totals). The POS sends the price exactly as
+     * entered, so for an inclusive store that price already contains tax and WC would
+     * double-count it (a 100 inclusive product becomes 120 / tax 20 instead of
+     * 100 / tax 16.67).
+     *
+     * The conversion MUST happen here, not in `woocommerce_order_item_after_calculate_taxes`:
+     * `WC_Abstract_Order::calculate_totals()` snapshots the cart total from the line
+     * totals *before* it runs `calculate_taxes()`, so mutating a line total during tax
+     * calculation is too late — the snapshot still holds the inclusive amount and the
+     * final order total ends up as net + tax + tax. Running on
+     * `woocommerce_order_before_calculate_totals` (fired first) stores the net total up
+     * front, then WooCommerce adds tax back natively and the order total is correct.
+     *
+     * Lines are flagged by the POS with `_wepos_pos_data.amount_includes_tax = true`.
+     * Rates are resolved at the order's tax location (see get_tax_location()) so
+     * base/customer address, multiple and compound rates all stay aligned with WC.
+     *
+     * @since WEPOS_LITE_SINCE
+     *
+     * @param bool               $and_taxes Whether taxes are also being calculated.
+     * @param \WC_Abstract_Order $order     The order being totalled.
+     *
+     * @return void
+     */
+    public function convert_inclusive_line_items_to_net( $and_taxes, $order ): void {
+        if ( ! $and_taxes || ! $order instanceof \WC_Order || ! wc_tax_enabled() ) {
+            return;
+        }
+
+        if ( empty( $order->get_meta( '_wepos_is_pos_order' ) ) ) {
+            return;
+        }
+
+        $location = null;
+
+        foreach ( $order->get_items() as $item ) {
+            if ( ! $item instanceof \WC_Order_Item_Product ) {
+                continue;
+            }
+
+            $pos_data = null;
+            foreach ( $item->get_meta_data() as $meta ) {
+                if ( '_wepos_pos_data' === $meta->key ) {
+                    $pos_data = json_decode( $meta->value, true );
+                    break;
+                }
+            }
+
+            if ( ! is_array( $pos_data ) || empty( $pos_data['amount_includes_tax'] ) ) {
+                continue;
+            }
+
+            // Not taxable → nothing to strip out; leave the entered price as-is.
+            if ( 'taxable' !== $item->get_tax_status() || '0' === $item->get_tax_class() ) {
+                continue;
+            }
+
+            // Resolve the tax location once (same location WC uses for this order).
+            if ( null === $location ) {
+                $location = $this->get_tax_location(
+                    [ 'country' => '', 'state' => '', 'postcode' => '', 'city' => '' ],
+                    $order
+                );
+            }
+
+            $tax_rates = \WC_Tax::find_rates( array_merge( $location, [ 'tax_class' => $item->get_tax_class() ] ) );
+
+            // No matching rate → WC would store 0 tax anyway, so leave the line untouched.
+            if ( empty( $tax_rates ) ) {
+                continue;
+            }
+
+            $total    = (float) $item->get_total();
+            $subtotal = (float) $item->get_subtotal();
+
+            $item->set_total( wc_format_decimal( $total - array_sum( \WC_Tax::calc_inclusive_tax( $total, $tax_rates ) ) ) );
+            $item->set_subtotal( wc_format_decimal( $subtotal - array_sum( \WC_Tax::calc_inclusive_tax( $subtotal, $tax_rates ) ) ) );
+
+            // Idempotency guard: the stored total is now net, so a later recalculation
+            // (e.g. from the order edit screen) must treat it as net and add tax on top
+            // like any other line — flip the flag so this does not strip tax again.
+            $pos_data['amount_includes_tax'] = false;
+            $item->update_meta_data( '_wepos_pos_data', wp_json_encode( $pos_data ) );
+        }
+    }
+
+    /**
+     * Override order item tax after WooCommerce calculates taxes.
      *
      * If the item carries _wepos_pos_data metadata with tax_status = 'none',
      * clear all taxes on that item.
@@ -254,9 +347,7 @@ class Common {
      * @return void
      */
     public function order_item_after_calculate_taxes( $item ): void {
-        $meta_data = $item->get_meta_data();
-
-        foreach ( $meta_data as $meta ) {
+        foreach ( $item->get_meta_data() as $meta ) {
             if ( '_wepos_pos_data' === $meta->key ) {
                 $pos_data = json_decode( $meta->value, true );
 

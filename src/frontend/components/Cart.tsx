@@ -768,8 +768,10 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 </div>
               ))}
 
-              {/* Tax Lines (from server, only when not stale) */}
-              {serverOrder && !isServerOrderDirty && serverOrder.tax_lines.length > 0 && (
+              {/* Tax Lines (from server, only when not stale).
+                  Hidden in inclusive mode — the tax is already part of the item price /
+                  subtotal, so a separate line would look like it's being added on top. */}
+              {!isTaxInclusive && serverOrder && !isServerOrderDirty && serverOrder.tax_lines.length > 0 && (
                 <>
                   {serverOrder.tax_lines.map((taxLine: any) => (
                     <div
@@ -793,13 +795,13 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 </>
               )}
 
-              {/* Total Tax (fallback when no detailed tax lines) */}
-              {totalTax > 0 && (!serverOrder || isServerOrderDirty || serverOrder.tax_lines.length === 0) && (
+              {/* Total Tax (fallback when no detailed tax lines).
+                  Hidden in inclusive mode — tax is baked into the item prices, so it is
+                  not shown as a separate line. */}
+              {!isTaxInclusive && totalTax > 0 && (!serverOrder || isServerOrderDirty || serverOrder.tax_lines.length === 0) && (
                 <div className="flex items-center justify-between border-b border-border p-[9px_12px]">
                   <div className="flex-1 text-sm font-medium text-foreground">
-                    {isTaxInclusive
-                      ? __('Fee Tax', 'wepos')
-                      : __('Tax', 'wepos')}
+                    {__('Tax', 'wepos')}
                   </div>
                   <div className="text-sm font-bold text-foreground">
                     {cartFormatPrice(totalTax)}

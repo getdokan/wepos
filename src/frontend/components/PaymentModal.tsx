@@ -49,7 +49,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   cashAmountRef,
 }) => {
   // Get cart data from cart store
-  const { cartItems, subtotal, total, discountLines, feeLines, shippingLines, totalTax, orderCurrencySymbol } =
+  const { cartItems, subtotal, total, discountLines, feeLines, shippingLines, totalTax, taxDisplayMode, orderCurrencySymbol } =
     useSelect((select) => {
       const store = select(CART_STORE_NAME) as any;
       return {
@@ -60,9 +60,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         feeLines: store.getFeeLines(),
         shippingLines: store.getShippingLines(),
         totalTax: store.getTotalTax(),
+        taxDisplayMode: store.getTaxDisplayMode(),
         orderCurrencySymbol: store.getOrderCurrencySymbol(),
       };
     }, []);
+
+  // Inclusive mode: item prices already contain tax, so tax is shown as included, not added.
+  const isTaxInclusive = taxDisplayMode === 'incl';
 
   // Get gateways from products store
   const { availableGateways } = useSelect((select) => {
@@ -198,6 +202,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             <div className="flex justify-between py-1">
               <span className="text-sm font-semibold text-foreground">
                 {__('Subtotal', 'wepos')}
+                {isTaxInclusive && totalTax > 0 && (
+                  <span className="ml-1 text-xs font-normal text-muted-foreground">
+                    ({__('incl. tax', 'wepos')})
+                  </span>
+                )}
               </span>
               <span className="text-sm font-semibold text-foreground">
                 {paymentFormatPrice(subtotal)}
@@ -257,8 +266,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               </div>
             ))}
 
-            {/* Tax */}
-            {totalTax > 0 && (
+            {/* Tax — hidden in inclusive mode (tax is already part of the item price). */}
+            {!isTaxInclusive && totalTax > 0 && (
               <div className="flex justify-between py-1">
                 <span className="text-sm text-muted-foreground">
                   {__('Tax', 'wepos')}

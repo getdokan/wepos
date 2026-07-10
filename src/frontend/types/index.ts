@@ -592,6 +592,8 @@ export interface POSSettings {
   woo_tax: {
     wc_tax_display_cart: string;
     wc_tax_based_on?: string;
+    // 'yes' when WooCommerce prices are entered inclusive of tax.
+    wc_prices_include_tax?: string;
   };
   currencies?: Record<string, { name: string; symbol: string }>;
 }

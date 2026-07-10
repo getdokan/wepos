@@ -887,6 +887,12 @@ const HomePage: React.FC = () => {
     const orderCustomer = normalizeCustomerForOrder(selectedCustomer);
 
     // --- line_items ---
+    // With "Prices entered with tax = Yes", the price the POS sends already contains
+    // tax. WooCommerce's order tax calc always treats a line total as net and adds tax
+    // on top, which would double-count it. Flag such lines so the server back-calculates
+    // the net total + embedded tax (see Common::order_item_after_calculate_taxes).
+    const pricesIncludeTax = settings?.woo_tax?.wc_prices_include_tax === 'yes';
+
     const buildLineItems = () => {
       const items: any[] = [];
       // Track which server line item ids we've matched
@@ -902,6 +908,14 @@ const HomePage: React.FC = () => {
           subtotal: (unitPrice * item.quantity).toFixed(2),
           total: (unitPrice * item.quantity).toFixed(2),
         };
+        if (pricesIncludeTax) {
+          lineItem.meta_data = [
+            {
+              key: '_wepos_pos_data',
+              value: JSON.stringify({ amount_includes_tax: true }),
+            },
+          ];
+        }
         if (item.product_id === 0) {
           // Misc/custom product: send name + price, no product_id
           lineItem.name = item.name;
