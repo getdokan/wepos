@@ -72,7 +72,10 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 10
+          # pnpm 10 refuses to run build scripts of git-hosted dependencies
+          # (@wedevs/plugin-ui) unless allowlisted; stay on 9 until the
+          # allowlist lands in pnpm-workspace.yaml.
+          version: 9
 
       - name: Use desired version of NodeJS
         uses: actions/setup-node@v4
