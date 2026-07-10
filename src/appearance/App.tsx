@@ -77,8 +77,11 @@ const UiToggleField = ( {
 					} ) ) }
 					value={ value }
 					onChange={ ( next ) => {
-						if ( element.dependency_key ) {
-							onChange( element.dependency_key, next );
+						// plugin-ui keys a field's value by its `id`, so write
+						// back to `id` (not `dependency_key`) — otherwise the
+						// change never reaches the value the toggle reads.
+						if ( element.id ) {
+							onChange( element.id, next );
 						}
 					} }
 				/>
@@ -157,7 +160,6 @@ function buildSchema(): SettingsElement[] {
 								'wepos'
 							),
 							layout: 'horizontal',
-							dependency_key: 'wepos_appearance.pos_layout_style',
 							default: defaults.pos_layout_style,
 							options: posOptions,
 							section_id: 'appearance_general',
@@ -174,7 +176,6 @@ function buildSchema(): SettingsElement[] {
 								'wepos'
 							),
 							layout: 'horizontal',
-							dependency_key: 'wepos_appearance.admin_ui_style',
 							default: defaults.admin_ui_style,
 							options: adminOptions,
 							section_id: 'appearance_general',
@@ -191,9 +192,12 @@ const App = () => {
 	const bootstrap = window.weposAppearance?.settings || defaults;
 	const rest = window.weposAppearance?.rest;
 
+	// plugin-ui keys field values by their `id`, so mirror that here — the
+	// Settings component looks up `values[field.id]` to decide the active
+	// state and emits the same `id` keys back through onChange/onSave.
 	const [ values, setValues ] = useState< Record< string, unknown > >( {
-		'wepos_appearance.pos_layout_style': bootstrap.pos_layout_style,
-		'wepos_appearance.admin_ui_style': bootstrap.admin_ui_style,
+		pos_layout_style: bootstrap.pos_layout_style,
+		admin_ui_style: bootstrap.admin_ui_style,
 	} );
 	const [ saving, setSaving ] = useState( false );
 
@@ -229,11 +233,11 @@ const App = () => {
 				body: JSON.stringify( {
 					wepos_appearance: {
 						pos_layout_style:
-							flat[ 'wepos_appearance.pos_layout_style' ] ??
-							values[ 'wepos_appearance.pos_layout_style' ],
+							flat[ 'pos_layout_style' ] ??
+							values[ 'pos_layout_style' ],
 						admin_ui_style:
-							flat[ 'wepos_appearance.admin_ui_style' ] ??
-							values[ 'wepos_appearance.admin_ui_style' ],
+							flat[ 'admin_ui_style' ] ??
+							values[ 'admin_ui_style' ],
 					},
 				} ),
 			} );
