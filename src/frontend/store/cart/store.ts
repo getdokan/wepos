@@ -63,6 +63,10 @@ subscribe(() => {
     customer: storeSelect.getCustomer(),
     server_order: storeSelect.getServerOrder(),
     server_order_dirty: storeSelect.isServerOrderDirty(),
+    // Persist tax flags so totals math is correct from first render, before
+    // the settings request resolves (they re-sync once settings load).
+    tax_display_cart: storeSelect.getTaxDisplayMode(),
+    prices_include_tax: storeSelect.getPricesIncludeTax(),
   };
 
   const serialized = JSON.stringify(currentState);

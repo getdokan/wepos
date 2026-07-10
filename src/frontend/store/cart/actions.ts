@@ -143,6 +143,13 @@ export const actions = {
     };
   },
 
+  setPricesIncludeTax(includes: boolean) {
+    return {
+      type: 'SET_PRICES_INCLUDE_TAX' as const,
+      includes,
+    };
+  },
+
   setAvailableTax(rates: TaxRate[]) {
     return {
       type: 'SET_AVAILABLE_TAX' as const,

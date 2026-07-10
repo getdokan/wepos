@@ -72,6 +72,8 @@ export interface CartState {
   currency_symbol: string;
   // Mirrors WC's `woocommerce_tax_display_cart` — drives the inclusive-tax path in `getTotalTax`.
   tax_display_cart?: 'incl' | 'excl';
+  // Mirrors WC's `woocommerce_prices_include_tax` — drives raw→display price conversion.
+  prices_include_tax?: boolean;
   // Available tax rates — powers local fee tax and coupon tax adjustment pre-save.
   available_tax: TaxRate[];
 }
@@ -102,4 +104,5 @@ export type CartAction =
   | { type: 'SET_SERVER_ORDER'; server_order: ServerOrderData }
   | { type: 'CLEAR_SERVER_ORDER' }
   | { type: 'SET_TAX_DISPLAY_MODE'; mode: 'incl' | 'excl' }
+  | { type: 'SET_PRICES_INCLUDE_TAX'; includes: boolean }
   | { type: 'SET_AVAILABLE_TAX'; rates: TaxRate[] };

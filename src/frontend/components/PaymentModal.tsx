@@ -3,7 +3,7 @@ import { __ } from '@wordpress/i18n';
 import { useSelect } from '@wordpress/data';
 import { LoaderCircle, ArrowLeft, CreditCard } from 'lucide-react';
 import { POSGateway, POSCartItem, POSDiscountLine, POSFeeLine, POSShippingLine } from '../types';
-import { formatPrice } from '../utils/helpers';
+import { cartItemDisplayPrices, formatPrice } from '../utils/helpers';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
 import { applyFilters } from '../hooks/useExtensions';
@@ -49,7 +49,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   cashAmountRef,
 }) => {
   // Get cart data from cart store
-  const { cartItems, subtotal, total, discountLines, feeLines, shippingLines, totalTax, orderCurrencySymbol } =
+  const { cartItems, subtotal, total, discountLines, feeLines, shippingLines, totalTax, totalLineTax, taxDisplayMode, pricesIncludeTax, orderCurrencySymbol } =
     useSelect((select) => {
       const store = select(CART_STORE_NAME) as any;
       return {
@@ -60,9 +60,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         feeLines: store.getFeeLines(),
         shippingLines: store.getShippingLines(),
         totalTax: store.getTotalTax(),
+        totalLineTax: store.getTotalLineTax(),
+        taxDisplayMode: store.getTaxDisplayMode(),
+        pricesIncludeTax: store.getPricesIncludeTax(),
         orderCurrencySymbol: store.getOrderCurrencySymbol(),
       };
     }, []);
+
+  // Inclusive display: line tax is part of the subtotal/total, not added on
+  // top — shown as a WC-style "(Including Tax X)" note, never as a row.
+  const isTaxInclusive = taxDisplayMode === 'incl';
+  const includedTax = isTaxInclusive ? totalLineTax : 0;
 
   // Get gateways from products store
   const { availableGateways } = useSelect((select) => {
@@ -126,9 +134,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     return parseFloat(fee.value);
   };
 
-  // Get item price
+  // Mode-aware display price — matches the cart rows and getSubtotal.
   const getItemPrice = (item: POSCartItem): number => {
-    return item.on_sale ? item.sale_price : item.regular_price;
+    return cartItemDisplayPrices(item, taxDisplayMode, pricesIncludeTax).unit;
   };
 
   if (!show) return null;
@@ -257,8 +265,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               </div>
             ))}
 
-            {/* Tax */}
-            {totalTax > 0 && (
+            {/* Tax — additive row only when prices exclude tax (WC cart behavior) */}
+            {!isTaxInclusive && totalTax > 0 && (
               <div className="flex justify-between py-1">
                 <span className="text-sm text-muted-foreground">
                   {__('Tax', 'wepos')}
@@ -280,6 +288,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 {paymentFormatPrice(total)}
               </span>
             </div>
+            {/* WC-style note: "(includes Tax X)" under the total in inclusive display */}
+            {includedTax > 0 && (
+              <div className="flex justify-end pb-1 text-xs text-muted-foreground">
+                ({__('Including Tax', 'wepos')} {paymentFormatPrice(includedTax)})
+              </div>
+            )}
           </div>
         </div>
 

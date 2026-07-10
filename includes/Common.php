@@ -230,8 +230,11 @@ class Common {
             $args['state']    = $order->get_shipping_state();
             $args['postcode'] = $order->get_shipping_postcode();
             $args['city']     = $order->get_shipping_city();
-        } else {
-            // Default to store base address for POS orders.
+        }
+
+        // Walk-in POS orders often carry no billing/shipping address; an empty
+        // country resolves no tax rates at all. Fall back to the store base.
+        if ( empty( $args['country'] ) ) {
             $args['country']  = \WC()->countries->get_base_country();
             $args['state']    = \WC()->countries->get_base_state();
             $args['postcode'] = \WC()->countries->get_base_postcode();

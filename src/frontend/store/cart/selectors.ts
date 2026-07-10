@@ -1,6 +1,6 @@
 import { CartState, ServerOrderData } from './types';
 import { POSCartItem, POSDiscountLine, POSFeeLine, POSShippingLine, POSOrderMetaItem, Customer } from '../../types';
-import { toFiniteNumber } from '../../utils/helpers';
+import { toFiniteNumber, cartItemDisplayPrices, findTaxRate } from '../../utils/helpers';
 import { applyFilters } from '../../hooks/useExtensions';
 
 export const selectors = {
@@ -13,9 +13,15 @@ export const selectors = {
   getCustomerNote: (state: CartState): string => state.customer_note,
 
   getSubtotal: (state: CartState): number => {
+    // Derive display prices from raw price + tax_amount so stored (possibly
+    // stale) display prices can't drift from the current tax display settings.
     return state.line_items.reduce((total: number, item: POSCartItem) => {
-      const price = item.on_sale ? item.sale_price : item.regular_price;
-      return total + price * item.quantity;
+      const { unit } = cartItemDisplayPrices(
+        item,
+        state.tax_display_cart === 'incl' ? 'incl' : 'excl',
+        !!state.prices_include_tax,
+      );
+      return total + unit * item.quantity;
     }, 0);
   },
 
@@ -53,6 +59,10 @@ export const selectors = {
   getTaxDisplayMode: (state: CartState): 'incl' | 'excl' =>
     state.tax_display_cart === 'incl' ? 'incl' : 'excl',
 
+  getPricesIncludeTax: (state: CartState): boolean => !!state.prices_include_tax,
+
+  getAvailableTax: (state: CartState) => state.available_tax,
+
   // Drives the "Including Tax" UI hint — never zeroed in incl mode.
   getTotalLineTax: (state: CartState): number => {
     return state.line_items.reduce((total: number, item: POSCartItem) => {
@@ -81,12 +91,7 @@ export const selectors = {
     const lineTax = state.tax_display_cart === 'incl' ? 0 : selectors.getTotalLineTax(state);
     const subtotal = selectors.getSubtotal(state);
 
-    // Empty tax class maps to WC's 'standard'; returns 0 when no class matches.
-    const findRate = (taxClass: string): number => {
-      const slug = taxClass === '' ? 'standard' : taxClass;
-      const match = state.available_tax.find((r) => r.class === slug);
-      return match ? toFiniteNumber(match.rate) : 0;
-    };
+    const findRate = (taxClass: string): number => findTaxRate(state.available_tax, taxClass);
 
     const feeTax = state.fee_lines.reduce((sum: number, fee: POSFeeLine) => {
       if (fee.tax_status !== 'taxable') return sum;

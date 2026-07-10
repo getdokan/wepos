@@ -38,7 +38,7 @@ import AddFeeModal from './AddFeeModal';
 import OrderMetaModal from './OrderMetaModal';
 import { Slot } from '@wordpress/components';
 import { PluginArea } from '@wordpress/plugins';
-import { formatPrice, toFiniteNumber } from '../utils/helpers';
+import { formatPrice, toFiniteNumber, cartItemDisplayPrices } from '../utils/helpers';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
 import CustomerSearch, { CustomerSearchHandle } from '../components/CustomerSearch';
@@ -127,6 +127,8 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     serverOrder,
     isServerOrderDirty,
     taxDisplayMode,
+    pricesIncludeTax,
+    availableTax,
   } = useSelect((select) => {
     const store = select(CART_STORE_NAME) as any;
     return {
@@ -148,6 +150,8 @@ const Cart = forwardRef<CartHandle, CartProps>(({
       serverOrder: store.getServerOrder(),
       isServerOrderDirty: store.isServerOrderDirty(),
       taxDisplayMode: store.getTaxDisplayMode(),
+      pricesIncludeTax: store.getPricesIncludeTax(),
+      availableTax: store.getAvailableTax(),
     };
   }, []);
 
@@ -250,6 +254,18 @@ const Cart = forwardRef<CartHandle, CartProps>(({
     tax_class: string;
     tax_status: 'taxable' | 'none';
   }) => {
+    // Cashier enters the price in the store's entry mode (gross when prices
+    // include tax). Derive the per-unit tax from the selected tax class so
+    // display/net conversion works like catalog products.
+    const rate = product.tax_status === 'taxable'
+      ? findTaxRate(availableTax || [], product.tax_class)
+      : 0;
+    const taxAmount = !rate
+      ? 0
+      : pricesIncludeTax
+        ? (product.price * rate) / (100 + rate)
+        : (product.price * rate) / 100;
+
     const cartItem: POSCartItem = {
       id: Date.now(),
       product_id: 0,
@@ -264,7 +280,9 @@ const Cart = forwardRef<CartHandle, CartProps>(({
       on_sale: false,
       type: 'simple',
       attribute: [],
-      tax_amount: 0,
+      tax_amount: taxAmount,
+      tax_class: product.tax_class,
+      tax_status: product.tax_status,
     };
     addToCart(cartItem);
   };
@@ -304,8 +322,12 @@ const Cart = forwardRef<CartHandle, CartProps>(({
   const cartFormatPrice = (price: number | string): string | number =>
     formatPrice(price, orderCurrencySymbol || '');
 
-  // Single source of truth: store value, synced from woocommerce_tax_display_cart by Home.tsx.
+  // Single source of truth: store values, synced from WC tax settings by Home.tsx.
   const isTaxInclusive = taxDisplayMode === 'incl';
+
+  // Line tax bundled in the displayed prices (inclusive mode) — shown as a
+  // WC-style "Including Tax X" note under the subtotal, never as a row.
+  const includedTaxTotal = isTaxInclusive ? totalLineTax : 0;
 
   // Count visible columns for colSpan
   const visibleColumnCount = cartSettings.columns.filter((c) => c.enabled).length || 1;
@@ -399,12 +421,20 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 <tbody>
                   {cartItems.length > 0 ? (
                     cartItems.map((item: POSCartItem, index: number) => {
-                      const itemTotal = item.quantity * (item.on_sale ? item.sale_price : item.regular_price);
-                      const itemSubtotal = item.quantity * item.regular_price;
+                      // Mode-aware display prices — stored prices go stale when tax display settings change.
+                      const displayPrice = cartItemDisplayPrices(
+                        item,
+                        isTaxInclusive ? 'incl' : 'excl',
+                        pricesIncludeTax,
+                      );
+                      const itemTotal = item.quantity * displayPrice.unit;
+                      const itemSubtotal = item.quantity * displayPrice.regular;
 
                       // Server tax when available; otherwise client-computed from product tax_amount so the breakdown shows pre-save.
+                      // Line-id match first — custom lines all share product_id 0.
                       const serverLineItem = serverOrder && !isServerOrderDirty
-                        ? serverOrder.line_items?.find(
+                        ? serverOrder.line_items?.find((li: any) => li.id === item.id)
+                          || serverOrder.line_items?.find(
                             (li: any) => li.product_id === item.product_id && li.variation_id === (item.variation_id || 0)
                           )
                         : null;
@@ -558,14 +588,14 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                                 {item.on_sale && isSubOptionEnabled('price', 'on_sale') ? (
                                   <div className="flex flex-col">
                                     <span className="text-xs text-muted-foreground line-through">
-                                      {cartFormatPrice(item.regular_price)}
+                                      {cartFormatPrice(displayPrice.regular)}
                                     </span>
                                     <span className="font-medium text-destructive">
-                                      {cartFormatPrice(item.sale_price)}
+                                      {cartFormatPrice(displayPrice.sale)}
                                     </span>
                                   </div>
                                 ) : (
-                                  <span>{cartFormatPrice(item.regular_price)}</span>
+                                  <span>{cartFormatPrice(displayPrice.regular)}</span>
                                 )}
                               </td>
                             )}
@@ -573,7 +603,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                             {/* REGULAR PRICE Column */}
                             {isColumnEnabled('regular_price') && (
                               <td className="p-3 text-sm text-muted-foreground">
-                                {cartFormatPrice(item.regular_price)}
+                                {cartFormatPrice(displayPrice.regular)}
                               </td>
                             )}
 
@@ -657,9 +687,9 @@ const Cart = forwardRef<CartHandle, CartProps>(({
               <div className="flex items-center justify-between border-b border-border p-[9px_12px]">
                 <div className="flex-1 text-sm">
                   {__('Subtotal', 'wepos')}
-                  {isTaxInclusive && totalLineTax > 0 && (
+                  {isTaxInclusive && includedTaxTotal > 0 && (
                     <span className="block text-xs font-normal text-muted-foreground">
-                      {__('Including Tax', 'wepos')}
+                      {__('Including Tax', 'wepos')} {cartFormatPrice(includedTaxTotal)}
                     </span>
                   )}
                 </div>
@@ -768,8 +798,9 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 </div>
               ))}
 
-              {/* Tax Lines (from server, only when not stale) */}
-              {serverOrder && !isServerOrderDirty && serverOrder.tax_lines.length > 0 && (
+              {/* Tax Lines (from server, only when not stale). Inclusive display: tax is
+                  part of the prices, so no separate rows — WC-style note instead below. */}
+              {!isTaxInclusive && serverOrder && !isServerOrderDirty && serverOrder.tax_lines.length > 0 && (
                 <>
                   {serverOrder.tax_lines.map((taxLine: any) => (
                     <div
@@ -793,7 +824,8 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 </>
               )}
 
-              {/* Total Tax (fallback when no detailed tax lines) */}
+              {/* Total Tax (fallback when no detailed tax lines). In inclusive display
+                  this only carries additive fee tax. */}
               {totalTax > 0 && (!serverOrder || isServerOrderDirty || serverOrder.tax_lines.length === 0) && (
                 <div className="flex items-center justify-between border-b border-border p-[9px_12px]">
                   <div className="flex-1 text-sm font-medium text-foreground">
