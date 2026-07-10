@@ -281,10 +281,10 @@ export const data = {
             editUser: (userId: string) => `wp-admin/user-edit.php?user_id=${userId}`,
 
             wepos: {
-                outlets: 'wp-admin/admin.php?page=wepos#/outlets',
-                receipts: 'wp-admin/admin.php?page=wepos#/receipts',
-                reports: 'wp-admin/admin.php?page=wepos#/reports',
-                settings: 'wp-admin/admin.php?page=wepos#/settings',
+                outlets: 'wp-admin/admin.php?page=wepos-dashboard#/outlets',
+                receipts: 'wp-admin/admin.php?page=wepos-dashboard#/receipts',
+                reports: 'wp-admin/admin.php?page=wepos-dashboard#/reports',
+                settings: 'wp-admin/admin.php?page=wepos-dashboard#/settings',
                 viewPos: 'wepos/#/',
                 license: 'wp-admin/admin.php?page=wepos-license',
 
