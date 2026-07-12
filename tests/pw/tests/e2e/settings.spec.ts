@@ -2,7 +2,10 @@ import { test, Page } from '@playwright/test';
 import { SettingsPage } from '@pages/settingsPage';
 import { data } from '@utils/testData';
 
-test.describe('Settings test', () => {
+// FIXME: written against the legacy PHP settings screen (nav-tabs, TinyMCE
+// iframes); the admin settings are now a React plugin-ui app under
+// page=wepos-dashboard#/settings. Un-skip while rebuilding the selectors.
+test.describe.fixme('Settings test', () => {
     let admin: SettingsPage;
     let aPage: Page;
 

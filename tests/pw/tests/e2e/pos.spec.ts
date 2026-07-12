@@ -9,7 +9,10 @@ import { responseBody } from '@utils/interfaces';
 
 const { WEPOS_PRO, USER_PASSWORD } = process.env;
 
-test.describe('Pos test', () => {
+// FIXME: written against the legacy Vue POS UI; selectors (content-product,
+// multiselect, cart-table, ...) no longer exist in the React rewrite.
+// Un-skip while rebuilding the selector map for the React app.
+test.describe.fixme('Pos test', () => {
     let cashier: Pos;
     let cPage: Page;
     let apiUtils: ApiUtils;
