@@ -4,8 +4,8 @@
             "port": 9999,
             "core": null,
             "phpVersion": "7.4",
-            "plugins": ["WP-API/Basic-Auth", "https://downloads.wordpress.org/plugin/woocommerce.latest-stable.zip", "../../"],
-            "themes": ["https://downloads.wordpress.org/theme/storefront.latest-stable.zip"],
+            "plugins": ["WP-API/Basic-Auth", "https://downloads.wordpress.org/plugin/woocommerce.zip", "../../"],
+            "themes": ["https://downloads.wordpress.org/theme/storefront.zip"],
             "config": {
                 "WP_DEBUG": "false",
                 "SCRIPT_DEBUG": "false",

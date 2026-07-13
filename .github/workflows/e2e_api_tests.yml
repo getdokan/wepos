@@ -72,7 +72,10 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 10
+          # pnpm 10 refuses to run build scripts of git-hosted dependencies
+          # (@wedevs/plugin-ui) unless allowlisted; stay on 9 until the
+          # allowlist lands in pnpm-workspace.yaml.
+          version: 9
 
       - name: Use desired version of NodeJS
         uses: actions/setup-node@v4
@@ -89,10 +92,13 @@ jobs:
         run: |
           composer i --no-dev -o || composer update --no-dev -o
 
-      - name: Pnpm install and build (Wepos-lite)
+      # npm, not pnpm: the repo ships package-lock.json only, and the
+      # git-hosted @wedevs/plugin-ui dependency fails to build under pnpm's
+      # isolated prepare step.
+      - name: Install and build (Wepos-lite)
         run: |
-          pnpm install --frozen-lockfile || pnpm install
-          pnpm run build
+          npm ci || npm install
+          npm run build
 
       # Install test dependencies
       - name: Install test dependencies

@@ -3,7 +3,7 @@
         "tests": {
             "plugins": [
                 "WP-API/Basic-Auth",
-                "https://downloads.wordpress.org/plugin/woocommerce.latest-stable.zip",
+                "https://downloads.wordpress.org/plugin/woocommerce.zip",
                 "../../",
                 "../../../../"
             ]
