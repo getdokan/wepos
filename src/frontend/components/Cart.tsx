@@ -38,7 +38,7 @@ import AddFeeModal from './AddFeeModal';
 import OrderMetaModal from './OrderMetaModal';
 import { Slot } from '@wordpress/components';
 import { PluginArea } from '@wordpress/plugins';
-import { formatPrice, toFiniteNumber, cartItemDisplayPrices } from '../utils/helpers';
+import { formatPrice, toFiniteNumber, cartItemDisplayPrices, findTaxRate } from '../utils/helpers';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
 import CustomerSearch, { CustomerSearchHandle } from '../components/CustomerSearch';
@@ -954,7 +954,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>{__('Cancel', 'wepos')}</AlertDialogCancel>
+                    <AlertDialogCancel variant="outline" size="default">{__('Cancel', 'wepos')}</AlertDialogCancel>
                     <AlertDialogAction variant="destructive" onClick={handleVoidConfirm} disabled={voiding}>
                       {voiding && <Loader2 className="mr-1 h-5 w-5 animate-spin" />}
                       {__('Void', 'wepos')}
