@@ -27,6 +27,7 @@ import {
   ProductViewType,
 } from '../types';
 import {
+  cartItemDisplayPrices,
   formatPrice,
   getFromLocalStorage,
   getProductImage,
@@ -230,12 +231,30 @@ const buildRestoredCartState = (
 
   return {
     line_items: (order.line_items || []).map((line) => {
-      const price = Number(
+      // WC order line prices are always net of tax.
+      const netPrice = Number(
         line.price
           || (line.quantity
             ? parseFloat(line.subtotal || line.total || '0') / line.quantity
             : 0),
       );
+      const unitTax = line.quantity
+        ? parseFloat(line.total_tax || '0') / line.quantity
+        : 0;
+      // Restore the entry-mode raw price (gross when the store enters prices
+      // inclusive of tax) so display + order payload stay consistent.
+      const pricesIncludeTax = settings?.woo_tax?.wc_prices_include_tax === 'yes';
+      const rawPrice = pricesIncludeTax ? netPrice + unitTax : netPrice;
+      // Custom/misc lines carry their tax config in _wepos_pos_data item meta.
+      let posData: { tax_status?: 'taxable' | 'none'; tax_class?: string } = {};
+      if (line.product_id === 0) {
+        try {
+          const raw = (line.meta_data || []).find((m: any) => m.key === '_wepos_pos_data');
+          posData = raw ? JSON.parse(String(raw.value)) : {};
+        } catch {
+          posData = {};
+        }
+      }
       return {
         id: line.id,
         product_id: line.product_id,
@@ -245,8 +264,17 @@ const buildRestoredCartState = (
         quantity: line.quantity,
         type: line.product_id === 0 ? 'custom' : 'simple',
         on_sale: false,
-        sale_price: price,
-        regular_price: price,
+        sale_price: rawPrice,
+        regular_price: rawPrice,
+        raw_sale_price: rawPrice,
+        raw_regular_price: rawPrice,
+        tax_amount: unitTax,
+        ...(line.product_id === 0
+          ? {
+              tax_status: posData.tax_status || 'taxable',
+              tax_class: posData.tax_class || '',
+            }
+          : {}),
         editQuantity: false,
         attribute: [],
         total_tax: parseFloat(line.total_tax || '0'),
@@ -373,14 +401,19 @@ const HomePage: React.FC = () => {
     clearServerOrder,
     hydrateCart,
     setTaxDisplayMode,
+    setPricesIncludeTax,
     setAvailableTax,
   } = useDispatch(CART_STORE_NAME) as any;
 
-  // Mirror woocommerce_tax_display_cart into the store — drives the inclusive-tax path in getTotalTax.
+  // Mirror WC tax settings into the store: tax_display_cart drives the
+  // inclusive-tax path in getTotalTax, prices_include_tax drives raw→display
+  // price conversion. Wait for settings so the persisted flags aren't
+  // clobbered with wrong defaults mid-load.
   useEffect(() => {
-    const mode = settings?.woo_tax?.wc_tax_display_cart === 'incl' ? 'incl' : 'excl';
-    setTaxDisplayMode(mode);
-  }, [settings?.woo_tax?.wc_tax_display_cart, setTaxDisplayMode]);
+    if (!settings?.woo_tax) return;
+    setTaxDisplayMode(settings.woo_tax.wc_tax_display_cart === 'incl' ? 'incl' : 'excl');
+    setPricesIncludeTax(settings.woo_tax.wc_prices_include_tax === 'yes');
+  }, [settings?.woo_tax, setTaxDisplayMode, setPricesIncludeTax]);
 
   // Pre-fetch tax rates so selectors can compute fee/coupon tax locally before save.
   useEffect(() => {
@@ -807,10 +840,21 @@ const HomePage: React.FC = () => {
       if (paymentResponse.result === 'success') {
         // Receipt mirrors cart selectors, so its tax/total carries the same WC-silent fallback — receipt matches the cart row in every prices_include_tax × tax_display_cart combination.
         const printDataToSet = {
-          line_items: cartItems.map((cartItem: POSCartItem) => ({
-            ...cartItem,
-            total_tax: toFiniteNumber(cartItem.tax_amount) * cartItem.quantity,
-          })),
+          // Receipt line prices go through the same mode-aware conversion the
+          // cart rows use, so the printed lines sum to the printed subtotal.
+          line_items: cartItems.map((cartItem: POSCartItem) => {
+            const display = cartItemDisplayPrices(
+              cartItem,
+              settings?.woo_tax?.wc_tax_display_cart === 'incl' ? 'incl' : 'excl',
+              settings?.woo_tax?.wc_prices_include_tax === 'yes',
+            );
+            return {
+              ...cartItem,
+              regular_price: display.regular,
+              sale_price: display.sale,
+              total_tax: toFiniteNumber(cartItem.tax_amount) * cartItem.quantity,
+            };
+          }),
           fee_lines: feeLines,
           coupon_lines: discountLines,
           shipping_lines: shippingLines,
@@ -894,6 +938,9 @@ const HomePage: React.FC = () => {
 
       cartItems.forEach((item: POSCartItem) => {
         // Raw prices (stored values) drive the order payload; falls back to display prices for legacy in-memory carts.
+        // Totals go out in entry mode — gross when the store enters prices inclusive
+        // of tax. Manager.php::convert_inclusive_line_totals nets them server-side
+        // with exact WC_Tax math before WC calculates tax on top.
         const rawRegular = item.raw_regular_price ?? item.regular_price,
           rawSale = item.raw_sale_price ?? item.sale_price;
         const unitPrice = item.on_sale ? rawSale : rawRegular;
@@ -903,21 +950,37 @@ const HomePage: React.FC = () => {
           total: (unitPrice * item.quantity).toFixed(2),
         };
         if (item.product_id === 0) {
-          // Misc/custom product: send name + price, no product_id
+          // Misc/custom product: send name + price, no product_id.
           lineItem.name = item.name;
           lineItem.price = unitPrice;
-          if (item.sku) {
-            lineItem.sku = item.sku;
-          }
+          // WC requires a product reference on line create; an unknown SKU
+          // resolves to product 0 and keeps this a custom line.
+          lineItem.sku = item.sku || 'wepos-misc-product';
+          // No product to derive tax config from — send the cashier's choice.
+          // Common.php clears taxes server-side when tax_status is 'none'.
+          lineItem.tax_class = item.tax_class || '';
+          lineItem.meta_data = [
+            {
+              key: '_wepos_pos_data',
+              value: JSON.stringify({
+                tax_status: item.tax_status || 'taxable',
+                tax_class: item.tax_class || '',
+              }),
+            },
+          ];
         } else {
           lineItem.product_id = item.product_id;
           if (item.variation_id) {
             lineItem.variation_id = item.variation_id;
           }
         }
-        // Match to existing server line item by product_id + variation_id
+        // Match to existing server line item — by stored line id first (restored
+        // carts carry it, which disambiguates multiple custom lines that all
+        // share product_id 0), then by product_id + variation_id.
         if (isUpdate && serverOrder) {
           const match = serverOrder.line_items.find(
+            (sl: any) => !matchedServerIds.has(sl.id) && sl.id === item.id
+          ) || serverOrder.line_items.find(
             (sl: any) => !matchedServerIds.has(sl.id) &&
               sl.product_id === item.product_id &&
               sl.variation_id === (item.variation_id || 0)
