@@ -11,7 +11,7 @@ Stable tag: 2.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Free POS plugin for WooCommerce. Build a point of sale system to sell in-store and online, then manage every POS order from one POS dashboard.
+Free WooCommerce Point of Sale plugin. Build a POS system to sell in store and online, then manage every order from one dashboard.
 
 ## Useful Links
 [Docs](https://dokan.co/docs/wepos/getting-started/) | [Videos](https://www.youtube.com/watch?v=xkX5vOvAZ9M&list=PLJorZsV2RVv9SCQF7mUli9-_Uu4JHJCsN) | [Support](https://dokan.co/contact/) | [Get Pro](https://dokan.co/wordpress/wepos/pricing/)
@@ -145,9 +145,13 @@ Yes. wePOS prints receipts for every order and supports thermal printers. wePOS 
 
 Yes. wePOS is fast and responsive on both tablets and desktops, with a rebuilt cashier screen in version 2.0.
 
+= Is wePOS a good WooCommerce Point of Sale system? =
+Yes. wePOS is a free WooCommerce Point of Sale system that turns your store into a retail checkout counter. Sell in person, scan barcodes, sync inventory, and print receipts, all from one screen.
+
 ## Privacy Policy
 
 wePOS uses the Appsero SDK to collect telemetry data (only with user permission) to help improve product stability and performance.
+
 
 ## Screenshots
 
