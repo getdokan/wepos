@@ -225,7 +225,7 @@ export default {
         },
 
         'orderdata.customer_id'(newVal) {
-            this.serachInput = newVal ? this.orderdata.billing.first_name + ' ' + this.orderdata.billing.last_name : '';
+            this.serachInput = newVal ? this.getCustomerDisplayName(this.orderdata.billing.first_name, this.orderdata.billing.last_name, this.orderdata.billing.email) : '';
         }
 
     },
@@ -286,9 +286,14 @@ export default {
                 this.$emit( 'onCustomerSelected', {} );
             }
         },
+        getCustomerDisplayName(first_name, last_name, email) {
+            return (first_name?.trim() || last_name?.trim())
+            ? `${(first_name || '').trim()} ${(last_name || '').trim()}`.trim()
+            : (email || '');
+        },
         selectCustomer( customer ) {
             this.$emit( 'onCustomerSelected', customer );
-            this.serachInput = customer.first_name + ' ' + customer.last_name;
+            this.serachInput = this.getCustomerDisplayName(customer.first_name, customer.last_name, customer.email);
             this.showCustomerResults = false;
         },
         createCustomer() {
@@ -317,10 +322,11 @@ export default {
 
                 wepos.api.post( wepos.rest.root + wepos.rest.posversion + '/customers', customerData )
                 .done(response => {
-                    this.serachInput = response.first_name + ' ' + response.last_name;
+                    this.serachInput = this.getCustomerDisplayName(response.first_name, response.last_name, response.email);
                     this.$emit( 'onCustomerSelected', response );
                     $contentWrap.unblock();
                     this.closeNewCustomerModal();
+                    alert( this.__( 'Customer created successfully', 'wepos' ) );
                 }).fail( response => {
                     let errorMessage = response?.responseJSON?.message;
 
@@ -378,9 +384,8 @@ export default {
         } );
 
         var orderdata = JSON.parse( localStorage.getItem( 'orderdata' ) );
-
         if ( orderdata.customer_id != 'undefined' && orderdata.customer_id != 0 ) {
-            this.serachInput = orderdata.billing.first_name + ' ' + orderdata.billing.last_name;
+           this.serachInput = this.getCustomerDisplayName(orderdata.billing.first_name, orderdata.billing.last_name, orderdata.billing.email);
         }
     }
 };
