@@ -9,8 +9,14 @@ import {
   SmartSelect,
 } from '@wedevs/plugin-ui';
 import { __ } from '@wordpress/i18n';
-import { POSProduct, ProductVariation, CartItem } from '../types';
-import { firstPresentNumber, pickRegularDisplayPrice, pickSaleDisplayPrice, toFiniteNumber } from '../utils/helpers';
+import { POSProduct, CartItem } from '../types';
+import {
+  areAllVariationAttributesSelected,
+  buildVariationCartItem,
+  findMatchingVariation,
+  getVariationAttributes,
+  SelectedAttributes,
+} from '../utils/variations';
 
 interface ProductVariationSelectorProps {
   product: POSProduct;
@@ -21,10 +27,6 @@ interface ProductVariationSelectorProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-interface SelectedAttributes {
-  [attributeName: string]: string;
-}
-
 export const ProductVariationSelector: React.FC<
   ProductVariationSelectorProps
 > = ({ product, onAddToCart, children, open, onOpenChange }) => {
@@ -32,25 +34,16 @@ export const ProductVariationSelector: React.FC<
     useState<SelectedAttributes>({});
 
   // Find matching variation based on selected attributes
-  const matchingVariation = useMemo(() => {
-    if (!product.variations || product.variations.length === 0) return null;
-
-    return product.variations.find((variation: ProductVariation) => {
-      return variation.attributes.every((attr) => {
-        return selectedAttributes[attr.name] === attr.option;
-      });
-    });
-  }, [product.variations, selectedAttributes]);
+  const matchingVariation = useMemo(
+    () => findMatchingVariation(product, selectedAttributes),
+    [product, selectedAttributes],
+  );
 
   // Check if all required attributes are selected
-  const isAllAttributesSelected = useMemo(() => {
-    if (!product.attributes) return false;
-
-    const requiredAttributes = product.attributes.filter(
-      (attr) => attr.variation,
-    );
-    return requiredAttributes.every((attr) => selectedAttributes[attr.name]);
-  }, [product.attributes, selectedAttributes]);
+  const isAllAttributesSelected = useMemo(
+    () => areAllVariationAttributesSelected(product, selectedAttributes),
+    [product, selectedAttributes],
+  );
 
   // Handle attribute selection
   const handleAttributeChange = useCallback(
@@ -67,37 +60,11 @@ export const ProductVariationSelector: React.FC<
   const handleAddVariation = useCallback(() => {
     if (!matchingVariation) return;
 
-    // Build variation attributes for cart display
-    const variationAttributes = Object.entries(selectedAttributes).map(
-      ([name, option]) => ({
-        id: 0, // Will be set by the system
-        name,
-        option,
-      }),
+    const cartItem: CartItem = buildVariationCartItem(
+      product,
+      matchingVariation,
+      selectedAttributes,
     );
-
-    const cartItem: CartItem = {
-      id: Date.now(), // Generate a temporary ID
-      product_id: product.id,
-      variation_id: matchingVariation.id,
-      name: product.name,
-      sku: matchingVariation.sku || product.sku || '',
-      quantity: 1,
-      regular_price: pickRegularDisplayPrice(matchingVariation),
-      sale_price: pickSaleDisplayPrice(matchingVariation),
-      raw_regular_price: toFiniteNumber(matchingVariation.regular_price),
-      raw_sale_price: toFiniteNumber(matchingVariation.sale_price),
-      on_sale: matchingVariation.on_sale,
-      type: 'variable',
-      attribute: variationAttributes,
-      editQuantity: false,
-      tax_amount: firstPresentNumber(matchingVariation.tax_amount, product.tax_amount) ?? 0,
-      manage_stock: matchingVariation.manage_stock,
-      stock_status: matchingVariation.stock_status,
-      backorders_allowed: matchingVariation.backorders_allowed,
-      stock_quantity: matchingVariation.stock_quantity ?? undefined,
-      sold_individually: product.sold_individually,
-    };
 
     onAddToCart(cartItem);
     setSelectedAttributes({});
@@ -118,8 +85,7 @@ export const ProductVariationSelector: React.FC<
               </h3>
             </div>
 
-            {product.attributes
-              ?.filter((attr) => attr.variation)
+            {getVariationAttributes(product)
               .map((attribute) => (
                 <div key={attribute.name} className="mb-4">
                   <label className="mb-2 block text-sm font-medium text-foreground">

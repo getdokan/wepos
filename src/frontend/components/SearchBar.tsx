@@ -9,9 +9,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  toast,
 } from '@wedevs/plugin-ui';
-import { POSProduct } from '../types';
+import { CartItem, POSProduct, ProductVariation } from '../types';
 import { formatPrice, pickRegularDisplayPrice, pickSaleDisplayPrice } from '../utils/helpers';
+import {
+  areAllVariationAttributesSelected,
+  buildVariationCartItem,
+  findMatchingVariation,
+  getVariationAttributes,
+} from '../utils/variations';
 import { useBarcodeSettings } from '../hooks/useBarcodeSettings';
 import { useBarcodeScanner } from '../hooks/useBarcodeScanner';
 
@@ -21,9 +28,10 @@ interface SearchBarProps {
   products: POSProduct[];
   settings: any;
   onProductAdded: (product: POSProduct) => void;
+  onCartItemAdded: (cartItem: CartItem) => void;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdded }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdded, onCartItemAdded }) => {
   const [mode, setMode] = useState<SearchMode>('product');
   const [searchInput, setSearchInput] = useState('');
   const [showResults, setShowResults] = useState(false);
@@ -71,10 +79,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
     }
   }, [selectedIndex]);
 
-  // Check if all attributes are selected for variation
+  // Check if all attributes are selected for variation. Only variation attributes
+  // are rendered, so display-only attributes must not keep the button disabled.
   const attributeDisabled = useMemo(() => {
-    if (!selectedVariationProduct?.attributes) return true;
-    return Object.keys(chosenAttribute).length < selectedVariationProduct.attributes.length;
+    if (!selectedVariationProduct) return true;
+    return !areAllVariationAttributesSelected(selectedVariationProduct, chosenAttribute);
   }, [chosenAttribute, selectedVariationProduct]);
 
   // Change mode
@@ -149,24 +158,23 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
     });
 
     if (filterProduct.length > 0) {
-      const found = filterProduct[0] as any;
+      const found = filterProduct[0] as POSProduct;
       if (found.type === 'variable') {
-        const variations = found.variations || [];
+        const variations = (found.variations || []) as ProductVariation[];
         const matchedVariation = variations.find((item: any) => item[field]?.toString() === barcode);
         if (matchedVariation) {
-          const variationProduct = {
-            ...matchedVariation,
-            parent_id: found.id,
-            type: found.type,
-            name: found.name,
-          };
-          onProductAdded(variationProduct);
+          // The scanned code identifies the variation outright, so its own
+          // attributes are the selection.
+          const selected = Object.fromEntries(
+            (matchedVariation.attributes || []).map((attribute) => [attribute.name, attribute.option]),
+          );
+          onCartItemAdded(buildVariationCartItem(found, matchedVariation, selected));
         }
       } else {
         onProductAdded(found);
       }
     }
-  }, [settings, products, onProductAdded]);
+  }, [settings, products, onProductAdded, onCartItemAdded]);
 
   // Auto-detect barcode scanner input via keypress timing
   useBarcodeScanner({
@@ -190,37 +198,24 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
     setShowVariationModal(true);
   }, []);
 
-  // Find matching variations from chosen attributes
-  const findMatchingVariations = useCallback((variations: any[], chosen: Record<string, string>) => {
-    return variations.filter((variation: any) => {
-      const attributes = variation.attributes || [];
-      return Object.entries(chosen).every(([name, value]) => {
-        const attr = attributes.find((a: any) => a.name === name);
-        return attr && attr.option === value;
-      });
-    });
-  }, []);
-
   // Add variation product
   const addVariationProduct = useCallback(() => {
-    if (!selectedVariationProduct?.variations) return;
+    if (!selectedVariationProduct) return;
 
-    const matched = findMatchingVariations(selectedVariationProduct.variations, chosenAttribute);
-    if (matched.length > 0) {
-      const variationProduct = {
-        ...matched[0],
-        parent_id: selectedVariationProduct.id,
-        type: selectedVariationProduct.type,
-        name: selectedVariationProduct.name,
-      };
-      onProductAdded(variationProduct);
-      setShowVariationModal(false);
-      setChosenAttribute({});
-      setShowResults(false);
-      setSearchInput('');
-      inputRef.current?.focus();
+    const matched = findMatchingVariation(selectedVariationProduct, chosenAttribute);
+
+    if (!matched) {
+      toast.error(__('This variation is not available', 'wepos'));
+      return;
     }
-  }, [selectedVariationProduct, chosenAttribute, findMatchingVariations, onProductAdded]);
+
+    onCartItemAdded(buildVariationCartItem(selectedVariationProduct, matched, chosenAttribute));
+    setShowVariationModal(false);
+    setChosenAttribute({});
+    setShowResults(false);
+    setSearchInput('');
+    inputRef.current?.focus();
+  }, [selectedVariationProduct, chosenAttribute, onCartItemAdded]);
 
   // Handle keyboard navigation in results
   const handleInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -377,7 +372,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
           <DialogTitle>{__('Select Variations', 'wepos')}</DialogTitle>
         </DialogHeader>
         <div className="p-5">
-          {selectedVariationProduct?.attributes?.filter(attr => attr.variation)?.map((attribute) => (
+          {selectedVariationProduct && getVariationAttributes(selectedVariationProduct).map((attribute) => (
             <div key={attribute.name} className="mb-4">
               <p className="mb-2 text-sm font-bold text-foreground">{attribute.name}</p>
               <div className="flex flex-wrap gap-2">

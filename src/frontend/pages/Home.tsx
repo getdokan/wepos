@@ -1506,7 +1506,7 @@ const HomePage: React.FC = () => {
               {/* Search / Filter / View Toggle Row */}
               <div className="flex flex-col gap-2 mt-3">
                 <div className="flex flex-row items-center gap-2">
-                  <SearchBar products={products} settings={settings} onProductAdded={handleAddToCart} />
+                  <SearchBar products={products} settings={settings} onProductAdded={handleAddToCart} onCartItemAdded={handleAddToCartItem} />
                   <ProductViewToggle
                       productView={productView}
                       onToggle={toggleProductView}
