@@ -1,33 +1,50 @@
+import { useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import { ArrowRight, CircleCheck } from 'lucide-react';
 import SectionHeading from './SectionHeading';
-import { COUPON_CODE, PRICING_PLANS, UPGRADE_URL } from './data';
+import {
+	COUPON_CODE,
+	PRICING_PLANS,
+	UPGRADE_URL,
+	type BillingCycle,
+} from './data';
 
-/**
- * Billing switch.
- *
- * The Figma design shows Annual and Lifetime pills, but only annual prices
- * exist in it — so Lifetime sends the visitor to the pricing page instead of
- * rendering invented numbers. Swap it for a stateful toggle once lifetime
- * pricing is available here.
- */
-const BillingToggle = () => (
+const CYCLES: { id: BillingCycle; label: string }[] = [
+	{ id: 'annual', label: __( 'Annual', 'wepos' ) },
+	{ id: 'lifetime', label: __( 'Lifetime', 'wepos' ) },
+];
+
+/** Annual/Lifetime switch — swaps the price set rendered in the cards. */
+const BillingToggle = ( {
+	cycle,
+	onChange,
+}: {
+	cycle: BillingCycle;
+	onChange: ( next: BillingCycle ) => void;
+} ) => (
 	<div className="flex items-center rounded-[58px] bg-white p-2 shadow-sm">
-		<span className="flex items-center justify-center rounded-[58px] bg-[#4f46e5] px-[30px] py-[10px] text-base leading-7 text-white">
-			{ __( 'Annual', 'wepos' ) }
-		</span>
-		<a
-			href={ UPGRADE_URL }
-			target="_blank"
-			rel="noopener noreferrer"
-			className="flex items-center justify-center rounded-[58px] px-[30px] py-[10px] text-base leading-7 text-[#5e6479] no-underline hover:text-[#4f46e5]"
-		>
-			{ __( 'Lifetime', 'wepos' ) }
-		</a>
+		{ CYCLES.map( ( { id, label } ) => (
+			<button
+				key={ id }
+				type="button"
+				onClick={ () => onChange( id ) }
+				aria-pressed={ cycle === id }
+				className={ `flex cursor-pointer items-center justify-center rounded-[58px] border-0 px-[30px] py-[10px] text-base leading-7 transition-colors ${
+					cycle === id
+						? 'bg-[#4f46e5] text-white'
+						: 'bg-transparent text-[#5e6479] hover:text-[#4f46e5]'
+				}` }
+			>
+				{ label }
+			</button>
+		) ) }
 	</div>
 );
 
-const Pricing = () => (
+const Pricing = () => {
+	const [ cycle, setCycle ] = useState< BillingCycle >( 'annual' );
+
+	return (
 	<section className="flex w-full max-w-[1000px] flex-col items-center gap-8">
 		<SectionHeading
 			title={ __( 'Simple Pricing That Grows With You', 'wepos' ) }
@@ -42,10 +59,14 @@ const Pricing = () => (
 			className="max-w-[633px]"
 		/>
 
-		<BillingToggle />
+		<BillingToggle cycle={ cycle } onChange={ setCycle } />
 
 		<div className="grid w-full grid-cols-1 overflow-hidden rounded-2xl border border-[#e4e4e4] lg:grid-cols-3">
-			{ PRICING_PLANS.map( ( plan, index ) => (
+			{ PRICING_PLANS.map( ( plan, index ) => {
+				const { price, originalPrice, discount, period } =
+					plan.prices[ cycle ];
+
+				return (
 				<div
 					key={ plan.name }
 					className={ `flex flex-col gap-6 bg-white px-[21px] py-[25px] ${
@@ -71,13 +92,24 @@ const Pricing = () => (
 							</p>
 						</div>
 
-						<div className="flex items-end gap-2">
-							<span className="text-4xl font-bold leading-[1.2] text-[#101828]">
-								{ plan.price }
-							</span>
-							<span className="text-base leading-[2] text-[#6a7282]">
-								{ plan.period }
-							</span>
+						<div className="flex flex-col gap-3">
+							<div className="flex items-end gap-2">
+								<span className="text-4xl font-bold leading-[1.2] text-[#101828]">
+									{ price }
+								</span>
+								<span className="text-base leading-[2] text-[#6a7282]">
+									{ period }
+								</span>
+							</div>
+
+							<div className="flex flex-wrap items-center gap-3">
+								<span className="text-lg leading-none text-[#6a7282] line-through">
+									{ originalPrice }
+								</span>
+								<span className="rounded-[20px] bg-[#fdeac3] px-3 py-1.5 text-xs font-semibold leading-none text-[#0e0e0f]">
+									{ discount }
+								</span>
+							</div>
 						</div>
 					</div>
 
@@ -115,9 +147,11 @@ const Pricing = () => (
 						) ) }
 					</ul>
 				</div>
-			) ) }
+				);
+			} ) }
 		</div>
 	</section>
-);
+	);
+};
 
 export default Pricing;
