@@ -424,7 +424,6 @@ const HomePage: React.FC = () => {
 
   // Refs
   const itemsWrapperRef = useRef<HTMLDivElement>(null);
-  const cashAmountRef = useRef<HTMLInputElement>(null);
   const cartRef = useRef<CartHandle>(null);
 
   // Cart functions for ProductGrid
@@ -1708,7 +1707,6 @@ const HomePage: React.FC = () => {
         onBackToSale={backToSale}
         onProcessPayment={processPayment}
         changeAmount={changeAmount()}
-        cashAmountRef={cashAmountRef}
       />
 
       <ReceiptModal

@@ -106,14 +106,16 @@ const FeeKeypad = forwardRef<FeeKeypadHandle, FeeKeypadProps>(({
   return (
     <div className={`inline-block ${className || ''}`}>
       <Popover open={isVisible} onOpenChange={setIsVisible}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className="border-border bg-muted text-muted-foreground hover:bg-accent"
-            disabled={disabled}
-          >
-            {__('Add', 'wepos')} {name}
-          </Button>
+        <PopoverTrigger
+          render={
+            <Button
+              variant="outline"
+              className="border-border bg-muted text-muted-foreground hover:bg-accent"
+              disabled={disabled}
+            />
+          }
+        >
+          {__('Add', 'wepos')} {name}
         </PopoverTrigger>
 
         <PopoverContent className="w-64 p-4" align="start">

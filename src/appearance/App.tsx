@@ -258,7 +258,7 @@ const App = () => {
 	};
 
 	return (
-		<div className="pui-root" style={ { padding: '16px' } }>
+		<div className="pui-root">
 			<Settings
 				title={ __( 'Appearance', 'wepos' ) }
 				schema={ schema }

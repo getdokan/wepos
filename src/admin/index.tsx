@@ -6,6 +6,7 @@ import { SlotFillProvider } from '@wordpress/components';
 import App from './App';
 import ShadowContainer from '../components/ShadowContainer';
 import { weposHooks } from '@react/hooks/useExtensions';
+import { mountHeader } from './Header';
 import '../components/dokan';
 // CSS import kept so webpack extracts it to wepos-admin-react.css.
 // The stylesheet is loaded inside the Shadow DOM via <link>, not in <head>.
@@ -78,6 +79,9 @@ const weposTokens: ThemeTokens = {
 	'tracking-normal': '0em',
 	spacing: '0.25rem',
 };
+
+// Header root, mounted above the page app.
+mountHeader( weposTokens );
 
 if ( ! container ) {
 	console.error( 'wePos: React admin app container not found' );

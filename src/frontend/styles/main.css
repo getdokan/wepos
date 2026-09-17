@@ -306,6 +306,39 @@ body {
     }
 }
 
+/**
+ * Collapsed icon rail — centre the nav buttons.
+ *
+ * plugin-ui's SidebarGroup keeps its 16px side padding when the sidebar is
+ * in `collapsible=icon` mode, leaving 15px of content box inside the 48px
+ * rail. The 32px menu buttons overflow that box to the right, so every icon
+ * (and the active item's pill) sits 8px off-centre, hard against the rail's
+ * border. Zero the padding and centre the items instead.
+ */
+/*
+ * Declared inside `components` on purpose: this file imports Tailwind's
+ * utilities with `important`, and for important declarations the cascade
+ * reverses layer order — an earlier layer beats a later one, and unlayered
+ * rules lose to every layer. `components` precedes `utilities`, so these
+ * win over the component's own `px-4`.
+ */
+@layer components {
+    [data-slot='sidebar'][data-collapsible='icon'] [data-slot='sidebar-group'] {
+        padding-inline: 0 !important;
+    }
+
+    [data-slot='sidebar'][data-collapsible='icon'] [data-slot='sidebar-menu'] {
+        align-items: center !important;
+    }
+
+    [data-slot='sidebar'][data-collapsible='icon']
+        [data-slot='sidebar-menu-item'] {
+        display: flex !important;
+        width: 100% !important;
+        justify-content: center !important;
+    }
+}
+
 /* Responsive Design - Complex responsive overrides */
 @media (max-width: 768px) {
 

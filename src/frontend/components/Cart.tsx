@@ -906,7 +906,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                   render={
                     <Button
                       variant="destructive"
-                      className="h-14 w-[30%] text-lg font-bold"
+                      className="h-14 min-w-0 flex-[3] text-lg font-bold"
                       disabled={voiding}
                     />
                   }
@@ -931,7 +931,7 @@ const Cart = forwardRef<CartHandle, CartProps>(({
                 </AlertDialogContent>
               </AlertDialog>
               <Button
-                className="h-14 w-[70%] text-lg font-bold"
+                className="h-14 min-w-0 flex-[7] text-lg font-bold"
                 variant="success"
                 onClick={onInitPayment}
               >
