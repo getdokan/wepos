@@ -2,7 +2,7 @@ import { __ } from '@wordpress/i18n';
 import { premiumAsset } from './data';
 
 const RefundPolicy = () => (
-	<section className="flex w-full max-w-[1000px] flex-col items-center justify-between gap-8 rounded-[20px] border border-[#e4e4e4] bg-[#f6f8ff] p-10 lg:flex-row">
+	<section className="flex w-full max-w-[1000px] flex-col items-center justify-between gap-8 rounded-[20px] border border-[#e4e4e4] bg-white p-10 lg:flex-row">
 		<div className="flex max-w-[751px] flex-col gap-8">
 			<div className="flex flex-col gap-5">
 				<h2 className="m-0 text-[30px] font-extrabold leading-9 text-[#111827]">

@@ -15,15 +15,15 @@ import UpgradeCta from './premium/UpgradeCta';
  * grid on its own full-bleed grey band.
  */
 const Premium = () => (
-	<div className="wepos-admin-premium -mx-5 -mt-2.5 bg-white">
-		<div className="flex w-full flex-col items-center gap-18 bg-[#f5f5f5] px-6 py-18 sm:px-8">
+	<div className="wepos-admin-premium -mx-5 -mt-2.5">
+		<div className="flex w-full flex-col items-center gap-18 px-6 py-18 sm:px-8">
 			<HeroBanner />
 			<FeatureComparison />
 		</div>
 
 		<AdvancedTools />
 
-		<div className="flex w-full flex-col items-center gap-18 px-6 py-18">
+		<div className="flex w-full flex-col items-center gap-18 px-6 py-18 bg-white">
 			<DokanPos />
 			<TrustedBy />
 		</div>
