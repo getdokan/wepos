@@ -38,7 +38,7 @@ export const areAllVariationAttributesSelected = (
  * carries them, so the client has to gate them out itself. Both flags are
  * treated as opt-out so a payload that omits them still resolves.
  */
-const isVariationSellable = (variation: ProductVariation): boolean =>
+export const isVariationSellable = (variation: ProductVariation): boolean =>
   (!variation.status || variation.status === 'publish') && variation.purchasable !== false;
 
 /**

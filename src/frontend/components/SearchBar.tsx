@@ -18,6 +18,7 @@ import {
   buildVariationCartItem,
   findMatchingVariation,
   getVariationAttributes,
+  isVariationSellable,
 } from '../utils/variations';
 import { useBarcodeSettings } from '../hooks/useBarcodeSettings';
 import { useBarcodeScanner } from '../hooks/useBarcodeScanner';
@@ -146,33 +147,47 @@ const SearchBar: React.FC<SearchBarProps> = ({ products, settings, onProductAdde
     const generalSettings = settings?.wepos_general;
     const field = generalSettings?.barcode_scanner_field === 'custom' ? 'barcode' : (generalSettings?.barcode_scanner_field || 'sku');
 
+    // A scanned code must clear the same sellability gate the picker applies,
+    // otherwise a disabled or unpurchasable variation enters the cart by scan
+    // while `findMatchingVariation` refuses it by hand.
+    const matchesBarcode = (variation: ProductVariation) =>
+      isVariationSellable(variation) && (variation as any)[field]?.toString() === barcode;
+
     const filterProduct = products.filter((product: any) => {
       if (product.type === 'simple') {
         if (product[field]?.toString() === barcode) return true;
       }
       if (product.type === 'variable') {
         if (product.variations?.length > 0) {
-          return product.variations.some((item: any) => item[field]?.toString() === barcode);
+          return product.variations.some(matchesBarcode);
         }
       }
       return false;
     });
 
-    if (filterProduct.length > 0) {
-      const found = filterProduct[0] as POSProduct;
-      if (found.type === 'variable') {
-        const variations = (found.variations || []) as ProductVariation[];
-        const matchedVariation = variations.find((item: any) => item[field]?.toString() === barcode);
-        if (matchedVariation) {
-          // The scanned code identifies the variation outright, so there is no
-          // separate selection — buildVariationCartItem labels the row from the
-          // variation's own attributes.
-          onCartItemAdded(buildVariationCartItem(found, matchedVariation, {}));
-        }
-      } else {
-        onProductAdded(found);
-      }
+    if (filterProduct.length === 0) {
+      toast.error(sprintf(__('No product found for barcode %s', 'wepos'), barcode));
+      return;
     }
+
+    const found = filterProduct[0] as POSProduct;
+
+    if (found.type !== 'variable') {
+      onProductAdded(found);
+      return;
+    }
+
+    const variations = (found.variations || []) as ProductVariation[];
+    const matchedVariation = variations.find(matchesBarcode);
+
+    // The filter above already proved one exists; the guard just keeps the
+    // narrowing honest.
+    if (!matchedVariation) return;
+
+    // The scanned code identifies the variation outright, so there is no
+    // separate selection — buildVariationCartItem labels the row from the
+    // variation's own attributes.
+    onCartItemAdded(buildVariationCartItem(found, matchedVariation, {}));
   }, [settings, products, onProductAdded, onCartItemAdded]);
 
   // Auto-detect barcode scanner input via keypress timing
