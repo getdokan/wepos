@@ -137,22 +137,55 @@ export const PRO_TOOLS: ProTool[] = [
 
 /* ─── Pricing plans ───────────────────────────────────────────────────── */
 
+/** Which set of prices the pricing table is showing. */
+export type BillingCycle = 'annual' | 'lifetime';
+
+/** One plan's price for a single billing cycle. */
+export interface PlanPrice {
+	/** Discounted price the visitor pays, e.g. `$99`. */
+	price: string;
+	/** List price shown struck through, e.g. `$199`. */
+	originalPrice: string;
+	/** Chip beside the struck price, e.g. `50% OFF`. */
+	discount: string;
+	/** Period suffix beside the price. */
+	period: string;
+}
+
 export interface PricingPlan {
 	name: string;
 	description: string;
-	price: string;
-	period: string;
 	badge?: string;
 	highlighted?: boolean;
 	features: string[];
+	prices: Record< BillingCycle, PlanPrice >;
 }
 
+const HALF_OFF = __( '50% OFF', 'wepos' );
+
+/**
+ * Plans mirroring dokan.co/wordpress/wepos/pricing/ — both cycles run the
+ * same 50%-off promotion there, so each price carries its list price and
+ * the discount chip.
+ */
 export const PRICING_PLANS: PricingPlan[] = [
 	{
 		name: __( 'Starter', 'wepos' ),
 		description: __( 'For a single store running one POS counter.', 'wepos' ),
-		price: '$99',
-		period: __( '/y', 'wepos' ),
+		prices: {
+			annual: {
+				price: '$99',
+				originalPrice: '$199',
+				discount: HALF_OFF,
+				period: __( '/year', 'wepos' ),
+			},
+			lifetime: {
+				price: '$299',
+				originalPrice: '$599',
+				discount: HALF_OFF,
+				period: __( '/lifetime', 'wepos' ),
+			},
+		},
 		features: [
 			__( '1 Site', 'wepos' ),
 			__( 'Reports dashboard', 'wepos' ),
@@ -165,8 +198,20 @@ export const PRICING_PLANS: PricingPlan[] = [
 	{
 		name: __( 'Professional', 'wepos' ),
 		description: __( 'For growing businesses with a few locations.', 'wepos' ),
-		price: '$124',
-		period: __( '/y', 'wepos' ),
+		prices: {
+			annual: {
+				price: '$149',
+				originalPrice: '$299',
+				discount: HALF_OFF,
+				period: __( '/year', 'wepos' ),
+			},
+			lifetime: {
+				price: '$399',
+				originalPrice: '$799',
+				discount: HALF_OFF,
+				period: __( '/lifetime', 'wepos' ),
+			},
+		},
 		features: [
 			__( '3 Sites', 'wepos' ),
 			__( 'Everything in Starter', 'wepos' ),
@@ -179,10 +224,22 @@ export const PRICING_PLANS: PricingPlan[] = [
 	{
 		name: __( 'Business', 'wepos' ),
 		description: __( 'For agencies and multi-location retail.', 'wepos' ),
-		price: '$199',
-		period: __( '/y', 'wepos' ),
 		badge: __( 'Best Valued', 'wepos' ),
 		highlighted: true,
+		prices: {
+			annual: {
+				price: '$199',
+				originalPrice: '$399',
+				discount: HALF_OFF,
+				period: __( '/year', 'wepos' ),
+			},
+			lifetime: {
+				price: '$599',
+				originalPrice: '$1199',
+				discount: HALF_OFF,
+				period: __( '/lifetime', 'wepos' ),
+			},
+		},
 		features: [
 			__( '10 Sites', 'wepos' ),
 			__( 'Everything in Professional', 'wepos' ),
