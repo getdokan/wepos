@@ -109,6 +109,7 @@ class Header {
                 'upgrade_url'   => Premium::is_visible() ? admin_url( Premium::get_page_url() ) : Premium::UPGRADE_URL,
                 'docs_url'      => 'https://dokan.co/docs/wepos/getting-started/',
                 'support_url'   => 'https://dokan.co/contact/',
+                'feedback_url'  => 'https://dokan.co/contact/',
             ]
         );
     }

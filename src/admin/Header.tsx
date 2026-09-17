@@ -1,16 +1,10 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { useEffect, useRef, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import { Slot, SlotFillProvider } from '@wordpress/components';
 import { PluginArea } from '@wordpress/plugins';
-import {
-	Button,
-	ThemeProvider,
-	TopBar,
-	type ThemeTokens,
-} from '@wedevs/plugin-ui';
-import { BookOpen, CircleHelp, Headphones } from 'lucide-react';
+import { ThemeProvider, TopBar, type ThemeTokens } from '@wedevs/plugin-ui';
+import { Headset, Lightbulb } from 'lucide-react';
 
 export const HEADER_SLOT_NAME = 'wepos-admin-header-before-info-section';
 const HEADER_PLUGIN_SCOPE = 'wepos-admin-header';
@@ -20,110 +14,17 @@ const BRAND_ACCENT = '#F0644B';
 const VERSION_BADGE_CLASS =
 	'rounded-full border-[#F0644B]/20 bg-[#FFF4F2] text-[#F0644B] md:px-3 md:py-1';
 
+const ACTION_BASE_CLASS =
+	'inline-flex items-center justify-center gap-2 rounded-md py-[9px] pl-[15px] pr-[17px] text-sm font-medium leading-5 no-underline transition-colors';
+
 interface HeaderInfo {
 	logo_url?: string;
 	version?: string;
 	is_pro_active?: boolean;
 	pro_version?: string;
-	upgrade_url?: string;
-	docs_url?: string;
+	feedback_url?: string;
 	support_url?: string;
 }
-
-/**
- * Help dropdown — docs and support.
- *
- * Hand-rolled instead of the plugin-ui `DropdownMenu`: that portals to
- * `document.body`, and the app root's `ShadowContainer` patches
- * `document.body.appendChild` to pull `.pui-root` portals into its shadow
- * tree, which would swallow this menu.
- */
-const HelpMenu = ( { docsUrl, supportUrl }: { docsUrl: string; supportUrl: string } ) => {
-	const [ isOpen, setIsOpen ] = useState( false );
-	const wrapperRef = useRef< HTMLDivElement | null >( null );
-
-	useEffect( () => {
-		if ( ! isOpen ) {
-			return;
-		}
-
-		const onDocumentDown = ( event: MouseEvent ) => {
-			if ( ! wrapperRef.current?.contains( event.target as Node ) ) {
-				setIsOpen( false );
-			}
-		};
-
-		document.addEventListener( 'mousedown', onDocumentDown );
-		return () => document.removeEventListener( 'mousedown', onDocumentDown );
-	}, [ isOpen ] );
-
-	const items = [
-		{
-			icon: <BookOpen className="size-5" />,
-			title: __( 'Documentation', 'wepos' ),
-			description: __(
-				'Set up outlets, receipts and the register — step by step.',
-				'wepos'
-			),
-			href: docsUrl,
-		},
-		{
-			icon: <Headphones className="size-5" />,
-			title: __( 'Get Support', 'wepos' ),
-			description: __(
-				'Stuck on a sale, payment or sync issue? Talk to us.',
-				'wepos'
-			),
-			href: supportUrl,
-		},
-	].filter( ( item ) => !! item.href );
-
-	if ( ! items.length ) {
-		return null;
-	}
-
-	return (
-		<div ref={ wrapperRef } className="relative h-full">
-			<Button
-				variant="outline"
-				size="icon"
-				className="size-9 rounded-full border! border-solid! bg-background text-foreground shadow-none hover:bg-foreground hover:text-background"
-				aria-label={ __( 'Help', 'wepos' ) }
-				aria-expanded={ isOpen }
-				onClick={ () => setIsOpen( ( open ) => ! open ) }
-			>
-				<CircleHelp className="size-5" />
-			</Button>
-
-			{ isOpen && (
-				<div className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-md border border-solid border-border bg-popover shadow-md">
-					{ items.map( ( item ) => (
-						<a
-							key={ item.title }
-							href={ item.href }
-							target="_blank"
-							rel="noopener noreferrer"
-							onClick={ () => setIsOpen( false ) }
-							className="flex items-center gap-3 px-4 py-3 no-underline hover:bg-muted"
-						>
-							<span className="shrink-0 text-muted-foreground">
-								{ item.icon }
-							</span>
-							<span className="flex flex-col gap-1">
-								<span className="text-sm font-semibold text-foreground">
-									{ item.title }
-								</span>
-								<span className="text-xs leading-relaxed text-muted-foreground">
-									{ item.description }
-								</span>
-							</span>
-						</a>
-					) ) }
-				</div>
-			) }
-		</div>
-	);
-};
 
 const Header = () => {
 	const {
@@ -131,8 +32,7 @@ const Header = () => {
 		version = '',
 		is_pro_active: isProActive = false,
 		pro_version: proVersion = '',
-		upgrade_url: upgradeUrl = '',
-		docs_url: docsUrl = '',
+		feedback_url: feedbackUrl = '',
 		support_url: supportUrl = '',
 	}: HeaderInfo =
 		( window as any ).weposAdminPanelHeaderSettings?.header_info || {};
@@ -179,17 +79,29 @@ const Header = () => {
 						fillProps={ { header_info: { version, proVersion } } }
 					/>
 
-					{ ! isProActive && !! upgradeUrl && (
-						<TopBar.UpgradeBtn
-							className="border-[#4f39f6]! bg-[#4f39f6] text-white hover:bg-[#4331d4]"
-							upgradeText={ __( 'Upgrade to Pro', 'wepos' ) }
-							onClick={ () => {
-								window.location.href = upgradeUrl;
-							} }
-						/>
+					{ !! feedbackUrl && (
+						<a
+							href={ feedbackUrl }
+							target="_blank"
+							rel="noopener noreferrer"
+							className={ `${ ACTION_BASE_CLASS } text-[#374151]! hover:text-[#111827]!` }
+						>
+							<Lightbulb className="size-5 shrink-0 text-[#ffa600]!" />
+							{ __( 'Feedback', 'wepos' ) }
+						</a>
 					) }
 
-					<HelpMenu docsUrl={ docsUrl } supportUrl={ supportUrl } />
+					{ !! supportUrl && (
+						<a
+							href={ supportUrl }
+							target="_blank"
+							rel="noopener noreferrer"
+							className={ `${ ACTION_BASE_CLASS } bg-[#4f39f6] text-white! hover:bg-[#4331d4] hover:text-white!` }
+						>
+							<Headset className="size-5 shrink-0 text-white!" />
+							{ __( 'Support', 'wepos' ) }
+						</a>
+					) }
 				</>
 			}
 		/>
