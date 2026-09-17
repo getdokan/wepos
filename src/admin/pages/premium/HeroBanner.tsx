@@ -69,7 +69,7 @@ const HeroBanner = () => {
 
 			<div className="pointer-events-none absolute right-[102px] top-[243px] hidden items-center justify-center rounded-full px-[33px] py-[11px] lg:flex bg-[linear-gradient(58deg,#2d4ed1_4%,#cf1eb4_85%,#ffaa00_103%)]">
 				<span className="text-[24px] font-bold leading-[34px] text-white">
-					{ __( 'Up to 25% Off', 'wepos' ) }
+					{ __( 'Get 10% Extra Off', 'wepos' ) }
 				</span>
 			</div>
 		</div>

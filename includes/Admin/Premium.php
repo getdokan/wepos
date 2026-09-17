@@ -35,7 +35,7 @@ class Premium {
      *
      * @var string
      */
-    const UPGRADE_URL = 'https://dokan.co/wordpress/wepos/pricing/';
+    const UPGRADE_URL = 'https://dokan.co/wordpress/wepos/pricing/?utm_source=free-pro-dashboard&utm_medium=wordpress-menu&utm_campaign=free-to-pro-upgrade';
 
     public function __construct() {
         add_action( 'admin_menu', [ $this, 'register_menu' ], 31 );

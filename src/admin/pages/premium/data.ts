@@ -12,7 +12,8 @@ import {
 } from 'lucide-react';
 
 /** Where every upgrade CTA on this page points. */
-export const UPGRADE_URL = 'https://dokan.co/wordpress/wepos/pricing/';
+export const UPGRADE_URL =
+	'https://dokan.co/wordpress/wepos/pricing/?utm_source=free-pro-dashboard&utm_medium=wordpress-menu&utm_campaign=free-to-pro-upgrade';
 
 /** Docs page for the Dokan multivendor POS section. */
 export const DOKAN_POS_DOC_URL =

@@ -39,10 +39,9 @@ const VideoFrame = () => {
 						alt=""
 						className="absolute inset-0 size-full object-cover"
 					/>
-					<span className="absolute inset-0 bg-[#0d0733]/40 transition-colors group-hover:bg-[#0d0733]/25" />
 					<span className="absolute inset-0 flex items-center justify-center">
-						<span className="flex size-20 items-center justify-center rounded-full bg-white shadow-lg transition-transform group-hover:scale-110">
-							<Play className="size-8 translate-x-0.5 fill-[#4f39f6] text-[#4f39f6]" />
+						<span className="flex size-14 items-center justify-center rounded-full bg-white/90 shadow-lg transition-all group-hover:scale-110 group-hover:bg-white">
+							<Play className="size-6 translate-x-0.5 fill-[#4f39f6] text-[#4f39f6]" />
 						</span>
 					</span>
 				</button>
