@@ -186,6 +186,57 @@ export const pickRegularDisplayPrice = (source: PricedSource): number =>
 export const pickSaleDisplayPrice = (source: PricedSource): number =>
   firstPresentNumber(source.sales_display_price, source.sale_price, source.regular_price) ?? 0;
 
+// Tax rate (percent) for a WC tax class from the loaded rate list; empty class
+// maps to WC's 'standard'. Returns 0 when no rate matches.
+export const findTaxRate = (
+  rates: Array<{ class: string; rate?: string | number }>,
+  taxClass: string,
+): number => {
+  const slug = taxClass === '' ? 'standard' : taxClass;
+  const match = (rates || []).find((r) => r.class === slug);
+  return match ? toFiniteNumber(match.rate) : 0;
+};
+
+interface CartPricedItem {
+  on_sale: boolean;
+  sale_price: number;
+  regular_price: number;
+  raw_sale_price?: number;
+  raw_regular_price?: number;
+  tax_amount?: string | number;
+}
+
+// WC-parity display prices for a cart line item. Stored display prices go
+// stale when the tax display settings change after the item was added, so
+// derive them at render time from the entry-mode raw price + per-unit tax.
+export const cartItemDisplayPrices = (
+  item: CartPricedItem,
+  taxDisplay: 'incl' | 'excl',
+  pricesIncludeTax: boolean,
+): { regular: number; sale: number; unit: number } => {
+  const rawRegular = toFiniteNumber(item.raw_regular_price ?? item.regular_price);
+  const rawSale = toFiniteNumber(item.raw_sale_price ?? item.sale_price);
+  const rawUnit = item.on_sale ? rawSale : rawRegular;
+  const tax = toFiniteNumber(item.tax_amount);
+
+  // Entry mode matches display mode (or nothing to convert) — raw prices display as-is.
+  if ((taxDisplay === 'incl') === pricesIncludeTax || tax <= 0 || rawUnit <= 0) {
+    return { regular: rawRegular, sale: rawSale, unit: rawUnit };
+  }
+
+  // tax_amount belongs to the effective (sale when on sale) price; scale both
+  // prices by the effective factor so the strikethrough stays proportional.
+  const factor = taxDisplay === 'incl'
+    ? (rawUnit + tax) / rawUnit
+    : (rawUnit - tax) / rawUnit;
+
+  return {
+    regular: rawRegular * factor,
+    sale: rawSale * factor,
+    unit: rawUnit * factor,
+  };
+};
+
 /**
  * Create a delay for async operations
  */

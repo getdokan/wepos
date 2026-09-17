@@ -195,6 +195,9 @@ export interface POSCartItem {
     option: string;
   }>;
   tax_amount?: number;
+  // Misc/custom products only — catalog products carry tax config on the server.
+  tax_class?: string;
+  tax_status?: 'taxable' | 'none';
   manage_stock?: boolean;
   stock_status?: string;
   backorders_allowed?: boolean;

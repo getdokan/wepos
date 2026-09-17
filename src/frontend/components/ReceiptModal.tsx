@@ -201,7 +201,6 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
   };
 
   const isTaxInclusive = settings?.woo_tax?.wc_tax_display_cart === 'incl';
-  const isFeeTaxEnabled = settings?.wepos_general?.enable_fee_tax === 'yes';
 
   const receiptHeader = settings?.wepos_receipts?.receipt_header || '';
   const receiptFooter = settings?.wepos_receipts?.receipt_footer || '';
@@ -377,21 +376,29 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
                       </tr>
                     )}
 
-                    {/* Tax */}
-                    {Number(printdata.taxtotal) > 0 && (
+                    {/* Tax — additive row only when prices exclude tax (WC cart behavior) */}
+                    {!isTaxInclusive && Number(printdata.taxtotal) > 0 && (
                       <tr>
                         <td colSpan={2} className="name">
-                          {isTaxInclusive && isFeeTaxEnabled
-                            ? __('Fee Tax', 'wepos')
-                            : __('Tax', 'wepos')}
+                          {__('Tax', 'wepos')}
                         </td>
                         <td className="price">{formatPrice(printdata.taxtotal)}</td>
                       </tr>
                     )}
 
-                    {/* Order Total */}
+                    {/* Order Total — inclusive display folds the tax note into the same row (WC-style).
+                        Shipping tax already has its own row, so it is excluded from the note. */}
                     <tr>
-                      <td colSpan={2} className="name">{__('Order Total', 'wepos')}</td>
+                      <td colSpan={2} className="name">
+                        {__('Order Total', 'wepos')}
+                        {isTaxInclusive &&
+                          Number(printdata.taxtotal) - Number(printdata.shippingtaxtotal || 0) > 0 && (
+                            <span className="metadata">
+                              {' '}({__('Including Tax', 'wepos')}{' '}
+                              {formatPrice(Number(printdata.taxtotal) - Number(printdata.shippingtaxtotal || 0))})
+                            </span>
+                          )}
+                      </td>
                       <td className="price">{formatPrice(printdata.ordertotal || 0)}</td>
                     </tr>
 

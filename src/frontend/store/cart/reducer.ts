@@ -24,11 +24,15 @@ export const createReducer = (preloadedState: CartState = initialState) => (
 ): CartState => {
   switch (action.type) {
     case 'ADD_TO_CART': {
-      const existingItemIndex = state.line_items.findIndex(
-        (item) =>
-          item.product_id === action.item.product_id &&
-          item.variation_id === action.item.variation_id,
-      );
+      // Custom/misc lines all share product_id 0 but are distinct products —
+      // never merge them into one line.
+      const existingItemIndex = action.item.product_id === 0
+        ? -1
+        : state.line_items.findIndex(
+            (item) =>
+              item.product_id === action.item.product_id &&
+              item.variation_id === action.item.variation_id,
+          );
 
       if (existingItemIndex >= 0) {
         const updatedItems = [...state.line_items];
@@ -65,12 +69,13 @@ export const createReducer = (preloadedState: CartState = initialState) => (
       return { ...state, line_items: updatedItems, server_order_dirty: true };
     }
 
-    // Preserve tax_display_cart and available_tax across both: store-wide reference data, not part of a cart snapshot.
+    // Preserve tax_display_cart, prices_include_tax and available_tax across both: store-wide reference data, not part of a cart snapshot.
     case 'HYDRATE_CART':
       return {
         ...action.state,
         available_tax: state.available_tax,
         tax_display_cart: state.tax_display_cart,
+        prices_include_tax: state.prices_include_tax,
       };
 
     case 'CLEAR_CART':
@@ -78,6 +83,7 @@ export const createReducer = (preloadedState: CartState = initialState) => (
         ...initialState,
         available_tax: state.available_tax,
         tax_display_cart: state.tax_display_cart,
+        prices_include_tax: state.prices_include_tax,
       };
 
     case 'ADD_DISCOUNT': {
@@ -209,6 +215,14 @@ export const createReducer = (preloadedState: CartState = initialState) => (
       return {
         ...state,
         tax_display_cart: action.mode,
+      };
+
+    case 'SET_PRICES_INCLUDE_TAX':
+      // Reference data — does not mark the order dirty.
+      if (state.prices_include_tax === action.includes) return state;
+      return {
+        ...state,
+        prices_include_tax: action.includes,
       };
 
     case 'SET_AVAILABLE_TAX':
