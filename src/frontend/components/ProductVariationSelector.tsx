@@ -15,6 +15,7 @@ import { firstPresentNumber, pickRegularDisplayPrice, pickSaleDisplayPrice, toFi
 interface ProductVariationSelectorProps {
   product: POSProduct;
   onAddToCart: (cartItem: CartItem) => void;
+  /** Element the popover anchors to, rendered inside the trigger. */
   children: React.ReactNode;
   anchor?: HTMLElement | null;
   open?: boolean;
@@ -107,7 +108,10 @@ export const ProductVariationSelector: React.FC<
   return (
     <>
       <Popover open={open} onOpenChange={onOpenChange}>
-        <PopoverTrigger asChild>
+        {/* The trigger renders its own wrapper: base-ui hands it a ref, and
+            the elements passed in here (plugin-ui `Card`, `Button`) are plain
+            function components that cannot receive one. */}
+        <PopoverTrigger render={<div className="h-full [&>*]:h-full" />}>
           {children}
         </PopoverTrigger>
         <PopoverContent>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useSelect } from '@wordpress/data';
 import { LoaderCircle, ArrowLeft, CreditCard } from 'lucide-react';
@@ -32,7 +32,6 @@ interface PaymentModalProps {
   onBackToSale: () => void;
   onProcessPayment: () => void;
   changeAmount: number;
-  cashAmountRef: React.RefObject<HTMLInputElement>;
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({
@@ -46,8 +45,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   onBackToSale,
   onProcessPayment,
   changeAmount,
-  cashAmountRef,
 }) => {
+  // plugin-ui's `InputGroupInput` is a plain function component and cannot
+  // take a ref, so the cash field is reached through its wrapper.
+  const cashFieldRef = useRef<HTMLDivElement>(null);
+
   // Get cart data from cart store
   const { cartItems, subtotal, total, discountLines, feeLines, shippingLines, totalTax, orderCurrencySymbol } =
     useSelect((select) => {
@@ -82,12 +84,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   // Focus cash input when modal opens
   useEffect(() => {
-    if (show && selectedGateway === 'wepos_cash' && cashAmountRef.current) {
+    if (show && selectedGateway === 'wepos_cash') {
       setTimeout(() => {
-        cashAmountRef.current?.focus();
+        cashFieldRef.current?.querySelector('input')?.focus();
       }, 300);
     }
-  }, [show, selectedGateway, cashAmountRef]);
+  }, [show, selectedGateway]);
 
   // Handle Enter key to process payment
   useEffect(() => {
@@ -335,21 +337,22 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     <p className="mb-3 text-sm font-medium text-muted-foreground">
                       {__('Cash', 'wepos')}
                     </p>
-                    <InputGroup className="h-12 w-full max-w-xs rounded-lg border-border">
-                      <InputGroupAddon className="w-12 justify-center border-r border-border text-base text-muted-foreground">
-                        {currencySymbol}
-                      </InputGroupAddon>
-                      <InputGroupInput
-                        ref={cashAmountRef}
-                        id="input-cash-amount"
-                        type="text"
-                        value={cashAmount}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          onCashAmountChange(e.target.value)
-                        }
-                        className="h-full text-base"
-                      />
-                    </InputGroup>
+                    <div ref={cashFieldRef} className="w-full max-w-xs">
+                      <InputGroup className="h-12 w-full rounded-lg border-border">
+                        <InputGroupAddon className="w-12 justify-center border-r border-border text-base text-muted-foreground">
+                          {currencySymbol}
+                        </InputGroupAddon>
+                        <InputGroupInput
+                          id="input-cash-amount"
+                          type="text"
+                          value={cashAmount}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            onCashAmountChange(e.target.value)
+                          }
+                          className="h-full text-base"
+                        />
+                      </InputGroup>
+                    </div>
                   </div>
 
                   {/* Change Money */}
