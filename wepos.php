@@ -3,7 +3,7 @@
 Plugin Name: wePOS - Point Of Sale (POS) for WooCommerce & Dokan
 Plugin URI: https://wedevs.com/wepos
 Description: A beautiful and fast Point of Sale (POS) system for WooCommerce & Dokan
-Version: 2.0.1
+Version: 2.0.2
 Author: weDevs
 Author URI: https://wedevs.com/
 Text Domain: wepos
@@ -58,7 +58,7 @@ final class WePOS {
      *
      * @var string
      */
-    public $version = '2.0.1';
+    public $version = '2.0.2';
 
     /**
      * Holds various class instances

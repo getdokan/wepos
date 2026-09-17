@@ -12,7 +12,7 @@ namespace WeDevs\WePOS\Admin;
  * Appearance::reorder_submenus() (priority 30) rebuilds the submenu array —
  * so it always stays last and keeps its React dashboard URL untouched.
  *
- * @since WEPOS_SINCE
+ * @since 2.0.2
  */
 class Premium {
 
@@ -48,7 +48,7 @@ class Premium {
      * Extensions (e.g. wePOS Pro) can hide the upsell entry by returning
      * false from the `wepos_show_premium_menu` filter.
      *
-     * @since WEPOS_SINCE
+     * @since 2.0.2
      *
      * @return bool
      */
@@ -60,7 +60,7 @@ class Premium {
         /**
          * Toggle the Premium upsell submenu.
          *
-         * @since WEPOS_SINCE
+         * @since 2.0.2
          *
          * @param bool $show Whether to show the Premium menu.
          */
@@ -70,7 +70,7 @@ class Premium {
     /**
      * Append the Premium item to the bottom of the wePOS submenu.
      *
-     * @since WEPOS_SINCE
+     * @since 2.0.2
      *
      * @return void
      */
@@ -111,7 +111,7 @@ class Premium {
     /**
      * Admin URL of the Premium page.
      *
-     * @since WEPOS_SINCE
+     * @since 2.0.2
      *
      * @return string
      */
@@ -125,7 +125,7 @@ class Premium {
      * The route only exists in the React admin, so Appearance must never
      * rewrite it to the legacy Vue page.
      *
-     * @since WEPOS_SINCE
+     * @since 2.0.2
      *
      * @param string[] $routes Existing React-only hash routes.
      *

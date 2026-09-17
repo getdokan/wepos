@@ -8,7 +8,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-05-21T05:16:46+00:00\n"
+"POT-Creation-Date: 2026-09-17T07:49:30+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: wepos\n"
@@ -25,7 +25,7 @@ msgstr ""
 
 #. Description of the plugin
 #: wepos.php
-msgid "A beautiful and fast Point of Sale (POS) system for WooCommerce"
+msgid "A beautiful and fast Point of Sale (POS) system for WooCommerce & Dokan"
 msgstr ""
 
 #. Author of the plugin
@@ -40,6 +40,8 @@ msgstr ""
 
 #: includes/Admin/Admin.php:27
 #: build/wepos-admin-react.js:1
+#: build/wepos-admin-react.js:7
+#: build/wepos-appearance.js:5
 msgid "wePOS"
 msgstr ""
 
@@ -83,6 +85,11 @@ msgstr ""
 #: includes/Admin/Settings.php:39
 #: includes/Admin/Settings.php:66
 msgid "Invalid nonce"
+msgstr ""
+
+#: includes/Admin/Premium.php:96
+#: includes/Admin/Premium.php:106
+msgid "Premium"
 msgstr ""
 
 #: includes/Admin/Products.php:67
@@ -450,7 +457,7 @@ msgstr ""
 msgid "Sorry, you are not allowed to view customers."
 msgstr ""
 
-#: includes/REST/Manager.php:179
+#: includes/REST/Manager.php:186
 msgid "The item %s already out of stock. Please remove this from cart"
 msgstr ""
 
@@ -1222,42 +1229,399 @@ msgid "Failed to save settings."
 msgstr ""
 
 #: build/wepos-admin-react.js:1
+msgid "Sell online and in person"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Barcode scanning"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Real-time inventory sync"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Light, Dark, and System modes"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Dokan multivendor POS"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Reports dashboard"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "CSV order export"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Save Carts across devices"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Access control and Cashier roles"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Rich-text receipt builder"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Reports Dashboard"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "See sales summaries, charts, top sellers, and payment reports on one screen, so you always know how the store is doing."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "CSV Order Export"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Export your orders straight from the dashboard for accounting, reconciliation, or your own analysis."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Save Carts"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Hold an in-progress cart and pick it up later, even on a different device. Nothing gets lost mid-sale."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Access Control and Cashier Roles"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Decide exactly which pages and actions each cashier can reach. A built-in Cashier role gets new staff working safely in minutes."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Rich-Text Receipt Builder"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Customize your receipt header and footer with bold text, links, and lists, and show shipping and tax as their own lines."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Per-Vendor Dokan POS"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Every Dokan vendor gets their own dashboard, reports, receipts, and settings, seeing only their own store data."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Quick Edit"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Update stock, price, categories, and tags right from the product list, without opening each product."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Low-Stock Alerts"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "An inventory panel flags low and out-of-stock products at a glance, so you never run out unexpectedly."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "50% OFF"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Starter"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "For a single store running one POS counter."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "/year"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "/lifetime"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "1 Site"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Barcode scanner support"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "CSV export"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Rich-text receipts"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Professional"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "For growing businesses with a few locations."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "3 Sites"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Everything in Starter"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Quick Edit for products"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Low-stock alerts"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Priority support"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Business"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "For agencies and multi-location retail."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Best Valued"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "10 Sites"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Everything in Professional"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Full Dokan vendor POS"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Per-vendor dashboards and reports"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Advanced Tools for Serious Retail"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Everything you need to take your counter from working to fully in control, built into wePOS Pro."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Show all Pro Features"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "wePOS for Dokan marketplaces"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Play the wePOS overview video"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Dokan Multivendor POS"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Run a marketplace? wePOS gives every vendor their own point of sale. Each seller manages their own products, customers, orders, and receipts, while you keep full control of the marketplace."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "View Details"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Powerful Features Available Only in wePOS Pro"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "You are on the free version. Unlock advanced reports, multi-outlet control, CSV export, and full Dokan vendor support when you upgrade to wePOS Pro."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Feature"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Lite"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Pro"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "A Point of Sale Built for Growing Stores"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Run your WooCommerce and Dokan store from a fast retail counter. Sell online and in person, sync every sale, and give each vendor their own POS."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+#: build/wepos-admin-react.js:3
+msgid "Upgrade to Pro"
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Coupon code copied."
+msgstr ""
+
+#: build/wepos-admin-react.js:1
+msgid "Could not copy the coupon code."
+msgstr ""
+
+#. translators: %s: coupon code.
+#: build/wepos-admin-react.js:2
+msgid "Coupon: %s"
+msgstr ""
+
+#: build/wepos-admin-react.js:2
+msgid "Get 10% Extra Off"
+msgstr ""
+
+#: build/wepos-admin-react.js:2
+msgid "Annual"
+msgstr ""
+
+#: build/wepos-admin-react.js:2
+msgid "Lifetime"
+msgstr ""
+
+#: build/wepos-admin-react.js:2
+msgid "Simple Pricing That Grows With You"
+msgstr ""
+
+#. translators: %s: coupon code.
+#: build/wepos-admin-react.js:3
+msgid "Get up to 25%% off on the Starter and Business plans. Coupon: %s"
+msgstr ""
+
+#: build/wepos-admin-react.js:3
+msgid "Get Started"
+msgstr ""
+
+#: build/wepos-admin-react.js:3
+msgid "Our Fair Refund Policy"
+msgstr ""
+
+#: build/wepos-admin-react.js:3
+msgid "We stand behind wePOS Pro with a 14-day money-back guarantee. However, if our plugin does not meet your needs, we will happily provide a full refund within 14 days of your purchase."
+msgstr ""
+
+#: build/wepos-admin-react.js:3
+msgid "Payment Options:"
+msgstr ""
+
+#: build/wepos-admin-react.js:3
+msgid "PayPal, Visa, Mastercard, JCB, Discover and American Express"
+msgstr ""
+
+#: build/wepos-admin-react.js:3
+msgid "14 day money back guarantee"
+msgstr ""
+
+#: build/wepos-admin-react.js:3
+msgid "From the trusted team behind:"
+msgstr ""
+
+#: build/wepos-admin-react.js:3
+msgid "Dokan, WP User Frontend, WP ERP, WP Project Manager Pro, FlyWP, WP Hive and weMail"
+msgstr ""
+
+#: build/wepos-admin-react.js:3
+msgid "Replace Two Systems With One Connected POS"
+msgstr ""
+
+#: build/wepos-admin-react.js:3
+msgid "Stop juggling a separate till and a spreadsheet. Run every online and in-store sale from one dashboard with wePOS Pro."
+msgstr ""
+
+#. translators: %s: wePOS version number
+#: build/wepos-admin-react.js:5
+#: build/wepos-appearance.js:3
+msgid "Free: %s"
+msgstr ""
+
+#. translators: %s: wePOS Pro version number
+#: build/wepos-admin-react.js:7
+#: build/wepos-appearance.js:5
+msgid "Pro: %s"
+msgstr ""
+
+#: build/wepos-admin-react.js:7
+#: build/wepos-appearance.js:5
+msgid "Feedback"
+msgstr ""
+
+#: build/wepos-admin-react.js:7
+#: build/wepos-appearance.js:5
+msgid "Support"
+msgstr ""
+
+#: build/wepos-admin-react.js:7
 msgid "Ownership"
 msgstr ""
 
-#: build/wepos-admin-react.js:1
+#: build/wepos-admin-react.js:7
 msgid "Admin-owned"
 msgstr ""
 
-#: build/wepos-admin-react.js:1
+#: build/wepos-admin-react.js:7
 msgid "Outlet is managed by site administrators."
 msgstr ""
 
-#: build/wepos-admin-react.js:1
+#: build/wepos-admin-react.js:7
 msgid "Assign to vendor"
 msgstr ""
 
-#: build/wepos-admin-react.js:1
+#: build/wepos-admin-react.js:7
 msgid "Give ownership to a Dokan vendor store."
 msgstr ""
 
-#: build/wepos-admin-react.js:1
+#: build/wepos-admin-react.js:7
 msgid "Search vendor by name..."
 msgstr ""
 
-#: build/wepos-admin-react.js:1
+#: build/wepos-admin-react.js:7
 msgid "Type to search vendors..."
 msgstr ""
 
-#: build/wepos-admin-react.js:1
+#: build/wepos-admin-react.js:7
 msgid "No vendors found."
 msgstr ""
 
-#: build/wepos-admin-react.js:1
+#: build/wepos-admin-react.js:7
 msgid "Type at least 2 characters to search."
 msgstr ""
 
-#: build/wepos-admin-react.js:1
+#: build/wepos-admin-react.js:7
 msgid "Select a vendor to transfer ownership."
 msgstr ""
 
@@ -1303,6 +1667,11 @@ msgstr ""
 
 #: build/wepos-appearance.js:1
 msgid "Saving…"
+msgstr ""
+
+#. translators: %1$s: withdraw date, %2$s: withdraw time
+#: build/wepos-components.js:278
+msgid "%1$s at %2$s"
 msgstr ""
 
 #: build/wepos-react.js:1
@@ -1679,6 +2048,10 @@ msgstr ""
 
 #: build/wepos-react.js:1
 msgid "Shipping Tax"
+msgstr ""
+
+#: build/wepos-react.js:1
+msgid "No product found for barcode %s"
 msgstr ""
 
 #: build/wepos-react.js:1

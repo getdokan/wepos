@@ -7,7 +7,7 @@ Tested up to: 6.9.4
 WC requires at least: 10.5.0
 WC tested up to: 10.7.0
 Requires PHP: 7.4
-Stable tag: 2.0.1
+Stable tag: 2.0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -16,21 +16,21 @@ Free WooCommerce Point of Sale plugin. Build a POS system to sell in store and o
 ## Useful Links
 [Docs](https://dokan.co/docs/wepos/getting-started/) | [Videos](https://www.youtube.com/watch?v=xkX5vOvAZ9M&list=PLJorZsV2RVv9SCQF7mUli9-_Uu4JHJCsN) | [Support](https://dokan.co/contact/) | [Get Pro](https://dokan.co/wordpress/wepos/pricing/)
 ---
-### Create and Manage In-Store Sales with Ease 
+### Create and Manage In-Store Sales with Ease
 [youtube https://youtu.be/9zURW3eo5y4]
 
 [wePOS](https://dokan.co/wordpress/wepos/) is a fast and free point of sale (POS) plugin for WooCommerce. It turns your WooCommerce store into a complete retail checkout counter, so you can take in-person orders, scan barcodes, track inventory, and print receipts, all from one screen on your tablet or desktop.
 If you run a single retail shop, a grocery store, or a multi-outlet business, wePOS gives you a modern cash register that stays in sync with your WooCommerce products, customers, and orders in real time.
 
 ## Why choose wePOS?
- 
+
 * **Free to start:** Run real in-store sales on the free plan, with no monthly platform fee.
 * **Built on WooCommerce:** Your products, prices, customers, and stock stay in sync automatically.
 * **Fast checkout:** A single-page app and barcode scanning keep your lines moving.
 * **Made for retail:** Sell physical products, handle discounts and fees, and print receipts.
 * **Multivendor ready:** Native Dokan integration gives every vendor their own point of sale.
 
-## Key Benefits 
+## Key Benefits
 * Fast and responsive POS interface
 * Built for WooCommerce stores
 * Barcode scanner support
@@ -43,7 +43,7 @@ If you run a single retail shop, a grocery store, or a multi-outlet business, we
 * Full Dokan multivendor POS support
 ---
 
-### Manage Your Store with Powerful Free Features 
+### Manage Your Store with Powerful Free Features
 
 The free version of wePOS includes everything needed to manage daily in-store sales efficiently.
 
@@ -61,7 +61,7 @@ The free version of wePOS includes everything needed to manage daily in-store sa
 * **Modern UI & Faster Experience:** Redesigned buttons, forms, tables, popups, and dropdowns for better usability.
 ---
 
-### wePOS Pro Helps You Run Advanced Retail & Multivendor Operations 
+### wePOS Pro Helps You Run Advanced Retail & Multivendor Operations
 
 wePOS Pro unlocks advanced tools for businesses, chains, and multivendor marketplaces.
 
@@ -78,7 +78,7 @@ wePOS Pro unlocks advanced tools for businesses, chains, and multivendor marketp
 [Get wePOS Pro](https://dokan.co/wordpress/wepos/pricing/)
 ---
 
-### Run a Full Multivendor POS with Dokan 
+### Run a Full Multivendor POS with Dokan
 
 wePOS is the only WooCommerce POS solution built to work seamlessly with Dokan. Give every vendor their own point-of-sale system while maintaining complete control over your marketplace.
 
@@ -111,7 +111,7 @@ wePOS is the only WooCommerce POS solution built to work seamlessly with Dokan. 
 * [WP User Frontend](https://wedevs.com/wp-user-frontend-pro/) – All-in-one frontend solution with AI-powered post creation, membership, and subscriptions.
 ---
 
-## Frequently Asked Questions 
+## Frequently Asked Questions
 
 = Is wePOS a free WooCommerce POS plugin? =
 
@@ -162,6 +162,14 @@ wePOS uses the Appsero SDK to collect telemetry data (only with user permission)
 5. Intuitive Checkout
 
 ## Changelog
+
+= v2.0.2 ( September 17, 2026 ) =
+- **new:** A new wePOS Pro page in the admin menu showing what the Pro version adds, with annual and lifetime pricing you can switch between.
+- **fix:** Picking a variation from the search box or scanning its barcode now adds it to the cart. Before, the search result did nothing and a scan created a broken cart line that reset itself every time the cart refreshed.
+- **fix:** If you enter your product prices with tax already included, orders are no longer taxed a second time — a 100 item is charged 100, not 110. Walk-in sales with no customer address now use your store address to work out tax, instead of charging no tax at all.
+- **fix:** Cart, payment, and receipt totals now follow your current WooCommerce tax display settings, and show an "Including Tax" note instead of a separate tax row when prices include tax.
+- **fix:** The display mode choices on the Appearance screen now save correctly — switching the POS or admin design no longer snaps back to the previous option.
+- **update:** The plugin is now named "wePOS - Point Of Sale (POS) for WooCommerce & Dokan" to reflect Dokan multivendor support.
 
 = v2.0.1 ( May 21, 2026 ) =
 - **fix:** Tax breakdown (per-line tax, subtotal "Including Tax" hint, and total tax row) is now displayed in the new POS cart UI.
