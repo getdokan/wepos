@@ -21,7 +21,9 @@ const VideoFrame = () => {
 		<div className="relative mx-auto aspect-video w-full max-w-[1000px] overflow-hidden rounded-[20px] bg-[#0d0733]">
 			{ playing ? (
 				<iframe
-					src={ `https://www.youtube-nocookie.com/embed/${ DOKAN_POS_VIDEO_ID }?autoplay=1&rel=0` }
+					// controls=0 hides the player chrome; modestbranding and
+					// iv_load_policy drop the logo and annotation overlays.
+					src={ `https://www.youtube-nocookie.com/embed/${ DOKAN_POS_VIDEO_ID }?autoplay=1&rel=0&controls=0&modestbranding=1&iv_load_policy=3&playsinline=1` }
 					title={ __( 'wePOS for Dokan marketplaces', 'wepos' ) }
 					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
 					allowFullScreen
