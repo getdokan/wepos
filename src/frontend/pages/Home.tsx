@@ -32,6 +32,7 @@ import {
   getFromLocalStorage,
   getProductImage,
   hasStock,
+  nextCartItemId,
   parseCurrencyAmount,
   pickRegularDisplayPrice,
   pickSaleDisplayPrice,
@@ -495,7 +496,7 @@ const HomePage: React.FC = () => {
       }
 
       const cartItem: POSCartItem = {
-        id: Date.now(),
+        id: nextCartItemId(),
         product_id: product.id,
         variation_id: 0,
         name: product.name,
@@ -523,8 +524,10 @@ const HomePage: React.FC = () => {
     [addToCart, cartItems],
   );
 
+  // Returns false when the item was rejected, so callers that tear down their own
+  // UI on add (the search modal) can keep the cashier's picks on screen.
   const handleAddToCartItem = useCallback(
-    (cartItem: POSCartItem) => {
+    (cartItem: POSCartItem): boolean => {
       const existing = cartItems.find(
         (ci: POSCartItem) =>
           ci.product_id === cartItem.product_id &&
@@ -540,7 +543,7 @@ const HomePage: React.FC = () => {
             cartItem.name,
           ),
         );
-        return;
+        return false;
       }
 
       if (cartItem.manage_stock && !cartItem.backorders_allowed) {
@@ -554,15 +557,16 @@ const HomePage: React.FC = () => {
               String(available),
             ),
           );
-          return;
+          return false;
         }
       } else if (cartItem.stock_status === 'outofstock') {
         toast.error(sprintf(__('%s is out of stock', 'wepos'), cartItem.name));
-        return;
+        return false;
       }
 
       addToCart(cartItem);
       toast.success(sprintf(__('%s added to cart', 'wepos'), cartItem.name));
+      return true;
     },
     [addToCart, cartItems],
   );
@@ -1568,7 +1572,7 @@ const HomePage: React.FC = () => {
               {/* Search / Filter / View Toggle Row */}
               <div className="flex flex-col gap-2 mt-3">
                 <div className="flex flex-row items-center gap-2">
-                  <SearchBar products={products} settings={settings} onProductAdded={handleAddToCart} />
+                  <SearchBar products={products} settings={settings} onProductAdded={handleAddToCart} onCartItemAdded={handleAddToCartItem} />
                   <ProductViewToggle
                       productView={productView}
                       onToggle={toggleProductView}

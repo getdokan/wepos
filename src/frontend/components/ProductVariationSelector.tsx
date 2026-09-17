@@ -5,16 +5,22 @@ import {
   PopoverTrigger,
   PopoverContent,
   Button,
-  PopoverClose,
   SmartSelect,
 } from '@wedevs/plugin-ui';
 import { __ } from '@wordpress/i18n';
-import { POSProduct, ProductVariation, CartItem } from '../types';
-import { firstPresentNumber, pickRegularDisplayPrice, pickSaleDisplayPrice, toFiniteNumber } from '../utils/helpers';
+import { POSProduct, CartItem } from '../types';
+import {
+  areAllVariationAttributesSelected,
+  buildVariationCartItem,
+  findMatchingVariation,
+  getVariationAttributes,
+  SelectedAttributes,
+} from '../utils/variations';
 
 interface ProductVariationSelectorProps {
   product: POSProduct;
-  onAddToCart: (cartItem: CartItem) => void;
+  // Returns false when the cart rejected the item (stock / sold individually).
+  onAddToCart: (cartItem: CartItem) => boolean | void;
   /** Element the popover anchors to, rendered inside the trigger. */
   children: React.ReactNode;
   anchor?: HTMLElement | null;
@@ -22,36 +28,39 @@ interface ProductVariationSelectorProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-interface SelectedAttributes {
-  [attributeName: string]: string;
-}
-
 export const ProductVariationSelector: React.FC<
   ProductVariationSelectorProps
 > = ({ product, onAddToCart, children, open, onOpenChange }) => {
   const [selectedAttributes, setSelectedAttributes] =
     useState<SelectedAttributes>({});
+  const [internalOpen, setInternalOpen] = useState(false);
 
-  // Find matching variation based on selected attributes
-  const matchingVariation = useMemo(() => {
-    if (!product.variations || product.variations.length === 0) return null;
+  // The grid view mounts this uncontrolled; the list view drives `open` itself.
+  const isControlled = open !== undefined;
 
-    return product.variations.find((variation: ProductVariation) => {
-      return variation.attributes.every((attr) => {
-        return selectedAttributes[attr.name] === attr.option;
-      });
-    });
-  }, [product.variations, selectedAttributes]);
+  const setOpen = useCallback(
+    (next: boolean) => {
+      if (!isControlled) setInternalOpen(next);
+      onOpenChange?.(next);
+    },
+    [isControlled, onOpenChange],
+  );
+
+  // Find matching variation based on selected attributes.
+  // Keyed on the slices actually read, so an unrelated re-render that hands down
+  // a fresh product object doesn't rescan every variation.
+  const matchingVariation = useMemo(
+    () => findMatchingVariation(product, selectedAttributes),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [product.id, product.variations, product.attributes, selectedAttributes],
+  );
 
   // Check if all required attributes are selected
-  const isAllAttributesSelected = useMemo(() => {
-    if (!product.attributes) return false;
-
-    const requiredAttributes = product.attributes.filter(
-      (attr) => attr.variation,
-    );
-    return requiredAttributes.every((attr) => selectedAttributes[attr.name]);
-  }, [product.attributes, selectedAttributes]);
+  const isAllAttributesSelected = useMemo(
+    () => areAllVariationAttributesSelected(product, selectedAttributes),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [product.attributes, selectedAttributes],
+  );
 
   // Handle attribute selection
   const handleAttributeChange = useCallback(
@@ -68,46 +77,25 @@ export const ProductVariationSelector: React.FC<
   const handleAddVariation = useCallback(() => {
     if (!matchingVariation) return;
 
-    // Build variation attributes for cart display
-    const variationAttributes = Object.entries(selectedAttributes).map(
-      ([name, option]) => ({
-        id: 0, // Will be set by the system
-        name,
-        option,
-      }),
+    const cartItem: CartItem = buildVariationCartItem(
+      product,
+      matchingVariation,
+      selectedAttributes,
     );
 
-    const cartItem: CartItem = {
-      id: Date.now(), // Generate a temporary ID
-      product_id: product.id,
-      variation_id: matchingVariation.id,
-      name: product.name,
-      sku: matchingVariation.sku || product.sku || '',
-      quantity: 1,
-      regular_price: pickRegularDisplayPrice(matchingVariation),
-      sale_price: pickSaleDisplayPrice(matchingVariation),
-      raw_regular_price: toFiniteNumber(matchingVariation.regular_price),
-      raw_sale_price: toFiniteNumber(matchingVariation.sale_price),
-      on_sale: matchingVariation.on_sale,
-      type: 'variable',
-      attribute: variationAttributes,
-      editQuantity: false,
-      tax_amount: firstPresentNumber(matchingVariation.tax_amount, product.tax_amount) ?? 0,
-      manage_stock: matchingVariation.manage_stock,
-      stock_status: matchingVariation.stock_status,
-      backorders_allowed: matchingVariation.backorders_allowed,
-      stock_quantity: matchingVariation.stock_quantity ?? undefined,
-      sold_individually: product.sold_individually,
-    };
+    // Only tear the picker down once the item actually landed in the cart —
+    // otherwise the rejection toast fires while the popover closes over the
+    // cashier's picks.
+    if (onAddToCart(cartItem) === false) return;
 
-    onAddToCart(cartItem);
     setSelectedAttributes({});
-  }, [matchingVariation, selectedAttributes, product, onAddToCart]);
+    setOpen(false);
+  }, [matchingVariation, selectedAttributes, product, onAddToCart, setOpen]);
 
 
   return (
     <>
-      <Popover open={open} onOpenChange={onOpenChange}>
+      <Popover open={isControlled ? open : internalOpen} onOpenChange={setOpen}>
         {/* The trigger renders its own wrapper: base-ui hands it a ref, and
             the elements passed in here (plugin-ui `Card`, `Button`) are plain
             function components that cannot receive one. */}
@@ -122,8 +110,7 @@ export const ProductVariationSelector: React.FC<
               </h3>
             </div>
 
-            {product.attributes
-              ?.filter((attr) => attr.variation)
+            {getVariationAttributes(product)
               .map((attribute) => (
                 <div key={attribute.name} className="mb-4">
                   <label className="mb-2 block text-sm font-medium text-foreground">
@@ -167,16 +154,16 @@ export const ProductVariationSelector: React.FC<
               )
             )}
 
-              <PopoverClose className='w-full'>
-                <Button
-                  variant="default"
-                  onClick={handleAddVariation}
-                  disabled={!isAllAttributesSelected}
-                  className="flex-1 w-full bg-primary hover:bg-primary/90"
-                  >
-                    {__('Add Product', 'wepos')}
-                </Button>
-              </PopoverClose>
+              {/* Held disabled while the combination is unresolvable, so the
+                  "not available" panel above is the whole story. */}
+              <Button
+                variant="default"
+                onClick={handleAddVariation}
+                disabled={!isAllAttributesSelected || !matchingVariation}
+                className="flex-1 w-full bg-primary hover:bg-primary/90"
+                >
+                  {__('Add Product', 'wepos')}
+              </Button>
           </div>
         </PopoverContent>
       </Popover>

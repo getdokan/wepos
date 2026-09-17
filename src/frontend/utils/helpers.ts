@@ -109,6 +109,20 @@ export const formatPrice = (
 };
 
 /**
+ * Generate a unique cart line id.
+ *
+ * Cart rows are keyed by this id, so two lines added inside the same millisecond
+ * — a scan burst, or a click plus a scan — must not collide. Date.now() alone does.
+ */
+let lastCartItemId = 0;
+
+export const nextCartItemId = (): number => {
+  const now = Date.now();
+  lastCartItemId = now > lastCartItemId ? now : lastCartItemId + 1;
+  return lastCartItemId;
+};
+
+/**
  * Check if a product has stock available
  * Matches the Vue.js implementation logic
  */
