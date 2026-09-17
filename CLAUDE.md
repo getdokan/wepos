@@ -78,5 +78,6 @@ POS state uses `@wordpress/data` stores registered from `src/frontend/store/` (`
 ## Conventions
 
 - PHP: WPCS, 4 spaces, text domain `wepos`, `@since` tags on new public methods.
+- **Never hardcode a version in `@since` (or `@deprecated`) tags — write the literal token `WEPOS_SINCE`**, e.g. `@since WEPOS_SINCE`. `npm run version-replace` (part of `npm run release`) rewrites every `WEPOS_SINCE` across `assets/`, `includes/`, `templates/`, `src/` and `wepos.php` to the `package.json` version, so the tag always lands on the release that actually shipped the code. A hardcoded `@since 1.5.0` survives the replace and goes stale the moment the release slips.
 - TS/JS in `src/`: tabs and WordPress-style spacing inside parens — this contradicts `.prettierrc` (2 spaces, no tabs), so running Prettier over these files reformats them wholesale. Match the surrounding file instead.
 - Admin pages that follow a Figma design (e.g. `src/admin/pages/premium/`) hardcode the design's hex values rather than plugin-ui theme tokens; keep that split rather than mixing the two in one component.

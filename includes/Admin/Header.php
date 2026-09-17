@@ -14,7 +14,7 @@ namespace WeDevs\WePOS\Admin;
  * (`wepos-admin-react` / `wepos-appearance`), so there is no separate script
  * to build or enqueue — only its data is localized here.
  *
- * @since 1.5.0
+ * @since WEPOS_SINCE
  */
 class Header {
 
@@ -45,7 +45,7 @@ class Header {
     /**
      * Hand the header data to the page bundle on the current screen.
      *
-     * @since 1.5.0
+     * @since WEPOS_SINCE
      *
      * @return void
      */
@@ -87,7 +87,7 @@ class Header {
     /**
      * Data rendered by the header.
      *
-     * @since 1.5.0
+     * @since WEPOS_SINCE
      *
      * @return array<string, mixed>
      */
@@ -95,7 +95,7 @@ class Header {
         /**
          * Filters the wePOS admin header data.
          *
-         * @since 1.5.0
+         * @since WEPOS_SINCE
          *
          * @param array $header_info Header data passed to the React root.
          */
@@ -121,7 +121,7 @@ class Header {
      * the time the captured wrapper is printed — and before the footer
      * bundle moves that wrapper into the slot.
      *
-     * @since 1.5.0
+     * @since WEPOS_SINCE
      *
      * @return void
      */
@@ -141,7 +141,7 @@ class Header {
      * `.wp-header-end`; printing that catcher inside the wrapper collects
      * them all in one hidden container.
      *
-     * @since 1.5.0
+     * @since WEPOS_SINCE
      *
      * @return void
      */
@@ -157,7 +157,7 @@ class Header {
     /**
      * Close the wrapper opened in inject_before_notices().
      *
-     * @since 1.5.0
+     * @since WEPOS_SINCE
      *
      * @return void
      */
