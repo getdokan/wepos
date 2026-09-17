@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { __ } from '@wordpress/i18n';
 import { useSelect } from '@wordpress/data';
 import { LoaderCircle, ArrowLeft, CreditCard } from 'lucide-react';
 import { POSGateway, POSCartItem, POSDiscountLine, POSFeeLine, POSShippingLine } from '../types';
-import { formatPrice } from '../utils/helpers';
+import { cartItemDisplayPrices, formatPrice } from '../utils/helpers';
 import { CART_STORE_NAME } from '../store/cart';
 import { PRODUCTS_STORE_NAME } from '../store/products';
 import { applyFilters } from '../hooks/useExtensions';
@@ -32,7 +32,6 @@ interface PaymentModalProps {
   onBackToSale: () => void;
   onProcessPayment: () => void;
   changeAmount: number;
-  cashAmountRef: React.RefObject<HTMLInputElement>;
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({
@@ -46,10 +45,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   onBackToSale,
   onProcessPayment,
   changeAmount,
-  cashAmountRef,
 }) => {
+  // plugin-ui's `InputGroupInput` is a plain function component and cannot
+  // take a ref, so the cash field is reached through its wrapper.
+  const cashFieldRef = useRef<HTMLDivElement>(null);
+
   // Get cart data from cart store
-  const { cartItems, subtotal, total, discountLines, feeLines, shippingLines, totalTax, orderCurrencySymbol } =
+  const { cartItems, subtotal, total, discountLines, feeLines, shippingLines, totalTax, totalLineTax, taxDisplayMode, pricesIncludeTax, orderCurrencySymbol } =
     useSelect((select) => {
       const store = select(CART_STORE_NAME) as any;
       return {
@@ -60,9 +62,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         feeLines: store.getFeeLines(),
         shippingLines: store.getShippingLines(),
         totalTax: store.getTotalTax(),
+        totalLineTax: store.getTotalLineTax(),
+        taxDisplayMode: store.getTaxDisplayMode(),
+        pricesIncludeTax: store.getPricesIncludeTax(),
         orderCurrencySymbol: store.getOrderCurrencySymbol(),
       };
     }, []);
+
+  // Inclusive display: line tax is part of the subtotal/total, not added on
+  // top — shown as a WC-style "(Including Tax X)" note, never as a row.
+  const isTaxInclusive = taxDisplayMode === 'incl';
+  const includedTax = isTaxInclusive ? totalLineTax : 0;
 
   // Get gateways from products store
   const { availableGateways } = useSelect((select) => {
@@ -82,12 +92,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   // Focus cash input when modal opens
   useEffect(() => {
-    if (show && selectedGateway === 'wepos_cash' && cashAmountRef.current) {
+    if (show && selectedGateway === 'wepos_cash') {
       setTimeout(() => {
-        cashAmountRef.current?.focus();
+        cashFieldRef.current?.querySelector('input')?.focus();
       }, 300);
     }
-  }, [show, selectedGateway, cashAmountRef]);
+  }, [show, selectedGateway]);
 
   // Handle Enter key to process payment
   useEffect(() => {
@@ -126,9 +136,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     return parseFloat(fee.value);
   };
 
-  // Get item price
+  // Mode-aware display price — matches the cart rows and getSubtotal.
   const getItemPrice = (item: POSCartItem): number => {
-    return item.on_sale ? item.sale_price : item.regular_price;
+    return cartItemDisplayPrices(item, taxDisplayMode, pricesIncludeTax).unit;
   };
 
   if (!show) return null;
@@ -257,8 +267,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               </div>
             ))}
 
-            {/* Tax */}
-            {totalTax > 0 && (
+            {/* Tax — additive row only when prices exclude tax (WC cart behavior) */}
+            {!isTaxInclusive && totalTax > 0 && (
               <div className="flex justify-between py-1">
                 <span className="text-sm text-muted-foreground">
                   {__('Tax', 'wepos')}
@@ -280,6 +290,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 {paymentFormatPrice(total)}
               </span>
             </div>
+            {/* WC-style note: "(includes Tax X)" under the total in inclusive display */}
+            {includedTax > 0 && (
+              <div className="flex justify-end pb-1 text-xs text-muted-foreground">
+                ({__('Including Tax', 'wepos')} {paymentFormatPrice(includedTax)})
+              </div>
+            )}
           </div>
         </div>
 
@@ -335,21 +351,22 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     <p className="mb-3 text-sm font-medium text-muted-foreground">
                       {__('Cash', 'wepos')}
                     </p>
-                    <InputGroup className="h-12 w-full max-w-xs rounded-lg border-border">
-                      <InputGroupAddon className="w-12 justify-center border-r border-border text-base text-muted-foreground">
-                        {currencySymbol}
-                      </InputGroupAddon>
-                      <InputGroupInput
-                        ref={cashAmountRef}
-                        id="input-cash-amount"
-                        type="text"
-                        value={cashAmount}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          onCashAmountChange(e.target.value)
-                        }
-                        className="h-full text-base"
-                      />
-                    </InputGroup>
+                    <div ref={cashFieldRef} className="w-full max-w-xs">
+                      <InputGroup className="h-12 w-full rounded-lg border-border">
+                        <InputGroupAddon className="w-12 justify-center border-r border-border text-base text-muted-foreground">
+                          {currencySymbol}
+                        </InputGroupAddon>
+                        <InputGroupInput
+                          id="input-cash-amount"
+                          type="text"
+                          value={cashAmount}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            onCashAmountChange(e.target.value)
+                          }
+                          className="h-full text-base"
+                        />
+                      </InputGroup>
+                    </div>
                   </div>
 
                   {/* Change Money */}

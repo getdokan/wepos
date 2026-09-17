@@ -4,6 +4,7 @@ import { ThemeProvider, Toaster, type ThemeTokens } from '@wedevs/plugin-ui';
 import { SlotFillProvider } from '@wordpress/components';
 import App from './App';
 import ShadowContainer from '../components/ShadowContainer';
+import { mountHeader } from '../admin/Header';
 
 // CSS import kept so webpack extracts it to wepos-appearance.css.
 // Loaded inside the Shadow DOM via <link> (not in <head>).
@@ -74,6 +75,9 @@ const weposTokens: ThemeTokens = {
 	'tracking-normal': '0em',
 	spacing: '0.25rem',
 };
+
+// Header root, mounted above the page app.
+mountHeader( weposTokens );
 
 const container = document.getElementById( 'wepos-appearance-app' );
 

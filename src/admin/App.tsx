@@ -2,6 +2,7 @@ import { useMemo, useEffect } from '@wordpress/element';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { applyFilters } from '@react/hooks/useExtensions';
 import Settings from './pages/Settings';
+import Premium from './pages/Premium';
 
 export interface WeposAdminRouteConfig {
 	path: string;
@@ -75,6 +76,8 @@ const App = () => {
 	const allRoutes = useMemo( () => {
 		const routes: Record< string, React.ReactNode > = {
 			'/settings': <Settings />,
+			// Upsell page — no page cap, always reachable.
+			'/premium': <Premium />,
 		};
 
 		// Allow extensions to replace base routes.

@@ -21,6 +21,7 @@ interface ProductVariationSelectorProps {
   product: POSProduct;
   // Returns false when the cart rejected the item (stock / sold individually).
   onAddToCart: (cartItem: CartItem) => boolean | void;
+  /** Element the popover anchors to, rendered inside the trigger. */
   children: React.ReactNode;
   anchor?: HTMLElement | null;
   open?: boolean;
@@ -95,7 +96,10 @@ export const ProductVariationSelector: React.FC<
   return (
     <>
       <Popover open={isControlled ? open : internalOpen} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
+        {/* The trigger renders its own wrapper: base-ui hands it a ref, and
+            the elements passed in here (plugin-ui `Card`, `Button`) are plain
+            function components that cannot receive one. */}
+        <PopoverTrigger render={<div className="h-full [&>*]:h-full" />}>
           {children}
         </PopoverTrigger>
         <PopoverContent>

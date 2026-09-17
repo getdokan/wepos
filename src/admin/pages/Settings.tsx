@@ -790,7 +790,7 @@ const Settings = () => {
 	);
 
 	return (
-		<div className="wepos-admin-settings -mx-[20px] -mt-[10px]">
+		<div className="wepos-admin-settings">
 			{ wrappedSettingsUI }
 		</div>
 	);

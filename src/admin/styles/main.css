@@ -336,3 +336,29 @@
     --shadow-xl: var(--shadow-xl);
     --shadow-2xl: var(--shadow-2xl);
 }
+
+/*
+ * wePOS Premium submenu item.
+ *
+ * Targets the WP admin menu, so it only takes effect through the <head>
+ * copy of this stylesheet (Dashboard.php), not the Shadow DOM <link>.
+ * The `#adminmenu` prefix outranks core's `.wp-submenu a` colour rules.
+ */
+#toplevel_page_wepos .wepos-premium-menu-icon {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+#adminmenu #toplevel_page_wepos .wp-submenu a.wepos-premium-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#adminmenu #toplevel_page_wepos .wp-submenu a.wepos-premium-menu-item,
+#adminmenu #toplevel_page_wepos .wp-submenu a.wepos-premium-menu-item:hover,
+#adminmenu #toplevel_page_wepos .wp-submenu a.wepos-premium-menu-item:focus,
+#adminmenu #toplevel_page_wepos .wp-submenu li.wepos-premium-menu-item.current a.wepos-premium-menu-item {
+    color: #ffb900;
+}

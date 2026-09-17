@@ -24,7 +24,9 @@ const CustomerNote = forwardRef<CustomerNoteHandle, CustomerNoteProps>(({
 }, ref) => {
   const [isVisible, setIsVisible] = useState(false);
   const [noteText, setNoteText] = useState('');
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // plugin-ui's `Textarea` is a plain function component, so it cannot take a
+  // ref — reach the field through its wrapper instead.
+  const fieldRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useImperativeHandle(ref, () => ({
@@ -33,9 +35,9 @@ const CustomerNote = forwardRef<CustomerNoteHandle, CustomerNoteProps>(({
 
   // Focus textarea when popover opens
   useEffect(() => {
-    if (isVisible && textareaRef.current) {
+    if (isVisible) {
       setTimeout(() => {
-        textareaRef.current?.focus();
+        fieldRef.current?.querySelector('textarea')?.focus();
       }, 100);
     }
   }, [isVisible]);
@@ -64,23 +66,24 @@ const CustomerNote = forwardRef<CustomerNoteHandle, CustomerNoteProps>(({
   return (
     <div className={`inline-block ${className || ''}`}>
       <Popover open={isVisible} onOpenChange={setIsVisible}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className="border-border bg-muted text-muted-foreground hover:bg-accent"
-          >
-            {__('Add Note', 'wepos')}
-          </Button>
+        <PopoverTrigger
+          render={
+            <Button
+              variant="outline"
+              className="border-border bg-muted text-muted-foreground hover:bg-accent"
+            />
+          }
+        >
+          {__('Add Note', 'wepos')}
         </PopoverTrigger>
 
         <PopoverContent className="w-80 p-4" align="start">
           <form onSubmit={handleAddNote} className="flex flex-col gap-3">
-            <div>
+            <div ref={fieldRef}>
               <Label htmlFor="customer-note" className="mb-2 block">
                 {__('Customer Note', 'wepos')}
               </Label>
               <Textarea
-                ref={textareaRef}
                 id="customer-note"
                 value={noteText}
                 onChange={(e) => setNoteText(e.target.value)}
