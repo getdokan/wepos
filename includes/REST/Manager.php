@@ -158,10 +158,6 @@ class Manager {
      * @return void
      */
     public function validate_item_stock_before_order( $order, $request, $creating ) {
-        if ( ! $creating ) {
-            return $order;
-        }
-
         $items = $order->get_items();
 
         foreach ( $items as $item ) {
@@ -179,7 +175,8 @@ class Manager {
                 return $order;
             }
 
-            $stock_quantity = $product->get_stock_quantity();
+            // Stock this order already took (held / updated orders) is still available to it.
+            $stock_quantity = $product->get_stock_quantity() + (int) $item->get_meta( '_reduced_stock' );
             $order_quantity = $item->get_quantity();
 
             if ( $order_quantity > $stock_quantity ) {
