@@ -234,10 +234,14 @@ class Manager {
         // Gross totals are only posted explicitly; payloads without them (legacy
         // Vue frontend) already carry WC-derived net totals.
         $posts_gross_totals = false;
+        $posted_ids         = [];
         foreach ( (array) $request['line_items'] as $posted_item ) {
             if ( is_array( $posted_item ) && isset( $posted_item['total'] ) ) {
                 $posts_gross_totals = true;
-                break;
+
+                if ( ! empty( $posted_item['id'] ) ) {
+                    $posted_ids[] = absint( $posted_item['id'] );
+                }
             }
         }
 
@@ -246,6 +250,12 @@ class Manager {
         }
 
         foreach ( $order->get_items() as $item ) {
+            // Only net lines posted in this request (by id, or new unsaved lines);
+            // untouched lines of a partial update already hold net totals.
+            if ( $item->get_id() && ! in_array( $item->get_id(), $posted_ids, true ) ) {
+                continue;
+            }
+
             $product   = $item->get_product();
             $tax_class = $item->get_tax_class();
 
