@@ -1,0 +1,724 @@
+# Copyright (C) 2025 weDevs
+# This file is distributed under the GPL2.
+msgid ""
+msgstr ""
+"Project-Id-Version: nósPDV - Ponto de Venda (PDV) para WooCommerce 1.3.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wepos\n"
+"POT-Creation-Date: 2025-05-05 23:31:30-03:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2025-MO-DA HO:MI+ZONE\n"
+"Last-Translator: jjmmbb\n"
+"Language-Team: Português (Brasil) <LL@li.org>\n"
+"X-Generator: wp-vue-i18n 1.1.4\n"
+
+#: assets/src/admin/components/ColorPicker.vue:9
+msgid "Select Color"
+msgstr "Selecione a Cor"
+
+#: assets/src/admin/components/ColorPicker.vue:25
+msgid "Clear"
+msgstr "Limar"
+
+#: assets/src/admin/components/ColorPicker.vue:31
+msgid "Close"
+msgstr "Fechar"
+
+#: assets/src/admin/components/Fields.vue:167
+msgid "Active"
+msgstr "Ativo"
+
+#: assets/src/admin/components/Fields.vue:171
+#: assets/src/admin/components/Settings.vue:136
+msgid "Select"
+msgstr "Selecionar"
+
+#: assets/src/admin/components/Settings.vue:3 includes/Admin/Admin.php:32
+msgid "Settings"
+msgstr "Ajustes"
+
+#: assets/src/admin/components/Settings.vue:8
+msgid "Dismiss this notice."
+msgstr "Ignore este aviso."
+
+#: assets/src/admin/components/Settings.vue:38
+msgid "Save Changes"
+msgstr "Salvar Alterações"
+
+#: assets/src/admin/components/Settings.vue:134
+msgid "Choose your file"
+msgstr "Escolhe seu arquivo"
+
+#: assets/src/admin/components/TextEditor.vue:125
+#: assets/src/admin/components/TextEditor.vue:132
+#: assets/src/admin/components/TextEditor.vue:137
+msgid "Select an image"
+msgstr "Selecione uma imagem"
+
+#: assets/src/admin/components/TextEditor.vue:180
+msgid "Please select an image,"
+msgstr "Por favor, selecione uma imagem,"
+
+#: assets/src/frontend/components/CustomerNote.vue:4
+#: assets/src/frontend/components/CustomerNote.vue:8
+msgid "Add Note"
+msgstr "Adicionar Nota"
+
+#: assets/src/frontend/components/CustomerSearch.vue:27
+msgid "Search customer"
+msgstr "Procurar Cliente"
+
+#: assets/src/frontend/components/CustomerSearch.vue:44
+msgid "No customer found"
+msgstr "Nenhum cliente encontrado"
+
+#: assets/src/frontend/components/CustomerSearch.vue:48
+#: assets/src/frontend/components/ProductSearch.vue:39
+msgid "to navigate"
+msgstr "para navegar"
+
+#: assets/src/frontend/components/CustomerSearch.vue:51
+#: assets/src/frontend/components/ProductSearch.vue:42
+msgid "to select"
+msgstr "para selecionar"
+
+#: assets/src/frontend/components/CustomerSearch.vue:54
+#: assets/src/frontend/components/ProductSearch.vue:45
+msgid "to dismiss"
+msgstr "para ignorar"
+
+#: assets/src/frontend/components/CustomerSearch.vue:60
+msgid "Add New Customer"
+msgstr "Adicionar Novo Cliente"
+
+#: assets/src/frontend/components/CustomerSearch.vue:71
+msgid "First Name"
+msgstr "Nome"
+
+#: assets/src/frontend/components/CustomerSearch.vue:72
+msgid "Last Name"
+msgstr "Sobrenome"
+
+#: assets/src/frontend/components/CustomerSearch.vue:75
+msgid "Email"
+msgstr "E-mail"
+
+#: assets/src/frontend/components/CustomerSearch.vue:78
+msgid "Address 1"
+msgstr "Endereço"
+
+#: assets/src/frontend/components/CustomerSearch.vue:79
+msgid "Address 2 (optional)"
+msgstr "Bairro"
+
+#: assets/src/frontend/components/CustomerSearch.vue:89
+msgid "Select a country"
+msgstr "Selecione um país"
+
+#: assets/src/frontend/components/CustomerSearch.vue:103
+#: assets/src/frontend/components/CustomerSearch.vue:128
+msgid "No country found"
+msgstr "Nenhum país encontrado"
+
+#: assets/src/frontend/components/CustomerSearch.vue:106
+msgid "Country (optional)"
+msgstr "País (opcional)"
+
+#: assets/src/frontend/components/CustomerSearch.vue:115
+msgid "Select a state"
+msgstr "Selecione um Estado"
+
+#: assets/src/frontend/components/CustomerSearch.vue:133
+msgid "States (optional)"
+msgstr "Estados (opcionais)"
+
+#: assets/src/frontend/components/CustomerSearch.vue:137
+msgid "City (optional)"
+msgstr "Cidade (opcional)"
+
+#: assets/src/frontend/components/CustomerSearch.vue:138
+msgid "Zip/Postal Code (optional)"
+msgstr "CEP (opcional)"
+
+#: assets/src/frontend/components/CustomerSearch.vue:141
+msgid "Phone (optional)"
+msgstr "Telefone (opcional)"
+
+#: assets/src/frontend/components/CustomerSearch.vue:148
+msgid "Add Customer"
+msgstr "Adicionar Cliente"
+
+#: assets/src/frontend/components/CustomerSearch.vue:330
+msgid "Please enter an email address for customer"
+msgstr "Por favor, insira um endereço de e-mail para o cliente"
+
+#: assets/src/frontend/components/FeeKeypad.vue:4
+msgid "Add"
+msgstr "Adicionar"
+
+#: assets/src/frontend/components/Home.vue:16
+msgid "Select a category"
+msgstr "Selecione uma categoria"
+
+#: assets/src/frontend/components/Home.vue:33
+msgid "Not found"
+msgstr "Não encontrado"
+
+#: assets/src/frontend/components/Home.vue:72
+msgid "Sku :"
+msgstr "Sku :"
+
+#: assets/src/frontend/components/Home.vue:76
+#: assets/src/frontend/components/Home.vue:98
+msgid "Price :"
+msgstr "Preço :"
+
+#: assets/src/frontend/components/Home.vue:108
+#: assets/src/frontend/components/ProductSearch.vue:50
+msgid "Select Variations"
+msgstr "Selecione Variações"
+
+#: assets/src/frontend/components/Home.vue:128
+#: assets/src/frontend/components/ProductSearch.vue:70
+msgid "Add Product"
+msgstr "Adicionar Produto"
+
+#: assets/src/frontend/components/Home.vue:136
+msgid "No Product Found"
+msgstr "Nenhum Produto encontrado"
+
+#: assets/src/frontend/components/Home.vue:158
+#: assets/src/frontend/components/Home.vue:235
+msgid "Empty Cart"
+msgstr "Limpar Carrinho"
+
+#: assets/src/frontend/components/Home.vue:159
+msgid "Help"
+msgstr "Ajuda"
+
+#: assets/src/frontend/components/Home.vue:166
+msgid "Logout"
+msgstr "Sair"
+
+#: assets/src/frontend/components/Home.vue:183
+msgid "Product"
+msgstr "Produto"
+
+#: assets/src/frontend/components/Home.vue:184
+msgid "Qty"
+msgstr "Qtd"
+
+#: assets/src/frontend/components/Home.vue:185
+msgid "Price"
+msgstr "Preço"
+
+#: assets/src/frontend/components/Home.vue:221
+msgid "Quantity"
+msgstr "Quantidade"
+
+#: assets/src/frontend/components/Home.vue:248
+#: assets/src/frontend/components/Home.vue:477
+#: assets/src/frontend/components/PrintReceiptHtml.vue:37
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#: assets/src/frontend/components/Home.vue:250
+#: assets/src/frontend/components/Home.vue:479
+#: assets/src/frontend/components/PrintReceiptHtml.vue:39
+msgid "Including Tax"
+msgstr "Incluindo Impostos"
+
+#: assets/src/frontend/components/Home.vue:260
+#: assets/src/frontend/components/Home.vue:292
+#: assets/src/frontend/components/Home.vue:327
+#: assets/src/frontend/components/Home.vue:488
+#: assets/src/frontend/components/Home.vue:501
+#: assets/src/frontend/components/Home.vue:987
+#: assets/src/frontend/components/PrintReceiptHtml.vue:45
+msgid "Discount"
+msgstr "Desconto"
+
+#: assets/src/frontend/components/Home.vue:267
+#: assets/src/frontend/components/Home.vue:299
+msgid "Fee Name"
+msgstr "Nome da Taxa"
+
+#: assets/src/frontend/components/Home.vue:268
+#: assets/src/frontend/components/Home.vue:300
+msgid "Total"
+msgstr "Total"
+
+#: assets/src/frontend/components/Home.vue:270
+#: assets/src/frontend/components/Home.vue:302
+msgid "Taxable"
+msgstr "Tributável"
+
+#: assets/src/frontend/components/Home.vue:275
+#: assets/src/frontend/components/Home.vue:307
+msgid "Apply"
+msgstr "Aplicar"
+
+#: assets/src/frontend/components/Home.vue:276
+#: assets/src/frontend/components/Home.vue:308
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: assets/src/frontend/components/Home.vue:281
+#: assets/src/frontend/components/Home.vue:313
+#: assets/src/frontend/components/Home.vue:328
+#: assets/src/frontend/components/Home.vue:492
+#: assets/src/frontend/components/Home.vue:505
+#: assets/src/frontend/components/Home.vue:1009
+#: assets/src/frontend/components/PrintReceiptHtml.vue:49
+msgid "Fee"
+msgstr "Taxa"
+
+#: assets/src/frontend/components/Home.vue:321
+#: assets/src/frontend/components/PrintReceiptHtml.vue:53
+msgid "Fee Tax"
+msgstr "Taxa de Imposto"
+
+#: assets/src/frontend/components/Home.vue:321
+#: assets/src/frontend/components/Home.vue:511
+#: assets/src/frontend/components/PrintReceiptHtml.vue:53
+msgid "Tax"
+msgstr "Imposto"
+
+#: assets/src/frontend/components/Home.vue:339
+msgid "Pay Now"
+msgstr "Pagar Agora"
+
+#: assets/src/frontend/components/Home.vue:355
+msgid "Sale Completed"
+msgstr "Venda Concluída"
+
+#: assets/src/frontend/components/Home.vue:362
+msgid "New Sale"
+msgstr "Nova Venda"
+
+#: assets/src/frontend/components/Home.vue:372
+msgid "Shortcut Keys"
+msgstr "Atalhos"
+
+#: assets/src/frontend/components/Home.vue:376
+msgid "Search Product"
+msgstr "Procurar Produto"
+
+#: assets/src/frontend/components/Home.vue:380
+msgid "Scan Product"
+msgstr "Scanear Produto"
+
+#: assets/src/frontend/components/Home.vue:384
+msgid "Toggle Product View"
+msgstr "Alternar Visão do Produto"
+
+#: assets/src/frontend/components/Home.vue:388
+msgid "Add Fee in cart"
+msgstr "Adicionar Taxa no carrinho"
+
+#: assets/src/frontend/components/Home.vue:392
+msgid "Add Discount in cart"
+msgstr "Adicionar Desconto no carrinho"
+
+#: assets/src/frontend/components/Home.vue:396
+msgid "Add Customer note"
+msgstr "Adicionar uma nota ao Cliente"
+
+#: assets/src/frontend/components/Home.vue:400
+msgid "Customer Search"
+msgstr "Procurar Cliente"
+
+#: assets/src/frontend/components/Home.vue:404
+msgid "Add new Customer"
+msgstr "Adicionar novo Cliente"
+
+#: assets/src/frontend/components/Home.vue:408
+msgid "Create New Sale"
+msgstr "Criar Nova Venda"
+
+#: assets/src/frontend/components/Home.vue:412
+msgid "Empty your cart"
+msgstr "Limpar seu carrinho"
+
+#: assets/src/frontend/components/Home.vue:416
+msgid "Go to payment receipt"
+msgstr "Ir para o recibo de pagamento"
+
+#: assets/src/frontend/components/Home.vue:420
+#: assets/src/frontend/components/Home.vue:579
+msgid "Process Payment"
+msgstr "Processar Pagamento"
+
+#: assets/src/frontend/components/Home.vue:424
+#: assets/src/frontend/components/PrintReceipt.vue:5
+msgid "Print Receipt"
+msgstr "Imprimir Recibo"
+
+#: assets/src/frontend/components/Home.vue:428
+msgid "Show/Close(Toggle) Help"
+msgstr "Exibir/Fechar(Alternar) Ajuda"
+
+#: assets/src/frontend/components/Home.vue:432
+msgid "Close anything"
+msgstr "Fechar tudo"
+
+#: assets/src/frontend/components/Home.vue:444
+msgid "Sale Summary"
+msgstr "Resumo da Venda"
+
+#: assets/src/frontend/components/Home.vue:515
+#: assets/src/frontend/components/PrintReceiptHtml.vue:57
+msgid "Order Total"
+msgstr "Valor Total"
+
+#: assets/src/frontend/components/Home.vue:519
+#: assets/src/frontend/components/Home.vue:527
+msgid "Pay"
+msgstr "Pagar"
+
+#: assets/src/frontend/components/Home.vue:547
+msgid "No gateway found"
+msgstr "Nenhum gateway encontrado"
+
+#: assets/src/frontend/components/Home.vue:555 includes/Gateways/Cash.php:36
+#: includes/Gateways/Cash.php:58
+msgid "Cash"
+msgstr "Dinheiro"
+
+#: assets/src/frontend/components/Home.vue:563
+msgid "Change money"
+msgstr "Trocar dinheiro"
+
+#: assets/src/frontend/components/Home.vue:751
+#: assets/src/frontend/components/Home.vue:1184
+#: assets/src/frontend/components/Home.vue:1212
+msgid "All categories"
+msgstr "Todas as categorias"
+
+#: assets/src/frontend/components/Home.vue:1107
+msgid "This product is out of stock."
+msgstr "Este produto está fora de estoque."
+
+#: assets/src/frontend/components/Home.vue:1123
+msgid "Product is out of stock!"
+msgstr "Produto está fora de estoque!"
+
+#: assets/src/frontend/components/PrintReceiptHtml.vue:5
+msgid "Order ID"
+msgstr "ID da Compra"
+
+#: assets/src/frontend/components/PrintReceiptHtml.vue:6
+msgid "Order Date"
+msgstr "Data da Compra"
+
+#: assets/src/frontend/components/PrintReceiptHtml.vue:15
+msgid "Tax includes"
+msgstr "Impostos inclusos"
+
+#: assets/src/frontend/components/PrintReceiptHtml.vue:64
+msgid "Payment method"
+msgstr "Forma de pagamento"
+
+#: assets/src/frontend/components/PrintReceiptHtml.vue:69
+msgid "Cash Given"
+msgstr "Notas Recebidas"
+
+#: assets/src/frontend/components/PrintReceiptHtml.vue:73
+msgid "Change Money"
+msgstr "Trocar Dinheiro"
+
+#: assets/src/frontend/components/ProductSearch.vue:35
+msgid "No product found"
+msgstr "Nenhum produto encontrado"
+
+#: assets/src/frontend/components/ProductSearch.vue:120
+msgid "Scan your product"
+msgstr "Scanear seu produto"
+
+#: assets/src/frontend/components/ProductSearch.vue:120
+msgid "Search product by typing"
+msgstr "Procurar produto digitando"
+
+#: assets/src/utils/Mixin.js:98
+msgid "Confirm"
+msgstr "Confirmar"
+
+#: dependencies/Appsero/Insights.php:725
+msgid "Once Weekly"
+msgstr "Semanal"
+
+#: includes/Admin/Admin.php:27
+msgid "WePOS"
+msgstr "NósPDV"
+
+#: includes/Admin/Admin.php:37 includes/Dokan.php:134 includes/Frontend.php:130
+msgid "View POS"
+msgstr "Visualizar PDV"
+
+#: includes/Admin/Admin.php:101
+msgid "Is POS"
+msgstr "É PDV"
+
+#: includes/Admin/LimitedTimePromotion.php:77
+msgid "Get Deals &rarr;"
+msgstr "Obter Ofertas &rarr;"
+
+#: includes/Admin/LimitedTimePromotion.php:162
+msgid "You have no permission to do that"
+msgstr "Você não tem permissão para fazer isso"
+
+#: includes/Admin/LimitedTimePromotion.php:166 includes/Admin/Settings.php:39
+#: includes/Admin/Settings.php:66
+msgid "Invalid nonce"
+msgstr "Nonce inválido"
+
+#: includes/Admin/Products.php:38 includes/Admin/Products.php:69
+msgid "Barcode"
+msgstr "Código de barras"
+
+#: includes/Admin/Products.php:41 includes/Admin/Products.php:72
+msgid "Enter your unique barcode number or text for this product"
+msgstr "Insira seu número de código de barras exclusivo ou texto para este produto"
+
+#: includes/Admin/Settings.php:33
+msgid "You have no permission to get settings value"
+msgstr "Você não tem permissão para obter o valor das configurações"
+
+#: includes/Admin/Settings.php:61
+msgid "You are not authorized to perform this action."
+msgstr "Você não está autorizado a executar esta ação."
+
+#: includes/Admin/Settings.php:72
+msgid "Setting not saved properly"
+msgstr "Configuração não salva corretamente"
+
+#: includes/Admin/Settings.php:89
+msgid "Setting has been saved successfully."
+msgstr "A configuração foi salva com sucesso."
+
+#: includes/Admin/Updates.php:74
+msgid "WePOS Data Update Required"
+msgstr "Atualização de dados do NósPDV necessária"
+
+#: includes/Admin/Updates.php:74
+msgid "We need to update your install to the latest version"
+msgstr "Precisamos atualizar sua instalação para a versão mais recente"
+
+#: includes/Admin/Updates.php:75
+msgid "Run the updater"
+msgstr "Execute o atualizador"
+
+#: includes/Admin/Updates.php:80
+msgid ""
+"It is strongly recommended that you backup your database before proceeding. "
+"Are you sure you wish to run the updater now?"
+msgstr ""
+"É altamente recomendável que você faça backup do seu banco de dados antes de prosseguir. "
+"Tem certeza de que deseja executar o atualizador agora?"
+
+#: includes/Dokan.php:154
+msgid "Show POS menu"
+msgstr "Exibir menu PDV"
+
+#: includes/Dokan.php:155
+msgid "Show POS menu in vendor dashboard"
+msgstr "Exibir menu PDV no painel do fornecedor"
+
+#: includes/Dokan.php:159 includes/functions.php:185
+msgid "Yes"
+msgstr "Sim"
+
+#: includes/Dokan.php:160 includes/functions.php:186
+msgid "No"
+msgstr "Não"
+
+#: includes/Frontend.php:111
+msgid "Point of Sale"
+msgstr "Ponto de Venda"
+
+#: includes/Gateways/Cash.php:37
+msgid "Have your customers pay with cash"
+msgstr "Faça com que seus clientes paguem em dinheiro"
+
+#: includes/Gateways/Cash.php:48
+msgid "Enable/Disable"
+msgstr "Habilitar/Desabilitar"
+
+#: includes/Gateways/Cash.php:49
+msgid "Enable cash gateway"
+msgstr "Habilitar pagamento com dinheiro"
+
+#: includes/Gateways/Cash.php:55
+msgid "Title"
+msgstr "Título"
+
+#: includes/Gateways/Cash.php:57
+msgid "Payment method description that the marchent see in pos checkout"
+msgstr "Descrição do método de pagamento que o comerciante vê ao finalizar PDV"
+
+#: includes/Gateways/Cash.php:62
+msgid "Description"
+msgstr "Descrição"
+
+#: includes/Gateways/Cash.php:64
+msgid "Payment method description that marchent see in pos checkout page"
+msgstr "Descrição do método de pagamento que o comerciante vê na página ao finalizar PDV"
+
+#: includes/Gateways/Cash.php:65
+msgid "Pay with cash"
+msgstr "Pagar com dinheiro"
+
+#: includes/Gateways/Cash.php:103
+msgid "Payment collected via cash"
+msgstr "Pagamento cobrado em dinheiro"
+
+#: includes/Gateways/Cash.php:107
+#. translators: 1: Cash tendered amount 2: Cash change amount.
+msgid "Cash tendered amount: %1$s, Change amount: %2$s"
+msgstr "Valor em dinheiro recebido: %1$s, Valor do troco: %2$s"
+
+#: includes/REST/CustomerController.php:42
+msgid "New user email address."
+msgstr "Novo endereço de email do usuário."
+
+#: includes/REST/CustomerController.php:46
+msgid "New user username."
+msgstr "Novo nome de usuário."
+
+#: includes/REST/CustomerController.php:51
+msgid "New user password."
+msgstr "Nova senha."
+
+#: includes/REST/CustomerController.php:69
+#: includes/REST/CustomerController.php:85
+#: includes/REST/ProductController.php:47
+#: includes/REST/SettingController.php:51 includes/REST/TaxController.php:47
+msgid "Sorry, you are not allowed view this resource."
+msgstr "Desculpe, você não tem permissão para visualizar este recurso."
+
+#: includes/REST/Manager.php:183
+msgid "The item %s already out of stock. Please remove this from cart"
+msgstr "O item %s já está fora de estoque. Por favor, remova-o do carrinho"
+
+#: includes/REST/PaymentController.php:66
+msgid "Sorry, you cannot access this resources."
+msgstr "Desculpe, você não pode acessar este recurso."
+
+#: includes/REST/PaymentController.php:102
+msgid "No order found"
+msgstr "Nenhuma compra encontrada"
+
+#: includes/REST/PaymentController.php:114
+msgid "No payment gateway found for processing this payment"
+msgstr "Nenhum gateway de pagamento encontrado para processar este pagamento"
+
+#: includes/functions.php:132
+msgid "- select -"
+msgstr "- selecione -"
+
+#: includes/functions.php:155
+msgid "General"
+msgstr "Geral"
+
+#: includes/functions.php:160
+msgid "Receipts"
+msgstr "Recibos"
+
+#: includes/functions.php:180
+msgid "Calculate tax for Fee"
+msgstr "Calcular a taxa de imposto"
+
+#: includes/functions.php:181
+msgid "Choose if tax caluclate for fee in POS cart and checkout"
+msgstr "Escolha se o imposto será calculado para a taxa no carrinho do PDV e ao finalizar"
+
+#: includes/functions.php:191
+msgid "Barcode Scanner field"
+msgstr "Campo para Scanear Código de Barras"
+
+#: includes/functions.php:192
+msgid ""
+"Choose your barcode field. If you select <code>Custom Field</code> then you "
+"need to set barcode number manually in product edit page"
+msgstr ""
+"Selecione o campo do código de barras. Se você selecionar <code>Campo Personalizado</code>, "
+"precisará definir o número do código de barras manualmente na página de edição do produto"
+
+#: includes/functions.php:196
+msgid "ID"
+msgstr "Cód"
+
+#: includes/functions.php:197
+msgid "SKU"
+msgstr "SKU"
+
+#: includes/functions.php:198
+msgid "Custom field"
+msgstr "Campo adicional"
+
+#: includes/functions.php:205
+msgid "Order receipt header"
+msgstr "Cabeçalho do recibo do pedido"
+
+#: includes/functions.php:206
+msgid "Enter your order receipt header"
+msgstr "Insira o cabeçalho do recibo do seu pedido"
+
+#: includes/functions.php:212
+msgid "Order receipt footer"
+msgstr ""
+
+#: includes/functions.php:213
+msgid "Enter your order receipt footer text"
+msgstr "Insira o texto do rodapé do recibo do seu pedido"
+
+#: includes/functions.php:215
+msgid "Thank you"
+msgstr "Obrigado"
+
+#: templates/woocommerce-dependency-notice.php:20
+msgid "WooCommerce Missing"
+msgstr "WooCommerce Ausente"
+
+#: templates/woocommerce-dependency-notice.php:29
+#. translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags,
+#. takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags,
+#. leads to plugins.php in admin
+msgid ""
+"%1$swePOS is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active "
+"for wePOS to work. Please %5$sinstall WooCommerce &raquo;%6$s"
+msgstr ""
+"%1$snósPDV está inativo.%2$s O %3$splugin do WooCommerce%4$s precisa estar ativo "
+"para o nósPDV funcionar. Por favor, %5$sinstale o WooCommerce &raquo;%6$s"
+
+#: templates/woocommerce-dependency-notice.php:39
+#. translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags,
+#. takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags,
+#. leads to plugins.php in admin
+msgid ""
+"%1$swePOS is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active "
+"for wePOS to work. Please %5$sactivate WooCommerce &raquo;%6$s"
+msgstr ""
+"%1$snósPDV está inativo.%2$s O %3$splugin do WooCommerce%4$s precisa estar ativo "
+"para o nósPDV funcionar. Por favor, %5$sative o WooCommerce &raquo;%6$s"
+
+#. Plugin Name of the plugin/theme
+msgid "wePOS - Point Of Sale (POS) for WooCommerce"
+msgstr "nósPDV - Ponto de Venda (PDV) para WooCommerce"
+
+#. Plugin URI of the plugin/theme
+msgid "https://wedevs.com/wepos"
+msgstr "https://wedevs.com/wepos"
+
+#. Description of the plugin/theme
+msgid "A beautiful and fast Point of Sale (POS) system for WooCommerce"
+msgstr "Um sistema de Ponto de Venda (PDV) bonito e rápido para WooCommerce"
+
+#. Author of the plugin/theme
+msgid "weDevs"
+msgstr "weDevs"
+
+#. Author URI of the plugin/theme
+msgid "https://wedevs.com/"
+msgstr "https://wedevs.com/"
