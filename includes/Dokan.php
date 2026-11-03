@@ -25,6 +25,7 @@ class Dokan {
 
         add_filter( 'wepos_settings_fields', [ $this, 'add_dokan_settings' ], 11 );
         add_filter( 'wepos_rest_manager_permissions', [ $this, 'manager_permission' ], 10 );
+        add_filter( 'wepos_rest_payment_check_permissions', [ $this, 'payment_permission' ], 10, 3 );
 
         // Vendor-scoped settings overlay/save. Runs at priority 20 so wepos-pro's
         // priority-10 handlers win when installed — core handles vendor-level
@@ -152,6 +153,45 @@ class Dokan {
         }
 
         return $valid;
+    }
+
+    /**
+     * Scope POS payment processing to the current user's vendor.
+     *
+     * wePOS grants `publish_shop_orders` to vendors and vendor staff, so
+     * that capability alone cannot decide who may pay an order. Users
+     * without `manage_woocommerce` may only process payment for orders
+     * that belong to their own vendor.
+     *
+     * @since WEPOS_SINCE
+     *
+     * @param bool                  $valid   Whether the request passed the base checks.
+     * @param \WP_REST_Request|null $request Payment request.
+     * @param \WC_Order|false|null  $order   Order being paid.
+     *
+     * @return bool
+     */
+    public function payment_permission( $valid, $request = null, $order = null ) {
+        if ( ! $valid || current_user_can( 'manage_woocommerce' ) ) {
+            return $valid;
+        }
+
+        $user_id         = get_current_user_id();
+        $vendor_id       = wepos_get_vendor_id_for_user( $user_id );
+        $is_vendor_scope = $vendor_id
+            || dokan_is_user_seller( $user_id )
+            || apply_filters( 'wepos_is_vendor_staff', false, $user_id );
+
+        // Store-level staff (e.g. a cashier of an admin outlet) keep the base check.
+        if ( ! $is_vendor_scope ) {
+            return $valid;
+        }
+
+        if ( ! $vendor_id || ! $order instanceof \WC_Order ) {
+            return false;
+        }
+
+        return (int) dokan_get_seller_id_by_order( $order ) === (int) $vendor_id;
     }
 
     /**
