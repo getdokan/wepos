@@ -164,7 +164,7 @@ class Dokan {
      * vendor. A cart made only of misc items (product ID 0) has no author,
      * which would lock the vendor out of paying their own order.
      *
-     * @since WEPOS_SINCE
+     * @since 2.0.3
      *
      * @param int       $order_id Order ID.
      * @param \WC_Order $order    Order object.
@@ -207,7 +207,7 @@ class Dokan {
      * without `manage_woocommerce` may only process payment for orders
      * that belong to their own vendor.
      *
-     * @since WEPOS_SINCE
+     * @since 2.0.3
      *
      * @param bool                  $valid   Whether the request passed the base checks.
      * @param \WP_REST_Request|null $request Payment request.

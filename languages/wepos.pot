@@ -1,16 +1,16 @@
 # Copyright (c) 2026 weDevs. All Rights Reserved.
 msgid ""
 msgstr ""
-"Project-Id-Version: wePOS - Point Of Sale (POS) for WooCommerce & Dokan 2.0.1\n"
+"Project-Id-Version: wePOS - Point Of Sale (POS) for WooCommerce & Dokan 2.0.3\n"
 "Report-Msgid-Bugs-To: https://wedevs.com/\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-17T07:49:30+00:00\n"
+"POT-Creation-Date: 2026-11-04T05:12:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.11.0\n"
+"X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wepos\n"
 
 #. Plugin Name of the plugin
@@ -53,7 +53,7 @@ msgid "Settings"
 msgstr ""
 
 #: includes/Admin/Admin.php:43
-#: includes/Dokan.php:396
+#: includes/Dokan.php:480
 #: includes/Frontend.php:139
 msgid "View POS"
 msgstr ""
@@ -180,76 +180,77 @@ msgid "POS - Open"
 msgstr ""
 
 #: includes/Common.php:130
+#, php-format
 msgid "POS - Open <span class=\"count\">(%s)</span>"
 msgid_plural "POS - Open <span class=\"count\">(%s)</span>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/Dokan.php:382
+#: includes/Dokan.php:466
 msgid "wePos"
 msgstr ""
 
-#: includes/Dokan.php:418
+#: includes/Dokan.php:502
 msgid "Show POS menu"
 msgstr ""
 
-#: includes/Dokan.php:419
+#: includes/Dokan.php:503
 msgid "Show POS menu in vendor dashboard"
 msgstr ""
 
-#: includes/Dokan.php:423
+#: includes/Dokan.php:507
 #: includes/functions.php:194
 msgid "Yes"
 msgstr ""
 
-#: includes/Dokan.php:424
+#: includes/Dokan.php:508
 #: includes/functions.php:195
 msgid "No"
 msgstr ""
 
-#: includes/Dokan.php:999
+#: includes/Dokan.php:1083
 #: build/wepos-admin-react.js:1
 msgid "Access POS"
 msgstr ""
 
-#: includes/Dokan.php:1000
+#: includes/Dokan.php:1084
 #: build/wepos-admin-react.js:1
 msgid "Manage POS"
 msgstr ""
 
-#: includes/Dokan.php:1001
+#: includes/Dokan.php:1085
 msgid "View General Settings"
 msgstr ""
 
-#: includes/Dokan.php:1002
+#: includes/Dokan.php:1086
 msgid "Edit General Settings"
 msgstr ""
 
-#: includes/Dokan.php:1003
+#: includes/Dokan.php:1087
 msgid "View Tax Settings"
 msgstr ""
 
-#: includes/Dokan.php:1004
+#: includes/Dokan.php:1088
 msgid "Edit Tax Settings"
 msgstr ""
 
-#: includes/Dokan.php:1005
+#: includes/Dokan.php:1089
 msgid "View Barcode Settings"
 msgstr ""
 
-#: includes/Dokan.php:1006
+#: includes/Dokan.php:1090
 msgid "Edit Barcode Settings"
 msgstr ""
 
-#: includes/Dokan.php:1043
+#: includes/Dokan.php:1127
 msgid "wePOS Permissions"
 msgstr ""
 
-#: includes/Dokan.php:1181
+#: includes/Dokan.php:1265
 msgid "Your store currently does not have POS access. Staff toggles under wePOS Permissions will stay disabled until the site administrator enables POS access for your store."
 msgstr ""
 
-#: includes/Dokan.php:1182
+#: includes/Dokan.php:1266
 msgid "Your store cannot manage POS settings. Staff members granted Manage POS here will only be able to view POS content until POS management is enabled for your store."
 msgstr ""
 
@@ -399,6 +400,7 @@ msgstr ""
 
 #. translators: 1: Cash tendered amount 2: Cash change amount.
 #: includes/Gateways/Cash.php:116
+#, php-format
 msgid "Cash tendered amount: %1$s, Change amount: %2$s"
 msgstr ""
 
@@ -408,6 +410,7 @@ msgstr ""
 
 #. translators: 1: Refund amount, 2: Refund reason
 #: includes/Gateways/Cash.php:150
+#, php-format
 msgid "Refunded %1$s - Reason: %2$s"
 msgstr ""
 
@@ -457,19 +460,21 @@ msgstr ""
 msgid "Sorry, you are not allowed to view customers."
 msgstr ""
 
-#: includes/REST/Manager.php:186
+#: includes/REST/Manager.php:183
+#, php-format
 msgid "The item %s already out of stock. Please remove this from cart"
 msgstr ""
 
-#: includes/REST/PaymentController.php:66
-msgid "Sorry, you cannot access this resources."
-msgstr ""
-
-#: includes/REST/PaymentController.php:102
+#: includes/REST/PaymentController.php:76
+#: includes/REST/PaymentController.php:116
 msgid "No order found"
 msgstr ""
 
-#: includes/REST/PaymentController.php:114
+#: includes/REST/PaymentController.php:80
+msgid "Sorry, you cannot access this resources."
+msgstr ""
+
+#: includes/REST/PaymentController.php:128
 msgid "No payment gateway found for processing this payment"
 msgstr ""
 
@@ -1086,11 +1091,13 @@ msgstr ""
 
 #. translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags, takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags, leads to plugins.php in admin
 #: templates/woocommerce-dependency-notice.php:29
+#, php-format
 msgid "%1$swePOS is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active for wePOS to work. Please %5$sinstall WooCommerce &raquo;%6$s"
 msgstr ""
 
 #. translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags, takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags, leads to plugins.php in admin
 #: templates/woocommerce-dependency-notice.php:39
+#, php-format
 msgid "%1$swePOS is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active for wePOS to work. Please %5$sactivate WooCommerce &raquo;%6$s"
 msgstr ""
 
@@ -1499,6 +1506,7 @@ msgstr ""
 
 #. translators: %s: coupon code.
 #: build/wepos-admin-react.js:2
+#, js-format
 msgid "Coupon: %s"
 msgstr ""
 
@@ -1520,6 +1528,7 @@ msgstr ""
 
 #. translators: %s: coupon code.
 #: build/wepos-admin-react.js:3
+#, js-format
 msgid "Get up to 25%% off on the Starter and Business plans. Coupon: %s"
 msgstr ""
 
@@ -1566,12 +1575,14 @@ msgstr ""
 #. translators: %s: wePOS version number
 #: build/wepos-admin-react.js:5
 #: build/wepos-appearance.js:3
+#, js-format
 msgid "Free: %s"
 msgstr ""
 
 #. translators: %s: wePOS Pro version number
 #: build/wepos-admin-react.js:7
 #: build/wepos-appearance.js:5
+#, js-format
 msgid "Pro: %s"
 msgstr ""
 
@@ -1671,6 +1682,7 @@ msgstr ""
 
 #. translators: %1$s: withdraw date, %2$s: withdraw time
 #: build/wepos-components.js:278
+#, js-format
 msgid "%1$s at %2$s"
 msgstr ""
 
@@ -1819,10 +1831,12 @@ msgid "Start typing to search"
 msgstr ""
 
 #: build/wepos-react.js:1
+#, js-format
 msgid "Customer %s created"
 msgstr ""
 
 #: build/wepos-react.js:1
+#, js-format
 msgid "Customer %s updated"
 msgstr ""
 
@@ -1859,10 +1873,12 @@ msgid "Regular Price"
 msgstr ""
 
 #: build/wepos-react.js:1
+#, js-format
 msgid "%s can only be purchased one at a time."
 msgstr ""
 
 #: build/wepos-react.js:1
+#, js-format
 msgid "Not enough stock for %1$s. Only %2$s available."
 msgstr ""
 
@@ -2051,14 +2067,17 @@ msgid "Shipping Tax"
 msgstr ""
 
 #: build/wepos-react.js:1
+#, js-format
 msgid "No product found for barcode %s"
 msgstr ""
 
 #: build/wepos-react.js:1
+#, js-format
 msgid "%s is out of stock"
 msgstr ""
 
 #: build/wepos-react.js:1
+#, js-format
 msgid "%s added to cart"
 msgstr ""
 
@@ -2083,6 +2102,7 @@ msgid "Failed to remove saved order"
 msgstr ""
 
 #: build/wepos-react.js:1
+#, js-format
 msgid "Customer %s selected"
 msgstr ""
 

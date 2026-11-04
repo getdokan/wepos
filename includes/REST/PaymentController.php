@@ -56,7 +56,7 @@ class PaymentController extends \WC_REST_Orders_Controller {
      * current user is allowed to act on.
      *
      * @since 1.0.2
-     * @since WEPOS_SINCE Resolves the order and passes `$request` and `$order` to the permission filter.
+     * @since 2.0.3 Resolves the order and passes `$request` and `$order` to the permission filter.
      *
      * @param \WP_REST_Request $request Full details about the request.
      *

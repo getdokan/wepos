@@ -7,7 +7,7 @@ Tested up to: 6.9.4
 WC requires at least: 10.5.0
 WC tested up to: 10.7.0
 Requires PHP: 7.4
-Stable tag: 2.0.2
+Stable tag: 2.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -162,6 +162,9 @@ wePOS uses the Appsero SDK to collect telemetry data (only with user permission)
 5. Intuitive Checkout
 
 ## Changelog
+
+= v2.0.3 ( November 4, 2026 ) =
+- **fix:** Security fix for Dokan marketplaces: a vendor or vendor staff member can now only take payment for their own store's orders. Before, they could mark other vendors' orders, or the main store's orders, as paid without any payment being collected.
 
 = v2.0.2 ( September 17, 2026 ) =
 - **new:** A new wePOS Pro page in the admin menu showing what the Pro version adds, with annual and lifetime pricing you can switch between.
