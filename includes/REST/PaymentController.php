@@ -50,19 +50,33 @@ class PaymentController extends \WC_REST_Orders_Controller {
     /**
      * Process payment permission callback
      *
+     * Besides the capability check, the order being paid is resolved and
+     * passed to the `wepos_rest_payment_check_permissions` filter so
+     * integrations (e.g. Dokan) can scope the request to orders the
+     * current user is allowed to act on.
+     *
      * @since 1.0.2
+     * @since WEPOS_SINCE Resolves the order and passes `$request` and `$order` to the permission filter.
+     *
+     * @param \WP_REST_Request $request Full details about the request.
      *
      * @return bool|\WP_Error
      *
      */
-    public function payment_permissions_check() {
+    public function payment_permissions_check( $request ) {
         $hasPermission = true;
 
         if ( ! current_user_can( 'publish_shop_orders' ) ) {
             $hasPermission = false;
         }
 
-        if ( ! apply_filters( "wepos_rest_{$this->base}_check_permissions", $hasPermission ) ) {
+        $order = $hasPermission ? wc_get_order( absint( $request['id'] ) ) : false;
+
+        if ( $hasPermission && ! $order instanceof \WC_Order ) {
+            return new \WP_Error( 'wepos_rest_invalid_order', __( 'No order found', 'wepos' ), array( 'status' => 404 ) );
+        }
+
+        if ( ! apply_filters( "wepos_rest_{$this->base}_check_permissions", $hasPermission, $request, $order ) ) {
             return new \WP_Error( 'wepos_rest_cannot_create', __( 'Sorry, you cannot access this resources.', 'wepos' ), array( 'status' => rest_authorization_required_code() ) );
         }
 
