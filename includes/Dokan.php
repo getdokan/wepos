@@ -26,6 +26,7 @@ class Dokan {
         add_filter( 'wepos_settings_fields', [ $this, 'add_dokan_settings' ], 11 );
         add_filter( 'wepos_rest_manager_permissions', [ $this, 'manager_permission' ], 10 );
         add_filter( 'wepos_rest_payment_check_permissions', [ $this, 'payment_permission' ], 10, 3 );
+        add_action( 'woocommerce_new_order', [ $this, 'set_vendor_id_on_pos_order' ], 5, 2 );
 
         // Vendor-scoped settings overlay/save. Runs at priority 20 so wepos-pro's
         // priority-10 handlers win when installed — core handles vendor-level
@@ -153,6 +154,49 @@ class Dokan {
         }
 
         return $valid;
+    }
+
+    /**
+     * Stamp the creating user's vendor on new POS orders.
+     *
+     * Dokan only records the vendor of an order at checkout, so POS orders
+     * created over REST rely on line-item product authors to resolve their
+     * vendor. A cart made only of misc items (product ID 0) has no author,
+     * which would lock the vendor out of paying their own order.
+     *
+     * @since WEPOS_SINCE
+     *
+     * @param int       $order_id Order ID.
+     * @param \WC_Order $order    Order object.
+     *
+     * @return void
+     */
+    public function set_vendor_id_on_pos_order( $order_id, $order = null ) {
+        if ( ! $order instanceof \WC_Order || ! $order->get_meta( '_wepos_is_pos_order' ) ) {
+            return;
+        }
+
+        if ( $order->get_meta( '_dokan_vendor_id' ) ) {
+            return;
+        }
+
+        $vendor_id = wepos_get_vendor_id_for_user();
+
+        if ( ! $vendor_id ) {
+            return;
+        }
+
+        // Never claim an order that carries another vendor's products.
+        foreach ( $order->get_items( 'line_item' ) as $item ) {
+            $product_id = $item->get_product_id();
+
+            if ( $product_id && (int) get_post_field( 'post_author', $product_id ) !== (int) $vendor_id ) {
+                return;
+            }
+        }
+
+        $order->update_meta_data( '_dokan_vendor_id', $vendor_id );
+        $order->save_meta_data();
     }
 
     /**
