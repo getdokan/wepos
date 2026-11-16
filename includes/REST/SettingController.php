@@ -451,6 +451,17 @@ class SettingController extends \WP_REST_Controller {
 			$params['_permissions']
 		);
 
+		// Reset-to-default (restore) actions change store-level options and
+		// must require the manage capability, matching the per-section edit
+		// gating below. access_wepos alone (POS frontend cap) must not trigger them.
+		if ( ! wepos_current_user_can_manage() ) {
+			$restore_currency = false;
+			$restore_tax = false;
+			$restore_default_customer = false;
+			$restore_barcode = false;
+			$restore_pos_settings = false;
+		}
+
 		// Per-section edit gating — silently drop sections the user cannot edit.
 		$user_id = get_current_user_id();
 		foreach ( array_keys( $params ) as $section ) {
